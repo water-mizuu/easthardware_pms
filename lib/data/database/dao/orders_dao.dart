@@ -1,10 +1,10 @@
+import 'package:easthardware_pms/data/database/dao/dao_base.dart';
 import 'package:easthardware_pms/data/database/database_helper.dart';
 import 'package:easthardware_pms/domain/models/order.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
-abstract class OrdersDao {
-  OrdersDao._();
-  factory OrdersDao([DatabaseHelper? databaseHelper]) {
+abstract interface class OrdersDao {
+  factory OrdersDao(DatabaseHelper? databaseHelper) {
     return OrdersDaoImpl._(databaseHelper);
   }
   Future<List<Order>> getAllOrders();
@@ -25,15 +25,12 @@ abstract class OrdersDao {
   Future<int> getTotalOrderCount();
 }
 
-class OrdersDaoImpl extends OrdersDao {
-  final DatabaseHelper _databaseHelper;
-  OrdersDaoImpl._([DatabaseHelper? databaseHelper])
-      : _databaseHelper = databaseHelper ?? DatabaseHelper(),
-        super._();
+final class OrdersDaoImpl extends DaoBase implements OrdersDao {
+  OrdersDaoImpl._(super.databaseHelper);
 
   @override
   Future<void> deleteOrder(int id) async {
-    final db = await _databaseHelper.database;
+    final db = await databaseHelper.database;
     await db.delete(
       'orders',
       where: 'id = ?',
@@ -43,7 +40,7 @@ class OrdersDaoImpl extends OrdersDao {
 
   @override
   Future<List<Order>> getAllOrders() async {
-    final db = await _databaseHelper.database;
+    final db = await databaseHelper.database;
     final List<Map<String, dynamic>> maps = await db.query('orders');
     return List.generate(maps.length, (i) {
       return Order.fromMap(maps[i]);
@@ -52,7 +49,7 @@ class OrdersDaoImpl extends OrdersDao {
 
   @override
   Future<Order?> getOrderById(int id) async {
-    final db = await _databaseHelper.database;
+    final db = await databaseHelper.database;
     final List<Map<String, dynamic>> maps = await db.query(
       'orders',
       where: 'id = ?',
@@ -66,7 +63,7 @@ class OrdersDaoImpl extends OrdersDao {
 
   @override
   Future<List<Order>> getOrdersByAmountDue(double minAmount, double maxAmount) async {
-    final db = await _databaseHelper.database;
+    final db = await databaseHelper.database;
     final List<Map<String, dynamic>> maps = await db.query(
       'orders',
       where: 'amount_due BETWEEN ? AND ?',
@@ -79,7 +76,7 @@ class OrdersDaoImpl extends OrdersDao {
 
   @override
   Future<List<Order>> getOrdersByCreatorId(int creatorId) async {
-    final db = await _databaseHelper.database;
+    final db = await databaseHelper.database;
     final List<Map<String, dynamic>> maps = await db.query(
       'orders',
       where: 'creator_id = ?',
@@ -92,7 +89,7 @@ class OrdersDaoImpl extends OrdersDao {
 
   @override
   Future<List<Order>> getOrdersByDateRange(DateTime startDate, DateTime endDate) async {
-    final db = await _databaseHelper.database;
+    final db = await databaseHelper.database;
     final List<Map<String, dynamic>> maps = await db.query(
       'orders',
       where: 'order_date BETWEEN ? AND ?',
@@ -105,7 +102,7 @@ class OrdersDaoImpl extends OrdersDao {
 
   @override
   Future<List<Order>> getOrdersByExpenseType(int expenseType) async {
-    final db = await _databaseHelper.database;
+    final db = await databaseHelper.database;
     final List<Map<String, dynamic>> maps = await db.query(
       'orders',
       where: 'expense_type = ?',
@@ -118,7 +115,7 @@ class OrdersDaoImpl extends OrdersDao {
 
   @override
   Future<List<Order>> getOrdersByPayeeName(String payeeName) async {
-    final db = await _databaseHelper.database;
+    final db = await databaseHelper.database;
     final List<Map<String, dynamic>> maps = await db.query(
       'orders',
       where: 'payee_name = ?',
@@ -131,7 +128,7 @@ class OrdersDaoImpl extends OrdersDao {
 
   @override
   Future<List<Order>> getOrdersByPaymentMethod(int paymentMethod) async {
-    final db = await _databaseHelper.database;
+    final db = await databaseHelper.database;
     final List<Map<String, dynamic>> maps = await db.query(
       'orders',
       where: 'payment_method = ?',
@@ -144,7 +141,7 @@ class OrdersDaoImpl extends OrdersDao {
 
   @override
   Future<List<Order>> getOrdersByProductNames(List<String> productNames) async {
-    final db = await _databaseHelper.database;
+    final db = await databaseHelper.database;
     final List<Map<String, dynamic>> maps = await db.rawQuery(
       'SELECT DISTINCT orders.* FROM orders '
       'JOIN order_products ON orders.id = order_products.order_id '
@@ -157,7 +154,7 @@ class OrdersDaoImpl extends OrdersDao {
 
   @override
   Future<Order> insertOrder(Order order) async {
-    final db = await _databaseHelper.database;
+    final db = await databaseHelper.database;
     final id = await db.insert(
       'insert',
       order.toMap(),
@@ -168,7 +165,7 @@ class OrdersDaoImpl extends OrdersDao {
 
   @override
   Future<Order> updateOrder(Order order) async {
-    final db = await _databaseHelper.database;
+    final db = await databaseHelper.database;
     await db.update(
       'orders',
       order.toMap(),
@@ -180,7 +177,7 @@ class OrdersDaoImpl extends OrdersDao {
 
   @override
   Future<Order?> getOrderByUid(String uid) async {
-    final db = await _databaseHelper.database;
+    final db = await databaseHelper.database;
     final List<Map<String, dynamic>> maps = await db.query(
       'orders',
       where: 'uid = ?',
@@ -194,7 +191,7 @@ class OrdersDaoImpl extends OrdersDao {
 
   @override
   Future<int> getTotalAmountDue() async {
-    final db = await _databaseHelper.database;
+    final db = await databaseHelper.database;
     final List<Map<String, dynamic>> maps = await db.rawQuery(
       'SELECT SUM(amount_due) as total FROM orders',
     );
@@ -206,7 +203,7 @@ class OrdersDaoImpl extends OrdersDao {
 
   @override
   Future<int> getTotalOrderCount() async {
-    final db = await _databaseHelper.database;
+    final db = await databaseHelper.database;
     final List<Map<String, dynamic>> maps = await db.rawQuery(
       'SELECT COUNT(*) as total FROM orders',
     );

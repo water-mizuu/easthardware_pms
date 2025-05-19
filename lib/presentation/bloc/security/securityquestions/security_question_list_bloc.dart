@@ -1,7 +1,7 @@
 import 'package:bloc/bloc.dart';
-import 'package:easthardware_pms/data/repository/security_question_repository.dart';
 import 'package:easthardware_pms/domain/enums/enums.dart';
 import 'package:easthardware_pms/domain/models/security_question.dart';
+import 'package:easthardware_pms/domain/repository/security_question_repository.dart';
 import 'package:equatable/equatable.dart';
 
 part 'security_question_list_event.dart';
@@ -16,7 +16,7 @@ class SecurityQuestionListBloc extends Bloc<SecurityQuestionListEvent, SecurityQ
     on<DeleteSecurityQuestionEvent>(_onDeleteSecurityQuestion);
   }
 
-  final SecurityQuestionRepositoryImpl _repository;
+  final SecurityQuestionRepository _repository;
 
   void _onFetchSecurityQuestions(
       FetchSecurityQuestionsEvent event, Emitter<SecurityQuestionListState> emit) async {

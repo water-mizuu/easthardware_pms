@@ -1,7 +1,7 @@
 import 'package:bloc/bloc.dart';
-import 'package:easthardware_pms/data/repository/product_repository.dart';
 import 'package:easthardware_pms/domain/enums/enums.dart';
 import 'package:easthardware_pms/domain/models/product.dart';
+import 'package:easthardware_pms/domain/repository/product_repository.dart';
 import 'package:equatable/equatable.dart';
 
 part 'product_list_event.dart';
@@ -15,17 +15,20 @@ class ProductListBloc extends Bloc<ProductListEvent, ProductListState> {
     on<UpdateProductEvent>(_onUpdate);
     on<DeleteProductEvent>(_onDelete);
   }
-  final ProductRepositoryImpl _repository;
+  final ProductRepository _repository;
 
   void _onLoad(LoadAllProductsEvent event, Emitter emit) async {
     emit(state.copyWith(status: DataStatus.loading));
     try {
-      emit(state.copyWith(
+      emit(
+        state.copyWith(
           allProducts: await _repository.getAllProducts(),
           lowStockProducts: await _repository.getLowStockProducts(),
           fastMovingProducts: await _repository.getFastMovingProducts(),
           deadStockProducts: await _repository.getDeadStockProducts(),
-          status: DataStatus.success));
+          status: DataStatus.success,
+        ),
+      );
     } catch (e) {
       emit(state.copyWith(status: DataStatus.error));
     }
@@ -34,12 +37,15 @@ class ProductListBloc extends Bloc<ProductListEvent, ProductListState> {
   void _onReloadAllProducts(ReloadAllProductsEvent event, Emitter emit) async {
     emit(state.copyWith(status: DataStatus.loading));
     try {
-      emit(state.copyWith(
+      emit(
+        state.copyWith(
           allProducts: await _repository.getAllProducts(),
           lowStockProducts: await _repository.getLowStockProducts(),
           fastMovingProducts: await _repository.getFastMovingProducts(),
           deadStockProducts: await _repository.getDeadStockProducts(),
-          status: DataStatus.success));
+          status: DataStatus.success,
+        ),
+      );
     } catch (e) {
       emit(state.copyWith(status: DataStatus.error));
     }
@@ -62,11 +68,13 @@ class ProductListBloc extends Bloc<ProductListEvent, ProductListState> {
       if (event.product.quantity <= event.product.criticalLevel) {
         lowStockProducts.add(event.product);
       }
-      emit(state.copyWith(
-        allProducts: products,
-        lowStockProducts: lowStockProducts,
-        status: DataStatus.success,
-      ));
+      emit(
+        state.copyWith(
+          allProducts: products,
+          lowStockProducts: lowStockProducts,
+          status: DataStatus.success,
+        ),
+      );
     } catch (e) {
       emit(state.copyWith(status: DataStatus.error));
     }
@@ -76,8 +84,9 @@ class ProductListBloc extends Bloc<ProductListEvent, ProductListState> {
     emit(state.copyWith(status: DataStatus.loading));
 
     try {
-      final updatedProduct = event.product
-          .copyWith(isBelowCriticalLevel: event.product.quantity <= event.product.criticalLevel);
+      final updatedProduct = event.product.copyWith(
+        isBelowCriticalLevel: event.product.quantity <= event.product.criticalLevel,
+      );
       await _repository.updateProduct(updatedProduct);
 
       final updatedProducts = List<Product>.from(state.allProducts);
@@ -88,11 +97,13 @@ class ProductListBloc extends Bloc<ProductListEvent, ProductListState> {
 
       final updatedLowStock = updatedProducts.where((p) => p.isBelowCriticalLevel == true).toList();
 
-      emit(state.copyWith(
-        allProducts: updatedProducts,
-        lowStockProducts: updatedLowStock,
-        status: DataStatus.success,
-      ));
+      emit(
+        state.copyWith(
+          allProducts: updatedProducts,
+          lowStockProducts: updatedLowStock,
+          status: DataStatus.success,
+        ),
+      );
     } catch (e) {
       print("Error updating product: $e");
       emit(state.copyWith(status: DataStatus.error));
@@ -103,12 +114,15 @@ class ProductListBloc extends Bloc<ProductListEvent, ProductListState> {
     emit(state.copyWith(status: DataStatus.loading));
     try {
       await _repository.deleteProduct(event.productId);
-      emit(state.copyWith(
+      emit(
+        state.copyWith(
           allProducts: await _repository.getAllProducts(),
           lowStockProducts: await _repository.getLowStockProducts(),
           fastMovingProducts: await _repository.getFastMovingProducts(),
           deadStockProducts: await _repository.getDeadStockProducts(),
-          status: DataStatus.success));
+          status: DataStatus.success,
+        ),
+      );
     } catch (e) {
       emit(state.copyWith(status: DataStatus.error));
     }

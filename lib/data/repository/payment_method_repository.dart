@@ -1,10 +1,14 @@
 import 'package:easthardware_pms/data/database/dao/payment_methods_dao.dart';
+import 'package:easthardware_pms/data/database/database_helper.dart';
 import 'package:easthardware_pms/domain/errors/exceptions.dart';
 import 'package:easthardware_pms/domain/models/payment_method.dart';
 import 'package:easthardware_pms/domain/repository/payment_method_repository.dart';
 
-class PaymentMethodRepositoryImpl extends PaymentMethodRepository {
-  final PaymentMethodsDao paymentMethodsDao = PaymentMethodsDao();
+class PaymentMethodRepositoryImpl implements PaymentMethodRepository {
+  PaymentMethodRepositoryImpl(DatabaseHelper? databaseHelper)
+      : paymentMethodsDao = PaymentMethodsDao(databaseHelper);
+
+  final PaymentMethodsDao paymentMethodsDao;
 
   @override
   Future<void> deletePaymentMethod(int id) {

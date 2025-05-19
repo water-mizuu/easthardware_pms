@@ -1,7 +1,7 @@
 import 'package:bloc/bloc.dart';
-import 'package:easthardware_pms/data/repository/user_repository.dart';
 import 'package:easthardware_pms/domain/enums/enums.dart';
 import 'package:easthardware_pms/domain/models/user.dart';
+import 'package:easthardware_pms/domain/repository/user_repository.dart';
 import 'package:equatable/equatable.dart';
 
 part 'user_list_event.dart';
@@ -14,7 +14,7 @@ class UserListBloc extends Bloc<UserListEvent, UserListState> {
     on<UpdateUserEvent>(_onUpdateUser);
     on<DeleteUserEevnt>(_onDeleteUser);
   }
-  final UserRepositoryImpl _repository;
+  final UserRepository _repository;
 
   void _onLoadUsers(LoadAllUsersEvent event, Emitter<UserListState> emit) async {
     try {
@@ -60,8 +60,10 @@ class UserListBloc extends Bloc<UserListEvent, UserListState> {
     emit(state.copyWith(status: DataStatus.loading));
     try {
       await _repository.deleteUser(event.user);
-      final updatedUsers =
-          List<User>.from(state.users).where((user) => user.id != event.user.id).toList();
+      final updatedUsers = state.users //
+          .where((user) => user.id != event.user.id)
+          .toList();
+
       emit(state.copyWith(users: updatedUsers, status: DataStatus.success));
     } catch (e) {
       print('Error deleting user $e');

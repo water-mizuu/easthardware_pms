@@ -1,5 +1,5 @@
 import 'dart:async';
-// import 'package:easthardware_pms/data/database/tables/products_table.dart';
+
 import 'package:easthardware_pms/data/database/tables/categories_table.dart';
 import 'package:easthardware_pms/data/database/tables/expense_types_table.dart';
 import 'package:easthardware_pms/data/database/tables/invoice_products_table.dart';
@@ -13,9 +13,9 @@ import 'package:easthardware_pms/data/database/tables/units_table.dart';
 import 'package:easthardware_pms/data/database/tables/user_logs_table.dart';
 import 'package:easthardware_pms/data/database/tables/users_table.dart';
 import 'package:easthardware_pms/data/database/views/product_flags_view.dart';
-import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 // ignore: depend_on_referenced_packages
 import 'package:path/path.dart';
+import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 /// database_helper.dart
 /// This file contains the DatabaseHelper class

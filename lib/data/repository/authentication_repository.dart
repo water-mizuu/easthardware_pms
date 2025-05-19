@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:typed_data';
 
+import 'package:easthardware_pms/data/database/database_helper.dart';
 import 'package:easthardware_pms/data/repository/user_repository.dart';
 import 'package:easthardware_pms/domain/errors/exceptions.dart';
 import 'package:easthardware_pms/domain/models/user.dart';
@@ -14,8 +15,11 @@ import 'package:easthardware_pms/domain/services/cryptography_service.dart';
 /// The AuthenticationRepository implementation shall be responsible for defining authentication domain functions (e.g. Logging in, Logging out) that have additional logic aside from interacting with the database.
 ///
 
-class AuthenticationRepositoryImpl extends AuthenticationRepository {
-  final UserRepository _userRepository = UserRepositoryImpl();
+class AuthenticationRepositoryImpl implements AuthenticationRepository {
+  AuthenticationRepositoryImpl(DatabaseHelper? databaseHelper)
+      : _userRepository = UserRepositoryImpl(databaseHelper);
+
+  final UserRepository _userRepository;
 
   /// Attempts to log in a user with inputted credentials
   /// @param [username] The string username of the user
@@ -25,7 +29,7 @@ class AuthenticationRepositoryImpl extends AuthenticationRepository {
   ///
   @override
   Future<User> logIn({required String username, required String password}) async {
-    _validateInput(username, password);
+    // _validateInput(username, password);
     // Check if the user exists in the database
     final User? user = await _userRepository.getUserByUsername(username);
 
@@ -48,17 +52,17 @@ class AuthenticationRepositoryImpl extends AuthenticationRepository {
   @override
   void dispose() {}
 
-  void _validateInput(String username, String password) {
-    if (username.isEmpty || password.isEmpty) {
-      throw AuthenticationException('Username and password cannot be empty');
-    }
-    if (username.length < 3 || password.length < 6) {
-      throw AuthenticationException(
-          'Username must be at least 3 characters and password must be at least 6 characters');
-    }
-    if (username.length > 20 || password.length > 20) {
-      throw AuthenticationException(
-          'Username must be at most 20 characters and password must be at most 20 characters');
-    }
-  }
+  // void _validateInput(String username, String password) {
+  //   if (username.isEmpty || password.isEmpty) {
+  //     throw AuthenticationException('Username and password cannot be empty');
+  //   }
+  //   if (username.length < 3 || password.length < 6) {
+  //     throw AuthenticationException(
+  //         'Username must be at least 3 characters and password must be at least 6 characters');
+  //   }
+  //   if (username.length > 20 || password.length > 20) {
+  //     throw AuthenticationException(
+  //         'Username must be at most 20 characters and password must be at most 20 characters');
+  //   }
+  // }
 }

@@ -41,8 +41,11 @@ mixin UserFormValidator on Widget {
     if (value.length < 6) {
       return 'Password must be at least 6 characters long';
     }
-    if (!RegExp(r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{6,}$')
-        .hasMatch(value)) {
+
+    if (!value.contains(RegExp(r'[a-z]')) ||
+        !value.contains(RegExp(r'[A-Z]')) ||
+        !value.contains(RegExp(r'[0-9]')) ||
+        !value.contains(RegExp(r'[@$!%*?&]'))) {
       return 'Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character';
     }
     return null;

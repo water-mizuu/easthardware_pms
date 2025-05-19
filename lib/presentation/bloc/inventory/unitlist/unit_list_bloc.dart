@@ -1,7 +1,7 @@
 import 'package:bloc/bloc.dart';
-import 'package:easthardware_pms/data/repository/unit_repository.dart';
 import 'package:easthardware_pms/domain/enums/enums.dart';
 import 'package:easthardware_pms/domain/models/unit.dart';
+import 'package:easthardware_pms/domain/repository/unit_repository.dart';
 import 'package:equatable/equatable.dart';
 
 part 'unit_list_event.dart';
@@ -17,7 +17,7 @@ class UnitListBloc extends Bloc<UnitListEvent, UnitListState> {
     on<FilterUnitsEvent>(_onFilter);
   }
 
-  final UnitRepositoryImpl _repository;
+  final UnitRepository _repository;
 
   void _onLoad(LoadUnitsEvent event, Emitter emit) async {
     emit(state.copyWith(status: DataStatus.loading));

@@ -1,12 +1,14 @@
 import 'package:easthardware_pms/data/database/dao/units_dao.dart';
+import 'package:easthardware_pms/data/database/database_helper.dart';
 import 'package:easthardware_pms/domain/errors/exceptions.dart';
 import 'package:easthardware_pms/domain/models/unit.dart';
 import 'package:easthardware_pms/domain/repository/unit_repository.dart';
 
-class UnitRepositoryImpl extends UnitRepository {
-  UnitRepositoryImpl() : super();
+class UnitRepositoryImpl implements UnitRepository {
+  UnitRepositoryImpl(DatabaseHelper? databaseHelper) : _unitsDao = UnitsDao(databaseHelper);
 
-  final UnitsDao _unitsDao = UnitsDao();
+  final UnitsDao _unitsDao;
+
   @override
   Future<void> deleteUnit(int id) {
     try {

@@ -1,9 +1,14 @@
 import 'package:easthardware_pms/data/database/dao/invoices_dao.dart';
+import 'package:easthardware_pms/data/database/database_helper.dart';
 import 'package:easthardware_pms/domain/models/invoice.dart';
 import 'package:easthardware_pms/domain/repository/invoice_repository.dart';
 
-class InvoiceRepositoryImpl extends InvoiceRepository {
-  final InvoicesDao _invoicesDao = InvoicesDao();
+class InvoiceRepositoryImpl implements InvoiceRepository {
+  InvoiceRepositoryImpl(DatabaseHelper? databaseHelper) //
+      : _invoicesDao = InvoicesDao(databaseHelper);
+
+  final InvoicesDao _invoicesDao;
+
   @override
   Future<void> deleteInvoice(Invoice invoice) async {
     try {

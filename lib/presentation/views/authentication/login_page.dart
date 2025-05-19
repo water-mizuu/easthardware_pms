@@ -6,57 +6,120 @@ import 'package:easthardware_pms/presentation/bloc/security/userloglist/user_log
 import 'package:easthardware_pms/presentation/router/app_routes.dart';
 import 'package:easthardware_pms/presentation/views/authentication/login_form.dart';
 import 'package:fluent_ui/fluent_ui.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
+import 'package:provider/single_child_widget.dart';
 
-class LoginPage extends StatelessWidget {
+class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (context) => LoginFormBloc(),
-      child: Builder(builder: (context) {
-        return BlocListener<AuthenticationBloc, AuthenticationState>(
-          bloc: context.read<AuthenticationBloc>(),
-          listener: (_, state) {
-            final authState = context.read<AuthenticationBloc>().state;
-            final status = authState.status;
-            final user = authState.user;
+  State<LoginPage> createState() => _LoginPageState();
+}
 
-            if (status == AuthenticationStatus.failure && authState.loginAttempts > 3) {
+class _LoginPageState extends State<LoginPage> {
+  late final LoginFormBloc loginFormBloc;
+
+  List<SingleChildWidget> get providers {
+    return [
+      BlocProvider.value(value: loginFormBloc),
+    ];
+  }
+
+  List<BlocListener> get listeners {
+    return [
+      BlocListener<AuthenticationBloc, AuthenticationState>(
+        listener: (context, authState) {
+          final status = authState.status;
+          final user = authState.user;
+
+          if (status == AuthenticationStatus.failure) {
+            if (kDebugMode) {
+              print(status);
+            }
+            if (authState.loginAttempts > 3) {
               context.go(AppRoutes.resetPassword);
             }
+          }
 
-            if (status == AuthenticationStatus.success) {
-              if (user?.accessLevel == AccessLevel.administrator) {
-                context.read<NavigationBloc>().add(const NavigationIndexChanged(index: 0));
-                context.go(AppRoutes.admin);
-              } else if (user?.accessLevel == AccessLevel.staff) {
-                context.go(AppRoutes.admin);
-              }
-              context.read<UserLogListBloc>().add(AddLoginEvent(user!));
+          if (status == AuthenticationStatus.success) {
+            if (user?.accessLevel == AccessLevel.administrator) {
+              context.read<NavigationBloc>().add(const NavigationIndexChanged(index: 0));
+              context.go(AppRoutes.admin);
+            } else if (user?.accessLevel == AccessLevel.staff) {
+              context.go(AppRoutes.admin);
             }
-            context.read<LoginFormBloc>().add(LoginFormReturned());
-          },
-          child: ColoredBox(
-            color: Colors.grey[10],
-            child: const Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              mainAxisSize: MainAxisSize.max,
-              children: [
-                Row(
-                  children: [
-                    Spacer(),
-                    Expanded(child: LoginForm()),
-                    Spacer(),
-                  ],
-                ),
-              ],
-            ),
+            context.read<UserLogListBloc>().add(AddLoginEvent(user!));
+          }
+          loginFormBloc.add(LoginFormReturned());
+        },
+      ),
+      BlocListener<AuthenticationBloc, AuthenticationState>(
+        listener: (context, state) {
+          if (state.status == AuthenticationStatus.success) {
+            context.read<LoginFormBloc>().add(LoginFormResetEvent());
+          }
+        },
+      ),
+      BlocListener<LoginFormBloc, LoginFormState>(
+        bloc: loginFormBloc,
+        listener: (context, state) {
+          if (state.status == FormStatus.submitting) {
+            var event = AuthenticationLoginEvent(
+              username: state.username,
+              password: state.password,
+            );
+
+            context.read<AuthenticationBloc>().add(event);
+          }
+        },
+      ),
+    ];
+  }
+
+  @override
+  void initState() {
+    super.initState();
+
+    loginFormBloc = LoginFormBloc();
+  }
+
+  @override
+  void dispose() {
+    loginFormBloc.close();
+
+    super.dispose();
+  }
+
+  Widget buildWidget(BuildContext context) {
+    return ColoredBox(
+      color: Colors.grey[10],
+      child: const Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        mainAxisSize: MainAxisSize.max,
+        children: [
+          Row(
+            children: [
+              Spacer(),
+              Expanded(child: LoginForm()),
+              Spacer(),
+            ],
           ),
-        );
-      }),
+        ],
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return MultiProvider(
+      providers: providers,
+      child: MultiBlocListener(
+        listeners: listeners,
+        child: buildWidget(context),
+      ),
     );
   }
 }

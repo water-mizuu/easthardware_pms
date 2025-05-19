@@ -40,10 +40,13 @@ class PageHeader extends StatelessWidget {
       children: [
         IconButton(
           icon: const Icon(FluentIcons.back),
-          onPressed: () => context.read<NavigationBloc>().add(
-                NavigationIndexChanged(
-                    index: RouteIndexMapper.getIndexFromRoute(AppRoutes.usersPage)!),
-              ),
+          onPressed: () {
+            var event = NavigationIndexChanged(
+              index: RouteIndexMapper.getIndexFromRoute(AppRoutes.usersPage)!,
+            );
+
+            context.read<NavigationBloc>().add(event);
+          },
         ),
         const HeadingText('User Logs'),
       ].withSpacing(() => Spacing.h16),

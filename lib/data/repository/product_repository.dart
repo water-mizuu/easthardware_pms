@@ -1,13 +1,18 @@
 import 'package:easthardware_pms/data/database/dao/categories_dao.dart';
 import 'package:easthardware_pms/data/database/dao/products_dao.dart';
+import 'package:easthardware_pms/data/database/database_helper.dart';
 import 'package:easthardware_pms/domain/errors/exceptions.dart';
 import 'package:easthardware_pms/domain/models/product.dart';
 import 'package:easthardware_pms/domain/repository/product_repository.dart';
 
-class ProductRepositoryImpl extends ProductRepository {
-  ProductRepositoryImpl() : super();
-  final ProductsDao _productsDao = ProductsDao();
-  final CategoriesDao _categoriesDao = CategoriesDao();
+class ProductRepositoryImpl implements ProductRepository {
+  ProductRepositoryImpl(DatabaseHelper? databaseHelper)
+      : _productsDao = ProductsDao(databaseHelper),
+        _categoriesDao = CategoriesDao(databaseHelper);
+
+  final ProductsDao _productsDao;
+  final CategoriesDao _categoriesDao;
+
   @override
   Future<void> deleteProduct(int id) {
     try {

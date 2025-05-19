@@ -15,12 +15,12 @@ class CategoryFormCubit extends Cubit<CategoryFormState> {
     emit(state.copyWith(name: name));
   }
 
-  void onButtonPressed() {
+  void onButtonPressed() async {
     emit(state.copyWith(status: FormStatus.validating));
-    Future.delayed(Duration.zero);
+    await Future.delayed(Duration.zero);
+    if (formKey.currentState?.mounted != true) return;
     if (formKey.currentState case FormState formState when formState.validate()) {
       emit(state.copyWith(status: FormStatus.submitting));
-      print(state.status.toString());
     }
   }
 

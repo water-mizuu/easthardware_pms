@@ -1,4 +1,3 @@
-import 'package:easthardware_pms/domain/enums/enums.dart';
 import 'package:easthardware_pms/presentation/bloc/authentication/loginform/login_form_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/authentication/loginform/login_form_validator.dart';
 import 'package:easthardware_pms/presentation/widgets/spacing.dart';
@@ -82,7 +81,9 @@ class _FormPasswordField extends StatelessWidget with LoginFormValidator {
         TextFormBox(
           obscureText: true,
           validator: validatePassword,
-          onChanged: (value) => context.read<LoginFormBloc>().add(LoginFormPasswordChanged(value)),
+          onChanged: (value) {
+            context.read<LoginFormBloc>().add(LoginFormPasswordChanged(value));
+          },
         ),
       ].withSpacing(() => Spacing.v8),
     );
@@ -92,42 +93,23 @@ class _FormPasswordField extends StatelessWidget with LoginFormValidator {
 class _FormButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    var loginFormBloc = context.read<LoginFormBloc>();
-    var authenticationBloc = context.read<AuthenticationBloc>();
-
-    return BlocListener<LoginFormBloc, LoginFormState>(
-      bloc: loginFormBloc,
-      listener: (context, state) {
-        if (state.status == FormStatus.validating) {
-          var event = AuthenticationLoginEvent(
-            username: state.username,
-            password: state.password,
-          );
-
-          authenticationBloc.add(event);
-        }
-      },
-      child: BlocConsumer<AuthenticationBloc, AuthenticationState>(
-        bloc: authenticationBloc,
-        listener: (context, state) {
-          if (state.status == AuthenticationStatus.success) {
-            loginFormBloc.add(LoginFormResetEvent());
-          }
-        },
-        builder: (context, state) {
-          return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+    return BlocBuilder<AuthenticationBloc, AuthenticationState>(
+      builder: (context, state) {
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
             FilledButton(
               onPressed: state.status != AuthenticationStatus.loading
-                  ? () => loginFormBloc.add(LoginFormButtonPressed())
+                  ? () => context.read<LoginFormBloc>().add(LoginFormButtonPressed())
                   : null,
               child: const Padding(
                 padding: AppPadding.a8,
                 child: ButtonText("Login"),
               ),
             ),
-          ]);
-        },
-      ),
+          ],
+        );
+      },
     );
   }
 }

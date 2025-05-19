@@ -1,10 +1,10 @@
+import 'package:easthardware_pms/data/database/dao/dao_base.dart';
 import 'package:easthardware_pms/data/database/database_helper.dart';
 import 'package:easthardware_pms/domain/models/expense_type.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
-abstract class ExpenseTypesDao {
-  ExpenseTypesDao._();
-  factory ExpenseTypesDao([DatabaseHelper? databaseHelper]) {
+abstract interface class ExpenseTypesDao {
+  factory ExpenseTypesDao(DatabaseHelper? databaseHelper) {
     return ExpenseTypesDaoImpl._(databaseHelper);
   }
   Future<List<ExpenseType>> getAllExpenseTypes();
@@ -19,12 +19,8 @@ abstract class ExpenseTypesDao {
 // For example, using sqflite or any other database library.
 // The implementation would include methods to interact with the database
 // and perform CRUD operations on the expense types.
-class ExpenseTypesDaoImpl extends ExpenseTypesDao {
-  final DatabaseHelper _databaseHelper;
-
-  ExpenseTypesDaoImpl._([DatabaseHelper? databaseHelper])
-      : _databaseHelper = databaseHelper ?? DatabaseHelper(),
-        super._();
+final class ExpenseTypesDaoImpl extends DaoBase implements ExpenseTypesDao {
+  ExpenseTypesDaoImpl._(super.databaseHelper);
 
   /// This method retrieves all expense types from the database.
   /// It returns a list of [ExpenseType] objects.
@@ -32,7 +28,7 @@ class ExpenseTypesDaoImpl extends ExpenseTypesDao {
   ///
   @override
   Future<List<ExpenseType>> getAllExpenseTypes() async {
-    final db = await _databaseHelper.database;
+    final db = await databaseHelper.database;
     final List<Map<String, dynamic>> maps = await db.query('expense_types');
     return List.generate(maps.length, (i) {
       return ExpenseType.fromMap(maps[i]);
@@ -43,7 +39,7 @@ class ExpenseTypesDaoImpl extends ExpenseTypesDao {
   /// It returns an [ExpenseType] object if found, otherwise null.
   @override
   Future<ExpenseType?> getExpenseTypeById(int id) async {
-    final db = await _databaseHelper.database;
+    final db = await databaseHelper.database;
     final List<Map<String, dynamic>> maps = await db.query(
       'expense_types',
       where: 'id = ?',
@@ -61,7 +57,7 @@ class ExpenseTypesDaoImpl extends ExpenseTypesDao {
   /// If the operation fails, it throws an exception.
   @override
   Future<ExpenseType> insertExpenseType(ExpenseType expenseType) async {
-    final db = await _databaseHelper.database;
+    final db = await databaseHelper.database;
     final id = await db.insert(
       'expense_types',
       expenseType.toMap(),
@@ -76,7 +72,7 @@ class ExpenseTypesDaoImpl extends ExpenseTypesDao {
   /// If the operation fails, it throws an exception.
   @override
   Future<ExpenseType> updateExpenseType(ExpenseType expenseType) async {
-    final db = await _databaseHelper.database;
+    final db = await databaseHelper.database;
     await db.update(
       'expense_types',
       expenseType.toMap(),
@@ -92,7 +88,7 @@ class ExpenseTypesDaoImpl extends ExpenseTypesDao {
   /// If the operation fails, it throws an exception.
   @override
   Future<void> deleteExpenseType(int id) async {
-    final db = await _databaseHelper.database;
+    final db = await databaseHelper.database;
     await db.delete(
       'expense_types',
       where: 'id = ?',

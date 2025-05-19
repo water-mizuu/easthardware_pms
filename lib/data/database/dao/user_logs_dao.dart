@@ -1,11 +1,12 @@
+import 'package:easthardware_pms/data/database/dao/dao_base.dart';
 import 'package:easthardware_pms/data/database/database_helper.dart';
 import 'package:easthardware_pms/domain/models/user_log.dart';
 
-abstract class UserLogsDao {
-  UserLogsDao._();
-  factory UserLogsDao([DatabaseHelper? databaseHelper]) {
+abstract interface class UserLogsDao {
+  factory UserLogsDao(DatabaseHelper? databaseHelper) {
     return UserLogsDaoImpl._(databaseHelper);
   }
+
   Future<List<UserLog>> getAllUserLogs();
   Future<UserLog?> getUserLogById(int id);
   Future<UserLog?> getUserLogByUid(String uid);
@@ -16,14 +17,12 @@ abstract class UserLogsDao {
   Future<void> deleteUserLog(UserLog userLog);
 }
 
-class UserLogsDaoImpl extends UserLogsDao {
-  final DatabaseHelper _databaseHelper;
-  UserLogsDaoImpl._([DatabaseHelper? databaseHelper])
-      : _databaseHelper = databaseHelper ?? DatabaseHelper(),
-        super._();
+final class UserLogsDaoImpl extends DaoBase implements UserLogsDao {
+  const UserLogsDaoImpl._(super.databaseHelper);
+
   @override
   Future<void> deleteUserLog(UserLog userLog) async {
-    final database = await _databaseHelper.database;
+    final database = await databaseHelper.database;
     await database.delete(
       'user_logs',
       where: 'id = ?',
@@ -33,7 +32,7 @@ class UserLogsDaoImpl extends UserLogsDao {
 
   @override
   Future<List<UserLog>> getAllUserLogs() async {
-    final database = await _databaseHelper.database;
+    final database = await databaseHelper.database;
     final List<Map<String, dynamic>> maps = await database.query('user_logs');
     return List.generate(maps.length, (i) {
       return UserLog.fromMap(maps[i]);
@@ -42,7 +41,7 @@ class UserLogsDaoImpl extends UserLogsDao {
 
   @override
   Future<UserLog?> getUserLogById(int id) async {
-    final database = await _databaseHelper.database;
+    final database = await databaseHelper.database;
     final List<Map<String, dynamic>> maps = await database.query(
       'user_logs',
       where: 'id = ?',
@@ -54,14 +53,14 @@ class UserLogsDaoImpl extends UserLogsDao {
 
   @override
   Future<UserLog> insertUserLog(UserLog userLog) async {
-    final database = await _databaseHelper.database;
+    final database = await databaseHelper.database;
     final id = await database.insert('user_logs', userLog.toMap());
     return userLog.copyWith(id: id);
   }
 
   @override
   Future<UserLog> updateUserLog(UserLog userLog) async {
-    final database = await _databaseHelper.database;
+    final database = await databaseHelper.database;
     await database.update(
       'user_logs',
       userLog.toMap(),
@@ -73,7 +72,7 @@ class UserLogsDaoImpl extends UserLogsDao {
 
   @override
   Future<List<UserLog>> getUserLogsByUserId(int id) async {
-    final database = await _databaseHelper.database;
+    final database = await databaseHelper.database;
     final maps = await database.query('user_logs', where: 'user_id = ?', whereArgs: [id]);
     return List.generate(maps.length, (i) {
       return UserLog.fromMap(maps[i]);
@@ -82,7 +81,7 @@ class UserLogsDaoImpl extends UserLogsDao {
 
   @override
   Future<List<UserLog>> getUserLogsByEventTime(DateTime start, DateTime end) async {
-    final database = await _databaseHelper.database;
+    final database = await databaseHelper.database;
     final maps = await database.query(
       'user_logs',
       where: 'date(event_time) BETWEEN date(?) AND date(?)',
@@ -95,7 +94,7 @@ class UserLogsDaoImpl extends UserLogsDao {
 
   @override
   Future<UserLog?> getUserLogByUid(String uid) async {
-    final database = await _databaseHelper.database;
+    final database = await databaseHelper.database;
     final maps = await database.query(
       'user_logs',
       where: 'uid = ?',

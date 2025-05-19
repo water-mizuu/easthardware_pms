@@ -1,15 +1,16 @@
 import 'package:bloc/bloc.dart';
-import 'package:easthardware_pms/data/repository/user_log_repository.dart';
 import 'package:easthardware_pms/domain/enums/enums.dart';
 import 'package:easthardware_pms/domain/models/user.dart';
 import 'package:easthardware_pms/domain/models/user_log.dart';
+import 'package:easthardware_pms/domain/repository/user_log_repository.dart';
 import 'package:equatable/equatable.dart';
 
 part 'user_log_list_event.dart';
 part 'user_log_list_state.dart';
 
 class UserLogListBloc extends Bloc<UserLogListEvent, UserLogListState> {
-  final UserLogRepositoryImpl _repository;
+  final UserLogRepository _repository;
+
   UserLogListBloc(this._repository) : super(const UserLogListState()) {
     on<LoadUserLogsEvent>(_onLoadUserLogs);
     on<AddCreateEvent>(_onAddCreateLog);

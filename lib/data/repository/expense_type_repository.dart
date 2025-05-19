@@ -1,11 +1,15 @@
 import 'package:easthardware_pms/data/database/dao/expense_types_dao.dart';
+import 'package:easthardware_pms/data/database/database_helper.dart';
 import 'package:easthardware_pms/domain/errors/exceptions.dart';
 import 'package:easthardware_pms/domain/models/expense_type.dart';
 import 'package:easthardware_pms/domain/repository/expense_type_repository.dart';
 
-class ExpenseTypeRepositoryImpl extends ExpenseTypeRepository {
-  final ExpenseTypesDao _expenseTypeDao = ExpenseTypesDao();
-  ExpenseTypeRepositoryImpl() : super();
+class ExpenseTypeRepositoryImpl implements ExpenseTypeRepository {
+  ExpenseTypeRepositoryImpl(DatabaseHelper? databaseHelper)
+      : _expenseTypeDao = ExpenseTypesDao(databaseHelper);
+
+  final ExpenseTypesDao _expenseTypeDao;
+
   @override
   Future<void> deleteExpenseType(int id) async {
     if (id <= 0) {
