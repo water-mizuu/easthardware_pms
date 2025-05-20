@@ -1,14 +1,22 @@
+import 'package:easthardware_pms/utils/server_channel.dart';
 import 'package:flutter/foundation.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
+/// Represents a database server connection.
+///  Specifically, the database must be on another isolate
+///  which supports invoking methods on the database.
 class Server {
-  bool get isOpen => true;
+  ServerChannel? channel;
+  Server([this.channel]);
 
-  Future<T> invokeMethod<T>(String method, [Object? arguments]) async {
-    // Simulate a server call
-    await Future.delayed(const Duration(seconds: 1));
-    // return arguments as T;
-    throw UnimplementedError();
+  bool get isOpen => channel != null && !(channel!.receivePort.isClosed);
+
+  Future<dynamic> invokeDatabaseMethod(String method, List<Object?> arguments) async {
+    return await channel!.invoke("db", [method, arguments]);
+  }
+
+  Future<dynamic> invokeMethod(String method, List<Object?> arguments) async {
+    return await channel!.invoke(method, arguments);
   }
 }
 
@@ -27,23 +35,36 @@ class DatabaseServerProxy implements Database {
   Database get database => this;
 
   @override
+  bool get isOpen => _server.isOpen;
+
+  @override
   Future<int> delete(String table, {String? where, List<Object?>? whereArgs}) {
-    return _server.invokeMethod<int>('delete', [table, where, whereArgs]);
+    return _server.invokeDatabaseMethod('delete', [
+      table,
+      {'where': where, 'whereArgs': whereArgs}
+    ]).cast<int>();
   }
 
   @override
   Future<void> execute(String sql, [List<Object?>? arguments]) {
-    return _server.invokeMethod<void>('execute', [sql, arguments]);
+    return _server.invokeDatabaseMethod('execute', [sql, arguments]);
   }
 
   @override
-  Future<int> insert(String table, Map<String, Object?> values,
-      {String? nullColumnHack, ConflictAlgorithm? conflictAlgorithm}) {
-    return _server.invokeMethod<int>('insert', [
-      table,
-      values,
-      {'nullColumnHack': nullColumnHack, 'conflictAlgorithm': conflictAlgorithm}
-    ]);
+  Future<int> insert(
+    String table,
+    Map<String, Object?> values, {
+    String? nullColumnHack,
+    ConflictAlgorithm? conflictAlgorithm,
+  }) {
+    return _server.invokeDatabaseMethod(
+      'insert',
+      [
+        table,
+        values,
+        {'nullColumnHack': nullColumnHack, 'conflictAlgorithm': conflictAlgorithm?.index}
+      ],
+    ).cast<int>();
   }
 
   @override
@@ -58,21 +79,105 @@ class DatabaseServerProxy implements Database {
     String? orderBy,
     int? limit,
     int? offset,
+  }) async {
+    var result = await _server.invokeDatabaseMethod(
+      'query',
+      [
+        table,
+        {
+          'distinct': distinct,
+          'columns': columns,
+          'where': where,
+          'whereArgs': whereArgs,
+          'groupBy': groupBy,
+          'having': having,
+          'orderBy': orderBy,
+          'limit': limit,
+          'offset': offset
+        }
+      ],
+    );
+
+    return [
+      for (var entry in result as List<dynamic>)
+        (entry as Map<String, dynamic>).cast<String, Object?>()
+    ];
+  }
+
+  @override
+  Future<int> rawDelete(String sql, [List<Object?>? arguments]) {
+    return _server.invokeDatabaseMethod('rawDelete', [sql, arguments]).cast<int>();
+  }
+
+  @override
+  Future<int> rawInsert(String sql, [List<Object?>? arguments]) {
+    return _server.invokeDatabaseMethod('rawInsert', [sql, arguments]).cast<int>();
+  }
+
+  @override
+  Future<List<Map<String, Object?>>> rawQuery(String sql, [List<Object?>? arguments]) async {
+    var result = await _server.invokeDatabaseMethod('rawQuery', [sql, arguments]);
+
+    return [
+      for (var entry in result as List<dynamic>)
+        (entry as Map<String, dynamic>).cast<String, Object?>()
+    ];
+  }
+
+  @override
+  Future<int> rawUpdate(
+    String sql, [
+    List<Object?>? arguments,
+  ]) {
+    return _server.invokeDatabaseMethod('rawUpdate', [sql, arguments]).cast<int>();
+  }
+
+  @override
+  Future<int> update(
+    String table,
+    Map<String, Object?> values, {
+    String? where,
+    List<Object?>? whereArgs,
+    ConflictAlgorithm? conflictAlgorithm,
   }) {
-    return _server.invokeMethod<List<Map<String, Object?>>>('query', [
-      table,
-      {
-        'distinct': distinct,
-        'columns': columns,
-        'where': where,
-        'whereArgs': whereArgs,
-        'groupBy': groupBy,
-        'having': having,
-        'orderBy': orderBy,
-        'limit': limit,
-        'offset': offset
-      }
-    ]);
+    return _server.invokeDatabaseMethod(
+      'update',
+      [
+        table,
+        values,
+        {'where': where, 'whereArgs': whereArgs, 'conflictAlgorithm': conflictAlgorithm}
+      ],
+    ).cast<int>();
+  }
+
+  @override
+  Future<void> close() async {
+    if (kDebugMode) {
+      print("Close called on proxy database.");
+    }
+  }
+
+  @override
+  Future<T> devInvokeMethod<T>(String method, [Object? arguments]) {
+    throw UnsupportedError("The method 'devInvokeMethod' is not supported.");
+  }
+
+  @override
+  Future<T> devInvokeSqlMethod<T>(String method, String sql, [List<Object?>? arguments]) {
+    throw UnsupportedError("The method 'devInvokeSqlMethod' is not supported.");
+  }
+
+  @override
+  String get path => throw UnsupportedError("Path is not supported in server proxy");
+
+  @override
+  Future<T> readTransaction<T>(Future<T> Function(Transaction txn) action) {
+    throw UnsupportedError("Read transaction is not supported in server proxy");
+  }
+
+  @override
+  Future<T> transaction<T>(Future<T> Function(Transaction txn) action, {bool? exclusive}) {
+    throw UnsupportedError("Transaction is not supported in server proxy");
   }
 
   @override
@@ -89,93 +194,38 @@ class DatabaseServerProxy implements Database {
     int? offset,
     int? bufferSize,
   }) {
-    return _server.invokeMethod<QueryCursor>('queryCursor', [
-      table,
-      {
-        'distinct': distinct,
-        'columns': columns,
-        'where': where,
-        'whereArgs': whereArgs,
-        'groupBy': groupBy,
-        'having': having,
-        'orderBy': orderBy,
-        'limit': limit,
-        'offset': offset,
-        'bufferSize': bufferSize,
-      }
-    ]);
-  }
-
-  @override
-  Future<int> rawDelete(String sql, [List<Object?>? arguments]) {
-    return _server.invokeMethod<int>('rawDelete', [sql, arguments]);
-  }
-
-  @override
-  Future<int> rawInsert(String sql, [List<Object?>? arguments]) {
-    return _server.invokeMethod<int>('rawInsert', [sql, arguments]);
-  }
-
-  @override
-  Future<List<Map<String, Object?>>> rawQuery(String sql, [List<Object?>? arguments]) {
-    return _server.invokeMethod<List<Map<String, Object?>>>('rawQuery', [sql, arguments]);
+    // return _server.invokeDatabaseMethod(
+    //   'queryCursor',
+    //   [
+    //     table,
+    //     {
+    //       'distinct': distinct,
+    //       'columns': columns,
+    //       'where': where,
+    //       'whereArgs': whereArgs,
+    //       'groupBy': groupBy,
+    //       'having': having,
+    //       'orderBy': orderBy,
+    //       'limit': limit,
+    //       'offset': offset,
+    //       'bufferSize': bufferSize
+    //     }
+    //   ],
+    // );
+    throw UnsupportedError("queryCursor is not supported in server proxy");
   }
 
   @override
   Future<QueryCursor> rawQueryCursor(String sql, List<Object?>? arguments, {int? bufferSize}) {
-    return _server.invokeMethod<QueryCursor>('rawQueryCursor', [
-      sql,
-      arguments,
-      {'bufferSize': bufferSize}
-    ]);
-  }
-
-  @override
-  Future<int> rawUpdate(String sql, [List<Object?>? arguments]) {
-    return _server.invokeMethod<int>('rawUpdate', [sql, arguments]);
-  }
-
-  @override
-  Future<int> update(String table, Map<String, Object?> values,
-      {String? where, List<Object?>? whereArgs, ConflictAlgorithm? conflictAlgorithm}) {
-    return _server.invokeMethod<int>('update', [
-      table,
-      values,
-      {'where': where, 'whereArgs': whereArgs, 'conflictAlgorithm': conflictAlgorithm}
-    ]);
-  }
-
-  @override
-  Future<void> close() async {
-    if (kDebugMode) {
-      print("Close called on proxy database.");
-    }
-  }
-
-  @override
-  Future<T> devInvokeMethod<T>(String method, [Object? arguments]) {
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<T> devInvokeSqlMethod<T>(String method, String sql, [List<Object?>? arguments]) {
-    throw UnimplementedError();
-  }
-
-  @override
-  bool get isOpen => _server.isOpen;
-
-  @override
-  String get path => throw UnsupportedError("Path is not supported in server proxy");
-
-  @override
-  Future<T> readTransaction<T>(Future<T> Function(Transaction txn) action) {
-    throw UnsupportedError("Read transaction is not supported in server proxy");
-  }
-
-  @override
-  Future<T> transaction<T>(Future<T> Function(Transaction txn) action, {bool? exclusive}) {
-    throw UnsupportedError("Transaction is not supported in server proxy");
+    // return _server.invokeDatabaseMethod(
+    //   'rawQueryCursor',
+    //   [
+    //     sql,
+    //     arguments,
+    //     {'bufferSize': bufferSize}
+    //   ],
+    // );
+    throw UnsupportedError("rawQueryCursor is not supported in server proxy");
   }
 }
 
@@ -197,7 +247,7 @@ class ServerBatch implements Batch {
   ServerBatch(this._server);
 
   final Server _server;
-  final List<String> _operations = [];
+  final List<List<Object?>> _operations = [];
 
   /// Commits all of the operations in this batch as a single atomic unit
   /// The result is a list of the result of each operation in the same order
@@ -225,14 +275,13 @@ class ServerBatch implements Batch {
     bool? noResult,
     bool? continueOnError,
   }) {
-    return _server.invokeMethod<List<Object?>>('batch.commit', [
-      _operations,
-      {
-        'exclusive': exclusive,
-        'noResult': noResult,
-        'continueOnError': continueOnError,
-      }
-    ]);
+    return _server.invokeDatabaseMethod(
+      'batch.commit',
+      [
+        _operations,
+        {'exclusive': exclusive, 'noResult': noResult, 'continueOnError': continueOnError}
+      ],
+    ).cast<List<dynamic>>();
   }
 
   /// Runs all statements in this batch non-atomically.
@@ -248,58 +297,102 @@ class ServerBatch implements Batch {
   /// In general, prefer [commit] to run batches over this method.
   @override
   Future<List<Object?>> apply({bool? noResult, bool? continueOnError}) {
-    return _server.invokeMethod<List<Object?>>('batch.apply', [
-      _operations,
-      {
-        'noResult': noResult,
-        'continueOnError': continueOnError,
-      }
-    ]);
+    return _server.invokeDatabaseMethod(
+      'batch.apply',
+      [
+        _operations,
+        {'noResult': noResult, 'continueOnError': continueOnError}
+      ],
+    ).cast<List<dynamic>>();
   }
 
   /// See [Database.rawInsert]
   @override
   void rawInsert(String sql, [List<Object?>? arguments]) {
-    _operations.add('rawInsert|$sql|${arguments?.toString() ?? ''}');
+    _operations.add([
+      'rawInsert',
+      [sql, arguments]
+    ]);
   }
 
   /// See [Database.insert]
   @override
-  void insert(String table, Map<String, Object?> values,
-      {String? nullColumnHack, ConflictAlgorithm? conflictAlgorithm}) {
-    _operations.add('insert|$table|$values|$nullColumnHack|$conflictAlgorithm');
+  void insert(
+    String table,
+    Map<String, Object?> values, {
+    String? nullColumnHack,
+    ConflictAlgorithm? conflictAlgorithm,
+  }) {
+    _operations.add([
+      'insert',
+      [
+        table,
+        values,
+        {'nullColumnHack': nullColumnHack, 'conflictAlgorithm': conflictAlgorithm?.index}
+      ]
+    ]);
   }
 
   /// See [Database.rawUpdate]
   @override
   void rawUpdate(String sql, [List<Object?>? arguments]) {
-    _operations.add('rawUpdate|$sql|${arguments?.toString() ?? ''}');
+    _operations.add([
+      'rawUpdate',
+      [sql, arguments]
+    ]);
   }
 
   /// See [Database.update]
   @override
-  void update(String table, Map<String, Object?> values,
-      {String? where, List<Object?>? whereArgs, ConflictAlgorithm? conflictAlgorithm}) {
-    _operations
-        .add('update|$table|$values|$where|${whereArgs?.toString() ?? ''}|$conflictAlgorithm');
+  void update(
+    String table,
+    Map<String, Object?> values, {
+    String? where,
+    List<Object?>? whereArgs,
+    ConflictAlgorithm? conflictAlgorithm,
+  }) {
+    _operations.add([
+      'update',
+      [
+        table,
+        values,
+        {
+          'where': where,
+          'whereArgs': whereArgs,
+          'conflictAlgorithm': conflictAlgorithm?.index,
+        }
+      ]
+    ]);
   }
 
   /// See [Database.rawDelete]
   @override
   void rawDelete(String sql, [List<Object?>? arguments]) {
-    _operations.add('rawDelete|$sql|${arguments?.toString() ?? ''}');
+    _operations.add([
+      'rawDelete',
+      [sql, arguments]
+    ]);
   }
 
   /// See [Database.delete]
   @override
   void delete(String table, {String? where, List<Object?>? whereArgs}) {
-    _operations.add('delete|$table|$where|${whereArgs?.toString() ?? ''}');
+    _operations.add([
+      'delete',
+      [
+        table,
+        {'where': where, 'whereArgs': whereArgs}
+      ]
+    ]);
   }
 
   /// See [Database.execute];
   @override
   void execute(String sql, [List<Object?>? arguments]) {
-    _operations.add('execute|$sql|${arguments?.toString() ?? ''}');
+    _operations.add([
+      'execute',
+      [sql, arguments]
+    ]);
   }
 
   /// See [Database.query];
@@ -314,17 +407,42 @@ class ServerBatch implements Batch {
       String? orderBy,
       int? limit,
       int? offset}) {
-    _operations.add(
-        'query|$table|$distinct|${columns?.toString() ?? ''}|$where|${whereArgs?.toString() ?? ''}|$groupBy|$having|$orderBy|$limit|$offset');
+    _operations.add([
+      'query',
+      [
+        table,
+        {
+          'distinct': distinct,
+          'columns': columns,
+          'where': where,
+          'whereArgs': whereArgs,
+          'groupBy': groupBy,
+          'having': having,
+          'orderBy': orderBy,
+          'limit': limit,
+          'offset': offset
+        }
+      ]
+    ]);
   }
 
   /// See [Database.query];
   @override
   void rawQuery(String sql, [List<Object?>? arguments]) {
-    _operations.add('rawQuery|$sql|${arguments?.toString() ?? ''}');
+    _operations.add([
+      'rawQuery',
+      [sql, arguments]
+    ]);
   }
 
   /// Current batch size
   @override
   int get length => _operations.length;
+}
+
+extension FutureCastExtension on Future {
+  /// Cast the future to the given type
+  Future<T> cast<T>() async {
+    return await this as T;
+  }
 }

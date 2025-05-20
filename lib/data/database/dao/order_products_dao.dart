@@ -22,7 +22,7 @@ final class OrderProductsDaoImpl extends DaoBase implements OrderProductsDao {
   ///
   @override
   Future<List<OrderProduct>> getAllOrderProducts() async {
-    final db = await databaseHelper.database;
+    final db = databaseHelper.database;
     final List<Map<String, dynamic>> maps = await db.query('order_products');
     return List.generate(maps.length, (i) {
       return OrderProduct.fromMap(maps[i]);
@@ -34,7 +34,7 @@ final class OrderProductsDaoImpl extends DaoBase implements OrderProductsDao {
   ///
   @override
   Future<OrderProduct?> getOrderProductById(int id) async {
-    final db = await databaseHelper.database;
+    final db = databaseHelper.database;
     final List<Map<String, dynamic>> maps = await db.query(
       'order_products',
       where: 'id = ?',
@@ -49,7 +49,7 @@ final class OrderProductsDaoImpl extends DaoBase implements OrderProductsDao {
   /// Inserts a new order product into the database.
   @override
   Future<OrderProduct> insertOrderProduct(OrderProduct orderProduct) async {
-    final db = await databaseHelper.database;
+    final db = databaseHelper.database;
     final id = await db.insert(
       'order_products',
       orderProduct.toMap(),
@@ -62,7 +62,7 @@ final class OrderProductsDaoImpl extends DaoBase implements OrderProductsDao {
   ///
   @override
   Future<OrderProduct> updateOrderProduct(OrderProduct orderProduct) async {
-    final db = await databaseHelper.database;
+    final db = databaseHelper.database;
     await db.update(
       'order_products',
       orderProduct.toMap(),
@@ -75,7 +75,7 @@ final class OrderProductsDaoImpl extends DaoBase implements OrderProductsDao {
   /// Deletes an order product from the database by its ID.
   @override
   Future<void> deleteOrderProduct(int id) async {
-    final db = await databaseHelper.database;
+    final db = databaseHelper.database;
     await db.delete(
       'order_products',
       where: 'id = ?',
@@ -86,7 +86,7 @@ final class OrderProductsDaoImpl extends DaoBase implements OrderProductsDao {
   /// Returns a list of order products by their order ID.
   @override
   Future<List<OrderProduct>> getOrderProductsByOrderId(int orderId) async {
-    final db = await databaseHelper.database;
+    final db = databaseHelper.database;
     final List<Map<String, dynamic>> maps = await db.query(
       'order_products',
       where: 'order_id = ?',

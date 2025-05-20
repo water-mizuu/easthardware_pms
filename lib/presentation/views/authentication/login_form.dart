@@ -1,11 +1,12 @@
+import 'package:easthardware_pms/presentation/bloc/authentication/'
+    'authentication/authentication_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/authentication/loginform/login_form_bloc.dart';
-import 'package:easthardware_pms/presentation/bloc/authentication/loginform/login_form_validator.dart';
+import 'package:easthardware_pms/presentation/bloc/authentication/'
+    'loginform/login_form_validator.dart';
 import 'package:easthardware_pms/presentation/widgets/spacing.dart';
 import 'package:easthardware_pms/presentation/widgets/text.dart';
 import 'package:fluent_ui/fluent_ui.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-
-import '../../bloc/authentication/authentication/authentication_bloc.dart';
 
 class LoginForm extends StatelessWidget {
   const LoginForm({super.key});
@@ -93,23 +94,21 @@ class _FormPasswordField extends StatelessWidget with LoginFormValidator {
 class _FormButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<AuthenticationBloc, AuthenticationState>(
-      builder: (context, state) {
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            FilledButton(
-              onPressed: state.status != AuthenticationStatus.loading
-                  ? () => context.read<LoginFormBloc>().add(LoginFormButtonPressed())
-                  : null,
-              child: const Padding(
-                padding: AppPadding.a8,
-                child: ButtonText("Login"),
-              ),
-            ),
-          ],
-        );
-      },
+    var state = context.watch<AuthenticationBloc>().state;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        FilledButton(
+          onPressed: state.status != AuthenticationStatus.loading
+              ? () => context.read<LoginFormBloc>().add(LoginFormButtonPressed())
+              : null,
+          child: const Padding(
+            padding: AppPadding.a8,
+            child: ButtonText("Login"),
+          ),
+        ),
+      ],
     );
   }
 }

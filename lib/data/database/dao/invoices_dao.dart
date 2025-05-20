@@ -39,7 +39,7 @@ final class InvoicesDaoImpl extends DaoBase implements InvoicesDao {
   ///
   @override
   Future<List<Invoice>> getAllInvoices() async {
-    final db = await databaseHelper.database;
+    final db = databaseHelper.database;
     final List<Map<String, dynamic>> maps = await db.query('invoices');
     return List.generate(maps.length, (i) {
       return Invoice.fromMap(maps[i]);
@@ -51,7 +51,7 @@ final class InvoicesDaoImpl extends DaoBase implements InvoicesDao {
   ///
   @override
   Future<Invoice?> getInvoiceById(int id) async {
-    final db = await databaseHelper.database;
+    final db = databaseHelper.database;
     final List<Map<String, dynamic>> maps = await db.query(
       'invoices',
       where: 'id = ?',
@@ -66,7 +66,7 @@ final class InvoicesDaoImpl extends DaoBase implements InvoicesDao {
   /// Inserts a new invoice into the database.
   @override
   Future<Invoice> insertInvoice(Invoice invoice) async {
-    final db = await databaseHelper.database;
+    final db = databaseHelper.database;
     final id = await db.insert(
       'invoices',
       invoice.toMap(),
@@ -78,7 +78,7 @@ final class InvoicesDaoImpl extends DaoBase implements InvoicesDao {
   /// Updates an existing invoice in the database.
   @override
   Future<Invoice> updateInvoice(Invoice invoice) async {
-    final db = await databaseHelper.database;
+    final db = databaseHelper.database;
     await db.update(
       'invoices',
       invoice.toMap(),
@@ -90,7 +90,7 @@ final class InvoicesDaoImpl extends DaoBase implements InvoicesDao {
 
   @override
   Future<void> deleteInvoice(int id) async {
-    final db = await databaseHelper.database;
+    final db = databaseHelper.database;
     await db.delete(
       'invoices',
       where: 'id = ?',
@@ -103,7 +103,7 @@ final class InvoicesDaoImpl extends DaoBase implements InvoicesDao {
   ///
   @override
   Future<List<Invoice>> getInvoicesByDateRange(DateTime startDate, DateTime endDate) async {
-    final db = await databaseHelper.database;
+    final db = databaseHelper.database;
     final List<Map<String, dynamic>> maps = await db.query(
       'invoices',
       where: 'invoice_date BETWEEN ? AND ?',
@@ -119,7 +119,7 @@ final class InvoicesDaoImpl extends DaoBase implements InvoicesDao {
   ///
   @override
   Future<List<Invoice>> getInvoicesByPaymentMethod(String paymentMethod) async {
-    final db = await databaseHelper.database;
+    final db = databaseHelper.database;
     final List<Map<String, dynamic>> maps = await db.query(
       'invoices',
       where: 'payment_method = ?',
@@ -135,7 +135,7 @@ final class InvoicesDaoImpl extends DaoBase implements InvoicesDao {
   ///
   @override
   Future<List<Invoice>> getInvoicesByAmountDue(double minAmount, double maxAmount) async {
-    final db = await databaseHelper.database;
+    final db = databaseHelper.database;
     final List<Map<String, dynamic>> maps = await db.query(
       'invoices',
       where: 'amount_due BETWEEN ? AND ?',
@@ -151,7 +151,7 @@ final class InvoicesDaoImpl extends DaoBase implements InvoicesDao {
   ///
   @override
   Future<List<Invoice>> getInvoicesByCreatorId(int createdBy) async {
-    final db = await databaseHelper.database;
+    final db = databaseHelper.database;
     final List<Map<String, dynamic>> maps = await db.query(
       'invoices',
       where: 'creator_id = ?',
@@ -168,7 +168,7 @@ final class InvoicesDaoImpl extends DaoBase implements InvoicesDao {
 
   @override
   Future<List<Invoice>> getInvoicesByProductIds(List<int> productIds) async {
-    final db = await databaseHelper.database;
+    final db = databaseHelper.database;
     final List<Map<String, dynamic>> maps = await db.rawQuery(
       'SELECT DISTINCT invoices.* FROM invoices '
       'JOIN invoice_products ON invoices.id = invoice_products.invoice_id '
@@ -184,7 +184,7 @@ final class InvoicesDaoImpl extends DaoBase implements InvoicesDao {
   ///
   @override
   Future<List<Invoice>> getInvoiceByProductCategory(int categoryId) async {
-    final db = await databaseHelper.database;
+    final db = databaseHelper.database;
     final List<Map<String, dynamic>> maps = await db.rawQuery(
       'SELECT DISTINCT invoices.* FROM invoices '
       'JOIN invoice_products ON invoices.id = invoice_products.invoice_id '
@@ -202,7 +202,7 @@ final class InvoicesDaoImpl extends DaoBase implements InvoicesDao {
   ///
   @override
   Future<List<Invoice>> getInvoicesByCustomerName(String customerName) async {
-    final db = await databaseHelper.database;
+    final db = databaseHelper.database;
     final List<Map<String, dynamic>> maps =
         await db.query('invoices', where: 'customer_name = ?', whereArgs: [customerName]);
     return List.generate(maps.length, (i) {
@@ -212,7 +212,7 @@ final class InvoicesDaoImpl extends DaoBase implements InvoicesDao {
 
   @override
   Future<Invoice?> getLatestInvoiceOfProduct(int productId) async {
-    final db = await databaseHelper.database;
+    final db = databaseHelper.database;
     final List<Map<String, dynamic>> maps = await db.rawQuery(
       'SELECT DISTINCT invoices.* FROM invoices '
       'JOIN invoice_products ON invoices.id = invoice_products.invoice_id '
@@ -228,7 +228,7 @@ final class InvoicesDaoImpl extends DaoBase implements InvoicesDao {
 
   @override
   Future<int> getRecentInvoiceCountOfProduct(int productId) async {
-    final db = await databaseHelper.database;
+    final db = databaseHelper.database;
     final List<Map<String, dynamic>> maps = await db.rawQuery(
       'SELECT COUNT(*) as count FROM invoices '
       'JOIN invoice_products ON invoices.id = invoice_products.invoice_id '
@@ -243,7 +243,7 @@ final class InvoicesDaoImpl extends DaoBase implements InvoicesDao {
 
   @override
   Future<int> getPaidInvoiceCount() async {
-    final db = await databaseHelper.database;
+    final db = databaseHelper.database;
     final List<Map<String, dynamic>> maps = await db.query(
       'invoices',
       where: 'amount_paid > ?',
@@ -254,7 +254,7 @@ final class InvoicesDaoImpl extends DaoBase implements InvoicesDao {
 
   @override
   Future<double> getTotalAmountDue() async {
-    final db = await databaseHelper.database;
+    final db = databaseHelper.database;
     final List<Map<String, dynamic>> maps = await db.rawQuery(
       'SELECT SUM(amount_due) as total FROM invoices',
     );
@@ -266,7 +266,7 @@ final class InvoicesDaoImpl extends DaoBase implements InvoicesDao {
 
   @override
   Future<double> getTotalAmountPaid() async {
-    final db = await databaseHelper.database;
+    final db = databaseHelper.database;
     final List<Map<String, dynamic>> maps = await db.rawQuery(
       'SELECT SUM(amount_paid) as total FROM invoices',
     );
@@ -278,7 +278,7 @@ final class InvoicesDaoImpl extends DaoBase implements InvoicesDao {
 
   @override
   Future<int> getUnpaidInvoiceCount() async {
-    final db = await databaseHelper.database;
+    final db = databaseHelper.database;
     final List<Map<String, dynamic>> maps = await db.query(
       'invoices',
       where: 'amount_paid = ?',
@@ -289,7 +289,7 @@ final class InvoicesDaoImpl extends DaoBase implements InvoicesDao {
 
   @override
   Future<Invoice?> getInvoiceByUid(String uid) async {
-    final db = await databaseHelper.database;
+    final db = databaseHelper.database;
     final List<Map<String, dynamic>> maps = await db.query(
       'invoices',
       where: 'uid = ?',

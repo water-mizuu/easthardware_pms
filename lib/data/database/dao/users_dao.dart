@@ -22,7 +22,7 @@ final class UsersDaoImpl extends DaoBase implements UsersDao {
 
   @override
   Future<List<User>> getAllUsers() async {
-    final database = await databaseHelper.database;
+    final database = databaseHelper.database;
     var res = await database.query(UsersTable.USERS_TABLE_NAME);
 
     List<User>? users = res.isNotEmpty ? res.map(User.fromMap).toList() : [];
@@ -32,8 +32,8 @@ final class UsersDaoImpl extends DaoBase implements UsersDao {
 
   @override
   Future<User?> getUserById(int id) async {
-    final database = await databaseHelper.database;
-    var res = await database.query(
+    final database = databaseHelper.database;
+    final res = await database.query(
       UsersTable.USERS_TABLE_NAME,
       where: "${UsersTable.USERS_ID} = ?",
       whereArgs: [id],
@@ -46,7 +46,7 @@ final class UsersDaoImpl extends DaoBase implements UsersDao {
 
   @override
   Future<User?> getUserByUsername(String username) async {
-    final database = await databaseHelper.database;
+    final database = databaseHelper.database;
     final res = await database.query(
       UsersTable.USERS_TABLE_NAME,
       where: "${UsersTable.USERS_USERNAME} = ?",
@@ -60,14 +60,14 @@ final class UsersDaoImpl extends DaoBase implements UsersDao {
 
   @override
   Future<User> insertUser(User user) async {
-    final database = await databaseHelper.database;
+    final database = databaseHelper.database;
     final id = await database.insert(UsersTable.USERS_TABLE_NAME, user.toMap());
     return user.copyWith(id: id);
   }
 
   @override
   Future<User> updateUser(User user) async {
-    final database = await databaseHelper.database;
+    final database = databaseHelper.database;
     await database.update(
       UsersTable.USERS_TABLE_NAME,
       user.toMap(),
@@ -79,7 +79,7 @@ final class UsersDaoImpl extends DaoBase implements UsersDao {
 
   @override
   Future<void> deleteUser(User user) async {
-    final database = await databaseHelper.database;
+    final database = databaseHelper.database;
     await database.delete(
       UsersTable.USERS_TABLE_NAME,
       where: "${UsersTable.USERS_ID} = ?",
@@ -89,7 +89,7 @@ final class UsersDaoImpl extends DaoBase implements UsersDao {
 
   @override
   Future<User?> getUserByUid(String uid) async {
-    final database = await databaseHelper.database;
+    final database = databaseHelper.database;
     var res = await database.query(
       UsersTable.USERS_TABLE_NAME,
       where: "${UsersTable.USERS_UID} = ?",

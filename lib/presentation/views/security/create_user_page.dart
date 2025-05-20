@@ -104,31 +104,35 @@ class _CreateUserPageState extends State<CreateUserPage> {
     super.dispose();
   }
 
+  Widget buildWidget(BuildContext context) {
+    return Padding(
+      padding: AppPadding.panePadding,
+      child: Column(
+        children: [
+          const PageHeader(),
+          Expanded(
+            child: Form(
+              key: userFormBloc.formKey,
+              child: Row(
+                children: const [
+                  UserCredentialsSection(),
+                  SecuritySection(),
+                ].withSpacing(() => Spacing.h16),
+              ),
+            ),
+          )
+        ].withSpacing(() => Spacing.v16),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: providers,
       child: MultiBlocListener(
         listeners: listeners,
-        child: Padding(
-          padding: AppPadding.panePadding,
-          child: Column(
-            children: [
-              const PageHeader(),
-              Expanded(
-                child: Form(
-                  key: userFormBloc.formKey,
-                  child: Row(
-                    children: const [
-                      UserCredentialsSection(),
-                      SecuritySection(),
-                    ].withSpacing(() => Spacing.h16),
-                  ),
-                ),
-              )
-            ].withSpacing(() => Spacing.v16),
-          ),
-        ),
+        child: buildWidget(context),
       ),
     );
   }

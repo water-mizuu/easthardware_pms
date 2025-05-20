@@ -14,6 +14,7 @@ extension type ListenedReceivePort._(ReceivePort _port) {
     FutureOr<void> Function(Object? message)? fallbackListener,
   ) {
     _hosts[_port] = true;
+    _isClosed = false;
     _fallbackListener = fallbackListener;
     _completer = Queue();
     _queue = Queue();
@@ -51,6 +52,7 @@ extension type ListenedReceivePort._(ReceivePort _port) {
   static final Expando<void Function(Object? message)> _fallbackListeners = Expando();
   static final Expando<Queue<Completer<Object?>>> _completers = Expando();
   static final Expando<Queue<Object?>> _queues = Expando();
+  static final Expando<bool> _isCloseds = Expando();
 
   // Pseudo-fields. These are used to store values specific to each [ReceivePort] instance.
 
@@ -63,6 +65,9 @@ extension type ListenedReceivePort._(ReceivePort _port) {
 
   Queue<Object?> get _queue => _queues[_port]!;
   set _queue(Queue<Object?> queue) => _queues[_port] = queue;
+
+  bool get _isClosed => _isCloseds[_port]!;
+  set _isClosed(bool isClosed) => _isCloseds[_port] = isClosed;
 
   Future<T> next<T>() async {
     if (_queue.isNotEmpty) {
@@ -97,11 +102,14 @@ extension type ListenedReceivePort._(ReceivePort _port) {
     _hosts[_port] = null;
     _fallbackListeners[_port] = null;
     _completers[_port] = null;
+    _isCloseds[_port] = true;
     _port.close();
   }
 
   /// A [SendPort] which sends messages to this receive port.
   SendPort get sendPort => _port.sendPort;
+
+  bool get isClosed => _isClosed;
 }
 
 extension ReceivePortExtension on ReceivePort {

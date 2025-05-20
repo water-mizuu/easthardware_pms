@@ -17,7 +17,8 @@ import 'package:easthardware_pms/presentation/bloc/inventory/categorylist/catego
 import 'package:easthardware_pms/presentation/bloc/inventory/productlist/product_list_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/inventory/unitlist/unit_list_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/navigation/navigation_bloc.dart';
-import 'package:easthardware_pms/presentation/bloc/security/securityquestions/security_question_list_bloc.dart';
+import 'package:easthardware_pms/presentation/bloc/security/securityquestions/'
+    'security_question_list_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/security/userlist/user_list_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/security/userloglist/user_log_list_bloc.dart';
 import 'package:flutter/foundation.dart';
@@ -32,15 +33,18 @@ class DependencyInjector {
   late UserLogRepository _userLogRepository;
   late UserRepository _userRepository;
   late SecurityQuestionRepository _securityQuestionRepository;
+  late DatabaseHelper? _databaseHelper;
 
-  Future<void> init([DatabaseHelper? databaseHelper]) async {
+  Future<void> initialize([DatabaseHelper? databaseHelper]) async {
+    _databaseHelper = databaseHelper;
     _authenticationRepository = AuthenticationRepository(databaseHelper);
     _productRepository = ProductRepositoryImpl(databaseHelper);
     _categoryRepository = CategoryRepositoryImpl(databaseHelper);
     _unitRepository = UnitRepositoryImpl(databaseHelper);
     _userLogRepository = UserLogRepositoryImpl(databaseHelper);
     _userRepository = UserRepositoryImpl(databaseHelper);
-    _securityQuestionRepository = SecurityQuestionRepositoryImpl(databaseHelper);
+    _securityQuestionRepository =
+        SecurityQuestionRepositoryImpl(databaseHelper);
   }
 
   List<SingleChildWidget> inject() {
@@ -49,22 +53,50 @@ class DependencyInjector {
     }
 
     return [
-      RepositoryProvider.value(value: _categoryRepository),
-      RepositoryProvider.value(value: _productRepository),
-      RepositoryProvider.value(value: _unitRepository),
-      BlocProvider(create: (context) => AuthenticationBloc(_authenticationRepository)),
-      BlocProvider(create: (context) => NavigationBloc()),
-      BlocProvider(create: (context) => UserListBloc(_userRepository)..add(LoadAllUsersEvent())),
+      RepositoryProvider.value(
+          value: _categoryRepository, key: ValueKey(_databaseHelper)),
+      RepositoryProvider.value(
+          value: _productRepository, key: ValueKey(_databaseHelper)),
+      RepositoryProvider.value(
+          value: _unitRepository, key: ValueKey(_databaseHelper)),
       BlocProvider(
-          create: (context) => ProductListBloc(_productRepository)..add(LoadAllProductsEvent())),
+        create: (context) => AuthenticationBloc(_authenticationRepository),
+        key: ValueKey(_databaseHelper),
+      ),
       BlocProvider(
-          create: (context) => CategoryListBloc(_categoryRepository)..add(LoadCategoriesEvent())),
-      BlocProvider(create: (context) => UnitListBloc(_unitRepository)..add(LoadUnitsEvent())),
+          create: (context) => NavigationBloc(),
+          key: ValueKey(_databaseHelper)),
       BlocProvider(
-          create: (context) => UserLogListBloc(_userLogRepository)..add(LoadUserLogsEvent())),
+        create: (context) =>
+            UserListBloc(_userRepository)..add(LoadAllUsersEvent()),
+        key: ValueKey(_databaseHelper),
+      ),
       BlocProvider(
-          create: (context) => SecurityQuestionListBloc(_securityQuestionRepository)
-            ..add(const FetchSecurityQuestionsEvent())),
+        create: (context) =>
+            ProductListBloc(_productRepository)..add(LoadAllProductsEvent()),
+        key: ValueKey(_databaseHelper),
+      ),
+      BlocProvider(
+        create: (context) =>
+            CategoryListBloc(_categoryRepository)..add(LoadCategoriesEvent()),
+        key: ValueKey(_databaseHelper),
+      ),
+      BlocProvider(
+        create: (context) =>
+            UnitListBloc(_unitRepository)..add(LoadUnitsEvent()),
+        key: ValueKey(_databaseHelper),
+      ),
+      BlocProvider(
+        create: (context) =>
+            UserLogListBloc(_userLogRepository)..add(LoadUserLogsEvent()),
+        key: ValueKey(_databaseHelper),
+      ),
+      BlocProvider(
+        create: (context) =>
+            SecurityQuestionListBloc(_securityQuestionRepository)
+              ..add(const FetchSecurityQuestionsEvent()),
+        key: ValueKey(_databaseHelper),
+      ),
     ];
   }
 }

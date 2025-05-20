@@ -28,7 +28,7 @@ final class ExpenseTypesDaoImpl extends DaoBase implements ExpenseTypesDao {
   ///
   @override
   Future<List<ExpenseType>> getAllExpenseTypes() async {
-    final db = await databaseHelper.database;
+    final db = databaseHelper.database;
     final List<Map<String, dynamic>> maps = await db.query('expense_types');
     return List.generate(maps.length, (i) {
       return ExpenseType.fromMap(maps[i]);
@@ -39,7 +39,7 @@ final class ExpenseTypesDaoImpl extends DaoBase implements ExpenseTypesDao {
   /// It returns an [ExpenseType] object if found, otherwise null.
   @override
   Future<ExpenseType?> getExpenseTypeById(int id) async {
-    final db = await databaseHelper.database;
+    final db = databaseHelper.database;
     final List<Map<String, dynamic>> maps = await db.query(
       'expense_types',
       where: 'id = ?',
@@ -57,7 +57,7 @@ final class ExpenseTypesDaoImpl extends DaoBase implements ExpenseTypesDao {
   /// If the operation fails, it throws an exception.
   @override
   Future<ExpenseType> insertExpenseType(ExpenseType expenseType) async {
-    final db = await databaseHelper.database;
+    final db = databaseHelper.database;
     final id = await db.insert(
       'expense_types',
       expenseType.toMap(),
@@ -72,7 +72,7 @@ final class ExpenseTypesDaoImpl extends DaoBase implements ExpenseTypesDao {
   /// If the operation fails, it throws an exception.
   @override
   Future<ExpenseType> updateExpenseType(ExpenseType expenseType) async {
-    final db = await databaseHelper.database;
+    final db = databaseHelper.database;
     await db.update(
       'expense_types',
       expenseType.toMap(),
@@ -88,7 +88,7 @@ final class ExpenseTypesDaoImpl extends DaoBase implements ExpenseTypesDao {
   /// If the operation fails, it throws an exception.
   @override
   Future<void> deleteExpenseType(int id) async {
-    final db = await databaseHelper.database;
+    final db = databaseHelper.database;
     await db.delete(
       'expense_types',
       where: 'id = ?',

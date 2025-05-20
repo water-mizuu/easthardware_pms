@@ -1,7 +1,13 @@
-import 'package:easthardware_pms/app/app.dart';
+import 'package:easthardware_pms/presentation/bloc/server/server_bloc.dart';
 import 'package:fluent_ui/fluent_ui.dart';
 import 'package:flutter/material.dart' show Icons;
 import 'package:provider/provider.dart';
+
+class BottomTextNotifier {
+  final ValueNotifier<String> notifier;
+
+  const BottomTextNotifier(this.notifier);
+}
 
 class BottomText extends StatelessWidget {
   const BottomText({super.key, required this.child});
@@ -31,7 +37,13 @@ class BottomText extends StatelessWidget {
                         return Text(value);
                       },
                     ),
-                  )
+                  ),
+                  Button(
+                    child: const Text("Click Me"),
+                    onPressed: () {
+                      context.read<ServerBloc>().add(ServerInit());
+                    },
+                  ),
                 ],
               ),
             ),

@@ -26,7 +26,7 @@ final class InvoiceProductsDaoImpl extends DaoBase implements InvoiceProductsDao
   ///
   @override
   Future<List<InvoiceProduct>> getAllInvoiceProducts() async {
-    final db = await databaseHelper.database;
+    final db = databaseHelper.database;
     final List<Map<String, dynamic>> maps = await db.query('invoice_products');
     return List.generate(maps.length, (i) {
       return InvoiceProduct.fromMap(maps[i]);
@@ -38,7 +38,7 @@ final class InvoiceProductsDaoImpl extends DaoBase implements InvoiceProductsDao
   ///
   @override
   Future<InvoiceProduct?> getInvoiceProductById(int id) async {
-    final db = await databaseHelper.database;
+    final db = databaseHelper.database;
     final List<Map<String, dynamic>> maps = await db.query(
       'invoice_products',
       where: 'id = ?',
@@ -56,7 +56,7 @@ final class InvoiceProductsDaoImpl extends DaoBase implements InvoiceProductsDao
   ///
   @override
   Future<List<InvoiceProduct>> getInvoiceProductsByInvoiceId(int invoiceId) async {
-    final db = await databaseHelper.database;
+    final db = databaseHelper.database;
     final List<Map<String, dynamic>> maps = await db.query(
       'invoice_products',
       where: 'invoice_id = ?',
@@ -74,7 +74,7 @@ final class InvoiceProductsDaoImpl extends DaoBase implements InvoiceProductsDao
   ///
   @override
   Future<InvoiceProduct> insertInvoiceProduct(InvoiceProduct invoiceProduct) async {
-    final db = await databaseHelper.database;
+    final db = databaseHelper.database;
     final id = await db.insert(
       'invoice_products',
       invoiceProduct.toMap(),
@@ -90,7 +90,7 @@ final class InvoiceProductsDaoImpl extends DaoBase implements InvoiceProductsDao
   ///
   @override
   Future<InvoiceProduct> updateInvoiceProduct(InvoiceProduct invoiceProduct) async {
-    final db = await databaseHelper.database;
+    final db = databaseHelper.database;
     await db.update(
       'invoice_products',
       invoiceProduct.toMap(),
@@ -107,7 +107,7 @@ final class InvoiceProductsDaoImpl extends DaoBase implements InvoiceProductsDao
   ///
   @override
   Future<void> deleteInvoiceProduct(int id) async {
-    final db = await databaseHelper.database;
+    final db = databaseHelper.database;
     await db.delete(
       'invoice_products',
       where: 'id = ?',

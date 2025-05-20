@@ -75,8 +75,8 @@ class User {
       lastName: map['last_name'] as String,
       username: map['username'] as String,
       accessLevel: AccessLevel.values[map['access_level'] as int],
-      passwordHash: map['password_hash'] as Uint8List,
-      salt: map['salt'] as Uint8List,
+      passwordHash: Uint8List.fromList((map['password_hash'] as List<dynamic>).cast<int>()),
+      salt: Uint8List.fromList((map['salt'] as List<dynamic>).cast<int>()),
       creationDate: map['creation_date'] as String,
       status: map['status'] as int,
     );

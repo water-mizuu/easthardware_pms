@@ -19,7 +19,7 @@ final class PaymentMethodsDaoImpl extends DaoBase implements PaymentMethodsDao {
 
   @override
   Future<void> deletePaymentMethod(int id) async {
-    final db = await databaseHelper.database;
+    final db = databaseHelper.database;
     await db.delete(
       'payment_methods',
       where: 'id = ?',
@@ -29,7 +29,7 @@ final class PaymentMethodsDaoImpl extends DaoBase implements PaymentMethodsDao {
 
   @override
   Future<List<PaymentMethod>> getAllPaymentMethods() async {
-    final db = await databaseHelper.database;
+    final db = databaseHelper.database;
     final List<Map<String, dynamic>> maps = await db.query('payment_methods');
     return List.generate(maps.length, (i) {
       return PaymentMethod.fromMap(maps[i]);
@@ -38,7 +38,7 @@ final class PaymentMethodsDaoImpl extends DaoBase implements PaymentMethodsDao {
 
   @override
   Future<PaymentMethod?> getPaymentMethodById(int id) async {
-    final db = await databaseHelper.database;
+    final db = databaseHelper.database;
     final List<Map<String, dynamic>> maps = await db.query(
       'payment_methods',
       where: 'id = ?',
@@ -52,7 +52,7 @@ final class PaymentMethodsDaoImpl extends DaoBase implements PaymentMethodsDao {
 
   @override
   Future<PaymentMethod> insertPaymentMethod(PaymentMethod paymentMethod) async {
-    final db = await databaseHelper.database;
+    final db = databaseHelper.database;
     final id = await db.insert(
       'payment_methods',
       paymentMethod.toMap(),
@@ -63,7 +63,7 @@ final class PaymentMethodsDaoImpl extends DaoBase implements PaymentMethodsDao {
 
   @override
   Future<PaymentMethod> updatePaymentMethod(PaymentMethod paymentMethod) async {
-    final db = await databaseHelper.database;
+    final db = databaseHelper.database;
     await db.update(
       'payment_methods',
       paymentMethod.toMap(),

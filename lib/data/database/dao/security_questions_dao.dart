@@ -20,7 +20,7 @@ final class SecurityQuestionsDaoImpl extends DaoBase implements SecurityQuestion
 
   @override
   Future<void> deleteSecurityQuestion(int id) async {
-    final database = await databaseHelper.database;
+    final database = databaseHelper.database;
     await database.delete(
       SecurityQuestionsTable.SECURITY_QUESTIONS_TABLE,
       where: '${SecurityQuestionsTable.SECURITY_QUESTIONS_ID} = ?',
@@ -30,7 +30,7 @@ final class SecurityQuestionsDaoImpl extends DaoBase implements SecurityQuestion
 
   @override
   Future<List<SecurityQuestion>> getAllSecurityQuestions() async {
-    final database = await databaseHelper.database;
+    final database = databaseHelper.database;
     var queryResults = await database.query(SecurityQuestionsTable.SECURITY_QUESTIONS_TABLE);
 
     return queryResults.map(SecurityQuestion.fromMap).toList();
@@ -38,7 +38,7 @@ final class SecurityQuestionsDaoImpl extends DaoBase implements SecurityQuestion
 
   @override
   Future<SecurityQuestion?> getSecurityQuestionById(int id) async {
-    final database = await databaseHelper.database;
+    final database = databaseHelper.database;
     var queryResults = await database.query(
       SecurityQuestionsTable.SECURITY_QUESTIONS_TABLE,
       where: '${SecurityQuestionsTable.SECURITY_QUESTIONS_ID} = ?',
@@ -56,7 +56,7 @@ final class SecurityQuestionsDaoImpl extends DaoBase implements SecurityQuestion
 
   @override
   Future<SecurityQuestion> insertSecurityQuestion(SecurityQuestion securityQuestion) async {
-    final database = await databaseHelper.database;
+    final database = databaseHelper.database;
     final id = await database.insert(
       SecurityQuestionsTable.SECURITY_QUESTIONS_TABLE,
       securityQuestion.toMap(),
@@ -66,7 +66,7 @@ final class SecurityQuestionsDaoImpl extends DaoBase implements SecurityQuestion
 
   @override
   Future<SecurityQuestion> updateSecurityQuestion(SecurityQuestion securityQuestion) async {
-    final database = await databaseHelper.database;
+    final database = databaseHelper.database;
     await database.update(
       SecurityQuestionsTable.SECURITY_QUESTIONS_TABLE,
       securityQuestion.toMap(),
@@ -79,7 +79,7 @@ final class SecurityQuestionsDaoImpl extends DaoBase implements SecurityQuestion
 
   @override
   Future<List<SecurityQuestion>> getSecurityQuestionsByUserId(int id) async {
-    final database = await databaseHelper.database;
+    final database = databaseHelper.database;
     var queryResults = await database.query(
       SecurityQuestionsTable.SECURITY_QUESTIONS_TABLE,
       where: '${SecurityQuestionsTable.SECURITY_QUESTIONS_USER_ID} = ?',

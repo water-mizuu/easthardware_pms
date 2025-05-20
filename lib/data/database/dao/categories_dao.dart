@@ -46,7 +46,7 @@ final class CategoriesDaoImpl extends DaoBase implements CategoriesDao {
 
   @override
   Future<List<Category>> getAllCategories() async {
-    final db = await databaseHelper.database;
+    final db = databaseHelper.database;
     final List<Map<String, dynamic>> maps = await db.query('categories');
 
     return maps.isNotEmpty ? maps.map((map) => Category.fromMap(map)).toList() : [];
@@ -54,7 +54,7 @@ final class CategoriesDaoImpl extends DaoBase implements CategoriesDao {
 
   @override
   Future<Category?> getCategoryById(int id) async {
-    final db = await databaseHelper.database;
+    final db = databaseHelper.database;
     final List<Map<String, dynamic>> maps = await db.query(
       'categories',
       where: 'id = ?',
@@ -65,7 +65,7 @@ final class CategoriesDaoImpl extends DaoBase implements CategoriesDao {
 
   @override
   Future<void> deleteCategory(int id) async {
-    final db = await databaseHelper.database;
+    final db = databaseHelper.database;
     final category = await getCategoryById(id);
     if (category == null) {
       throw Exception('Category not found');
@@ -79,7 +79,7 @@ final class CategoriesDaoImpl extends DaoBase implements CategoriesDao {
 
   @override
   Future<Category> insertCategory(Category category) async {
-    final db = await databaseHelper.database;
+    final db = databaseHelper.database;
     final id = await db.insert(
       'categories',
       category.toMap(),
@@ -90,7 +90,7 @@ final class CategoriesDaoImpl extends DaoBase implements CategoriesDao {
 
   @override
   Future<Category> updateCategory(Category category) async {
-    final db = await databaseHelper.database;
+    final db = databaseHelper.database;
     await db.update(
       'categories',
       category.toMap(),

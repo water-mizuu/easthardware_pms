@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:easthardware_pms/data/database/database_server_proxy.dart';
 import 'package:easthardware_pms/data/database/tables/categories_table.dart';
 import 'package:easthardware_pms/data/database/tables/expense_types_table.dart';
 import 'package:easthardware_pms/data/database/tables/invoice_products_table.dart';
@@ -13,8 +14,6 @@ import 'package:easthardware_pms/data/database/tables/units_table.dart';
 import 'package:easthardware_pms/data/database/tables/user_logs_table.dart';
 import 'package:easthardware_pms/data/database/tables/users_table.dart';
 import 'package:easthardware_pms/data/database/views/product_flags_view.dart';
-// ignore: depend_on_referenced_packages
-import 'package:path/path.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 /// database_helper.dart
@@ -24,35 +23,13 @@ import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 ///
 /// Any data manipulation functions should be created in DAOs respective to entities.
 
-class DatabaseHelper {
+abstract base class DatabaseHelper {
   /// Ensures there is only one instance of the database all througouht the applicaiton
   /// This avoids any conflicts from multiple connections
-  factory DatabaseHelper() => _instance;
+  DatabaseHelper([this._database]);
 
-  DatabaseHelper._internal();
-
-  static final DatabaseHelper _instance = DatabaseHelper._internal();
-
-  static Database? _database;
-
-  Future<Database> get database async {
-    if (_database != null) return _database!;
-    _database = await _initDatabase();
-    return _database!;
-  }
-
-  Future<Database> _initDatabase() async {
-    sqfliteFfiInit();
-    databaseFactory = databaseFactoryFfi;
-    final String path = join(await getDatabasesPath(), 'app_database.db');
-
-    return await openDatabase(
-      path,
-      version: 1,
-      onCreate: onCreate,
-      onUpgrade: onUpgrade,
-    );
-  }
+  final Database? _database;
+  Database get database => _database!;
 
   Future<void> onCreate(Database database, int version) async {
     CategoriesTable.createTable(database);
@@ -70,7 +47,8 @@ class DatabaseHelper {
     ProductFlagsView.createView(database);
   }
 
-  Future<void> onUpgrade(Database database, int oldVersion, int newVersion) async {
+  Future<void> onUpgrade(
+      Database database, int oldVersion, int newVersion) async {
     // Drop all tables
     CategoriesTable.dropTable(database);
     ExpenseTypesTable.dropTable(database);
@@ -90,4 +68,14 @@ class DatabaseHelper {
     // You can also add any additional migration logic here if needed
     // For example, if you want to migrate data from old tables to new tables, you can do it here
   }
+}
+
+/// TODO: Find a way to include the onCreate and onUpgrade here
+///   to each database helper types
+final class NullDatabaseHelper extends DatabaseHelper {
+  NullDatabaseHelper() : super(null);
+}
+
+final class ServerDatabaseHelper extends DatabaseHelper {
+  ServerDatabaseHelper(Server server) : super(DatabaseServerProxy(server));
 }
