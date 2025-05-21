@@ -2,10 +2,12 @@ import 'package:easthardware_pms/domain/enums/enums.dart';
 import 'package:easthardware_pms/domain/models/category.dart';
 import 'package:easthardware_pms/domain/models/product.dart';
 import 'package:easthardware_pms/domain/models/unit.dart';
-import 'package:easthardware_pms/presentation/bloc/authentication/authentication/authentication_bloc.dart';
+import 'package:easthardware_pms/presentation/bloc/authentication/authentication/'
+    'authentication_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/inventory/categorylist/category_list_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/inventory/productform/product_form_bloc.dart';
-import 'package:easthardware_pms/presentation/bloc/inventory/productform/product_form_validator.dart';
+import 'package:easthardware_pms/presentation/bloc/inventory/productform/'
+    'product_form_validator.dart';
 import 'package:easthardware_pms/presentation/bloc/inventory/productlist/product_list_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/inventory/unitlist/unit_list_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/navigation/navigation_bloc.dart';
@@ -130,11 +132,13 @@ class _CreateProductPageState extends State<CreateProductPage> {
               Expanded(
                 child: Form(
                   key: productFormBloc.formKey,
-                  child: Row(
-                    children: [
-                      const LeftColumn(),
-                      const RightColumn(),
-                    ].withSpacing(() => Spacing.h16),
+                  child: FocusScope(
+                    child: Row(
+                      children: [
+                        const LeftColumn(),
+                        const RightColumn(),
+                      ].withSpacing(() => Spacing.h16),
+                    ),
                   ),
                 ),
               ),
@@ -152,7 +156,11 @@ class LeftColumn extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Expanded(
-      child: Column(children: [BasicInformationSection()].withSpacing(() => Spacing.v16)),
+      child: FocusScope(
+        child: Column(
+          children: [BasicInformationSection()].withSpacing(() => Spacing.v16),
+        ),
+      ),
     );
   }
 }
@@ -163,14 +171,16 @@ class RightColumn extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return const Expanded(
-      child: Column(
-        children: [
-          SaleInformationSection(),
-          Spacing.v16,
-          OrderInformationSection(),
-          Spacing.v16,
-          SecondaryUnitsSection(),
-        ],
+      child: FocusScope(
+        child: Column(
+          children: [
+            SaleInformationSection(),
+            Spacing.v16,
+            OrderInformationSection(),
+            Spacing.v16,
+            SecondaryUnitsSection(),
+          ],
+        ),
       ),
     );
   }

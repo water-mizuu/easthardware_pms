@@ -43,8 +43,7 @@ class DependencyInjector {
     _unitRepository = UnitRepositoryImpl(databaseHelper);
     _userLogRepository = UserLogRepositoryImpl(databaseHelper);
     _userRepository = UserRepositoryImpl(databaseHelper);
-    _securityQuestionRepository =
-        SecurityQuestionRepositoryImpl(databaseHelper);
+    _securityQuestionRepository = SecurityQuestionRepositoryImpl(databaseHelper);
   }
 
   List<SingleChildWidget> inject() {
@@ -53,48 +52,37 @@ class DependencyInjector {
     }
 
     return [
-      RepositoryProvider.value(
-          value: _categoryRepository, key: ValueKey(_databaseHelper)),
-      RepositoryProvider.value(
-          value: _productRepository, key: ValueKey(_databaseHelper)),
-      RepositoryProvider.value(
-          value: _unitRepository, key: ValueKey(_databaseHelper)),
+      RepositoryProvider.value(value: _categoryRepository, key: ValueKey(_databaseHelper)),
+      RepositoryProvider.value(value: _productRepository, key: ValueKey(_databaseHelper)),
+      RepositoryProvider.value(value: _unitRepository, key: ValueKey(_databaseHelper)),
       BlocProvider(
         create: (context) => AuthenticationBloc(_authenticationRepository),
         key: ValueKey(_databaseHelper),
       ),
+      BlocProvider(create: (context) => NavigationBloc(), key: ValueKey(_databaseHelper)),
       BlocProvider(
-          create: (context) => NavigationBloc(),
-          key: ValueKey(_databaseHelper)),
-      BlocProvider(
-        create: (context) =>
-            UserListBloc(_userRepository)..add(LoadAllUsersEvent()),
+        create: (context) => UserListBloc(_userRepository)..add(LoadAllUsersEvent()),
         key: ValueKey(_databaseHelper),
       ),
       BlocProvider(
-        create: (context) =>
-            ProductListBloc(_productRepository)..add(LoadAllProductsEvent()),
+        create: (context) => ProductListBloc(_productRepository)..add(LoadAllProductsEvent()),
         key: ValueKey(_databaseHelper),
       ),
       BlocProvider(
-        create: (context) =>
-            CategoryListBloc(_categoryRepository)..add(LoadCategoriesEvent()),
+        create: (context) => CategoryListBloc(_categoryRepository)..add(LoadCategoriesEvent()),
         key: ValueKey(_databaseHelper),
       ),
       BlocProvider(
-        create: (context) =>
-            UnitListBloc(_unitRepository)..add(LoadUnitsEvent()),
+        create: (context) => UnitListBloc(_unitRepository)..add(LoadUnitsEvent()),
         key: ValueKey(_databaseHelper),
       ),
       BlocProvider(
-        create: (context) =>
-            UserLogListBloc(_userLogRepository)..add(LoadUserLogsEvent()),
+        create: (context) => UserLogListBloc(_userLogRepository)..add(LoadUserLogsEvent()),
         key: ValueKey(_databaseHelper),
       ),
       BlocProvider(
-        create: (context) =>
-            SecurityQuestionListBloc(_securityQuestionRepository)
-              ..add(const FetchSecurityQuestionsEvent()),
+        create: (context) => SecurityQuestionListBloc(_securityQuestionRepository)
+          ..add(const FetchSecurityQuestionsEvent()),
         key: ValueKey(_databaseHelper),
       ),
     ];

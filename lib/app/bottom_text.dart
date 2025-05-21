@@ -38,12 +38,13 @@ class BottomText extends StatelessWidget {
                       },
                     ),
                   ),
-                  Button(
-                    child: const Text("Click Me"),
-                    onPressed: () {
-                      context.read<ServerBloc>().add(ServerInit());
-                    },
-                  ),
+                  if (context.watch<ServerBloc>().state.databaseArgs != null)
+                    Button(
+                      child: const Text("Reset Connection"),
+                      onPressed: () {
+                        context.read<ServerBloc>().add(ServerReset());
+                      },
+                    ),
                 ],
               ),
             ),
