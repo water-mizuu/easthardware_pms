@@ -1,3 +1,4 @@
+import 'package:easthardware_pms/utils/undefined.dart';
 import 'package:uuid/uuid.dart';
 
 class Order {
@@ -30,36 +31,52 @@ class Order {
     required this.creationDate,
     required this.creatorId,
   }) : uid = uid ?? const Uuid().v4();
-  Order copyWith({
+  Order Function({
     int? id,
-    String? uid,
-    String? payeeName,
-    int? expenseType,
-    DateTime? orderDate,
-    int? paymentMethod,
+    String uid,
+    String payeeName,
+    int expenseType,
+    DateTime orderDate,
+    int paymentMethod,
     String? referenceNumber,
     String? memo,
-    double? amountDue,
+    double amountDue,
     double? amountPaid,
     DateTime? paymentDate,
-    DateTime? creationDate,
-    int? creatorId,
-  }) {
-    return Order(
-      id: id ?? this.id,
-      uid: uid ?? this.uid,
-      payeeName: payeeName ?? this.payeeName,
-      expenseType: expenseType ?? this.expenseType,
-      orderDate: orderDate ?? this.orderDate,
-      paymentMethod: paymentMethod ?? this.paymentMethod,
-      referenceNumber: referenceNumber ?? this.referenceNumber,
-      memo: memo ?? this.memo,
-      amountDue: amountDue ?? this.amountDue,
-      amountPaid: amountPaid ?? this.amountPaid,
-      paymentDate: paymentDate ?? this.paymentDate,
-      creationDate: creationDate ?? this.creationDate,
-      creatorId: creatorId ?? this.creatorId,
-    );
+    DateTime creationDate,
+    int creatorId,
+  }) get copyWith {
+    return ({
+      Object? id = undefined,
+      Object? uid = undefined,
+      Object? payeeName = undefined,
+      Object? expenseType = undefined,
+      Object? orderDate = undefined,
+      Object? paymentMethod = undefined,
+      Object? referenceNumber = undefined,
+      Object? memo = undefined,
+      Object? amountDue = undefined,
+      Object? amountPaid = undefined,
+      Object? paymentDate = undefined,
+      Object? creationDate = undefined,
+      Object? creatorId = undefined,
+    }) {
+      return Order(
+        id: id.or(this.id),
+        uid: uid.or(this.uid),
+        payeeName: payeeName.or(this.payeeName),
+        expenseType: expenseType.or(this.expenseType),
+        orderDate: orderDate.or(this.orderDate),
+        paymentMethod: paymentMethod.or(this.paymentMethod),
+        referenceNumber: referenceNumber.or(this.referenceNumber),
+        memo: memo.or(this.memo),
+        amountDue: amountDue.or(this.amountDue),
+        amountPaid: amountPaid.or(this.amountPaid),
+        paymentDate: paymentDate.or(this.paymentDate),
+        creationDate: creationDate.or(this.creationDate),
+        creatorId: creatorId.or(this.creatorId),
+      );
+    };
   }
 
   Map<String, dynamic> toMap() {

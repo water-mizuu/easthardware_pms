@@ -1,4 +1,5 @@
 import 'package:easthardware_pms/domain/models/unit.dart';
+import 'package:easthardware_pms/utils/undefined.dart';
 
 class FormUnit {
   final String name;
@@ -8,14 +9,19 @@ class FormUnit {
     required this.name,
     required this.factor,
   });
-  FormUnit copyWith({
-    String? name,
-    String? factor,
-  }) {
-    return FormUnit(
-      name: name ?? this.name,
-      factor: factor ?? this.factor,
-    );
+  FormUnit Function({
+    String name,
+    String factor,
+  }) get copyWith {
+    return ({
+      Object? name = undefined,
+      Object? factor = undefined,
+    }) {
+      return FormUnit(
+        name: name.or(this.name),
+        factor: factor.or(this.factor),
+      );
+    };
   }
 
   // From FormUnit to Unit Data Entity

@@ -3,6 +3,7 @@ import 'package:easthardware_pms/domain/enums/enums.dart';
 import 'package:easthardware_pms/domain/models/user.dart';
 import 'package:easthardware_pms/domain/repository/user_repository.dart';
 import 'package:equatable/equatable.dart';
+import 'package:flutter/foundation.dart';
 
 part 'user_list_event.dart';
 part 'user_list_state.dart';
@@ -20,7 +21,9 @@ class UserListBloc extends Bloc<UserListEvent, UserListState> {
     try {
       emit(state.copyWith(users: await _repository.getAllUsers()));
     } catch (e) {
-      print('Error loading users $e');
+      if (kDebugMode) {
+        print('Error loading users $e');
+      }
       emit(state.copyWith(status: DataStatus.error));
     }
   }
@@ -33,7 +36,9 @@ class UserListBloc extends Bloc<UserListEvent, UserListState> {
       final users = List<User>.from(state.users)..add(insertedUser);
       emit(state.copyWith(users: users, status: DataStatus.success));
     } catch (e) {
-      print('Error adding user $e');
+      if (kDebugMode) {
+        print('Error adding user $e');
+      }
       emit(state.copyWith(status: DataStatus.error));
     }
   }
@@ -51,7 +56,9 @@ class UserListBloc extends Bloc<UserListEvent, UserListState> {
 
       emit(state.copyWith(users: updatedUsers, status: DataStatus.success));
     } catch (e) {
-      print('Error updating user $e');
+      if (kDebugMode) {
+        print('Error updating user $e');
+      }
       emit(state.copyWith(status: DataStatus.error));
     }
   }
@@ -66,7 +73,9 @@ class UserListBloc extends Bloc<UserListEvent, UserListState> {
 
       emit(state.copyWith(users: updatedUsers, status: DataStatus.success));
     } catch (e) {
-      print('Error deleting user $e');
+      if (kDebugMode) {
+        print('Error deleting user $e');
+      }
       emit(state.copyWith(status: DataStatus.error));
     }
   }

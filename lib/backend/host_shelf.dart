@@ -1,3 +1,7 @@
+/// This library contains the code which hosts a shelf server
+///   through a background isolate.
+library;
+
 import 'dart:async';
 import 'dart:io';
 import 'dart:isolate';
@@ -14,52 +18,59 @@ import "package:shelf/shelf_io.dart" as shelf_io;
 import 'package:shelf_web_socket/shelf_web_socket.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 
-const otherIsolate = Object();
-
 /// Hosts a shelf server on the given port.
 /// Returns a tuple containing the server channel, the port, and a function to close the server.
 /// - The server channel is used to communicate with the server.
 /// - The port is the port on which the server is hosted.
 /// - The close function is used to stop the server.
 Future<(ServerChannel, int, Future<void> Function() close)> hostShelfServer(int port) async {
+  /// Create a receive port to communicate with the isolate.
   final receivePort = ReceivePort().hostListener();
-  final isolate = await Isolate.spawn(_spawnIsolate, (
+
+  /// Spawn an isolate which hosts the server.
+  await Isolate.spawn(_spawnIsolate, (
     RootIsolateToken.instance!,
     receivePort.sendPort,
     port,
   ));
-  isolate.addErrorListener(receivePort.sendPort);
-  final sendPort = await receivePort.next<SendPort>();
-  final receivedServerPort = await receivePort.next();
-  if (receivedServerPort case (Object error, StackTrace _)) {
-    throw error;
-  }
 
+  /// The first message sent from the isolate is the [SendPort] of the isolate.
+  final sendPort = await receivePort.next<SendPort>();
+
+  /// Next, a status code or an error is sent from the isolate.
+  final status = await receivePort.next<Object>();
+  if (status case (Object error, StackTrace stackTrace)) {
+    Error.throwWithStackTrace(error, stackTrace);
+  }
+  assert(status == 0, "The isolate should yield 0 after spawning properly.");
+
+  final receivedServerPort = await receivePort.next<int>();
   assert(receivedServerPort == port, "The server port is not the same as the one provided.");
 
+  /// When everything is correct, we can create a [ServerChannel] to communicate with the isolate.
   final channel = ServerChannel(receivePort, sendPort);
 
-  return (
-    channel,
-    port,
-    () async {
-      final received = await channel.invoke("stop");
-
-      switch (received) {
-        case 0:
-          if (kDebugMode) {
-            print("Isolate stopped successfully.");
-          }
-          receivePort.close();
-          break;
-        case _:
-          if (kDebugMode) {
-            print("Failed to stop the isolate.");
-          }
-          break;
-      }
+  /// We create a dispose function to stop the isolate.
+  ///   This allows us to not expose the isolate itself to the user.
+  // ignore: prefer_function_declarations_over_variables
+  final dispose = () async {
+    final status = await channel.invoke("stop");
+    switch (status) {
+      case 0:
+        if (kDebugMode) {
+          print("Isolate stopped successfully.");
+        }
+        receivePort.close();
+        break;
+      case _:
+        if (kDebugMode) {
+          print("Failed to stop the isolate.");
+        }
+        break;
     }
-  );
+  };
+
+  return (channel, port, dispose);
 }
 
 late AsyncQueue _asyncQueue;
@@ -67,7 +78,6 @@ late AsyncQueue _asyncQueue;
 /// Spawns an isolate to handle database operations and WebSocket connections.
 ///   This isolate will handle incoming messages and perform database operations
 ///   as needed.
-@otherIsolate
 Future<void> _spawnIsolate((RootIsolateToken, SendPort, int) payload) async {
   // Unpack the arguments
   final (token, sendPort, givenPort) = payload;
@@ -86,49 +96,50 @@ Future<void> _spawnIsolate((RootIsolateToken, SendPort, int) payload) async {
   if (error != null) {
     sendPort.send(error);
     return;
+  } else if (server != null) {
+    sendPort.send(0);
   }
 
   // Send the server port back to the main isolate.
   //  The main isolate compares the port to the one provided.
   sendPort.send(server!.port);
 
-  var isRunning = true;
-  while (isRunning) {
-    final message = await receivePort.next();
+  /// This method handles closing the server and the objects created in this isolate.
+  void closeIsolate() async {
+    // Close the shelf server
+    await server.close();
 
+    // Clear the async queue
+    _asyncQueue.clear();
+
+    // Close this isolate's receive port.
+    receivePort.close();
+
+    if (kDebugMode) {
+      print("Isolate stopped.");
+    }
+
+    /// Success code 0.
+    sendPort.send(0);
+  }
+
+  void handleDbCall(String method, List<Object?> arguments) async {
+    final result = await handleDbMethod(method, arguments);
+    sendPort.send(result);
+  }
+
+  /// Listen for messages from the main isolate.
+  receivePort.listen((message) {
     if (message case ["stop", ...]) {
-      // End the while loop
-      isRunning = false;
-
-      // Close the shelf server
-      await server.close();
-
-      // Clear the async queue
-      _asyncQueue.clear();
-
-      // Close this isolate's receive port.
-      receivePort.close();
-
-      if (kDebugMode) {
-        print("Isolate stopped.");
-      }
-
-      /// Success code 0.
-      sendPort.send(0);
+      closeIsolate();
     } else if (message case ["db", [String method, List<Object?> arguments]]) {
-      // Handle each db method call.
-      final result = await handleDbMethod(method, arguments);
-      sendPort.send(result);
+      handleDbCall(method, arguments);
     } else {
       if (kDebugMode) {
         print("Received unexpected message: $message");
       }
     }
-  }
-
-  if (kDebugMode) {
-    print("Isolate finished.");
-  }
+  });
 }
 
 /// Initializes the shelf server, returning the server instance and the port.
@@ -162,29 +173,24 @@ Future<(HttpServer?, Object?)> _shelfInitiate(
   }
 }
 
-FutureOr<void> _handleConnection(
-  WebSocketChannel channel, [
-  String? subprotocol,
-]) async {
+/// Handles the WebSocket connection.
+/// A websocket connection is established whenever a client connects to the server.
+Future<void> _handleConnection(WebSocketChannel channel, [String? subprotocol]) async {
   // Handle WebSocket connection
 
-  var running = true;
-  final serverChannel = channel.toServerChannel(close: () => running = false) //
+  final serverChannel = channel.toServerChannel() //
     // Send a status code of 0 to indicate success.
     ..sendPort.send(0);
 
-  do {
-    /// Just keep running until the client disconnects.
-    final result = await serverChannel.receivePort.next();
-
-    if (result case ["db", [String method, List<Object?> arguments]]) {
+  serverChannel.receivePort.listen((message) {
+    if (message case ["db", [String method, List<Object?> arguments]]) {
       // Handle each db method call.
-      final result = await handleDbMethod(method, arguments);
+      final result = handleDbMethod(method, arguments);
       serverChannel.sendPort.send(result);
     } else {
       if (kDebugMode) {
-        print("Received unexpected message: $result");
+        print("Received unexpected message: $message");
       }
     }
-  } while (running);
+  });
 }

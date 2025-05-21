@@ -1,3 +1,6 @@
+// filepath: /Users/michael/Programming/projects/dart/flutter/easthardware_pms/lib/domain/models/product.dart
+import 'package:easthardware_pms/utils/undefined.dart';
+
 class Product {
   final int? id;
   final String name;
@@ -41,48 +44,70 @@ class Product {
     this.isDeadStock,
   });
 
-  Product copyWith({
+  Product Function({
     int? id,
-    String? name,
-    String? sku,
+    String name,
+    String sku,
     int? categoryId,
     String? categoryName,
     String? description,
-    double? salePrice,
-    double? orderCost,
-    double? quantity,
-    String? mainUnit,
-    double? criticalLevel,
-    double? deadStockThreshold,
-    double? fastMovingStockThreshold,
-    String? creationDate,
-    int? creatorId,
-    int? archiveStatus,
+    double salePrice,
+    double orderCost,
+    double quantity,
+    String mainUnit,
+    double criticalLevel,
+    double deadStockThreshold,
+    double fastMovingStockThreshold,
+    String creationDate,
+    int creatorId,
+    int archiveStatus,
     bool? isBelowCriticalLevel,
     bool? isFastMovingStock,
     bool? isDeadStock,
-  }) {
-    return Product(
-      id: id ?? this.id,
-      name: name ?? this.name,
-      sku: sku ?? this.sku,
-      categoryId: categoryId ?? this.categoryId,
-      categoryName: categoryName ?? this.categoryName,
-      description: description ?? this.description,
-      salePrice: salePrice ?? this.salePrice,
-      orderCost: orderCost ?? this.orderCost,
-      quantity: quantity ?? this.quantity,
-      mainUnit: mainUnit ?? this.mainUnit,
-      criticalLevel: criticalLevel ?? this.criticalLevel,
-      deadStockThreshold: deadStockThreshold ?? this.deadStockThreshold,
-      fastMovingStockThreshold: fastMovingStockThreshold ?? this.fastMovingStockThreshold,
-      creationDate: creationDate ?? this.creationDate,
-      creatorId: creatorId ?? this.creatorId,
-      archiveStatus: archiveStatus ?? this.archiveStatus,
-      isBelowCriticalLevel: isBelowCriticalLevel ?? this.isBelowCriticalLevel,
-      isFastMovingStock: isFastMovingStock ?? this.isFastMovingStock,
-      isDeadStock: isDeadStock ?? this.isDeadStock,
-    );
+  }) get copyWith {
+    return ({
+      Object? id = undefined,
+      Object? name = undefined,
+      Object? sku = undefined,
+      Object? categoryId = undefined,
+      Object? categoryName = undefined,
+      Object? description = undefined,
+      Object? salePrice = undefined,
+      Object? orderCost = undefined,
+      Object? quantity = undefined,
+      Object? mainUnit = undefined,
+      Object? criticalLevel = undefined,
+      Object? deadStockThreshold = undefined,
+      Object? fastMovingStockThreshold = undefined,
+      Object? creationDate = undefined,
+      Object? creatorId = undefined,
+      Object? archiveStatus = undefined,
+      Object? isBelowCriticalLevel = undefined,
+      Object? isFastMovingStock = undefined,
+      Object? isDeadStock = undefined,
+    }) {
+      return Product(
+        id: id.or(this.id),
+        name: name.or(this.name),
+        sku: sku.or(this.sku),
+        categoryId: categoryId.or(this.categoryId),
+        categoryName: categoryName.or(this.categoryName),
+        description: description.or(this.description),
+        salePrice: salePrice.or(this.salePrice),
+        orderCost: orderCost.or(this.orderCost),
+        quantity: quantity.or(this.quantity),
+        mainUnit: mainUnit.or(this.mainUnit),
+        criticalLevel: criticalLevel.or(this.criticalLevel),
+        deadStockThreshold: deadStockThreshold.or(this.deadStockThreshold),
+        fastMovingStockThreshold: fastMovingStockThreshold.or(this.fastMovingStockThreshold),
+        creationDate: creationDate.or(this.creationDate),
+        creatorId: creatorId.or(this.creatorId),
+        archiveStatus: archiveStatus.or(this.archiveStatus),
+        isBelowCriticalLevel: isBelowCriticalLevel.or(this.isBelowCriticalLevel),
+        isFastMovingStock: isFastMovingStock.or(this.isFastMovingStock),
+        isDeadStock: isDeadStock.or(this.isDeadStock),
+      );
+    };
   }
 
   Map<String, dynamic> toMap() {

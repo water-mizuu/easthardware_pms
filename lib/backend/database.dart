@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:easthardware_pms/backend/server_mode.dart';
 import 'package:easthardware_pms/data/database/tables/categories_table.dart';
 import 'package:easthardware_pms/data/database/tables/expense_types_table.dart';
 import 'package:easthardware_pms/data/database/tables/invoice_products_table.dart';
@@ -23,7 +22,8 @@ import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 // Database instance cache
 Database? _databaseInstance;
 
-@otherIsolate
+/// The creation of the database instance is here.
+///   It is created after a server isolate is spawned.
 Future<Database> _getDatabase() async {
   assert(RootIsolateToken.instance == null, "This should be called on another isolate.");
   if (_databaseInstance == null) {
@@ -35,57 +35,61 @@ Future<Database> _getDatabase() async {
     }
 
     final path = join(await getDatabasesPath(), 'server_return database.db');
-    _databaseInstance = await openDatabase(path, version: 2, onCreate: (db, version) {
-      CategoriesTable.createTable(db);
-      ExpenseTypesTable.createTable(db);
-      PaymentMethodsTable.createTable(db);
-      UsersTable.createTable(db);
-      UserLogsTable.createTable(db);
-      ProductsTable.createTable(db);
-      UnitsTable.createTable(db);
-      OrdersTable.createTable(db);
-      OrderProductsTable.createTable(db);
-      InvoicesTable.createTable(db);
-      InvoiceProductsTable.createTable(db);
-      SecurityQuestionsTable.createTable(db);
-      ProductFlagsView.createView(db);
-    }, onUpgrade: (db, _, __) async {
-      // Drop all tables
-      CategoriesTable.dropTable(db);
-      ExpenseTypesTable.dropTable(db);
-      PaymentMethodsTable.dropTable(db);
-      UsersTable.dropTable(db);
-      UserLogsTable.dropTable(db);
-      ProductsTable.dropTable(db);
-      UnitsTable.dropTable(db);
-      OrdersTable.dropTable(db);
-      OrderProductsTable.dropTable(db);
-      InvoicesTable.dropTable(db);
-      InvoiceProductsTable.dropTable(db);
-      SecurityQuestionsTable.dropTable(db);
-      ProductFlagsView.dropView(db);
-      // Recreate all tables
-      CategoriesTable.createTable(db);
-      ExpenseTypesTable.createTable(db);
-      PaymentMethodsTable.createTable(db);
-      UsersTable.createTable(db);
-      UserLogsTable.createTable(db);
-      ProductsTable.createTable(db);
-      UnitsTable.createTable(db);
-      OrdersTable.createTable(db);
-      OrderProductsTable.createTable(db);
-      InvoicesTable.createTable(db);
-      InvoiceProductsTable.createTable(db);
-      SecurityQuestionsTable.createTable(db);
-      ProductFlagsView.createView(db);
-      // You can also add any additional migration logic here if needed
-      // For example, if you want to migrate data from old tables to new tables, you can do it here
-    });
+    _databaseInstance = await openDatabase(
+      path,
+      version: 2,
+      onCreate: (db, version) {
+        CategoriesTable.createTable(db);
+        ExpenseTypesTable.createTable(db);
+        PaymentMethodsTable.createTable(db);
+        UsersTable.createTable(db);
+        UserLogsTable.createTable(db);
+        ProductsTable.createTable(db);
+        UnitsTable.createTable(db);
+        OrdersTable.createTable(db);
+        OrderProductsTable.createTable(db);
+        InvoicesTable.createTable(db);
+        InvoiceProductsTable.createTable(db);
+        SecurityQuestionsTable.createTable(db);
+        ProductFlagsView.createView(db);
+      },
+      onUpgrade: (db, _, __) async {
+        // Drop all tables
+        CategoriesTable.dropTable(db);
+        ExpenseTypesTable.dropTable(db);
+        PaymentMethodsTable.dropTable(db);
+        UsersTable.dropTable(db);
+        UserLogsTable.dropTable(db);
+        ProductsTable.dropTable(db);
+        UnitsTable.dropTable(db);
+        OrdersTable.dropTable(db);
+        OrderProductsTable.dropTable(db);
+        InvoicesTable.dropTable(db);
+        InvoiceProductsTable.dropTable(db);
+        SecurityQuestionsTable.dropTable(db);
+        ProductFlagsView.dropView(db);
+        // Recreate all tables
+        CategoriesTable.createTable(db);
+        ExpenseTypesTable.createTable(db);
+        PaymentMethodsTable.createTable(db);
+        UsersTable.createTable(db);
+        UserLogsTable.createTable(db);
+        ProductsTable.createTable(db);
+        UnitsTable.createTable(db);
+        OrdersTable.createTable(db);
+        OrderProductsTable.createTable(db);
+        InvoicesTable.createTable(db);
+        InvoiceProductsTable.createTable(db);
+        SecurityQuestionsTable.createTable(db);
+        ProductFlagsView.createView(db);
+        // You can also add any additional migration logic here if needed
+        // For example, if you want to migrate data from old tables to new tables, you can do it here
+      },
+    );
   }
   return _databaseInstance!;
 }
 
-@otherIsolate
 Future<List<Object?>> _executeBatch(
   Database db,
   List<Object> operations,
@@ -235,7 +239,6 @@ Future<List<Object?>> _executeBatch(
   }
 }
 
-@otherIsolate
 Future<dynamic> handleDbMethod(String method, List<Object?> arguments) async {
   // Create a database instance or use an existing one
   assert(RootIsolateToken.instance == null);
@@ -297,9 +300,6 @@ Future<dynamic> handleDbMethod(String method, List<Object?> arguments) async {
               'offset': int? offset,
             }
           ]) {
-        if (kDebugMode) {
-          print(arguments);
-        }
         return isolateDatabase.query(
           table,
           distinct: distinct,

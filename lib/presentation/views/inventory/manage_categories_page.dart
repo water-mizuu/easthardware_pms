@@ -144,7 +144,7 @@ void showContentDialog(BuildContext context, [Category? category]) async {
                     if (isAdding) {
                       bloc.add(AddCategoryEvent(Category(name: state.name!)));
                     } else {
-                      bloc.add(UpdateCategoryEvent(category.copyWith(name: state.name)));
+                      bloc.add(UpdateCategoryEvent(category.copyWith(name: state.name!)));
                     }
                     context.read<CategoryFormCubit>().onSubmit();
                     break;

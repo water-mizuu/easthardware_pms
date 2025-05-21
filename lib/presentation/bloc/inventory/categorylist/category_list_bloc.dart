@@ -2,6 +2,7 @@ import 'package:bloc/bloc.dart';
 import 'package:easthardware_pms/domain/enums/enums.dart';
 import 'package:easthardware_pms/domain/models/category.dart';
 import 'package:easthardware_pms/domain/repository/category_repository.dart';
+import 'package:easthardware_pms/utils/undefined.dart';
 import 'package:equatable/equatable.dart';
 
 part 'category_list_event.dart';

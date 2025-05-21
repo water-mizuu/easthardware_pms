@@ -1,3 +1,5 @@
+import 'package:easthardware_pms/utils/undefined.dart';
+
 class Unit {
   final int? id;
   final int? productId;
@@ -11,18 +13,25 @@ class Unit {
     required this.factor,
   });
 
-  Unit copyWith({
+  Unit Function({
     int? id,
     int? productId,
-    String? name,
-    double? factor,
-  }) {
-    return Unit(
-      id: id ?? this.id,
-      productId: productId ?? this.productId,
-      name: name ?? this.name,
-      factor: factor ?? this.factor,
-    );
+    String name,
+    double factor,
+  }) get copyWith {
+    return ({
+      Object? id = undefined,
+      Object? productId = undefined,
+      Object? name = undefined,
+      Object? factor = undefined,
+    }) {
+      return Unit(
+        id: id.or(this.id),
+        productId: productId.or(this.productId),
+        name: name.or(this.name),
+        factor: factor.or(this.factor),
+      );
+    };
   }
 
   factory Unit.fromMap(Map<String, dynamic> map) {

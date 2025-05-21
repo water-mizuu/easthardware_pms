@@ -1,15 +1,8 @@
 part of 'authentication_bloc.dart';
 
-
 enum AuthenticationStatus { unknown, loading, success, failure }
 
-enum FormElement {
-  username,
-  password,
-  passwordVerification,
-  securityQuestion,
-  securityAnswer
-}
+enum FormElement { username, password, passwordVerification, securityQuestion, securityAnswer }
 
 class ErrorMessage {
   final String message;
@@ -31,17 +24,24 @@ class AuthenticationState {
     this.errors = const [],
   });
 
-  AuthenticationState copyWith({
-    AuthenticationStatus? status,
+  AuthenticationState Function({
+    AuthenticationStatus status,
     User? user,
-    int? loginAttempts,
-    List<ErrorMessage>? errors,
-  }) {
-    return AuthenticationState(
-      status: status ?? this.status,
-      user: user ?? this.user,
-      loginAttempts: loginAttempts ?? this.loginAttempts,
-      errors: errors ?? this.errors,
-    );
+    int loginAttempts,
+    List<ErrorMessage> errors,
+  }) get copyWith {
+    return ({
+      Object? status = undefined,
+      Object? user = undefined,
+      Object? loginAttempts = undefined,
+      Object? errors = undefined,
+    }) {
+      return AuthenticationState(
+        status: status.or(this.status),
+        user: user.or(this.user),
+        loginAttempts: loginAttempts.or(this.loginAttempts),
+        errors: errors.or(this.errors),
+      );
+    };
   }
 }

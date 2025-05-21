@@ -3,7 +3,7 @@ import 'dart:io';
 
 import 'package:easthardware_pms/app/app.dart';
 import 'package:easthardware_pms/backend/extensions/to_server_channel.dart';
-import 'package:easthardware_pms/backend/server_mode.dart';
+import 'package:easthardware_pms/backend/host_shelf.dart';
 import 'package:easthardware_pms/data/database/database_helper.dart';
 import 'package:easthardware_pms/data/database/database_server_proxy.dart';
 import 'package:easthardware_pms/presentation/bloc/server/server_event.dart';
@@ -53,6 +53,8 @@ class ServerBloc extends Bloc<ServerEvent, ServerState> {
     on<ServerSaveServerInformation>(_saveServerInformation);
   }
 
+  /// Resets the shared preferences by removing the server address, port, and mode.
+  ///   Returns the instance of SharedPreferencesAsync.
   Future<SharedPreferencesAsync> _resetSharedPreferences() async {
     final sharedPreferences = SharedPreferencesAsync();
     await sharedPreferences.remove("serverAddress");
@@ -62,6 +64,7 @@ class ServerBloc extends Bloc<ServerEvent, ServerState> {
     return sharedPreferences;
   }
 
+  /// Starts a shelf server on the given port.
   Future<(ServerChannel, Future<void> Function())> _hostServer(int port) async {
     final (serverChannel, hostedPort, close) = await hostShelfServer(port);
     assert(hostedPort == port, "Hosted port should be the same as the given port.");
@@ -80,19 +83,23 @@ class ServerBloc extends Bloc<ServerEvent, ServerState> {
     final serverChannel = websocketChannel.toServerChannel();
     final next = await serverChannel.receivePort.next();
     final isSuccessful = next == 0;
-    if (kDebugMode) {
-      print((next, isSuccessful));
-    }
     if (!isSuccessful) throw Error();
+
     return (websocketChannel, serverChannel);
   }
 
-  FutureOr<void> _onReset(ServerReset event, Emitter<ServerState> emit) async {
+  Future<void> _onReset(ServerReset event, Emitter<ServerState> emit) async {
     await _resetSharedPreferences();
     add(ServerInit());
   }
 
   Future<void> _onInit(ServerInit event, Emitter<ServerState> emit) async {
+    /// Close any server or client connections that are open.
+    if (state.databaseArgs case ServerDatabaseArgs(:var close) || ClientDatabaseArgs(:var close)) {
+      await close();
+    }
+
+    /// Reset the state to initial.
     emit(ServerState(status: ServerStatus.initial).copyWith(status: ServerStatus.loading));
     bottomTextNotifier.value = "Loading server data...";
 

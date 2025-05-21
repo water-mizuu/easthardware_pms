@@ -70,6 +70,10 @@ extension type ListenedReceivePort._(ReceivePort _port) {
   set _isClosed(bool isClosed) => _isCloseds[_port] = isClosed;
 
   Future<T> next<T>() async {
+    if (_fallbackListener != null) {
+      throw Exception("The receive port is no longer a host.");
+    }
+
     if (_queue.isNotEmpty) {
       return _queue.removeFirst() as T;
     }
@@ -95,6 +99,10 @@ extension type ListenedReceivePort._(ReceivePort _port) {
     _fallbackListeners[_port] = (message) {
       sendPort.send(message);
     };
+  }
+
+  void listen(FutureOr<void> Function(Object?) listener) {
+    _fallbackListeners[_port] = listener;
   }
 
   /// Closes the [ReceivePort] and removes all the listeners.

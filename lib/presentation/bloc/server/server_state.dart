@@ -1,6 +1,7 @@
 import 'package:easthardware_pms/app/app.dart';
 import 'package:easthardware_pms/data/database/database_helper.dart';
 import 'package:easthardware_pms/utils/server_channel.dart';
+import 'package:easthardware_pms/utils/undefined.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter/foundation.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
@@ -25,16 +26,22 @@ class ServerState with EquatableMixin {
   final DatabaseArgs? databaseArgs;
   final DatabaseHelper? databaseHelper;
 
-  ServerState copyWith({
-    ServerStatus? status,
+  ServerState Function({
+    ServerStatus status,
     DatabaseArgs? databaseArgs,
     DatabaseHelper? databaseHelper,
-  }) {
-    return ServerState(
-      status: status ?? this.status,
-      databaseArgs: databaseArgs ?? this.databaseArgs,
-      databaseHelper: databaseHelper ?? this.databaseHelper,
-    );
+  }) get copyWith {
+    return ({
+      Object? status = undefined,
+      Object? databaseArgs = undefined,
+      Object? databaseHelper = undefined,
+    }) {
+      return ServerState(
+        status: status.or(this.status),
+        databaseArgs: databaseArgs.or(this.databaseArgs),
+        databaseHelper: databaseHelper.or(this.databaseHelper),
+      );
+    };
   }
 
   @override

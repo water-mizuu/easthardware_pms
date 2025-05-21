@@ -1,3 +1,4 @@
+import 'package:easthardware_pms/utils/undefined.dart';
 import 'package:uuid/uuid.dart';
 
 class UserLog {
@@ -24,20 +25,28 @@ class UserLog {
     );
   }
 
-  UserLog copyWith({
+  UserLog Function({
     int? id,
     String? uid,
     int? userId,
     String? event,
     DateTime? eventTime,
-  }) {
-    return UserLog(
-      id: id ?? this.id,
-      uid: uid ?? this.uid,
-      userId: userId ?? this.userId,
-      event: event ?? this.event,
-      eventTime: eventTime ?? this.eventTime,
-    );
+  }) get copyWith {
+    return ({
+      Object? id = undefined,
+      Object? uid = undefined,
+      Object? userId = undefined,
+      Object? event = undefined,
+      Object? eventTime = undefined,
+    }) {
+      return UserLog(
+        id: id.or(this.id),
+        uid: uid.or(this.uid),
+        userId: userId.or(this.userId),
+        event: event.or(this.event),
+        eventTime: eventTime.or(this.eventTime),
+      );
+    };
   }
 
   Map<String, dynamic> toMap() {

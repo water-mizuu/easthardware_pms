@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'dart:convert';
 import 'dart:isolate';
 
@@ -8,37 +7,31 @@ import 'package:flutter/foundation.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 
 extension ServerChannelExtension on WebSocketChannel {
-  ServerChannel toServerChannel({FutureOr<void> Function()? close}) {
+  /// Creates a [ServerChannel] from an existing [WebSocketChannel].
+  ///   This is useful as it automatically encodes and decodes messages to/from JSON.
+  ///   The reason it does so is that [WebSocketChannel]s only support sending and receiving strings.
+  ServerChannel toServerChannel() {
     final receivePort = ReceivePort().hostListener();
     final sendPort = receivePort.sendPort;
 
-    final internalReceivePort = ReceivePort()
-      ..listen((object) {
-        var result = jsonEncode(object);
-        if (kDebugMode) {
-          // print(["Sending to client", result]);
-        }
-
-        sink.add(result);
-      });
+    final internalReceivePort = ReceivePort()..map(jsonEncode).listen(sink.add);
     final internalSendPort = internalReceivePort.sendPort;
 
-    stream.listen((m) {
-      var result = jsonDecode(m);
-      if (kDebugMode) {
-        // print(["Received from client", result]);
-      }
+    stream //
+        .where((e) => e is String)
+        .cast<String>()
+        .map(jsonDecode)
+        .listen(
+      sendPort.send,
+      onDone: () async {
+        internalReceivePort.close();
+        receivePort.close();
 
-      sendPort.send(result);
-    }, onDone: () async {
-      await close?.call();
-      internalReceivePort.close();
-      receivePort.close();
-
-      if (kDebugMode) {
-        print("Closed connection to a client.");
-      }
-    });
+        if (kDebugMode) {
+          print("Closed connection to a client.");
+        }
+      },
+    );
 
     return ServerChannel(receivePort, internalSendPort);
   }

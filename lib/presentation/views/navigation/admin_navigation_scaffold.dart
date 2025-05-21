@@ -34,9 +34,6 @@ class AdminNavigationScaffold extends StatelessWidget {
                 displayMode: PaneDisplayMode.auto,
                 onItemPressed: (index) {
                   if ([1, 12].contains(index)) index++;
-                  if (kDebugMode) {
-                    print((index));
-                  }
                   if (index == 16) return;
                   context.read<NavigationBloc>().add(NavigationIndexChanged(index: index));
                 },
@@ -152,7 +149,9 @@ List<NavigationPaneItem> _securitySubItems = [
     title: const Text('Log Out'),
     body: const SizedBox(),
     onTap: () {
-      print('Log out');
+      if (kDebugMode) {
+        print('Log out');
+      }
     },
   ),
 ];

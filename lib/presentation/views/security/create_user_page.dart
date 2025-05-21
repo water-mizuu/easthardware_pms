@@ -1,7 +1,5 @@
 import 'package:easthardware_pms/domain/constants/constants.dart';
 import 'package:easthardware_pms/domain/enums/enums.dart';
-import 'package:easthardware_pms/domain/models/security_question.dart';
-import 'package:easthardware_pms/domain/models/user.dart';
 import 'package:easthardware_pms/presentation/bloc/authentication/authentication/authentication_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/navigation/navigation_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/security/securityquestions/security_question_list_bloc.dart';
@@ -53,11 +51,11 @@ class _CreateUserPageState extends State<CreateUserPage> {
 
                 return;
               }
-              final User user = state.mapStateToUser();
+              final user = state.mapStateToUser();
               context.read<UserListBloc>().add(AddUserEvent(user));
 
-              final List<SecurityQuestion> securityQuestions = state.questions
-                  .map((question) => question.toSecurityQuestion(state.userId!))
+              final securityQuestions = state.questions //
+                  .map((question) => question.toSecurityQuestion(id))
                   .toList();
 
               for (final question in securityQuestions) {

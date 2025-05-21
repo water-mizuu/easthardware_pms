@@ -1,4 +1,5 @@
 import 'package:easthardware_pms/domain/enums/enums.dart';
+import 'package:easthardware_pms/utils/undefined.dart';
 import 'package:uuid/uuid.dart';
 
 class Invoice {
@@ -34,38 +35,55 @@ class Invoice {
     required this.creatorId,
   }) : uid = const Uuid().v4();
 
-  Invoice copyWith({
+  Invoice Function({
     int? id,
-    String? uid,
-    String? customerName,
-    DateTime? invoiceDate,
-    int? paymentMethod,
+    String uid,
+    String customerName,
+    DateTime invoiceDate,
+    int paymentMethod,
     String? referenceNumber,
     String? memo,
     double? discount,
     DiscountType? discountType,
-    DateTime? creationDate,
+    DateTime creationDate,
     DateTime? paymentDate,
-    double? amountDue,
+    double amountDue,
     double? amountPaid,
-    int? creatorId,
-  }) {
-    return Invoice(
-      id: id ?? this.id,
-      uid: uid ?? this.uid,
-      customerName: customerName ?? this.customerName,
-      invoiceDate: invoiceDate ?? this.invoiceDate,
-      paymentMethod: paymentMethod ?? this.paymentMethod,
-      referenceNumber: referenceNumber ?? this.referenceNumber,
-      memo: memo ?? this.memo,
-      discount: discount ?? this.discount,
-      discountType: discountType ?? this.discountType,
-      creationDate: creationDate ?? this.creationDate,
-      paymentDate: paymentDate ?? this.paymentDate,
-      amountDue: amountDue ?? this.amountDue,
-      amountPaid: amountPaid ?? this.amountPaid,
-      creatorId: creatorId ?? this.creatorId,
-    );
+    int creatorId,
+  }) get copyWith {
+    return ({
+      Object? id = undefined,
+      Object? uid = undefined,
+      Object? customerName = undefined,
+      Object? invoiceDate = undefined,
+      Object? paymentMethod = undefined,
+      Object? referenceNumber = undefined,
+      Object? memo = undefined,
+      Object? discount = undefined,
+      Object? discountType = undefined,
+      Object? creationDate = undefined,
+      Object? paymentDate = undefined,
+      Object? amountDue = undefined,
+      Object? amountPaid = undefined,
+      Object? creatorId = undefined,
+    }) {
+      return Invoice(
+        id: id.or(this.id),
+        uid: uid.or(this.uid),
+        customerName: customerName.or(this.customerName),
+        invoiceDate: invoiceDate.or(this.invoiceDate),
+        paymentMethod: paymentMethod.or(this.paymentMethod),
+        referenceNumber: referenceNumber.or(this.referenceNumber),
+        memo: memo.or(this.memo),
+        discount: discount.or(this.discount),
+        discountType: discountType.or(this.discountType),
+        creationDate: creationDate.or(this.creationDate),
+        paymentDate: paymentDate.or(this.paymentDate),
+        amountDue: amountDue.or(this.amountDue),
+        amountPaid: amountPaid.or(this.amountPaid),
+        creatorId: creatorId.or(this.creatorId),
+      );
+    };
   }
 
   Map<String, dynamic> toMap() {

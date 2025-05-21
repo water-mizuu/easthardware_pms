@@ -1,3 +1,5 @@
+import 'package:easthardware_pms/utils/undefined.dart';
+
 class OrderProduct {
   final int? id;
   final int orderId;
@@ -23,7 +25,7 @@ class OrderProduct {
     required this.amount,
   });
 
-  OrderProduct copyWith({
+  OrderProduct Function({
     int? id,
     int? orderId,
     int? productId,
@@ -34,19 +36,32 @@ class OrderProduct {
     double? conversionFactor,
     double? rate,
     double? amount,
-  }) {
-    return OrderProduct(
-      id: id ?? this.id,
-      orderId: orderId ?? this.orderId,
-      productId: productId ?? this.productId,
-      productName: productName ?? this.productName,
-      description: description ?? this.description,
-      quantity: quantity ?? this.quantity,
-      secondaryUnit: secondaryUnit ?? this.secondaryUnit,
-      conversionFactor: conversionFactor ?? this.conversionFactor,
-      rate: rate ?? this.rate,
-      amount: amount ?? this.amount,
-    );
+  }) get copyWith {
+    return ({
+      Object? id = undefined,
+      Object? orderId = undefined,
+      Object? productId = undefined,
+      Object? productName = undefined,
+      Object? description = undefined,
+      Object? quantity = undefined,
+      Object? secondaryUnit = undefined,
+      Object? conversionFactor = undefined,
+      Object? rate = undefined,
+      Object? amount = undefined,
+    }) {
+      return OrderProduct(
+        id: id.or(this.id),
+        orderId: orderId.or(this.orderId),
+        productId: productId.or(this.productId),
+        productName: productName.or(this.productName),
+        description: description.or(this.description),
+        quantity: quantity.or(this.quantity),
+        secondaryUnit: secondaryUnit.or(this.secondaryUnit),
+        conversionFactor: conversionFactor.or(this.conversionFactor),
+        rate: rate.or(this.rate),
+        amount: amount.or(this.amount),
+      );
+    };
   }
 
   Map<String, dynamic> toMap() {

@@ -4,6 +4,7 @@ import 'package:easthardware_pms/domain/models/user.dart';
 import 'package:easthardware_pms/domain/models/user_log.dart';
 import 'package:easthardware_pms/domain/repository/user_log_repository.dart';
 import 'package:equatable/equatable.dart';
+import 'package:flutter/foundation.dart';
 
 part 'user_log_list_event.dart';
 part 'user_log_list_state.dart';
@@ -29,7 +30,9 @@ class UserLogListBloc extends Bloc<UserLogListEvent, UserLogListState> {
       final userlogs = await _repository.getAllUserLogs();
       emit(state.copyWith(status: DataStatus.success, userlogs: userlogs));
     } catch (e) {
-      print("BLoC Error loading user logs: $e");
+      if (kDebugMode) {
+        print("BLoC Error loading user logs: $e");
+      }
       emit(state.copyWith(status: DataStatus.error));
     }
   }
@@ -48,7 +51,9 @@ class UserLogListBloc extends Bloc<UserLogListEvent, UserLogListState> {
 
       emit(state.copyWith(userlogs: userLogs, status: DataStatus.success));
     } catch (e) {
-      print("BLoC Error inserting user log: $e");
+      if (kDebugMode) {
+        print("BLoC Error inserting user log: $e");
+      }
       emit(state.copyWith(status: DataStatus.error));
     }
   }
@@ -67,7 +72,9 @@ class UserLogListBloc extends Bloc<UserLogListEvent, UserLogListState> {
 
       emit(state.copyWith(userlogs: userLogs, status: DataStatus.success));
     } catch (e) {
-      print("BLoC Error inserting user log: $e");
+      if (kDebugMode) {
+        print("BLoC Error inserting user log: $e");
+      }
       emit(state.copyWith(status: DataStatus.error));
     }
   }
@@ -86,7 +93,9 @@ class UserLogListBloc extends Bloc<UserLogListEvent, UserLogListState> {
 
       emit(state.copyWith(userlogs: userLogs, status: DataStatus.success));
     } catch (e) {
-      print("BLoC Error inserting user log: $e");
+      if (kDebugMode) {
+        print("BLoC Error inserting user log: $e");
+      }
       emit(state.copyWith(status: DataStatus.error));
     }
   }
@@ -105,7 +114,9 @@ class UserLogListBloc extends Bloc<UserLogListEvent, UserLogListState> {
 
       emit(state.copyWith(userlogs: userLogs, status: DataStatus.success));
     } catch (e) {
-      print("BLoC Error inserting user log: $e");
+      if (kDebugMode) {
+        print("BLoC Error inserting user log: $e");
+      }
       emit(state.copyWith(status: DataStatus.error));
     }
   }
@@ -123,7 +134,9 @@ class UserLogListBloc extends Bloc<UserLogListEvent, UserLogListState> {
 
       emit(state.copyWith(userlogs: updatedUserLogs, status: DataStatus.success));
     } catch (e) {
-      print("BLoC Error updating user log: $e");
+      if (kDebugMode) {
+        print("BLoC Error updating user log: $e");
+      }
       emit(state.copyWith(status: DataStatus.error));
     }
   }
@@ -137,7 +150,9 @@ class UserLogListBloc extends Bloc<UserLogListEvent, UserLogListState> {
           .toList();
       emit(state.copyWith(userlogs: updatedUserLogs, status: DataStatus.success));
     } catch (e) {
-      print("BLoC Error deleting user log: $e");
+      if (kDebugMode) {
+        print("BLoC Error deleting user log: $e");
+      }
       emit(state.copyWith(status: DataStatus.error));
     }
   }
@@ -148,7 +163,9 @@ class UserLogListBloc extends Bloc<UserLogListEvent, UserLogListState> {
       final filteredUserLogs = await _repository.getUserLogByUserId(event.id);
       emit(state.copyWith(filteredLogs: filteredUserLogs, status: DataStatus.success));
     } catch (e) {
-      print("BLoC Error filtering user log: $e");
+      if (kDebugMode) {
+        print("BLoC Error filtering user log: $e");
+      }
       emit(state.copyWith(status: DataStatus.error));
     }
   }
@@ -167,7 +184,9 @@ class UserLogListBloc extends Bloc<UserLogListEvent, UserLogListState> {
 
       emit(state.copyWith(userlogs: userLogs, status: DataStatus.success));
     } catch (e) {
-      print("BLoC Error inserting user log: $e");
+      if (kDebugMode) {
+        print("BLoC Error inserting user log: $e");
+      }
       emit(state.copyWith(status: DataStatus.error));
     }
   }

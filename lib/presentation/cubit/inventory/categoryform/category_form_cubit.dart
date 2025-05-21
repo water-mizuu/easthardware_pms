@@ -1,5 +1,6 @@
 import 'package:bloc/bloc.dart';
 import 'package:easthardware_pms/domain/enums/enums.dart';
+import 'package:easthardware_pms/utils/undefined.dart';
 import 'package:equatable/equatable.dart';
 import 'package:fluent_ui/fluent_ui.dart';
 

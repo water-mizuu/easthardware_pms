@@ -2,7 +2,9 @@ import 'package:bloc/bloc.dart';
 import 'package:easthardware_pms/domain/enums/enums.dart';
 import 'package:easthardware_pms/domain/models/unit.dart';
 import 'package:easthardware_pms/domain/repository/unit_repository.dart';
+import 'package:easthardware_pms/utils/undefined.dart';
 import 'package:equatable/equatable.dart';
+import 'package:flutter/foundation.dart';
 
 part 'unit_list_event.dart';
 part 'unit_list_state.dart';
@@ -26,9 +28,13 @@ class UnitListBloc extends Bloc<UnitListEvent, UnitListState> {
         units: await _repository.getAllUnits(),
         status: DataStatus.success,
       ));
-      print('Units loaded: ${state.units.length}');
+      if (kDebugMode) {
+        print('Units loaded: ${state.units.length}');
+      }
     } catch (e) {
-      print('Error loading units: $e');
+      if (kDebugMode) {
+        print('Error loading units: $e');
+      }
       emit(state.copyWith(status: DataStatus.error));
     }
   }
