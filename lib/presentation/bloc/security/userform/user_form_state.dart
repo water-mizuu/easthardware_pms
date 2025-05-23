@@ -61,40 +61,58 @@ class UserFormState extends Equatable {
         userId ?? 0,
       ];
 
-  UserFormState copyWith({
+  UserFormState Function({
+    String firstName,
+    String lastName,
+    String username,
+    String accessLevel,
+    String password,
+    String confirmPassword,
+    List<FormQuestion> questions,
+    FormStatus status,
     int? userId,
-    String? firstName,
-    String? lastName,
-    String? username,
-    String? accessLevel,
-    String? password,
-    String? confirmPassword,
-    List<FormQuestion>? questions,
-    FormStatus? status,
     String? creationDate,
-    int? archiveStatus,
     String? uid,
     Uint8List? salt,
     Uint8List? passwordHash,
+    int? archiveStatus,
     String? accessLevelErrorMessage,
-  }) {
-    return UserFormState(
-      userId: userId ?? this.userId,
-      firstName: firstName ?? this.firstName,
-      lastName: lastName ?? this.lastName,
-      username: username ?? this.username,
-      accessLevel: accessLevel ?? this.accessLevel,
-      password: password ?? this.password,
-      confirmPassword: confirmPassword ?? this.confirmPassword,
-      questions: questions ?? this.questions,
-      status: status ?? this.status,
-      creationDate: creationDate ?? this.creationDate,
-      archiveStatus: archiveStatus ?? this.archiveStatus,
-      uid: uid ?? this.uid,
-      salt: salt ?? this.salt,
-      passwordHash: passwordHash ?? this.passwordHash,
-      accessLevelErrorMessage: accessLevelErrorMessage ?? this.accessLevelErrorMessage,
-    );
+  }) get copyWith {
+    return ({
+      Object? userId = undefined,
+      Object? firstName = undefined,
+      Object? lastName = undefined,
+      Object? username = undefined,
+      Object? accessLevel = undefined,
+      Object? password = undefined,
+      Object? confirmPassword = undefined,
+      Object? questions = undefined,
+      Object? status = undefined,
+      Object? creationDate = undefined,
+      Object? archiveStatus = undefined,
+      Object? uid = undefined,
+      Object? salt = undefined,
+      Object? passwordHash = undefined,
+      Object? accessLevelErrorMessage = undefined,
+    }) {
+      return UserFormState(
+        userId: userId.or(this.userId),
+        firstName: firstName.or(this.firstName),
+        lastName: lastName.or(this.lastName),
+        username: username.or(this.username),
+        accessLevel: accessLevel.or(this.accessLevel),
+        password: password.or(this.password),
+        confirmPassword: confirmPassword.or(this.confirmPassword),
+        questions: questions.or(this.questions),
+        status: status.or(this.status),
+        creationDate: creationDate.or(this.creationDate),
+        archiveStatus: archiveStatus.or(this.archiveStatus),
+        uid: uid.or(this.uid),
+        salt: salt.or(this.salt),
+        passwordHash: passwordHash.or(this.passwordHash),
+        accessLevelErrorMessage: accessLevelErrorMessage.or(this.accessLevelErrorMessage),
+      );
+    };
   }
 
   User mapStateToUser() {

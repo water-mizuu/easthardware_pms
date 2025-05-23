@@ -8,7 +8,7 @@ class ServerChannel {
 
   ServerChannel(this.receivePort, this.sendPort);
 
-  Future<Object?> invoke(String method, [List<Object?>? arguments]) {
+  Future<T> invoke<T>(String method, [List<Object?>? arguments]) {
     sendPort.send([method, arguments]);
     return receivePort.next();
   }
