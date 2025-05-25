@@ -6,17 +6,23 @@ import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 ///  Specifically, the database must be on another isolate
 ///  which supports invoking methods on the database.
 class Server {
-  final MessageChannel channel;
-  const Server(this.channel);
+  final MessageChannel? _channel;
+  Server(this._channel);
 
-  bool get isOpen => !channel.receivePort.isClosed;
+  bool get isOpen => _channel != null && !(_channel!.receivePort.isClosed);
 
   Future<dynamic> invokeDatabaseMethod(String method, List<Object?> arguments) async {
-    return await channel!.invoke("db", [method, arguments]);
+    final result = await _channel!.invoke("db", [method, arguments]);
+    final didChange = await _channel!.receivePort.next<bool>("didChange");
+    if (kDebugMode) {
+      print("[DATABASE] Method: $method, Did Change: $didChange");
+    }
+
+    return result;
   }
 
   Future<dynamic> invokeMethod(String method, List<Object?> arguments) async {
-    return await channel!.invoke(method, arguments);
+    return await _channel!.invoke(method, arguments);
   }
 }
 
@@ -397,16 +403,18 @@ class ServerBatch implements Batch {
 
   /// See [Database.query];
   @override
-  void query(String table,
-      {bool? distinct,
-      List<String>? columns,
-      String? where,
-      List<Object?>? whereArgs,
-      String? groupBy,
-      String? having,
-      String? orderBy,
-      int? limit,
-      int? offset}) {
+  void query(
+    String table, {
+    bool? distinct,
+    List<String>? columns,
+    String? where,
+    List<Object?>? whereArgs,
+    String? groupBy,
+    String? having,
+    String? orderBy,
+    int? limit,
+    int? offset,
+  }) {
     _operations.add([
       'query',
       [
@@ -440,7 +448,7 @@ class ServerBatch implements Batch {
   int get length => _operations.length;
 }
 
-extension FutureCastExtension on Future {
+extension on Future {
   /// Cast the future to the given type
   Future<T> cast<T>() async {
     return await this as T;

@@ -1,6 +1,6 @@
-import 'package:easthardware_pms/app/app.dart';
+import 'package:easthardware_pms/backend/enum/database_mode.dart';
 import 'package:easthardware_pms/data/database/database_helper.dart';
-import 'package:easthardware_pms/utils/server_channel.dart';
+import 'package:easthardware_pms/utils/message_channel.dart';
 import 'package:easthardware_pms/utils/undefined.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter/foundation.dart';
@@ -20,32 +20,41 @@ enum ServerStatus {
 
 @immutable
 class ServerState with EquatableMixin {
-  const ServerState({required this.status, this.databaseArgs, this.databaseHelper});
+  const ServerState({
+    required this.status,
+    this.databaseArgs,
+    this.databaseHelper,
+    this.lastUpdated,
+  });
 
   final ServerStatus status;
   final DatabaseArgs? databaseArgs;
   final DatabaseHelper? databaseHelper;
+  final DateTime? lastUpdated;
 
   ServerState Function({
     ServerStatus status,
     DatabaseArgs? databaseArgs,
     DatabaseHelper? databaseHelper,
+    DateTime? lastUpdated,
   }) get copyWith {
     return ({
       Object? status = undefined,
       Object? databaseArgs = undefined,
       Object? databaseHelper = undefined,
+      Object? lastUpdated = undefined,
     }) {
       return ServerState(
         status: status.or(this.status),
         databaseArgs: databaseArgs.or(this.databaseArgs),
         databaseHelper: databaseHelper.or(this.databaseHelper),
+        lastUpdated: lastUpdated.or(this.lastUpdated),
       );
     };
   }
 
   @override
-  get props => [status, databaseArgs, databaseHelper];
+  get props => [status, databaseArgs, databaseHelper, lastUpdated];
 }
 
 sealed class DatabaseArgs {
@@ -71,13 +80,13 @@ final class ClientDatabaseArgs extends DatabaseArgs {
     required this.parentIp,
     required this.port,
     required this.webSocketChannel,
-    required this.serverChannel,
+    required this.messageChannel,
     required this.close,
   }) : super(DatabaseMode.client);
 
   final String parentIp;
   final int port;
   final WebSocketChannel? webSocketChannel;
-  final ServerChannel? serverChannel;
+  final MessageChannel? messageChannel;
   final Future<void> Function() close;
 }

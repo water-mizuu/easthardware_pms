@@ -35,6 +35,13 @@ class DependencyInjector {
   late SecurityQuestionRepository _securityQuestionRepository;
   late DatabaseHelper? _databaseHelper;
 
+  UserListBloc? _userListBloc;
+  ProductListBloc? _productListBloc;
+  CategoryListBloc? _categoryListBloc;
+  UnitListBloc? _unitListBloc;
+  UserLogListBloc? _userLogListBloc;
+  SecurityQuestionListBloc? _securityQuestionListBloc;
+
   Future<void> initialize([DatabaseHelper? databaseHelper]) async {
     _databaseHelper = databaseHelper;
     _authenticationRepository = AuthenticationRepository(databaseHelper);
@@ -61,30 +68,79 @@ class DependencyInjector {
       ),
       BlocProvider(create: (context) => NavigationBloc(), key: ValueKey(_databaseHelper)),
       BlocProvider(
-        create: (context) => UserListBloc(_userRepository)..add(LoadAllUsersEvent()),
+        create: (context) {
+          _userListBloc?.close();
+
+          return _userListBloc = UserListBloc(_userRepository)..add(LoadAllUsersEvent());
+        },
         key: ValueKey(_databaseHelper),
       ),
       BlocProvider(
-        create: (context) => ProductListBloc(_productRepository)..add(LoadAllProductsEvent()),
+        create: (context) {
+          _productListBloc?.close();
+
+          return _productListBloc = ProductListBloc(_productRepository)
+            ..add(LoadAllProductsEvent());
+        },
         key: ValueKey(_databaseHelper),
       ),
       BlocProvider(
-        create: (context) => CategoryListBloc(_categoryRepository)..add(LoadCategoriesEvent()),
+        create: (context) {
+          _categoryListBloc?.close();
+
+          return _categoryListBloc = CategoryListBloc(_categoryRepository)
+            ..add(LoadCategoriesEvent());
+        },
         key: ValueKey(_databaseHelper),
       ),
       BlocProvider(
-        create: (context) => UnitListBloc(_unitRepository)..add(LoadUnitsEvent()),
+        create: (context) {
+          _unitListBloc?.close();
+
+          return _unitListBloc = UnitListBloc(_unitRepository)..add(LoadUnitsEvent());
+        },
         key: ValueKey(_databaseHelper),
       ),
       BlocProvider(
-        create: (context) => UserLogListBloc(_userLogRepository)..add(LoadUserLogsEvent()),
+        create: (context) {
+          _userLogListBloc?.close();
+
+          return _userLogListBloc = UserLogListBloc(_userLogRepository)..add(LoadUserLogsEvent());
+        },
         key: ValueKey(_databaseHelper),
       ),
       BlocProvider(
-        create: (context) => SecurityQuestionListBloc(_securityQuestionRepository)
-          ..add(const FetchSecurityQuestionsEvent()),
+        create: (context) {
+          _securityQuestionListBloc?.close();
+
+          return _securityQuestionListBloc = SecurityQuestionListBloc(_securityQuestionRepository)
+            ..add(const FetchSecurityQuestionsEvent());
+        },
         key: ValueKey(_databaseHelper),
       ),
     ];
+  }
+
+  /// Tells the loaded blocs to refresh their data.
+  ///   TODO: Investigate if there is a way to delay updates to only UI required blocs.
+  void markNeedsRefresh() {
+    if (kDebugMode) {
+      print("Dependency Injector: Marking needs refresh");
+      print([
+        _userListBloc,
+        _productListBloc,
+        _categoryListBloc,
+        _unitListBloc,
+        _userLogListBloc,
+        _securityQuestionListBloc
+      ]);
+    }
+
+    _userListBloc?.add(LoadAllUsersEvent());
+    _productListBloc?.add(LoadAllProductsEvent());
+    _categoryListBloc?.add(LoadCategoriesEvent());
+    _unitListBloc?.add(LoadUnitsEvent());
+    _userLogListBloc?.add(LoadUserLogsEvent());
+    _securityQuestionListBloc?.add(const FetchSecurityQuestionsEvent());
   }
 }

@@ -15,28 +15,21 @@ extension type ListenedReceivePort._(ReceivePort _port) {
   ) {
     _hosts[_port] = true;
     _isClosed = false;
-    _fallbackListener = fallbackListener;
-    _completer = Queue();
-    _queue = Queue();
+    _completer = {};
+    _queue = {};
 
     assert(!_port.isBroadcast, "The receive port must not be a broadcast stream.");
 
-    _port.listen((message) async {
+    _port.listen((payload) async {
       /// We add the message to the queue.
-      _queue.add(message);
+      var [name as String, message] = payload as List<Object?>;
+      _queue[name] ??= Queue();
+      _queue[name]!.addFirst(message);
 
       /// If there is a completer waiting for a message, we complete it.
-      if (_completers[_port]?.firstOrNull case var completer?) {
+      if (_completer[name] case var completer?) {
         completer.complete(message);
-        _queue.removeLast();
-
-        return;
-      }
-
-      if (_fallbackListener case var fallbackListener?) {
-        _completers[_port] = null;
-        await fallbackListener(message);
-        _queue.removeLast();
+        _queue[name]!.removeLast();
 
         return;
       }
@@ -48,74 +41,56 @@ extension type ListenedReceivePort._(ReceivePort _port) {
   ///   However, they cannot be listened to again.
   static final Expando<bool> _hosts = Expando();
 
-  /// A map of [ReceivePort]s with their fallback listeners.
-  static final Expando<void Function(Object? message)> _fallbackListeners = Expando();
-  static final Expando<Queue<Completer<Object?>>> _completers = Expando();
-  static final Expando<Queue<Object?>> _queues = Expando();
+  static final Expando<Map<String, Completer<Object?>>> _completers = Expando();
+  static final Expando<Map<String, Queue<Object?>>> _queues = Expando();
   static final Expando<bool> _isCloseds = Expando();
 
-  // Pseudo-fields. These are used to store values specific to each [ReceivePort] instance.
+  Map<String, Completer<Object?>> get _completer => _completers[_port]!;
+  set _completer(Map<String, Completer<Object?>> completer) => _completers[_port] = completer;
 
-  FutureOr<void> Function(Object?)? get _fallbackListener => _fallbackListeners[_port];
-  set _fallbackListener(FutureOr<void> Function(Object?)? listener) =>
-      _fallbackListeners[_port] = listener;
-
-  Queue<Completer<Object?>> get _completer => _completers[_port]!;
-  set _completer(Queue<Completer<Object?>> completer) => _completers[_port] = completer;
-
-  Queue<Object?> get _queue => _queues[_port]!;
-  set _queue(Queue<Object?> queue) => _queues[_port] = queue;
+  Map<String, Queue<Object?>> get _queue => _queues[_port]!;
+  set _queue(Map<String, Queue<Object?>> queue) => _queues[_port] = queue;
 
   bool get _isClosed => _isCloseds[_port]!;
   set _isClosed(bool isClosed) => _isCloseds[_port] = isClosed;
 
-  Future<T> next<T>() async {
-    if (_fallbackListener != null) {
-      throw Exception("The receive port is no longer a host.");
-    }
-
-    if (_queue.isNotEmpty) {
-      return _queue.removeFirst() as T;
+  Future<T> next<T>(String name) async {
+    if (_queue[name]?.isNotEmpty == true) {
+      return _queue[name]!.removeFirst() as T;
     }
 
     var completer = Completer<void>();
-    _completer.addLast(completer);
+    _completer[name] = completer;
     var rawValue = await completer.future as Object?;
+    if (_completer[name] != completer) {
+      completer.completeError(
+        Exception("The completer for the name '$name' has been replaced."),
+        StackTrace.current,
+      );
+      throw Error();
+    }
+
     assert(
       rawValue is T,
       "The value received from the [ReceivePort] must be of type $T. "
       "Got ${rawValue.runtimeType} instead",
     );
     var value = rawValue as T;
-    _completer.removeFirst();
+    _completer.remove(name);
 
     return value;
-  }
-
-  Future<T> call<T>() => next<T>();
-
-  /// Redirects all the messages received by the [ReceivePort] to the [sendPort].
-  void redirectMessagesTo(SendPort sendPort) {
-    _fallbackListeners[_port] = (message) {
-      sendPort.send(message);
-    };
-  }
-
-  void listen(FutureOr<void> Function(Object?) listener) {
-    _fallbackListeners[_port] = listener;
   }
 
   /// Closes the [ReceivePort] and removes all the listeners.
   void close() {
     _hosts[_port] = null;
-    _fallbackListeners[_port] = null;
     _completers[_port] = null;
     _isCloseds[_port] = true;
     _port.close();
   }
 
   /// A [SendPort] which sends messages to this receive port.
-  SendPort get sendPort => _port.sendPort;
+  NamedSendPort get sendPort => NamedSendPort(_port.sendPort);
 
   bool get isClosed => _isClosed;
 }
@@ -123,4 +98,11 @@ extension type ListenedReceivePort._(ReceivePort _port) {
 extension ReceivePortExtension on ReceivePort {
   ListenedReceivePort hostListener([FutureOr<void> Function(Object?)? fallbackListener]) =>
       ListenedReceivePort(this, fallbackListener);
+}
+
+extension type NamedSendPort(SendPort _port) implements SendPort {
+  /// Sends a message to the send port.
+  void send(String name, Object? message) {
+    _port.send([name, message]);
+  }
 }

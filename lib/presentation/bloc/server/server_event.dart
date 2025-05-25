@@ -1,6 +1,6 @@
 import 'package:easthardware_pms/presentation/bloc/server/server_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/server/server_state.dart';
-import 'package:easthardware_pms/utils/server_channel.dart';
+import 'package:easthardware_pms/utils/message_channel.dart';
 
 sealed class ServerEvent {
   const ServerEvent();
@@ -21,8 +21,8 @@ class ServerPromptingUserFromNull extends ServerEvent {
 class ServerLoadingClientFromPreferences extends ServerEvent {
   const ServerLoadingClientFromPreferences({
     required this.address,
-    this.popupToUser = true,
-    this.saveToPreferences = true,
+    required this.popupToUser,
+    required this.saveToPreferences,
   });
 
   final String address;
@@ -43,7 +43,7 @@ class ServerClientConnectionEstablished extends ServerEvent {
   });
 
   final ClientDatabaseArgs args;
-  final ServerChannel channel;
+  final MessageChannel channel;
   final bool popupToUser;
   final bool saveToPreferences;
 }
@@ -73,7 +73,7 @@ class ServerServerStarted extends ServerEvent {
   });
 
   final ServerDatabaseArgs args;
-  final ServerChannel channel;
+  final MessageChannel channel;
   final bool popupToUser;
   final bool saveToPreferences;
 }
@@ -88,4 +88,10 @@ class ServerSaveServerInformation extends ServerEvent {
   const ServerSaveServerInformation({required this.port});
 
   final int port;
+}
+
+class ServerDatabaseUpdated extends ServerEvent {
+  const ServerDatabaseUpdated({required this.lastUpdated});
+
+  final DateTime lastUpdated;
 }

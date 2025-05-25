@@ -90,7 +90,7 @@ Future<Database> _getDatabase() async {
   return _databaseInstance!;
 }
 
-Future<List<Object?>> _executeBatch(
+Future<DatabaseMethodResult> _executeBatch(
   Database db,
   List<Object> operations,
   bool? exclusive,
@@ -101,6 +101,8 @@ Future<List<Object?>> _executeBatch(
   assert(RootIsolateToken.instance == null);
   final batch = db.batch();
 
+  bool hasModifyingOperations = false;
+
   for (final op in operations) {
     switch (op) {
       case [String method, Object? params]:
@@ -108,6 +110,7 @@ Future<List<Object?>> _executeBatch(
           case 'rawInsert':
             if (params case [String sql, List<Object?>? arguments]) {
               batch.rawInsert(sql, arguments);
+              hasModifyingOperations = true;
             }
             break;
 
@@ -129,12 +132,14 @@ Future<List<Object?>> _executeBatch(
                     ? ConflictAlgorithm.values[conflictAlgorithm]
                     : null,
               );
+              hasModifyingOperations = true;
             }
             break;
 
           case 'rawUpdate':
             if (params case [String sql, List<Object?>? arguments]) {
               batch.rawUpdate(sql, arguments);
+              hasModifyingOperations = true;
             }
             break;
 
@@ -158,12 +163,14 @@ Future<List<Object?>> _executeBatch(
                     ? ConflictAlgorithm.values[conflictAlgorithm]
                     : null,
               );
+              hasModifyingOperations = true;
             }
             break;
 
           case 'rawDelete':
             if (params case [String sql, List<Object?>? arguments]) {
               batch.rawDelete(sql, arguments);
+              hasModifyingOperations = true;
             }
             break;
 
@@ -174,12 +181,14 @@ Future<List<Object?>> _executeBatch(
                   {'where': String? where, 'whereArgs': List<Object?>? whereArgs}
                 ]) {
               batch.delete(table, where: where, whereArgs: whereArgs);
+              hasModifyingOperations = true;
             }
             break;
 
           case 'execute':
             if (params case [String sql, List<Object?>? arguments]) {
               batch.execute(sql, arguments);
+              hasModifyingOperations = true;
             }
             break;
 
@@ -209,12 +218,14 @@ Future<List<Object?>> _executeBatch(
                   orderBy: orderBy,
                   limit: limit,
                   offset: offset);
+              // Query operations don't modify the database
             }
             break;
 
           case 'rawQuery':
             if (params case [String sql, List<Object?>? arguments]) {
               batch.rawQuery(sql, arguments);
+              // Query operations don't modify the database
             }
             break;
 
@@ -232,14 +243,24 @@ Future<List<Object?>> _executeBatch(
     }
   }
 
-  if (isCommit) {
-    return batch.commit(exclusive: exclusive, noResult: noResult, continueOnError: continueOnError);
-  } else {
-    return batch.apply(noResult: noResult, continueOnError: continueOnError);
-  }
+  final result = isCommit
+      ? await batch.commit(
+          exclusive: exclusive,
+          noResult: noResult,
+          continueOnError: continueOnError,
+        )
+      : await batch.apply(
+          noResult: noResult,
+          continueOnError: continueOnError,
+        );
+
+  return DatabaseMethodResult(result: result, hasChanged: hasModifyingOperations);
 }
 
-Future<dynamic> handleDbMethod(String method, List<Object?> arguments) async {
+Future<DatabaseMethodResult> serverHandleDatabaseMethod(
+  String method,
+  List<Object?> arguments,
+) async {
   // Create a database instance or use an existing one
   assert(RootIsolateToken.instance == null);
   final isolateDatabase = await _getDatabase();
@@ -249,20 +270,20 @@ Future<dynamic> handleDbMethod(String method, List<Object?> arguments) async {
       if (arguments
           case [
             String table,
-            {
-              'where': String? where,
-              'whereArgs': List<Object?>? whereArgs,
-            }
+            {'where': String? where, 'whereArgs': List<Object?>? whereArgs},
           ]) {
-        return isolateDatabase.delete(table, where: where, whereArgs: whereArgs);
+        var result = await isolateDatabase.delete(table, where: where, whereArgs: whereArgs);
+        var hasChanged = result > 0;
+
+        return DatabaseMethodResult(result: result, hasChanged: hasChanged);
       }
       break;
 
     case 'execute':
       if (arguments case [String sql, List<Object?>? sqlArgs]) {
-        return isolateDatabase.execute(sql, sqlArgs);
-      } else if (arguments case [String sql]) {
-        return isolateDatabase.execute(sql);
+        await isolateDatabase.execute(sql, sqlArgs);
+        // Execute doesn't return a count, but we assume it modified the database
+        return DatabaseMethodResult(result: null, hasChanged: true);
       }
       break;
 
@@ -273,7 +294,7 @@ Future<dynamic> handleDbMethod(String method, List<Object?> arguments) async {
             Map<String, Object?> values,
             {'nullColumnHack': String? nullColumnHack, 'conflictAlgorithm': int? conflictAlgorithm}
           ]) {
-        return isolateDatabase.insert(
+        var result = await isolateDatabase.insert(
           table,
           values,
           nullColumnHack: nullColumnHack,
@@ -281,6 +302,9 @@ Future<dynamic> handleDbMethod(String method, List<Object?> arguments) async {
               ? ConflictAlgorithm.values[conflictAlgorithm]
               : null,
         );
+        var hasChanged = result > 0;
+
+        return DatabaseMethodResult(result: result, hasChanged: hasChanged);
       }
       break;
 
@@ -300,7 +324,7 @@ Future<dynamic> handleDbMethod(String method, List<Object?> arguments) async {
               'offset': int? offset,
             }
           ]) {
-        return isolateDatabase.query(
+        var result = await isolateDatabase.query(
           table,
           distinct: distinct,
           columns: columns,
@@ -312,6 +336,8 @@ Future<dynamic> handleDbMethod(String method, List<Object?> arguments) async {
           limit: limit,
           offset: offset,
         );
+        // Query operations don't modify the database
+        return DatabaseMethodResult(result: result, hasChanged: false);
       }
       break;
 
@@ -332,7 +358,7 @@ Future<dynamic> handleDbMethod(String method, List<Object?> arguments) async {
               'bufferSize': int? bufferSize,
             }
           ]) {
-        return isolateDatabase.queryCursor(
+        var result = await isolateDatabase.queryCursor(
           table,
           distinct: distinct,
           columns: columns,
@@ -345,44 +371,64 @@ Future<dynamic> handleDbMethod(String method, List<Object?> arguments) async {
           offset: offset,
           bufferSize: bufferSize,
         );
+        // Query operations don't modify the database
+        return DatabaseMethodResult(result: result, hasChanged: false);
       }
       break;
 
     case 'rawDelete':
       if (arguments case [String sql, List<Object?>? args]) {
-        return isolateDatabase.rawDelete(sql, args);
+        var result = await isolateDatabase.rawDelete(sql, args);
+        var hasChanged = result > 0;
+        return DatabaseMethodResult(result: result, hasChanged: hasChanged);
       } else if (arguments case [String sql]) {
-        return isolateDatabase.rawDelete(sql);
+        var result = await isolateDatabase.rawDelete(sql);
+        var hasChanged = result > 0;
+        return DatabaseMethodResult(result: result, hasChanged: hasChanged);
       }
       break;
 
     case 'rawInsert':
       if (arguments case [String sql, List<Object?>? args]) {
-        return isolateDatabase.rawInsert(sql, args);
+        var result = await isolateDatabase.rawInsert(sql, args);
+        var hasChanged = result > 0;
+        return DatabaseMethodResult(result: result, hasChanged: hasChanged);
       } else if (arguments case [String sql]) {
-        return isolateDatabase.rawInsert(sql);
+        var result = await isolateDatabase.rawInsert(sql);
+        var hasChanged = result > 0;
+        return DatabaseMethodResult(result: result, hasChanged: hasChanged);
       }
       break;
 
     case 'rawQuery':
       if (arguments case [String sql, List<Object?>? args]) {
-        return isolateDatabase.rawQuery(sql, args);
+        var result = await isolateDatabase.rawQuery(sql, args);
+        // Query operations don't modify the database
+        return DatabaseMethodResult(result: result, hasChanged: false);
       } else if (arguments case [String sql]) {
-        return isolateDatabase.rawQuery(sql);
+        var result = await isolateDatabase.rawQuery(sql);
+        // Query operations don't modify the database
+        return DatabaseMethodResult(result: result, hasChanged: false);
       }
       break;
 
     case 'rawQueryCursor':
       if (arguments case [String sql, List<Object?>? args, {'bufferSize': int? bufferSize}]) {
-        return isolateDatabase.rawQueryCursor(sql, args, bufferSize: bufferSize);
+        var result = await isolateDatabase.rawQueryCursor(sql, args, bufferSize: bufferSize);
+        // Query operations don't modify the database
+        return DatabaseMethodResult(result: result, hasChanged: false);
       }
       break;
 
     case 'rawUpdate':
       if (arguments case [String sql, List<Object?>? args]) {
-        return isolateDatabase.rawUpdate(sql, args);
+        var result = await isolateDatabase.rawUpdate(sql, args);
+        var hasChanged = result > 0;
+        return DatabaseMethodResult(result: result, hasChanged: hasChanged);
       } else if (arguments case [String sql]) {
-        return isolateDatabase.rawUpdate(sql);
+        var result = await isolateDatabase.rawUpdate(sql);
+        var hasChanged = result > 0;
+        return DatabaseMethodResult(result: result, hasChanged: hasChanged);
       }
       break;
 
@@ -397,7 +443,7 @@ Future<dynamic> handleDbMethod(String method, List<Object?> arguments) async {
               'conflictAlgorithm': int? conflictAlgorithm,
             }
           ]) {
-        return isolateDatabase.update(
+        var result = await isolateDatabase.update(
           table,
           values,
           where: where,
@@ -406,6 +452,9 @@ Future<dynamic> handleDbMethod(String method, List<Object?> arguments) async {
               ? ConflictAlgorithm.values[conflictAlgorithm]
               : null,
         );
+        var hasChanged = result > 0;
+
+        return DatabaseMethodResult(result: result, hasChanged: hasChanged);
       }
       break;
 
@@ -449,4 +498,16 @@ Future<dynamic> handleDbMethod(String method, List<Object?> arguments) async {
   }
 
   throw UnsupportedError('Unsupported database method: $method or invalid arguments: $arguments');
+}
+
+class DatabaseMethodResult {
+  final dynamic result;
+  final bool hasChanged;
+
+  DatabaseMethodResult({required this.result, required this.hasChanged});
+
+  @override
+  String toString() {
+    return 'DatabaseMethodResult(result: $result, hasChanged: $hasChanged)';
+  }
 }
