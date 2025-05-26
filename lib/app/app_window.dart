@@ -200,10 +200,7 @@ class _TitleBarState extends State<TitleBar> with WindowListener {
               onPressed: () async {
                 await WindowManagerPlus.current.minimize();
               },
-              child: Text(
-                'Minimize',
-                textDirection: TextDirection.ltr,
-              ),
+              child: Text('Minimize'),
             ),
             TextButton(
               style: TextButton.styleFrom(
@@ -211,31 +208,28 @@ class _TitleBarState extends State<TitleBar> with WindowListener {
                 shape: const RoundedRectangleBorder(),
               ),
               onPressed: _maximizeOrUnmaximize,
-              child: Text(
-                isMaximized ? 'Unmaximize' : 'Maximize',
-                textDirection: TextDirection.ltr,
-              ),
+              child: Text(isMaximized ? 'Unmaximize' : 'Maximize'),
             ),
             TextButton(
               style: TextButton.styleFrom(
                 foregroundColor: Colors.black,
                 shape: const RoundedRectangleBorder(),
               ).copyWith(
-                overlayColor: WidgetStateProperty.fromMap(
-                  {
-                    WidgetState.pressed: Colors.red.withAlpha(192),
-                    WidgetState.hovered: Colors.red.withAlpha(128),
-                    WidgetState.focused: Colors.red.withAlpha(128),
-                  },
-                ),
+                overlayColor: WidgetStateProperty.resolveWith((state) {
+                  if (state.contains(WidgetState.pressed)) {
+                    return Colors.red.withAlpha(192);
+                  } else if (state.contains(WidgetState.hovered)) {
+                    return Colors.red.withAlpha(128);
+                  } else if (state.contains(WidgetState.focused)) {
+                    return Colors.red.withAlpha(128);
+                  }
+                  return Colors.transparent;
+                }),
               ),
               onPressed: () async {
                 await WindowManagerPlus.current.close();
               },
-              child: Text(
-                'Close',
-                textDirection: TextDirection.ltr,
-              ),
+              child: Text('Close'),
             ),
           ]
         ],

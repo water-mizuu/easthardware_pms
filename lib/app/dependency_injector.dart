@@ -12,7 +12,8 @@ import 'package:easthardware_pms/domain/repository/security_question_repository.
 import 'package:easthardware_pms/domain/repository/unit_repository.dart';
 import 'package:easthardware_pms/domain/repository/user_log_repository.dart';
 import 'package:easthardware_pms/domain/repository/user_repository.dart';
-import 'package:easthardware_pms/presentation/bloc/authentication/authentication/authentication_bloc.dart';
+import 'package:easthardware_pms/presentation/bloc/authentication/authentication/'
+    'authentication_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/inventory/categorylist/category_list_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/inventory/productlist/product_list_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/inventory/unitlist/unit_list_bloc.dart';

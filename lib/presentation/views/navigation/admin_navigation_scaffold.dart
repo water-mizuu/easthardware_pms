@@ -1,3 +1,5 @@
+import 'dart:io' show Platform;
+
 import 'package:easthardware_pms/app/app_window.dart';
 import 'package:easthardware_pms/presentation/bloc/navigation/navigation_bloc.dart';
 import 'package:easthardware_pms/presentation/widgets/brand/navrail_header.dart';
@@ -23,10 +25,10 @@ class AdminNavigationScaffold extends StatelessWidget {
         }
       },
       builder: (context, state) {
-        return NavigationView(
+        var widget = NavigationView(
           clipBehavior: Clip.hardEdge,
           paneBodyBuilder: (item, body) {
-            final padding = TitleBar.of(context) //
+            final padding = TitleBar.of(context) && (!Platform.isMacOS) //
                 ? EdgeInsets.only(top: 32.0)
                 : EdgeInsets.zero;
 
@@ -76,7 +78,17 @@ class AdminNavigationScaffold extends StatelessWidget {
               //
             ],
           ),
-        );
+        ) as Widget;
+
+        if (Platform.isMacOS) {
+          widget = Container(
+            color: FluentTheme.of(context).micaBackgroundColor,
+            padding: EdgeInsets.only(top: 32.0),
+            child: widget,
+          );
+        }
+
+        return widget;
       },
     );
   }
