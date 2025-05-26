@@ -59,9 +59,9 @@ class DependencyInjector {
     }
 
     return [
-      RepositoryProvider.value(value: _categoryRepository, key: ValueKey(_databaseHelper)),
-      RepositoryProvider.value(value: _productRepository, key: ValueKey(_databaseHelper)),
-      RepositoryProvider.value(value: _unitRepository, key: ValueKey(_databaseHelper)),
+      RepositoryProvider.value(value: _categoryRepository),
+      RepositoryProvider.value(value: _productRepository),
+      RepositoryProvider.value(value: _unitRepository),
       BlocProvider(
         create: (context) => AuthenticationBloc(_authenticationRepository),
         key: ValueKey(_databaseHelper),

@@ -1,7 +1,5 @@
 import 'package:easthardware_pms/domain/enums/enums.dart';
 import 'package:easthardware_pms/domain/models/category.dart';
-import 'package:easthardware_pms/domain/models/product.dart';
-import 'package:easthardware_pms/domain/models/unit.dart';
 import 'package:easthardware_pms/presentation/bloc/authentication/authentication/'
     'authentication_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/inventory/categorylist/category_list_bloc.dart';
@@ -39,61 +37,62 @@ class _CreateProductPageState extends State<CreateProductPage> {
   }
 
   List<BlocListener> get listeners {
+    void handleFormSubmit(BuildContext context, ProductFormState state) {
+      // Handle Category Search and Creation
+      final formCategory = state.categoryName;
+      final stateCategories = context.read<CategoryListBloc>().state.categories;
+      final matchedCategory = stateCategories.firstWhere(
+        (category) => category.name == formCategory,
+        orElse: () {
+          /// If no match found, create a new category.
+          final newCategory = Category(name: formCategory, id: stateCategories.length + 1);
+          context.read<CategoryListBloc>().add(AddCategoryEvent(newCategory));
+
+          return newCategory;
+        },
+      );
+
+      final createdProduct = state.toProduct().copyWith(
+            categoryId: matchedCategory.id,
+            categoryName: matchedCategory.name,
+            id: state.productId,
+          );
+
+      context.read<ProductListBloc>().add(AddProductEvent(createdProduct));
+
+      final addCreateEvent = AddCreateEvent(
+        'Product #${state.productId}',
+        context.read<AuthenticationBloc>().state.user!,
+      );
+      context.read<UserLogListBloc>().add(addCreateEvent);
+
+      final mappedUnits = state.secondaryUnits
+          .where((unit) => unit.name.isNotEmpty && unit.factor.isNotEmpty)
+          .map((unit) => unit.toUnit(state.productId!));
+
+      for (final unit in mappedUnits) {
+        context.read<UnitListBloc>().add(AddUnitEvent(unit));
+      }
+
+      /// Let the form know that the submission is complete,
+      ///   and we reset the form state.
+      context.read<ProductFormBloc>().add(FormSubmittedEvent());
+    }
+
     return [
       BlocListener<ProductFormBloc, ProductFormState>(
+        bloc: productFormBloc,
         listener: (context, state) {
           switch (state.formStatus) {
             case FormStatus.submitting:
-              // Handle Category Search and Creation
-              final String formCategory = state.categoryName;
-              final List<Category> stateCategories =
-                  context.read<CategoryListBloc>().state.categories;
-
-              final Category matchedCategory = stateCategories.firstWhere(
-                (category) => category.name == formCategory,
-                orElse: () {
-                  final newCategory = Category(name: formCategory, id: stateCategories.length + 1);
-                  context.read<CategoryListBloc>().add(AddCategoryEvent(newCategory));
-                  return newCategory;
-                },
-              );
-
-              final Product mappedProduct = state.mapStateToProduct().copyWith(
-                    categoryId: matchedCategory.id,
-                    categoryName: matchedCategory.name,
-                    id: state.productId,
-                  );
-
-              context.read<ProductListBloc>().add(AddProductEvent(mappedProduct));
-              context.read<UserLogListBloc>().add(
-                    AddCreateEvent(
-                      'Product #${state.productId}',
-                      context.read<AuthenticationBloc>().state.user!,
-                    ),
-                  );
-
-              final List<Unit> mappedUnits = state.secondaryUnits
-                  .where((unit) => unit.name.isNotEmpty && unit.factor.isNotEmpty)
-                  .map((unit) => unit.toUnit(state.productId!))
-                  .toList();
-
-              for (final unit in mappedUnits) {
-                context.read<UnitListBloc>().add(AddUnitEvent(unit));
-              }
-
-              context.read<ProductFormBloc>().add(FormSubmittedEvent());
+              handleFormSubmit(context, state);
               break;
             case FormStatus.submitted:
-              Future.delayed(Duration.zero, () {
-                if (context.mounted) {
-                  context.read<ProductFormBloc>().add(FormResetEvent());
-                }
-              });
-              context.read<NavigationBloc>().add(
-                    NavigationIndexChanged(
-                      index: RouteIndexMapper.getIndexFromRoute(AppRoutes.inventoryPage)!,
-                    ),
-                  );
+              context.read<ProductFormBloc>().add(FormResetEvent());
+
+              /// Navigate to the inventory page after successful submission.
+              final index = RouteIndexMapper.getIndexFromRoute(AppRoutes.inventoryPage);
+              context.read<NavigationBloc>().add(NavigationIndexChanged(index: index!));
               break;
             default:
               break;

@@ -16,6 +16,7 @@ class BottomText extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final serverBloc = context.watch<ServerBloc>();
     var content = context.read<BottomTextNotifier>();
 
     return Column(
@@ -38,7 +39,7 @@ class BottomText extends StatelessWidget {
                       },
                     ),
                   ),
-                  if (context.watch<ServerBloc>().state.databaseArgs != null)
+                  if (serverBloc.state.databaseArgs != null)
                     Button(
                       child: const Text("Reset Connection"),
                       onPressed: () {

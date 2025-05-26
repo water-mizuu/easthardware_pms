@@ -153,7 +153,7 @@ class ProductFormState extends Equatable {
         productId,
       ];
 
-  Product mapStateToProduct() {
+  Product toProduct() {
     return Product(
       sku: sku,
       name: name,

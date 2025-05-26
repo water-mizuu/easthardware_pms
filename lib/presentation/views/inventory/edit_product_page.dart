@@ -58,7 +58,7 @@ class EditProductPage extends StatelessWidget {
                 },
               );
 
-              final Product mappedProduct = state.mapStateToProduct().copyWith(
+              final Product mappedProduct = state.toProduct().copyWith(
                     categoryId: matchedCategory.id,
                     categoryName: matchedCategory.name,
                     id: state.productId,

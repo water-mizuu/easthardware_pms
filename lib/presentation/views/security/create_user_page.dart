@@ -1,8 +1,10 @@
 import 'package:easthardware_pms/domain/constants/constants.dart';
 import 'package:easthardware_pms/domain/enums/enums.dart';
-import 'package:easthardware_pms/presentation/bloc/authentication/authentication/authentication_bloc.dart';
+import 'package:easthardware_pms/presentation/bloc/authentication/authentication/'
+    'authentication_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/navigation/navigation_bloc.dart';
-import 'package:easthardware_pms/presentation/bloc/security/securityquestions/security_question_list_bloc.dart';
+import 'package:easthardware_pms/presentation/bloc/security/securityquestions/'
+    'security_question_list_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/security/userform/user_form_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/security/userform/user_form_validator.dart';
 import 'package:easthardware_pms/presentation/bloc/security/userlist/user_list_bloc.dart';
