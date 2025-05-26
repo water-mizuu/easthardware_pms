@@ -9,6 +9,7 @@ import 'package:easthardware_pms/presentation/bloc/server/server_bloc.dart';
 import 'package:easthardware_pms/presentation/router/app_router.dart';
 import 'package:fluent_ui/fluent_ui.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:provider/single_child_widget.dart';
 
@@ -24,6 +25,7 @@ class _AppState extends State<App> with WidgetsBindingObserver {
   late final GlobalKey<NavigatorState> rootKey = GlobalKey();
   late final ValueNotifier<String> bottomText = ValueNotifier<String>("");
 
+  late final GoRouter _router = router(rootKey);
   late final ServerBloc serverBloc;
   late DatabaseHelper? databaseHelper;
   late DependencyInjector di;
@@ -95,7 +97,7 @@ class _AppState extends State<App> with WidgetsBindingObserver {
         listeners: blocListeners,
         child: FluentApp.router(
           debugShowCheckedModeBanner: false,
-          routerConfig: router(rootKey),
+          routerConfig: _router,
           themeMode: ThemeMode.light,
           theme: FluentThemeData(micaBackgroundColor: Colors.grey[10]),
         ),
