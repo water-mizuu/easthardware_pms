@@ -2,10 +2,12 @@ import 'package:easthardware_pms/domain/enums/enums.dart';
 import 'package:easthardware_pms/domain/models/category.dart';
 import 'package:easthardware_pms/domain/models/product.dart';
 import 'package:easthardware_pms/domain/models/unit.dart';
-import 'package:easthardware_pms/presentation/bloc/authentication/authentication/authentication_bloc.dart';
+import 'package:easthardware_pms/presentation/bloc/authentication/'
+    'authentication/authentication_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/inventory/categorylist/category_list_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/inventory/productform/product_form_bloc.dart';
-import 'package:easthardware_pms/presentation/bloc/inventory/productform/product_form_validator.dart';
+import 'package:easthardware_pms/presentation/bloc/inventory/productform/'
+    'product_form_validator.dart';
 import 'package:easthardware_pms/presentation/bloc/inventory/productlist/product_list_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/inventory/unitlist/unit_list_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/navigation/navigation_bloc.dart';
@@ -16,6 +18,7 @@ import 'package:easthardware_pms/presentation/widgets/helper/route_index_mapper.
 import 'package:easthardware_pms/presentation/widgets/spacing.dart';
 import 'package:easthardware_pms/presentation/widgets/text.dart';
 import 'package:fluent_ui/fluent_ui.dart';
+import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class EditProductPage extends StatelessWidget {
@@ -55,7 +58,7 @@ class EditProductPage extends StatelessWidget {
                 },
               );
 
-              final Product mappedProduct = state.mapStateToProduct().copyWith(
+              final Product mappedProduct = state.toProduct().copyWith(
                     categoryId: matchedCategory.id,
                     categoryName: matchedCategory.name,
                     id: state.productId,
@@ -102,7 +105,9 @@ class EditProductPage extends StatelessWidget {
                 }
               });
             case FormStatus.error:
-              print("Error");
+              if (kDebugMode) {
+                print("Error");
+              }
               break;
             default:
               break;

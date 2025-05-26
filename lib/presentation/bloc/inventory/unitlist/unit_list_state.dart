@@ -11,16 +11,22 @@ class UnitListState {
   final List<Unit> units;
   final List<Unit>? filteredUnits;
 
-  UnitListState copyWith({
-    DataStatus? status,
-    List<Unit>? units,
+  UnitListState Function({
+    DataStatus status,
+    List<Unit> units,
     List<Unit>? filteredUnits,
-  }) {
-    return UnitListState(
-      status: status ?? this.status,
-      units: units ?? this.units,
-      filteredUnits: filteredUnits ?? this.filteredUnits,
-    );
+  }) get copyWith {
+    return ({
+      Object? status = undefined,
+      Object? units = undefined,
+      Object? filteredUnits = undefined,
+    }) {
+      return UnitListState(
+        status: status.or(this.status),
+        units: units.or(this.units),
+        filteredUnits: filteredUnits.or(this.filteredUnits),
+      );
+    };
   }
 }
 

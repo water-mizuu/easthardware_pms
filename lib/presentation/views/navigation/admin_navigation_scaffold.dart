@@ -2,6 +2,7 @@ import 'package:easthardware_pms/presentation/bloc/navigation/navigation_bloc.da
 import 'package:easthardware_pms/presentation/widgets/brand/navrail_header.dart';
 import 'package:easthardware_pms/presentation/widgets/helper/route_index_mapper.dart';
 import 'package:fluent_ui/fluent_ui.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
@@ -24,56 +25,58 @@ class AdminNavigationScaffold extends StatelessWidget {
         return Stack(
           children: [
             NavigationView(
-                paneBodyBuilder: (item, body) {
-                  return children[shell.currentIndex];
+              paneBodyBuilder: (item, body) {
+                return children[shell.currentIndex];
+              },
+              pane: NavigationPane(
+                header: const LogoRow(),
+                selected: state.selectedIndex,
+                displayMode: PaneDisplayMode.auto,
+                onItemPressed: (index) {
+                  if ([1, 12].contains(index)) index++;
+                  if (index == 16) return;
+                  context.read<NavigationBloc>().add(NavigationIndexChanged(index: index));
                 },
-                pane: NavigationPane(
-                  header: const LogoRow(),
-                  selected: state.selectedIndex,
-                  displayMode: PaneDisplayMode.auto,
-                  onItemPressed: (index) {
-                    if ([1, 12].contains(index)) index++;
-                    context.read<NavigationBloc>().add(NavigationIndexChanged(index: index));
-                  },
-                  items: [
-                    PaneItem(
-                      icon: const Icon(FluentIcons.dynamic_list),
-                      title: const Text("Dashboard"),
-                      body: const SizedBox(),
-                    ),
-                    PaneItemSeparator(),
-                    PaneItemExpander(
-                      icon: const Icon(FluentIcons.product),
-                      title: const Text("Inventory"),
-                      body: const SizedBox(),
-                      items: _inventorySubItems,
-                    ),
-                    PaneItemExpander(
-                      title: const Text('Billing'),
-                      icon: const Icon(FluentIcons.text_document),
-                      items: _billingSubItems,
-                      body: const SizedBox(),
-                    ),
-                    PaneItemExpander(
-                      title: const Text('Orders'),
-                      icon: const Icon(FluentIcons.bill),
-                      items: _orderSubItems,
-                      body: const SizedBox(),
-                    ),
-                    PaneItem(
-                      icon: const Icon(FluentIcons.bar_chart_vertical_fill),
-                      title: const Text('Reports'),
-                      body: const SizedBox(),
-                    ),
-                    PaneItemExpander(
-                      icon: const Icon(FluentIcons.local_admin),
-                      title: const Text('Security'),
-                      items: _securitySubItems,
-                      body: const SizedBox(),
-                    )
-                    //
-                  ],
-                )),
+                items: [
+                  PaneItem(
+                    icon: const Icon(FluentIcons.dynamic_list),
+                    title: const Text("Dashboard"),
+                    body: const SizedBox(),
+                  ),
+                  PaneItemSeparator(),
+                  PaneItemExpander(
+                    icon: const Icon(FluentIcons.product),
+                    title: const Text("Inventory"),
+                    body: const SizedBox(),
+                    items: _inventorySubItems,
+                  ),
+                  PaneItemExpander(
+                    title: const Text('Billing'),
+                    icon: const Icon(FluentIcons.text_document),
+                    items: _billingSubItems,
+                    body: const SizedBox(),
+                  ),
+                  PaneItemExpander(
+                    title: const Text('Orders'),
+                    icon: const Icon(FluentIcons.bill),
+                    items: _orderSubItems,
+                    body: const SizedBox(),
+                  ),
+                  PaneItem(
+                    icon: const Icon(FluentIcons.bar_chart_vertical_fill),
+                    title: const Text('Reports'),
+                    body: const SizedBox(),
+                  ),
+                  PaneItemExpander(
+                    icon: const Icon(FluentIcons.local_admin),
+                    title: const Text('Security'),
+                    items: _securitySubItems,
+                    body: const SizedBox(),
+                  )
+                  //
+                ],
+              ),
+            ),
           ],
         );
       },
@@ -127,15 +130,28 @@ List<NavigationPaneItem> _orderSubItems = [
 
 List<NavigationPaneItem> _securitySubItems = [
   PaneItem(
-      icon: const Icon(FluentIcons.contact_list),
-      title: const Text('List of Users'),
-      body: const SizedBox()),
+    icon: const Icon(FluentIcons.contact_list),
+    title: const Text('List of Users'),
+    body: const SizedBox(),
+  ),
   PaneItem(
-      icon: const Icon(FluentIcons.add_friend),
-      title: const Text('Register User'),
-      body: const SizedBox()),
+    icon: const Icon(FluentIcons.add_friend),
+    title: const Text('Register User'),
+    body: const SizedBox(),
+  ),
   PaneItem(
-      icon: const Icon(FluentIcons.user_window),
-      title: const Text('User Logs'),
-      body: const SizedBox()),
+    icon: const Icon(FluentIcons.user_window),
+    title: const Text('User Logs'),
+    body: const SizedBox(),
+  ),
+  PaneItem(
+    icon: const Icon(FluentIcons.leave),
+    title: const Text('Log Out'),
+    body: const SizedBox(),
+    onTap: () {
+      if (kDebugMode) {
+        print('Log out');
+      }
+    },
+  ),
 ];

@@ -1,3 +1,5 @@
+import 'package:easthardware_pms/utils/undefined.dart';
+
 class SecurityQuestion {
   final int? id;
   final int userId;
@@ -20,18 +22,25 @@ class SecurityQuestion {
     );
   }
 
-  SecurityQuestion copyWith({
+  SecurityQuestion Function({
     int? id,
     int? userId,
     String? question,
     String? answer,
-  }) {
-    return SecurityQuestion(
-      id: id ?? this.id,
-      userId: userId ?? this.userId,
-      question: question ?? this.question,
-      answer: answer ?? this.answer,
-    );
+  }) get copyWith {
+    return ({
+      Object? id = undefined,
+      Object? userId = undefined,
+      Object? question = undefined,
+      Object? answer = undefined,
+    }) {
+      return SecurityQuestion(
+        id: id.or(this.id),
+        userId: userId.or(this.userId),
+        question: question.or(this.question),
+        answer: answer.or(this.answer),
+      );
+    };
   }
 
   Map<String, dynamic> toMap() {

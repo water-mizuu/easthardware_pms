@@ -13,15 +13,21 @@ class UserLogListState extends Equatable {
   @override
   List<Object> get props => [userlogs, filteredLogs, status];
 
-  UserLogListState copyWith({
-    List<UserLog>? userlogs,
-    List<UserLog>? filteredLogs,
-    DataStatus? status,
-  }) {
-    return UserLogListState(
-      userlogs: userlogs ?? this.userlogs,
-      filteredLogs: filteredLogs ?? this.filteredLogs,
-      status: status ?? this.status,
-    );
+  UserLogListState Function({
+    List<UserLog> userlogs,
+    List<UserLog> filteredLogs,
+    DataStatus status,
+  }) get copyWith {
+    return ({
+      Object? userlogs = undefined,
+      Object? filteredLogs = undefined,
+      Object? status = undefined,
+    }) {
+      return UserLogListState(
+        userlogs: userlogs.or(this.userlogs),
+        filteredLogs: filteredLogs.or(this.filteredLogs),
+        status: status.or(this.status),
+      );
+    };
   }
 }

@@ -1,3 +1,5 @@
+import 'package:easthardware_pms/utils/undefined.dart';
+
 class ExpenseType {
   final int? id;
   final String name;
@@ -6,14 +8,19 @@ class ExpenseType {
     this.id,
     required this.name,
   });
-  ExpenseType copyWith({
+  ExpenseType Function({
     int? id,
-    String? name,
-  }) {
-    return ExpenseType(
-      id: id ?? this.id,
-      name: name ?? this.name,
-    );
+    String name,
+  }) get copyWith {
+    return ({
+      Object? id = undefined,
+      Object? name = undefined,
+    }) {
+      return ExpenseType(
+        id: id.or(this.id),
+        name: name.or(this.name),
+      );
+    };
   }
 
   Map<String, dynamic> toMap() {

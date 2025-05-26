@@ -1,10 +1,14 @@
 import 'package:easthardware_pms/data/database/dao/security_questions_dao.dart';
+import 'package:easthardware_pms/data/database/database_helper.dart';
 import 'package:easthardware_pms/domain/errors/exceptions.dart';
 import 'package:easthardware_pms/domain/models/security_question.dart';
 import 'package:easthardware_pms/domain/repository/security_question_repository.dart';
 
-class SecurityQuestionRepositoryImpl extends SecurityQuestionRepository {
-  final SecurityQuestionsDao securityQuestionsDao = SecurityQuestionsDao();
+class SecurityQuestionRepositoryImpl implements SecurityQuestionRepository {
+  SecurityQuestionRepositoryImpl(DatabaseHelper? databaseHelper)
+      : securityQuestionsDao = SecurityQuestionsDao(databaseHelper);
+
+  final SecurityQuestionsDao securityQuestionsDao;
 
   @override
   Future<SecurityQuestion> addSecurityQuestion(SecurityQuestion securityQuestion) async {

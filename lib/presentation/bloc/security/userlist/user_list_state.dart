@@ -9,14 +9,19 @@ class UserListState extends Equatable {
     this.status = DataStatus.initial,
   });
 
-  UserListState copyWith({
+  UserListState Function({
     List<User>? users,
     DataStatus? status,
-  }) {
-    return UserListState(
-      users: users ?? this.users,
-      status: status ?? this.status,
-    );
+  }) get copyWith {
+    return ({
+      Object? users = undefined,
+      Object? status = undefined,
+    }) {
+      return UserListState(
+        users: users.or(this.users),
+        status: status.or(this.status),
+      );
+    };
   }
 
   @override

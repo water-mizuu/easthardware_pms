@@ -1,9 +1,13 @@
 import 'package:easthardware_pms/data/database/dao/orders_dao.dart';
+import 'package:easthardware_pms/data/database/database_helper.dart';
 import 'package:easthardware_pms/domain/models/order.dart';
 import 'package:easthardware_pms/domain/repository/order_repository.dart';
 
-class OrderRepositoryImpl extends OrderRepository {
-  final OrdersDao _ordersDao = OrdersDao();
+class OrderRepositoryImpl implements OrderRepository {
+  OrderRepositoryImpl(DatabaseHelper? databaseHelper) : _ordersDao = OrdersDao(databaseHelper);
+
+  final OrdersDao _ordersDao;
+
   @override
   Future<void> deleteOrder(int id) async {
     if (id <= 0) {

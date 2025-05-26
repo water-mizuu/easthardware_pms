@@ -1,10 +1,15 @@
 import 'package:easthardware_pms/data/database/dao/user_logs_dao.dart';
+import 'package:easthardware_pms/data/database/database_helper.dart';
 import 'package:easthardware_pms/domain/errors/exceptions.dart';
 import 'package:easthardware_pms/domain/models/user_log.dart';
 import 'package:easthardware_pms/domain/repository/user_log_repository.dart';
 
-class UserLogRepositoryImpl extends UserLogRepository {
-  final _userLogsDao = UserLogsDao();
+class UserLogRepositoryImpl implements UserLogRepository {
+  UserLogRepositoryImpl(DatabaseHelper? databaseHelper)
+      : _userLogsDao = UserLogsDao(databaseHelper);
+
+  final UserLogsDao _userLogsDao;
+
   @override
   Future<UserLog> insertUserLog(UserLog userLog) async {
     try {

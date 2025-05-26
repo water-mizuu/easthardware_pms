@@ -1,3 +1,4 @@
+import 'package:easthardware_pms/data/database/dao/dao_base.dart';
 import 'package:easthardware_pms/data/database/database_helper.dart';
 import 'package:easthardware_pms/domain/models/category.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
@@ -10,16 +11,24 @@ import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 // The implementation class is responsible for executing the SQL queries
 // and returning the results.
 
-abstract class CategoriesDao {
-  CategoriesDao._();
-  factory CategoriesDao([DatabaseHelper? databaseHelper]) {
+abstract interface class CategoriesDao {
+  factory CategoriesDao(DatabaseHelper? databaseHelper) {
     return CategoriesDaoImpl._(databaseHelper);
   }
 
+  /// Gets all categories from the database.
   Future<List<Category>> getAllCategories();
+
+  /// Gets a category by its ID.
   Future<Category?> getCategoryById(int id);
+
+  /// Inserts a category into the database.
   Future<Category> insertCategory(Category category);
+
+  /// Updates a category by an existing id.
   Future<Category> updateCategory(Category category);
+
+  /// Deletes a category.
   Future<void> deleteCategory(int id);
 }
 
@@ -32,25 +41,20 @@ abstract class CategoriesDao {
 /// It returns a Future<List<Category>?> for getting all categories or a specific category.
 /// It returns null if no categories are found or if the category is not found.
 
-class CategoriesDaoImpl extends CategoriesDao {
-  final DatabaseHelper _databaseHelper;
+final class CategoriesDaoImpl extends DaoBase implements CategoriesDao {
+  CategoriesDaoImpl._(super.databaseHelper);
 
-  CategoriesDaoImpl._([DatabaseHelper? databaseHelper])
-      : _databaseHelper = databaseHelper ?? DatabaseHelper(),
-        super._();
-
-  /// Gets all categories from the database.
   @override
   Future<List<Category>> getAllCategories() async {
-    final db = await _databaseHelper.database;
+    final db = databaseHelper.database;
     final List<Map<String, dynamic>> maps = await db.query('categories');
+
     return maps.isNotEmpty ? maps.map((map) => Category.fromMap(map)).toList() : [];
   }
 
-  /// Gets a category by its ID.
   @override
   Future<Category?> getCategoryById(int id) async {
-    final db = await _databaseHelper.database;
+    final db = databaseHelper.database;
     final List<Map<String, dynamic>> maps = await db.query(
       'categories',
       where: 'id = ?',
@@ -61,7 +65,7 @@ class CategoriesDaoImpl extends CategoriesDao {
 
   @override
   Future<void> deleteCategory(int id) async {
-    final db = await _databaseHelper.database;
+    final db = databaseHelper.database;
     final category = await getCategoryById(id);
     if (category == null) {
       throw Exception('Category not found');
@@ -75,7 +79,7 @@ class CategoriesDaoImpl extends CategoriesDao {
 
   @override
   Future<Category> insertCategory(Category category) async {
-    final db = await _databaseHelper.database;
+    final db = databaseHelper.database;
     final id = await db.insert(
       'categories',
       category.toMap(),
@@ -86,7 +90,7 @@ class CategoriesDaoImpl extends CategoriesDao {
 
   @override
   Future<Category> updateCategory(Category category) async {
-    final db = await _databaseHelper.database;
+    final db = databaseHelper.database;
     await db.update(
       'categories',
       category.toMap(),

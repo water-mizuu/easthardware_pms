@@ -1,91 +1,139 @@
 import 'package:easthardware_pms/domain/constants/constants.dart';
 import 'package:easthardware_pms/domain/enums/enums.dart';
-import 'package:easthardware_pms/domain/models/security_question.dart';
-import 'package:easthardware_pms/domain/models/user.dart';
-import 'package:easthardware_pms/presentation/bloc/authentication/authentication/authentication_bloc.dart';
+import 'package:easthardware_pms/presentation/bloc/authentication/authentication/'
+    'authentication_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/navigation/navigation_bloc.dart';
-import 'package:easthardware_pms/presentation/bloc/security/securityquestions/security_question_list_bloc.dart';
+import 'package:easthardware_pms/presentation/bloc/security/securityquestions/'
+    'security_question_list_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/security/userform/user_form_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/security/userform/user_form_validator.dart';
 import 'package:easthardware_pms/presentation/bloc/security/userlist/user_list_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/security/userloglist/user_log_list_bloc.dart';
-import 'package:easthardware_pms/presentation/models/form_question.dart';
 import 'package:easthardware_pms/presentation/router/app_routes.dart';
 import 'package:easthardware_pms/presentation/widgets/buttons/text_button.dart';
 import 'package:easthardware_pms/presentation/widgets/helper/route_index_mapper.dart';
 import 'package:easthardware_pms/presentation/widgets/spacing.dart';
 import 'package:easthardware_pms/presentation/widgets/text.dart';
 import 'package:fluent_ui/fluent_ui.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:provider/provider.dart';
+import 'package:provider/single_child_widget.dart';
 
-class CreateUserPage extends StatelessWidget {
+class CreateUserPage extends StatefulWidget {
   const CreateUserPage({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (context) => UserFormBloc(),
-      child: Builder(builder: (context) {
-        final formKey = context.read<UserFormBloc>().formKey;
-        return BlocListener<UserFormBloc, UserFormState>(
-          listener: (context, state) {
-            switch (state.status) {
-              case FormStatus.initial:
-                break;
-              case FormStatus.submitting:
-                final User user = state.mapStateToUser();
-                context.read<UserListBloc>().add(AddUserEvent(user));
+  State<CreateUserPage> createState() => _CreateUserPageState();
+}
 
-                final List<SecurityQuestion> securityQuestions = state.questions
-                    .map((question) => question.toSecurityQuestion(state.userId!))
-                    .toList();
+class _CreateUserPageState extends State<CreateUserPage> {
+  late final UserFormBloc userFormBloc;
 
-                for (final question in securityQuestions) {
-                  context.read<SecurityQuestionListBloc>().add(AddSecurityQuestionEvent(question));
+  List<SingleChildWidget> get providers {
+    return [
+      BlocProvider.value(value: userFormBloc),
+    ];
+  }
+
+  List<SingleChildWidget> get listeners {
+    return [
+      BlocListener<UserFormBloc, UserFormState>(
+        bloc: userFormBloc,
+        listener: (context, state) {
+          switch (state.status) {
+            case FormStatus.initial:
+              break;
+            case FormStatus.submitting:
+              final id = state.userId;
+              if (id == null) {
+                if (kDebugMode) {
+                  print('Tried to submit a user with no ID.');
                 }
-                final creator = context.read<AuthenticationBloc>().state.user;
-                context.read<UserFormBloc>().add(FormSubmittedEvent());
-                context.read<UserLogListBloc>().add(AddCreateEvent('User #${user.id!}', creator!));
-                break;
-              case FormStatus.submitted:
-                Future.delayed(Duration.zero, () {
-                  if (context.mounted) {
-                    context.read<UserFormBloc>().add(FormResetEvent());
-                  }
-                });
-                // Show success message and navigate back
-                context.read<NavigationBloc>().add(
-                      NavigationIndexChanged(
-                          index: RouteIndexMapper.getIndexFromRoute(AppRoutes.usersPage)!),
-                    );
-                break;
-              case FormStatus.error:
-                // Show error message
-                break;
-              default:
-                break;
-            }
-          },
-          child: Padding(
-            padding: AppPadding.panePadding,
-            child: Column(
-              children: [
-                const PageHeader(),
-                Expanded(
-                    child: Form(
-                  key: formKey,
-                  child: Row(
-                    children: const [
-                      UserCredentialsSection(),
-                      SecuritySection(),
-                    ].withSpacing(() => Spacing.h16),
-                  ),
-                ))
-              ].withSpacing(() => Spacing.v16),
+
+                return;
+              }
+              final user = state.mapStateToUser();
+              context.read<UserListBloc>().add(AddUserEvent(user));
+
+              final securityQuestions = state.questions //
+                  .map((question) => question.toSecurityQuestion(id))
+                  .toList();
+
+              for (final question in securityQuestions) {
+                context.read<SecurityQuestionListBloc>().add(AddSecurityQuestionEvent(question));
+              }
+              final creator = context.read<AuthenticationBloc>().state.user;
+              context.read<UserFormBloc>().add(FormSubmittedEvent());
+              context.read<UserLogListBloc>().add(AddCreateEvent('User #${user.id!}', creator!));
+              break;
+            case FormStatus.submitted:
+              Future.delayed(Duration.zero, () {
+                if (context.mounted) {
+                  context.read<UserFormBloc>().add(FormResetEvent());
+                }
+              });
+              // Show success message and navigate back
+              context.read<NavigationBloc>().add(
+                    NavigationIndexChanged(
+                        index: RouteIndexMapper.getIndexFromRoute(AppRoutes.usersPage)!),
+                  );
+              break;
+            case FormStatus.error:
+              // Show error message
+              break;
+            default:
+              break;
+          }
+        },
+      )
+    ];
+  }
+
+  @override
+  void initState() {
+    super.initState();
+
+    userFormBloc = UserFormBloc();
+  }
+
+  @override
+  void dispose() {
+    userFormBloc.close();
+
+    super.dispose();
+  }
+
+  Widget buildWidget(BuildContext context) {
+    return Padding(
+      padding: AppPadding.panePadding,
+      child: Column(
+        children: [
+          const PageHeader(),
+          Expanded(
+            child: Form(
+              key: userFormBloc.formKey,
+              child: Row(
+                children: const [
+                  UserCredentialsSection(),
+                  SecuritySection(),
+                ].withSpacing(() => Spacing.h16),
+              ),
             ),
-          ),
-        );
-      }),
+          )
+        ].withSpacing(() => Spacing.v16),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return MultiProvider(
+      providers: providers,
+      child: MultiBlocListener(
+        listeners: listeners,
+        child: buildWidget(context),
+      ),
     );
   }
 }
@@ -99,18 +147,28 @@ class PageHeader extends StatelessWidget {
       children: [
         IconButton(
           icon: const Icon(FluentIcons.back),
-          onPressed: () => context.read<NavigationBloc>().add(
-                NavigationIndexChanged(
-                    index: RouteIndexMapper.getIndexFromRoute(AppRoutes.usersPage)!),
-              ),
+          onPressed: () {
+            context
+                .read<NavigationBloc>() //
+                .add(
+                  NavigationIndexChanged(
+                    index: RouteIndexMapper.getIndexFromRoute(AppRoutes.usersPage)!,
+                  ),
+                );
+          },
         ),
         const DisplayText('Create User'),
         const Spacer(flex: 1),
-        TextButtonFilled('Save User', onPressed: () {
-          final int userId = context.read<UserListBloc>().state.users.length + 1;
-          context.read<UserFormBloc>().add(UserIdChangedEvent(userId));
-          context.read<UserFormBloc>().add(FormButtonPressedEvent());
-        })
+        TextButtonFilled(
+          'Save User',
+          onPressed: () {
+            final int userId = context.read<UserListBloc>().state.users.length + 1;
+
+            context.read<UserFormBloc>()
+              ..add(UserIdChangedEvent(userId))
+              ..add(FormButtonPressedEvent());
+          },
+        )
       ].withSpacing(() => Spacing.h16),
     );
   }
@@ -125,14 +183,16 @@ class UserCredentialsSection extends StatelessWidget {
       child: Container(
         padding: AppPadding.a16,
         decoration: const BoxDecoration(color: Colors.white),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: const [
-            SubheadingText('User Information'),
-            FirstNameLastNameFields(),
-            UsernameField(),
-            PasswordField(),
-          ].withSpacing(() => Spacing.v16),
+        child: FocusTraversalGroup(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: const [
+              SubheadingText('User Information'),
+              FirstNameLastNameFields(),
+              UsernameField(),
+              PasswordField(),
+            ].withSpacing(() => Spacing.v16),
+          ),
         ),
       ),
     );
@@ -148,14 +208,16 @@ class SecuritySection extends StatelessWidget {
       child: Container(
         padding: AppPadding.a16,
         decoration: const BoxDecoration(color: Colors.white),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: const [
-            SubheadingText('Account Information'),
-            AccessLevelField(),
-            SecurityQuestionFields(),
-            // Include access level permisions
-          ].withSpacing(() => Spacing.v16),
+        child: FocusTraversalGroup(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: const [
+              SubheadingText('Account Information'),
+              AccessLevelField(),
+              SecurityQuestionFields(),
+              // Include access level permisions
+            ].withSpacing(() => Spacing.v16),
+          ),
         ),
       ),
     );
@@ -207,8 +269,13 @@ class UsernameField extends StatelessWidget with UserFormValidator {
 
   @override
   Widget build(BuildContext context) {
-    final existingUsernames =
-        context.read<UserListBloc>().state.users.map((user) => user.username).toList();
+    final existingUsernames = context
+        .read<UserListBloc>() //
+        .state
+        .users
+        .map((user) => user.username)
+        .toList();
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -318,68 +385,62 @@ class SecurityQuestionFields extends StatelessWidget with UserFormValidator {
   Widget build(BuildContext context) {
     final formQuestions = context.read<UserFormBloc>().state.questions;
     return Column(
-      children: formQuestions
-          .asMap()
-          .entries
-          .map(
-            (value) {
-              final index = value.key;
-              return Row(
-                children: [
-                  Expanded(
-                      child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      BodyText('Security Question ${index + 1}'),
-                      Spacing.v8,
-                      AutoSuggestBox.form(
-                        validator: (value) {
-                          final List<FormQuestion> copy = List.from(formQuestions);
-                          copy.removeAt(index);
-                          return validateSecurityQuestion(
-                            value,
-                            copy.map((e) => e.question).toList(),
-                            index,
-                          );
-                        },
-                        items: SECURITY_QUESTIONS.map(
-                          (staticQuestion) {
-                            return AutoSuggestBoxItem(
-                              label: staticQuestion,
-                              value: staticQuestion,
-                              onSelected: () {
-                                context
-                                    .read<UserFormBloc>()
-                                    .add(QuestionFieldChangedEevnt(staticQuestion, index));
-                              },
-                            );
-                          },
-                        ).toList(),
-                        onChanged: (text, reason) {
-                          context.read<UserFormBloc>().add(QuestionFieldChangedEevnt(text, index));
-                        },
-                      )
-                    ],
-                  )),
-                  Expanded(
-                      child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      const BodyText('Answer'),
-                      TextFormBox(
-                        validator: (value) => validateSecurityAnswer(value, index),
-                        onChanged: (value) {
-                          context.read<UserFormBloc>().add(AnswerFieldChangedEevnt(value, index));
-                        },
-                      ),
-                    ].withSpacing(() => Spacing.v8),
-                  )),
-                ].withSpacing(() => Spacing.h16),
-              );
-            },
+      children: [
+        for (final (index, _) in formQuestions.indexed)
+          Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    BodyText('Security Question ${index + 1}'),
+                    Spacing.v8,
+                    AutoSuggestBox.form(
+                      validator: (value) {
+                        final copy = formQuestions.toList()..removeAt(index);
+
+                        return validateSecurityQuestion(
+                          value,
+                          copy.map((e) => e.question).toList(),
+                          index,
+                        );
+                      },
+                      items: [
+                        for (var staticQuestion in SECURITY_QUESTIONS)
+                          AutoSuggestBoxItem(
+                            label: staticQuestion,
+                            value: staticQuestion,
+                            onSelected: () {
+                              context
+                                  .read<UserFormBloc>()
+                                  .add(QuestionFieldChangedEevnt(staticQuestion, index));
+                            },
+                          )
+                      ],
+                      onChanged: (text, reason) {
+                        context.read<UserFormBloc>().add(QuestionFieldChangedEevnt(text, index));
+                      },
+                    )
+                  ],
+                ),
+              ),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    const BodyText('Answer'),
+                    TextFormBox(
+                      validator: (value) => validateSecurityAnswer(value, index),
+                      onChanged: (value) {
+                        context.read<UserFormBloc>().add(AnswerFieldChangedEevnt(value, index));
+                      },
+                    ),
+                  ].withSpacing(() => Spacing.v8),
+                ),
+              ),
+            ].withSpacing(() => Spacing.h16),
           )
-          .toList()
-          .withSpacing(() => Spacing.v16),
+      ].withSpacing(() => Spacing.v16),
     );
   }
 }

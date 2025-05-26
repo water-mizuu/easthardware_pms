@@ -11,10 +11,18 @@ class CategoryFormState extends Equatable {
   @override
   List<Object?> get props => [name, status];
 
-  CategoryFormState copyWith({String? name, FormStatus? status}) {
-    return CategoryFormState(
-      name: name ?? this.name,
-      status: status ?? this.status,
-    );
+  CategoryFormState Function({
+    String? name,
+    FormStatus status,
+  }) get copyWith {
+    return ({
+      Object? name = undefined,
+      Object? status = undefined,
+    }) {
+      return CategoryFormState(
+        name: name.or(this.name),
+        status: status.or(this.status),
+      );
+    };
   }
 }

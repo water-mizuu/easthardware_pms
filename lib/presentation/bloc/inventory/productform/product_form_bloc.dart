@@ -1,10 +1,12 @@
 import 'dart:async';
+
 import 'package:bloc/bloc.dart';
 import 'package:easthardware_pms/domain/constants/constants.dart';
 import 'package:easthardware_pms/domain/enums/enums.dart';
 import 'package:easthardware_pms/domain/models/product.dart';
 import 'package:easthardware_pms/domain/models/unit.dart';
 import 'package:easthardware_pms/presentation/models/form_unit.dart';
+import 'package:easthardware_pms/utils/undefined.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter/widgets.dart';
 import 'package:uuid/uuid.dart';
@@ -202,7 +204,7 @@ class ProductFormBloc extends Bloc<ProductFormEvent, ProductFormState> {
       emit(state.copyWith(
         name: event.product.name,
         sku: event.product.sku,
-        categoryName: event.product.categoryName,
+        categoryName: event.product.categoryName ?? '',
         categoryId: event.product.categoryId,
         description: event.product.description,
         price: event.product.salePrice.toString(),

@@ -1,12 +1,13 @@
 import 'package:easthardware_pms/data/database/dao/users_dao.dart';
+import 'package:easthardware_pms/data/database/database_helper.dart';
 import 'package:easthardware_pms/domain/errors/exceptions.dart';
 import 'package:easthardware_pms/domain/models/user.dart';
 import 'package:easthardware_pms/domain/repository/user_repository.dart';
 
-class UserRepositoryImpl extends UserRepository {
-  UserRepositoryImpl() : super();
+class UserRepositoryImpl implements UserRepository {
+  UserRepositoryImpl(DatabaseHelper? databaseHelper) : _usersDao = UsersDao(databaseHelper);
 
-  final UsersDao _usersDao = UsersDao();
+  final UsersDao _usersDao;
 
   @override
   Future<User> insertUser(User user) {

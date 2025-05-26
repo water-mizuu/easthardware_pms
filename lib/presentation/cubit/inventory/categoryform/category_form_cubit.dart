@@ -1,5 +1,6 @@
 import 'package:bloc/bloc.dart';
 import 'package:easthardware_pms/domain/enums/enums.dart';
+import 'package:easthardware_pms/utils/undefined.dart';
 import 'package:equatable/equatable.dart';
 import 'package:fluent_ui/fluent_ui.dart';
 
@@ -15,12 +16,12 @@ class CategoryFormCubit extends Cubit<CategoryFormState> {
     emit(state.copyWith(name: name));
   }
 
-  void onButtonPressed() {
+  void onButtonPressed() async {
     emit(state.copyWith(status: FormStatus.validating));
-    Future.delayed(Duration.zero);
+    await Future.delayed(Duration.zero);
+    if (formKey.currentState?.mounted != true) return;
     if (formKey.currentState case FormState formState when formState.validate()) {
       emit(state.copyWith(status: FormStatus.submitting));
-      print(state.status.toString());
     }
   }
 

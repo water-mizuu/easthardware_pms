@@ -1,10 +1,10 @@
+import 'package:easthardware_pms/data/database/dao/dao_base.dart';
 import 'package:easthardware_pms/data/database/database_helper.dart';
 import 'package:easthardware_pms/domain/models/invoice_product.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
-abstract class InvoiceProductsDao {
-  InvoiceProductsDao._();
-  factory InvoiceProductsDao([DatabaseHelper? databaseHelper]) {
+abstract interface class InvoiceProductsDao {
+  factory InvoiceProductsDao(DatabaseHelper? databaseHelper) {
     return InvoiceProductsDaoImpl._(databaseHelper);
   }
   Future<List<InvoiceProduct>> getAllInvoiceProducts();
@@ -17,11 +17,8 @@ abstract class InvoiceProductsDao {
 
 // This class would implement the InvoiceProductsDao interface
 // and provide the actual database operations using a database library.
-class InvoiceProductsDaoImpl extends InvoiceProductsDao {
-  final DatabaseHelper _databaseHelper;
-  InvoiceProductsDaoImpl._([DatabaseHelper? databaseHelper])
-      : _databaseHelper = databaseHelper ?? DatabaseHelper(),
-        super._();
+final class InvoiceProductsDaoImpl extends DaoBase implements InvoiceProductsDao {
+  InvoiceProductsDaoImpl._(super.databaseHelper);
 
   /// This method retrieves all invoice products from the database.
   /// It returns a list of [InvoiceProduct] objects.
@@ -29,7 +26,7 @@ class InvoiceProductsDaoImpl extends InvoiceProductsDao {
   ///
   @override
   Future<List<InvoiceProduct>> getAllInvoiceProducts() async {
-    final db = await _databaseHelper.database;
+    final db = databaseHelper.database;
     final List<Map<String, dynamic>> maps = await db.query('invoice_products');
     return List.generate(maps.length, (i) {
       return InvoiceProduct.fromMap(maps[i]);
@@ -41,7 +38,7 @@ class InvoiceProductsDaoImpl extends InvoiceProductsDao {
   ///
   @override
   Future<InvoiceProduct?> getInvoiceProductById(int id) async {
-    final db = await _databaseHelper.database;
+    final db = databaseHelper.database;
     final List<Map<String, dynamic>> maps = await db.query(
       'invoice_products',
       where: 'id = ?',
@@ -59,7 +56,7 @@ class InvoiceProductsDaoImpl extends InvoiceProductsDao {
   ///
   @override
   Future<List<InvoiceProduct>> getInvoiceProductsByInvoiceId(int invoiceId) async {
-    final db = await _databaseHelper.database;
+    final db = databaseHelper.database;
     final List<Map<String, dynamic>> maps = await db.query(
       'invoice_products',
       where: 'invoice_id = ?',
@@ -77,7 +74,7 @@ class InvoiceProductsDaoImpl extends InvoiceProductsDao {
   ///
   @override
   Future<InvoiceProduct> insertInvoiceProduct(InvoiceProduct invoiceProduct) async {
-    final db = await _databaseHelper.database;
+    final db = databaseHelper.database;
     final id = await db.insert(
       'invoice_products',
       invoiceProduct.toMap(),
@@ -93,7 +90,7 @@ class InvoiceProductsDaoImpl extends InvoiceProductsDao {
   ///
   @override
   Future<InvoiceProduct> updateInvoiceProduct(InvoiceProduct invoiceProduct) async {
-    final db = await _databaseHelper.database;
+    final db = databaseHelper.database;
     await db.update(
       'invoice_products',
       invoiceProduct.toMap(),
@@ -110,7 +107,7 @@ class InvoiceProductsDaoImpl extends InvoiceProductsDao {
   ///
   @override
   Future<void> deleteInvoiceProduct(int id) async {
-    final db = await _databaseHelper.database;
+    final db = databaseHelper.database;
     await db.delete(
       'invoice_products',
       where: 'id = ?',

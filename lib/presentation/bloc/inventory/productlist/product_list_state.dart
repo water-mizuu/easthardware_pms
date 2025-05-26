@@ -15,20 +15,28 @@ class ProductListState {
     this.status = DataStatus.initial,
   });
 
-  ProductListState copyWith({
-    List<Product>? allProducts,
-    List<Product>? lowStockProducts,
-    List<Product>? deadStockProducts,
-    List<Product>? fastMovingProducts,
-    DataStatus? status,
-  }) {
-    return ProductListState(
-      allProducts: allProducts ?? this.allProducts,
-      lowStockProducts: lowStockProducts ?? this.lowStockProducts,
-      deadStockProducts: deadStockProducts ?? this.deadStockProducts,
-      fastMovingProducts: fastMovingProducts ?? this.fastMovingProducts,
-      status: status ?? this.status,
-    );
+  ProductListState Function({
+    List<Product> allProducts,
+    List<Product> lowStockProducts,
+    List<Product> deadStockProducts,
+    List<Product> fastMovingProducts,
+    DataStatus status,
+  }) get copyWith {
+    return ({
+      Object? allProducts = undefined,
+      Object? lowStockProducts = undefined,
+      Object? deadStockProducts = undefined,
+      Object? fastMovingProducts = undefined,
+      Object? status = undefined,
+    }) {
+      return ProductListState(
+        allProducts: allProducts.or(this.allProducts),
+        lowStockProducts: lowStockProducts.or(this.lowStockProducts),
+        deadStockProducts: deadStockProducts.or(this.deadStockProducts),
+        fastMovingProducts: fastMovingProducts.or(this.fastMovingProducts),
+        status: status.or(this.status),
+      );
+    };
   }
 }
 

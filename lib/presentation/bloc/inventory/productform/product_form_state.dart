@@ -64,48 +64,70 @@ class ProductFormState extends Equatable {
         deadstockTreshold = deadstockTreshold ?? DEFAULT_DEAD_STOCK_THRESHOLD.toString(),
         fastmovingTreshold = fastmovingTreshold ?? DEFAULT_FAST_MOVING_STOCK_THRESHOLD.toString();
 
-  ProductFormState copyWith({
-    String? name,
-    String? sku,
-    String? categoryName,
+  ProductFormState Function({
+    String name,
+    String sku,
+    String categoryName,
     int? categoryId,
     String? description,
-    String? price,
-    String? cost,
-    String? quantity,
-    String? mainUnit,
-    List<FormUnit>? secondaryUnits,
-    String? criticalLevel,
-    bool? isCriticalLevelEdited,
-    String? deadstockTreshold,
-    String? fastmovingTreshold,
-    DateTime? creationDate,
+    String price,
+    String cost,
+    String quantity,
+    String mainUnit,
+    List<FormUnit> secondaryUnits,
+    String criticalLevel,
+    bool isCriticalLevelEdited,
+    String deadstockTreshold,
+    String fastmovingTreshold,
+    DateTime creationDate,
     int? archiveStatus,
     int? creatorId,
-    FormStatus? formStatus,
+    FormStatus formStatus,
     int? productId,
-  }) {
-    return ProductFormState(
-      name: name ?? this.name,
-      sku: sku ?? this.sku,
-      categoryName: categoryName ?? this.categoryName,
-      categoryId: categoryId ?? this.categoryId,
-      description: description ?? this.description,
-      price: price ?? this.price,
-      cost: cost ?? this.cost,
-      quantity: quantity ?? this.quantity,
-      mainUnit: mainUnit ?? this.mainUnit,
-      secondaryUnits: secondaryUnits ?? this.secondaryUnits,
-      criticalLevel: criticalLevel ?? this.criticalLevel,
-      isCriticalLevelEdited: isCriticalLevelEdited ?? this.isCriticalLevelEdited,
-      deadstockTreshold: deadstockTreshold ?? this.deadstockTreshold,
-      fastmovingTreshold: fastmovingTreshold ?? this.fastmovingTreshold,
-      creationDate: creationDate ?? this.creationDate,
-      archiveStatus: archiveStatus ?? this.archiveStatus,
-      creatorId: creatorId ?? this.creatorId,
-      productId: productId ?? this.productId,
-      formStatus: formStatus ?? this.formStatus,
-    );
+  }) get copyWith {
+    return ({
+      Object? name = undefined,
+      Object? sku = undefined,
+      Object? categoryName = undefined,
+      Object? categoryId = undefined,
+      Object? description = undefined,
+      Object? price = undefined,
+      Object? cost = undefined,
+      Object? quantity = undefined,
+      Object? mainUnit = undefined,
+      Object? secondaryUnits = undefined,
+      Object? criticalLevel = undefined,
+      Object? isCriticalLevelEdited = undefined,
+      Object? deadstockTreshold = undefined,
+      Object? fastmovingTreshold = undefined,
+      Object? creationDate = undefined,
+      Object? archiveStatus = undefined,
+      Object? creatorId = undefined,
+      Object? formStatus = undefined,
+      Object? productId = undefined,
+    }) {
+      return ProductFormState(
+        name: name.or(this.name),
+        sku: sku.or(this.sku),
+        categoryName: categoryName.or(this.categoryName),
+        categoryId: categoryId.or(this.categoryId),
+        description: description.or(this.description),
+        price: price.or(this.price),
+        cost: cost.or(this.cost),
+        quantity: quantity.or(this.quantity),
+        mainUnit: mainUnit.or(this.mainUnit),
+        secondaryUnits: secondaryUnits.or(this.secondaryUnits),
+        criticalLevel: criticalLevel.or(this.criticalLevel),
+        isCriticalLevelEdited: isCriticalLevelEdited.or(this.isCriticalLevelEdited),
+        deadstockTreshold: deadstockTreshold.or(this.deadstockTreshold),
+        fastmovingTreshold: fastmovingTreshold.or(this.fastmovingTreshold),
+        creationDate: creationDate.or(this.creationDate),
+        archiveStatus: archiveStatus.or(this.archiveStatus),
+        creatorId: creatorId.or(this.creatorId),
+        productId: productId.or(this.productId),
+        formStatus: formStatus.or(this.formStatus),
+      );
+    };
   }
 
   @override
@@ -131,7 +153,7 @@ class ProductFormState extends Equatable {
         productId,
       ];
 
-  Product mapStateToProduct() {
+  Product toProduct() {
     return Product(
       sku: sku,
       name: name,

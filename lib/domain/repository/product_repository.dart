@@ -1,6 +1,12 @@
+import 'package:easthardware_pms/data/database/database_helper.dart';
+import 'package:easthardware_pms/data/repository/product_repository.dart';
 import 'package:easthardware_pms/domain/models/product.dart';
 
-abstract class ProductRepository {
+abstract interface class ProductRepository {
+  factory ProductRepository(DatabaseHelper? databaseHelper) {
+    return ProductRepositoryImpl(databaseHelper);
+  }
+
   Future<List<Product>> getAllProducts();
   Future<List<Product>> getLowStockProducts();
   Future<List<Product>> getFastMovingProducts();

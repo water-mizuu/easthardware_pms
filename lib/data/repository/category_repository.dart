@@ -1,12 +1,14 @@
 import 'package:easthardware_pms/data/database/dao/categories_dao.dart';
+import 'package:easthardware_pms/data/database/database_helper.dart';
 import 'package:easthardware_pms/domain/errors/exceptions.dart';
 import 'package:easthardware_pms/domain/models/category.dart';
 import 'package:easthardware_pms/domain/repository/category_repository.dart';
 
-class CategoryRepositoryImpl extends CategoryRepository {
-  CategoryRepositoryImpl() : super();
+class CategoryRepositoryImpl implements CategoryRepository {
+  CategoryRepositoryImpl(DatabaseHelper? databaseHelper)
+      : _categoriesDao = CategoriesDao(databaseHelper);
 
-  final CategoriesDao _categoriesDao = CategoriesDao();
+  final CategoriesDao _categoriesDao;
 
   @override
   Future<void> deleteCategory(int id) async {

@@ -1,6 +1,7 @@
 import "dart:typed_data";
 
 import "package:easthardware_pms/domain/enums/enums.dart";
+import "package:easthardware_pms/utils/undefined.dart";
 
 class User {
   final int? id;
@@ -27,7 +28,7 @@ class User {
     required this.creationDate,
   });
 
-  User copyWith({
+  User Function({
     int? id,
     String? uid,
     String? firstName,
@@ -38,19 +39,32 @@ class User {
     Uint8List? salt,
     int? status,
     String? creationDate,
-  }) {
-    return User(
-      id: id ?? this.id,
-      uid: uid ?? this.uid,
-      firstName: firstName ?? this.firstName,
-      lastName: lastName ?? this.lastName,
-      username: username ?? this.username,
-      accessLevel: accessLevel ?? this.accessLevel,
-      passwordHash: passwordHash ?? this.passwordHash,
-      salt: salt ?? this.salt,
-      status: status ?? this.status,
-      creationDate: creationDate ?? this.creationDate,
-    );
+  }) get copyWith {
+    return ({
+      Object? id = undefined,
+      Object? uid = undefined,
+      Object? firstName = undefined,
+      Object? lastName = undefined,
+      Object? username = undefined,
+      Object? accessLevel = undefined,
+      Object? passwordHash = undefined,
+      Object? salt = undefined,
+      Object? status = undefined,
+      Object? creationDate = undefined,
+    }) {
+      return User(
+        id: id.or(this.id),
+        uid: uid.or(this.uid),
+        firstName: firstName.or(this.firstName),
+        lastName: lastName.or(this.lastName),
+        username: username.or(this.username),
+        accessLevel: accessLevel.or(this.accessLevel),
+        passwordHash: passwordHash.or(this.passwordHash),
+        salt: salt.or(this.salt),
+        status: status.or(this.status),
+        creationDate: creationDate.or(this.creationDate),
+      );
+    };
   }
 
   Map<String, dynamic> toMap() {
@@ -75,8 +89,8 @@ class User {
       lastName: map['last_name'] as String,
       username: map['username'] as String,
       accessLevel: AccessLevel.values[map['access_level'] as int],
-      passwordHash: map['password_hash'] as Uint8List,
-      salt: map['salt'] as Uint8List,
+      passwordHash: Uint8List.fromList((map['password_hash'] as List<dynamic>).cast<int>()),
+      salt: Uint8List.fromList((map['salt'] as List<dynamic>).cast<int>()),
       creationDate: map['creation_date'] as String,
       status: map['status'] as int,
     );

@@ -9,13 +9,18 @@ class NavigationState {
     required this.currentRouteName,
   });
 
-  NavigationState copyWith({
-    int? selectedIndex,
-    String? currentRouteName,
-  }) {
-    return NavigationState(
-      selectedIndex: selectedIndex ?? this.selectedIndex,
-      currentRouteName: currentRouteName ?? this.currentRouteName,
-    );
+  NavigationState Function({
+    int selectedIndex,
+    String currentRouteName,
+  }) get copyWith {
+    return ({
+      Object? selectedIndex = undefined,
+      Object? currentRouteName = undefined,
+    }) {
+      return NavigationState(
+        selectedIndex: selectedIndex.or(this.selectedIndex),
+        currentRouteName: currentRouteName.or(this.currentRouteName),
+      );
+    };
   }
 }

@@ -1,8 +1,10 @@
 import 'package:bloc/bloc.dart';
-import 'package:easthardware_pms/data/repository/security_question_repository.dart';
 import 'package:easthardware_pms/domain/enums/enums.dart';
 import 'package:easthardware_pms/domain/models/security_question.dart';
+import 'package:easthardware_pms/domain/repository/security_question_repository.dart';
+import 'package:easthardware_pms/utils/undefined.dart';
 import 'package:equatable/equatable.dart';
+import 'package:flutter/foundation.dart';
 
 part 'security_question_list_event.dart';
 part 'security_question_list_state.dart';
@@ -16,7 +18,7 @@ class SecurityQuestionListBloc extends Bloc<SecurityQuestionListEvent, SecurityQ
     on<DeleteSecurityQuestionEvent>(_onDeleteSecurityQuestion);
   }
 
-  final SecurityQuestionRepositoryImpl _repository;
+  final SecurityQuestionRepository _repository;
 
   void _onFetchSecurityQuestions(
       FetchSecurityQuestionsEvent event, Emitter<SecurityQuestionListState> emit) async {
@@ -25,7 +27,9 @@ class SecurityQuestionListBloc extends Bloc<SecurityQuestionListEvent, SecurityQ
       final securityQuestions = await _repository.getAllSecurityQuestions();
       emit(state.copyWith(status: DataStatus.success, securityQuestions: securityQuestions));
     } catch (e) {
-      print("BLoC Error fetching security questions: $e");
+      if (kDebugMode) {
+        print("BLoC Error fetching security questions: $e");
+      }
       emit(state.copyWith(status: DataStatus.error));
     }
   }
@@ -45,7 +49,9 @@ class SecurityQuestionListBloc extends Bloc<SecurityQuestionListEvent, SecurityQ
         ..add(insertedQuestion);
       emit(state.copyWith(securityQuestions: updatedQuestions, status: DataStatus.success));
     } catch (e) {
-      print("BLoC Error adding security question: $e");
+      if (kDebugMode) {
+        print("BLoC Error adding security question: $e");
+      }
       emit(state.copyWith(status: DataStatus.error));
     }
   }
@@ -59,7 +65,9 @@ class SecurityQuestionListBloc extends Bloc<SecurityQuestionListEvent, SecurityQ
       }).toList();
       emit(state.copyWith(securityQuestions: updatedQuestions, status: DataStatus.success));
     } catch (e) {
-      print("BLoC Error updating security question: $e");
+      if (kDebugMode) {
+        print("BLoC Error updating security question: $e");
+      }
       emit(state.copyWith(status: DataStatus.error));
     }
   }
@@ -72,7 +80,9 @@ class SecurityQuestionListBloc extends Bloc<SecurityQuestionListEvent, SecurityQ
           state.securityQuestions.where((question) => question.id != event.question.id).toList();
       emit(state.copyWith(securityQuestions: updatedQuestions, status: DataStatus.success));
     } catch (e) {
-      print("BLoC Error deleting security question: $e");
+      if (kDebugMode) {
+        print("BLoC Error deleting security question: $e");
+      }
       emit(state.copyWith(status: DataStatus.error));
     }
   }

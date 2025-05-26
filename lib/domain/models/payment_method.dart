@@ -1,3 +1,5 @@
+import 'package:easthardware_pms/utils/undefined.dart';
+
 class PaymentMethod {
   final int? id;
   final String name;
@@ -6,14 +8,19 @@ class PaymentMethod {
     this.id,
     required this.name,
   });
-  PaymentMethod copyWith({
+  PaymentMethod Function({
     int? id,
-    String? name,
-  }) {
-    return PaymentMethod(
-      id: id ?? this.id,
-      name: name ?? this.name,
-    );
+    String name,
+  }) get copyWith {
+    return ({
+      Object? id = undefined,
+      Object? name = undefined,
+    }) {
+      return PaymentMethod(
+        id: id.or(this.id),
+        name: name.or(this.name),
+      );
+    };
   }
 
   Map<String, dynamic> toMap() {

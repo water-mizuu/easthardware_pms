@@ -1,4 +1,5 @@
 import 'package:easthardware_pms/data/database/dao/invoice_products_dao.dart';
+import 'package:easthardware_pms/data/database/database_helper.dart';
 import 'package:easthardware_pms/data/repository/product_repository.dart';
 import 'package:easthardware_pms/domain/enums/enums.dart';
 import 'package:easthardware_pms/domain/errors/exceptions.dart';
@@ -6,8 +7,14 @@ import 'package:easthardware_pms/domain/models/invoice_product.dart';
 import 'package:easthardware_pms/domain/models/product.dart';
 import 'package:easthardware_pms/domain/repository/invoice_product_repository.dart';
 
-class InvoiceProductRepositoryImpl extends InvoiceProductRepository {
-  final InvoiceProductsDao _invoiceProductsDao = InvoiceProductsDao();
+class InvoiceProductRepositoryImpl implements InvoiceProductRepository {
+  InvoiceProductRepositoryImpl(DatabaseHelper? databaseHelper)
+      : _invoiceProductsDao = InvoiceProductsDao(databaseHelper),
+        _productRepository = ProductRepositoryImpl(databaseHelper);
+
+  final InvoiceProductsDao _invoiceProductsDao;
+  final ProductRepositoryImpl _productRepository;
+
   @override
   Future<InvoiceProduct> createInvoiceProduct(InvoiceProduct invoiceProduct) {
     try {
@@ -61,7 +68,8 @@ class InvoiceProductRepositoryImpl extends InvoiceProductRepository {
   }
 
   void _validateInvoiceProduct(InvoiceProduct invoiceProduct) async {
-    ProductRepositoryImpl productRepository = ProductRepositoryImpl();
+    ProductRepositoryImpl productRepository = _productRepository;
+
     if (invoiceProduct.quantity <= 0) {
       throw ArgumentError('Quantity should be greater than 0');
     }

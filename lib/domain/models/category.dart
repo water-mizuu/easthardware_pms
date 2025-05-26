@@ -1,3 +1,5 @@
+import 'package:easthardware_pms/utils/undefined.dart';
+
 class Category {
   final int? id;
   final String name;
@@ -7,14 +9,19 @@ class Category {
     required this.name,
   });
 
-  Category copyWith({
+  Category Function({
     int? id,
-    String? name,
-  }) {
-    return Category(
-      id: id ?? this.id,
-      name: name ?? this.name,
-    );
+    String name,
+  }) get copyWith {
+    return ({
+      Object? id = undefined,
+      Object? name = undefined,
+    }) {
+      return Category(
+        id: id.or(this.id),
+        name: name.or(this.name),
+      );
+    };
   }
 
   Map<String, dynamic> toMap() {

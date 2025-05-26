@@ -1,10 +1,10 @@
+import 'package:easthardware_pms/data/database/dao/dao_base.dart';
 import 'package:easthardware_pms/data/database/database_helper.dart';
 import 'package:easthardware_pms/data/database/tables/security_questions_table.dart';
 import 'package:easthardware_pms/domain/models/security_question.dart';
 
-abstract class SecurityQuestionsDao {
-  SecurityQuestionsDao._();
-  factory SecurityQuestionsDao([DatabaseHelper? databaseHelper]) {
+abstract interface class SecurityQuestionsDao {
+  factory SecurityQuestionsDao(DatabaseHelper? databaseHelper) {
     return SecurityQuestionsDaoImpl._(databaseHelper);
   }
   Future<List<SecurityQuestion>> getAllSecurityQuestions();
@@ -15,15 +15,12 @@ abstract class SecurityQuestionsDao {
   Future<void> deleteSecurityQuestion(int id);
 }
 
-class SecurityQuestionsDaoImpl extends SecurityQuestionsDao {
-  final DatabaseHelper _databaseHelper;
-  SecurityQuestionsDaoImpl._([DatabaseHelper? databaseHelper])
-      : _databaseHelper = databaseHelper ?? DatabaseHelper(),
-        super._();
+final class SecurityQuestionsDaoImpl extends DaoBase implements SecurityQuestionsDao {
+  const SecurityQuestionsDaoImpl._(super.databaseHelper);
 
   @override
   Future<void> deleteSecurityQuestion(int id) async {
-    final database = await _databaseHelper.database;
+    final database = databaseHelper.database;
     await database.delete(
       SecurityQuestionsTable.SECURITY_QUESTIONS_TABLE,
       where: '${SecurityQuestionsTable.SECURITY_QUESTIONS_ID} = ?',
@@ -33,7 +30,7 @@ class SecurityQuestionsDaoImpl extends SecurityQuestionsDao {
 
   @override
   Future<List<SecurityQuestion>> getAllSecurityQuestions() async {
-    final database = await _databaseHelper.database;
+    final database = databaseHelper.database;
     var queryResults = await database.query(SecurityQuestionsTable.SECURITY_QUESTIONS_TABLE);
 
     return queryResults.map(SecurityQuestion.fromMap).toList();
@@ -41,7 +38,7 @@ class SecurityQuestionsDaoImpl extends SecurityQuestionsDao {
 
   @override
   Future<SecurityQuestion?> getSecurityQuestionById(int id) async {
-    final database = await _databaseHelper.database;
+    final database = databaseHelper.database;
     var queryResults = await database.query(
       SecurityQuestionsTable.SECURITY_QUESTIONS_TABLE,
       where: '${SecurityQuestionsTable.SECURITY_QUESTIONS_ID} = ?',
@@ -59,7 +56,7 @@ class SecurityQuestionsDaoImpl extends SecurityQuestionsDao {
 
   @override
   Future<SecurityQuestion> insertSecurityQuestion(SecurityQuestion securityQuestion) async {
-    final database = await _databaseHelper.database;
+    final database = databaseHelper.database;
     final id = await database.insert(
       SecurityQuestionsTable.SECURITY_QUESTIONS_TABLE,
       securityQuestion.toMap(),
@@ -69,7 +66,7 @@ class SecurityQuestionsDaoImpl extends SecurityQuestionsDao {
 
   @override
   Future<SecurityQuestion> updateSecurityQuestion(SecurityQuestion securityQuestion) async {
-    final database = await _databaseHelper.database;
+    final database = databaseHelper.database;
     await database.update(
       SecurityQuestionsTable.SECURITY_QUESTIONS_TABLE,
       securityQuestion.toMap(),
@@ -82,7 +79,7 @@ class SecurityQuestionsDaoImpl extends SecurityQuestionsDao {
 
   @override
   Future<List<SecurityQuestion>> getSecurityQuestionsByUserId(int id) async {
-    final database = await _databaseHelper.database;
+    final database = databaseHelper.database;
     var queryResults = await database.query(
       SecurityQuestionsTable.SECURITY_QUESTIONS_TABLE,
       where: '${SecurityQuestionsTable.SECURITY_QUESTIONS_USER_ID} = ?',

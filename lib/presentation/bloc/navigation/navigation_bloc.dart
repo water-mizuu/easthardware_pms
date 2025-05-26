@@ -1,4 +1,5 @@
 import 'package:bloc/bloc.dart';
+import 'package:easthardware_pms/utils/undefined.dart';
 import 'package:equatable/equatable.dart';
 
 part 'navigation_event.dart';

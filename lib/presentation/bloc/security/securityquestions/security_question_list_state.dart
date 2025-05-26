@@ -11,16 +11,22 @@ class SecurityQuestionListState extends Equatable {
     this.status = DataStatus.initial,
   });
 
-  SecurityQuestionListState copyWith({
-    List<SecurityQuestion>? securityQuestions,
-    List<SecurityQuestion>? filteredQuestions,
-    DataStatus? status,
-  }) {
-    return SecurityQuestionListState(
-      securityQuestions: securityQuestions ?? this.securityQuestions,
-      filteredQuestions: filteredQuestions ?? this.filteredQuestions,
-      status: status ?? this.status,
-    );
+  SecurityQuestionListState Function({
+    List<SecurityQuestion> securityQuestions,
+    List<SecurityQuestion> filteredQuestions,
+    DataStatus status,
+  }) get copyWith {
+    return ({
+      Object? securityQuestions = undefined,
+      Object? filteredQuestions = undefined,
+      Object? status = undefined,
+    }) {
+      return SecurityQuestionListState(
+        securityQuestions: securityQuestions.or(this.securityQuestions),
+        filteredQuestions: filteredQuestions.or(this.filteredQuestions),
+        status: status.or(this.status),
+      );
+    };
   }
 
   @override

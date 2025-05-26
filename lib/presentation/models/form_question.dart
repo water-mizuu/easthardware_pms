@@ -1,4 +1,5 @@
 import 'package:easthardware_pms/domain/models/security_question.dart';
+import 'package:easthardware_pms/utils/undefined.dart';
 
 class FormQuestion {
   final String question;
@@ -9,14 +10,19 @@ class FormQuestion {
     required this.answer,
   });
 
-  FormQuestion copyWith({
-    String? question,
-    String? answer,
-  }) {
-    return FormQuestion(
-      question: question ?? this.question,
-      answer: answer ?? this.answer,
-    );
+  FormQuestion Function({
+    String question,
+    String answer,
+  }) get copyWith {
+    return ({
+      Object? question = undefined,
+      Object? answer = undefined,
+    }) {
+      return FormQuestion(
+        question: question.or(this.question),
+        answer: answer.or(this.answer),
+      );
+    };
   }
 
   SecurityQuestion toSecurityQuestion(int userId) {

@@ -40,10 +40,13 @@ class PageHeader extends StatelessWidget {
       children: [
         IconButton(
           icon: const Icon(FluentIcons.back),
-          onPressed: () => context.read<NavigationBloc>().add(
-                NavigationIndexChanged(
-                    index: RouteIndexMapper.getIndexFromRoute(AppRoutes.usersPage)!),
-              ),
+          onPressed: () {
+            var event = NavigationIndexChanged(
+              index: RouteIndexMapper.getIndexFromRoute(AppRoutes.usersPage)!,
+            );
+
+            context.read<NavigationBloc>().add(event);
+          },
         ),
         const HeadingText('User Logs'),
       ].withSpacing(() => Spacing.h16),
@@ -105,18 +108,20 @@ class UserLogDataTable extends StatelessWidget {
                 return Expanded(
                   child: DecoratedBox(
                     decoration: const BoxDecoration(color: Colors.white),
-                    child: DataTable(
-                      columns: const [
-                        DataColumn(label: Text('ID')),
-                        DataColumn(label: Text('User')),
-                        DataColumn(label: Text('Date')),
-                        DataColumn(label: Text('Time')),
-                        DataColumn(label: Text('Action')),
-                      ],
-                      rows: allLogs
-                          .map((log) => DataRowMapper.mapUserLogToRow(
-                              log, allUsers.firstWhere((user) => user.id == log.userId)))
-                          .toList(),
+                    child: SingleChildScrollView(
+                      child: DataTable(
+                        columns: const [
+                          DataColumn(label: Text('ID')),
+                          DataColumn(label: Text('User')),
+                          DataColumn(label: Text('Date')),
+                          DataColumn(label: Text('Time')),
+                          DataColumn(label: Text('Action')),
+                        ],
+                        rows: allLogs
+                            .map((log) => DataRowMapper.mapUserLogToRow(
+                                log, allUsers.firstWhere((user) => user.id == log.userId)))
+                            .toList(),
+                      ),
                     ),
                   ),
                 );

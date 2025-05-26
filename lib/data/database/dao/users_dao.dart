@@ -1,10 +1,10 @@
+import 'package:easthardware_pms/data/database/dao/dao_base.dart';
 import 'package:easthardware_pms/data/database/database_helper.dart';
 import 'package:easthardware_pms/data/database/tables/users_table.dart';
 import 'package:easthardware_pms/domain/models/user.dart';
 
-abstract class UsersDao {
-  UsersDao._();
-  factory UsersDao([DatabaseHelper? databaseHelper]) {
+abstract interface class UsersDao {
+  factory UsersDao(DatabaseHelper? databaseHelper) {
     return UsersDaoImpl._(databaseHelper);
   }
   Future<List<User>> getAllUsers();
@@ -17,16 +17,12 @@ abstract class UsersDao {
   Future<void> deleteUser(User user);
 }
 
-class UsersDaoImpl extends UsersDao {
-  final DatabaseHelper _databaseHelper;
-
-  UsersDaoImpl._([DatabaseHelper? databaseHelper])
-      : _databaseHelper = databaseHelper ?? DatabaseHelper(),
-        super._();
+final class UsersDaoImpl extends DaoBase implements UsersDao {
+  const UsersDaoImpl._(super.databaseHelper);
 
   @override
   Future<List<User>> getAllUsers() async {
-    final database = await _databaseHelper.database;
+    final database = databaseHelper.database;
     var res = await database.query(UsersTable.USERS_TABLE_NAME);
 
     List<User>? users = res.isNotEmpty ? res.map(User.fromMap).toList() : [];
@@ -36,8 +32,8 @@ class UsersDaoImpl extends UsersDao {
 
   @override
   Future<User?> getUserById(int id) async {
-    final database = await _databaseHelper.database;
-    var res = await database.query(
+    final database = databaseHelper.database;
+    final res = await database.query(
       UsersTable.USERS_TABLE_NAME,
       where: "${UsersTable.USERS_ID} = ?",
       whereArgs: [id],
@@ -50,8 +46,8 @@ class UsersDaoImpl extends UsersDao {
 
   @override
   Future<User?> getUserByUsername(String username) async {
-    final database = await _databaseHelper.database;
-    var res = await database.query(
+    final database = databaseHelper.database;
+    final res = await database.query(
       UsersTable.USERS_TABLE_NAME,
       where: "${UsersTable.USERS_USERNAME} = ?",
       whereArgs: [username],
@@ -64,14 +60,14 @@ class UsersDaoImpl extends UsersDao {
 
   @override
   Future<User> insertUser(User user) async {
-    final database = await _databaseHelper.database;
+    final database = databaseHelper.database;
     final id = await database.insert(UsersTable.USERS_TABLE_NAME, user.toMap());
     return user.copyWith(id: id);
   }
 
   @override
   Future<User> updateUser(User user) async {
-    final database = await _databaseHelper.database;
+    final database = databaseHelper.database;
     await database.update(
       UsersTable.USERS_TABLE_NAME,
       user.toMap(),
@@ -83,7 +79,7 @@ class UsersDaoImpl extends UsersDao {
 
   @override
   Future<void> deleteUser(User user) async {
-    final database = await _databaseHelper.database;
+    final database = databaseHelper.database;
     await database.delete(
       UsersTable.USERS_TABLE_NAME,
       where: "${UsersTable.USERS_ID} = ?",
@@ -93,7 +89,7 @@ class UsersDaoImpl extends UsersDao {
 
   @override
   Future<User?> getUserByUid(String uid) async {
-    final database = await _databaseHelper.database;
+    final database = databaseHelper.database;
     var res = await database.query(
       UsersTable.USERS_TABLE_NAME,
       where: "${UsersTable.USERS_UID} = ?",

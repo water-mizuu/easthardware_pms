@@ -1,3 +1,4 @@
+import 'package:easthardware_pms/data/database/dao/dao_base.dart';
 import 'package:easthardware_pms/data/database/database_helper.dart';
 import 'package:easthardware_pms/data/database/tables/products_table.dart';
 import 'package:easthardware_pms/data/database/views/product_flags_view.dart';
@@ -5,9 +6,8 @@ import 'package:easthardware_pms/domain/models/product.dart';
 import 'package:flutter/foundation.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
-abstract class ProductsDao {
-  ProductsDao._();
-  factory ProductsDao([DatabaseHelper? databaseHelper]) {
+abstract interface class ProductsDao {
+  factory ProductsDao(DatabaseHelper? databaseHelper) {
     return ProductsDaoImpl._(databaseHelper);
   }
 
@@ -23,16 +23,12 @@ abstract class ProductsDao {
   Future<List<Product>> getProductsByCreatorId(int creatorId);
 }
 
-class ProductsDaoImpl extends ProductsDao {
-  final DatabaseHelper _databaseHelper;
-
-  ProductsDaoImpl._([DatabaseHelper? databaseHelper])
-      : _databaseHelper = databaseHelper ?? DatabaseHelper(),
-        super._();
+final class ProductsDaoImpl extends DaoBase implements ProductsDao {
+  const ProductsDaoImpl._(super.databaseHelper);
 
   @override
   Future<void> deleteProduct(int id) async {
-    final Database database = await _databaseHelper.database;
+    final Database database = databaseHelper.database;
     await database.delete(
       ProductsTable.PRODUCTS_TABLE_NAME,
       where: '${ProductsTable.PRODUCTS_ID} = ?',
@@ -42,7 +38,7 @@ class ProductsDaoImpl extends ProductsDao {
 
   @override
   Future<List<Product>> getAllProducts() async {
-    final Database database = await _databaseHelper.database;
+    final Database database = databaseHelper.database;
     var queryResults = await database.query(ProductFlagsView.PRODUCT_STATUS_VIEW_TABLE);
 
     return List.generate(queryResults.length, (i) {
@@ -52,7 +48,7 @@ class ProductsDaoImpl extends ProductsDao {
 
   @override
   Future<Product?> getProductById(int id) async {
-    final Database database = await _databaseHelper.database;
+    final Database database = databaseHelper.database;
     var queryResults = await database.query(
       ProductsTable.PRODUCTS_TABLE_NAME,
       where: '${ProductsTable.PRODUCTS_ID} = ?',
@@ -73,7 +69,7 @@ class ProductsDaoImpl extends ProductsDao {
 
   @override
   Future<Product> insertProduct(Product product) async {
-    final Database database = await _databaseHelper.database;
+    final Database database = databaseHelper.database;
     int id = await database.insert(
       ProductsTable.PRODUCTS_TABLE_NAME,
       product.toMap(),
@@ -86,7 +82,7 @@ class ProductsDaoImpl extends ProductsDao {
 
   @override
   Future<Product> updateProduct(Product product) async {
-    final Database database = await _databaseHelper.database;
+    final Database database = databaseHelper.database;
     int affected = await database.update(
       ProductsTable.PRODUCTS_TABLE_NAME,
       product.toMap(),
@@ -101,7 +97,7 @@ class ProductsDaoImpl extends ProductsDao {
 
   @override
   Future<List<Product>> getDeadStockProducts() async {
-    final Database database = await _databaseHelper.database;
+    final Database database = databaseHelper.database;
     List<Map<String, dynamic>> maps = await database.rawQuery("SELECT p.* FROM products p "
         "WHERE p.id NOT IN ("
         "  SELECT p2.id FROM products p2 "
@@ -119,7 +115,7 @@ class ProductsDaoImpl extends ProductsDao {
 
   @override
   Future<List<Product>> getFastMovingProducts() async {
-    final Database database = await _databaseHelper.database;
+    final Database database = databaseHelper.database;
     List<Map<String, dynamic>> maps = await database.rawQuery(
       "SELECT products.* FROM products "
       "JOIN invoice_products ON products.id = invoice_products.product_id "
@@ -138,7 +134,7 @@ class ProductsDaoImpl extends ProductsDao {
   // Refactor all special case queries, as archived products won't be interacted from them
   @override
   Future<List<Product>> getLowStockProducts() async {
-    final Database database = await _databaseHelper.database;
+    final Database database = databaseHelper.database;
     var res = await database.query(
       ProductsTable.PRODUCTS_TABLE_NAME,
       where:
@@ -149,7 +145,7 @@ class ProductsDaoImpl extends ProductsDao {
 
   @override
   Future<List<Product>> getProductsByCategoryId(int categoryId) async {
-    final Database database = await _databaseHelper.database;
+    final Database database = databaseHelper.database;
     var res = await database.query(
       ProductsTable.PRODUCTS_TABLE_NAME,
       where: '${ProductsTable.PRODUCTS_CATEGORY} = ?',
@@ -160,7 +156,7 @@ class ProductsDaoImpl extends ProductsDao {
 
   @override
   Future<List<Product>> getProductsByCreatorId(int creatorId) async {
-    final Database database = await _databaseHelper.database;
+    final Database database = databaseHelper.database;
     var res = await database.query(
       ProductsTable.PRODUCTS_TABLE_NAME,
       where: '${ProductsTable.PRODUCTS_CREATOR_ID} = ?',

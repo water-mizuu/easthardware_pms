@@ -6,14 +6,19 @@ class CategoryListState {
 
   CategoryListState(this.categories, this.status);
 
-  CategoryListState copyWith({
-    List<Category>? categories,
-    DataStatus? status,
-  }) {
-    return CategoryListState(
-      categories ?? this.categories,
-      status ?? this.status,
-    );
+  CategoryListState Function({
+    List<Category> categories,
+    DataStatus status,
+  }) get copyWith {
+    return ({
+      Object? categories = undefined,
+      Object? status = undefined,
+    }) {
+      return CategoryListState(
+        categories.or(this.categories),
+        status.or(this.status),
+      );
+    };
   }
 }
 
