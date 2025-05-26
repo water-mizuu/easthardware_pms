@@ -1,7 +1,4 @@
-import 'package:easthardware_pms/presentation/bloc/server/server_bloc.dart';
-import 'package:easthardware_pms/presentation/bloc/server/server_state.dart';
-import 'package:easthardware_pms/utils/message_channel.dart';
-import 'package:fluent_ui/fluent_ui.dart';
+part of 'server_bloc.dart';
 
 sealed class ServerEvent {
   const ServerEvent();

@@ -12,6 +12,9 @@ extension type const MessageChannel._((ListenedReceivePort, NamedSendPort) pair)
   ListenedReceivePort get receivePort => pair.$1;
   NamedSendPort get sendPort => pair.$2;
 
+  bool get isClosed => receivePort.isClosed;
+  bool get isOpen => !receivePort.isClosed;
+
   /// Invokes a method on the channel with the given arguments.
   /// Returns a future which completes with the result of the invocation.
   Future<T> invoke<T>(String method, [List<Object?>? arguments]) {

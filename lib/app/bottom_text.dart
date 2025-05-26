@@ -1,9 +1,13 @@
 import 'package:easthardware_pms/presentation/bloc/server/server_bloc.dart';
+import 'package:easthardware_pms/presentation/router/app_routes.dart';
 import 'package:fluent_ui/fluent_ui.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart' show Icons;
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
+/// This serves as a key to access the bottom text notifier from anywhere in the app.
+///   This only wraps a [ValueNotifier<String>] to provide a simple way to access it.
 class BottomTextNotifier {
   final ValueNotifier<String> notifier;
 
@@ -27,11 +31,13 @@ class BottomText extends StatelessWidget {
         ColoredBox(
           color: Colors.white,
           child: Padding(
-            padding: EdgeInsets.all(4.0),
+            padding: EdgeInsets.all(2.0),
             child: SafeArea(
               child: Row(
                 children: [
-                  Icon(Icons.accessibility),
+                  const SizedBox(width: 2.0),
+                  Icon(Icons.signal_cellular_alt_outlined),
+                  const SizedBox(width: 4.0),
                   Expanded(
                     child: ValueListenableBuilder(
                       valueListenable: content.notifier,
@@ -44,6 +50,7 @@ class BottomText extends StatelessWidget {
                     Button(
                       child: const Text("Reset Connection"),
                       onPressed: () {
+                        context.go(AppRoutes.login);
                         context.read<ServerBloc>().add(ServerReset());
                       },
                     ),

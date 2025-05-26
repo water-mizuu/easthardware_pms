@@ -9,7 +9,7 @@ import 'dart:isolate';
 import 'package:async_queue/async_queue.dart';
 import 'package:easthardware_pms/backend/extensions/to_message_channel.dart';
 import 'package:easthardware_pms/backend/server_database.dart';
-import 'package:easthardware_pms/presentation/bloc/server/server_event.dart';
+import 'package:easthardware_pms/presentation/bloc/server/server_bloc.dart';
 import 'package:easthardware_pms/utils/message_channel.dart';
 import 'package:easthardware_pms/utils/parallelism.dart';
 import 'package:flutter/foundation.dart';
@@ -25,9 +25,8 @@ late AsyncQueue _dbMethodQueue;
 late MessageChannel mainChannel;
 
 /// Hosts a shelf server on the given port.
-/// Returns a tuple containing the server channel, the port, and a function to close the server.
+/// Returns a tuple containing the server channel, and a function to close the server.
 /// - The server channel is used to communicate with the server.
-/// - The port is the port on which the server is hosted.
 /// - The close function is used to stop the server.
 Future<(MessageChannel, Future<void> Function() close)> hostShelfServer(int port) async {
   /// Create a receive port to communicate with the isolate.
@@ -74,16 +73,6 @@ Future<(MessageChannel, Future<void> Function() close)> hostShelfServer(int port
         break;
     }
   }
-
-  unawaited(() async {
-    while (!receivePort.isClosed) {
-      var message = await receivePort.next("main");
-
-      if (kDebugMode) {
-        print("Received message from isolate: $message");
-      }
-    }
-  }());
 
   return (mainChannel, dispose);
 }
@@ -158,7 +147,7 @@ Future<void> _spawnIsolate((RootIsolateToken, NamedSendPort, int) payload) async
       await server.close(force: true);
 
       // Close all WebSocket connections
-      for (final (webSocket, messageChannel) in _clientChannels) {
+      for (final (webSocket, messageChannel) in _clientChannels.toList()) {
         await webSocket.sink.close();
 
         /// Ensure that the message channel for this WebSocket is closed to avoid memory leaks.
@@ -183,10 +172,10 @@ Future<void> _spawnIsolate((RootIsolateToken, NamedSendPort, int) payload) async
     /// It listens for messages and performs actions based on the message type.
     while (run) {
       final message = await receivePort.next("invocation");
-      if (message case [String name, Object args]) {
+      if (message case [String returnName, Object args]) {
         switch (args) {
           case ["stop", ...]:
-            closeIsolate(name);
+            closeIsolate(returnName);
             break;
           case ["db", [String method, List<Object?> arguments]]:
             _dbMethodQueue.addJob((_) async {
@@ -199,7 +188,7 @@ Future<void> _spawnIsolate((RootIsolateToken, NamedSendPort, int) payload) async
               final DatabaseMethodResult(:result, :hasChanged) = output;
 
               // Send the result back to the client.
-              sendPort.send(name, result);
+              sendPort.send(returnName, result);
               if (hasChanged) {
                 _notifyEveryoneAboutDatabaseChange(from: null, isServerUpdated: false);
               }
@@ -249,9 +238,11 @@ Future<(HttpServer?, Object?)> _shelfInitiate(
 
 /// Handles the WebSocket connection.
 /// A websocket connection is established whenever a client connects to the server.
-Future<void> _handleConnection(WebSocketChannel channel, [String? subprotocol]) async {
-  var run = true;
-  final serverChannel = channel.toMessageChannel(() => run = false) //
+Future<void> _handleConnection(WebSocketChannel websocketChannel, [String? subprotocol]) async {
+  late final MessageChannel messageChannel;
+  messageChannel = websocketChannel
+      .toMessageChannel(() => _clientChannels.remove((websocketChannel, messageChannel)))
+
     // Send a status code of 0 to indicate success.
     ..sendPort.send("status", 0);
 
@@ -259,8 +250,8 @@ Future<void> _handleConnection(WebSocketChannel channel, [String? subprotocol]) 
     /// This part handles incoming messages from the WebSocket connection.
     ///   It listens for messages and performs actions based on the message type.
     ///   It also handles database method calls.
-    while (run) {
-      final [name as String, message] = await serverChannel.receivePort.next("invocation");
+    while (messageChannel.isOpen) {
+      final [name as String, message] = await messageChannel.receivePort.next("invocation");
 
       switch (message) {
         case ["db", [String method, List<Object?> arguments]]:
@@ -274,10 +265,10 @@ Future<void> _handleConnection(WebSocketChannel channel, [String? subprotocol]) 
             final DatabaseMethodResult(:result, :hasChanged) = output;
 
             // Send the result back to the client.
-            serverChannel.sendPort.send(name, result);
+            messageChannel.sendPort.send(name, result);
 
             if (hasChanged) {
-              _notifyEveryoneAboutDatabaseChange(from: channel, isServerUpdated: true);
+              _notifyEveryoneAboutDatabaseChange(from: websocketChannel, isServerUpdated: true);
             }
           });
           break;
@@ -294,9 +285,11 @@ Future<void> _handleConnection(WebSocketChannel channel, [String? subprotocol]) 
     print("New connection established. Current connections: ${_clientChannels.length + 1}");
   }
 
-  _clientChannels.add((channel, serverChannel));
+  _clientChannels.add((websocketChannel, messageChannel));
 }
 
+/// This sends out a notification to all connected clients about a database change.
+/// This also sends the notification to the server as necessary.
 void _notifyEveryoneAboutDatabaseChange({
   required WebSocketChannel? from,
   required bool isServerUpdated,

@@ -140,6 +140,7 @@ class _CreateProductPageState extends State<CreateProductPage> {
               child: Form(
                 key: productFormBloc.formKey,
                 child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     const LeftColumn(),
                     const RightColumn(),
@@ -162,7 +163,9 @@ class LeftColumn extends StatelessWidget {
     return Expanded(
       child: FocusTraversalGroup(
         child: Column(
-          children: [BasicInformationSection()].withSpacing(() => Spacing.v16),
+          children: [
+            Expanded(child: BasicInformationSection()),
+          ].withSpacing(() => Spacing.v16),
         ),
       ),
     );

@@ -1,4 +1,4 @@
-import 'package:easthardware_pms/presentation/bloc/server/server_state.dart';
+import 'package:easthardware_pms/presentation/bloc/server/server_bloc.dart';
 import 'package:easthardware_pms/presentation/widgets/spacing.dart';
 import 'package:easthardware_pms/utils/message_channel.dart';
 import 'package:fluent_ui/fluent_ui.dart';
@@ -22,8 +22,7 @@ class ClientConnectionDialog extends StatefulWidget {
   static Future<void> show({
     required BuildContext context,
     required VoidCallback onCancel,
-    required Future<(WebSocketChannel, MessageChannel)> Function(String ip, int port)
-        onCreateServer,
+    required Future<(WebSocketChannel, MessageChannel)> Function(String ip, int port) onCreateServer,
     required void Function(MessageChannel channel, ClientDatabaseArgs args) onConfirm,
   }) {
     return showDialog(

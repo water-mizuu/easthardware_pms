@@ -267,10 +267,22 @@ class WindowManagerPlus {
     final Map<String, dynamic> arguments = {
       'windowId': windowId,
     };
-    // temp method channel to ensure initialized
-    const MethodChannel channel = MethodChannel('window_manager_plus');
-    await channel.invokeMethod('ensureInitialized', arguments);
-    _current = WindowManagerPlus._(windowId);
+    try {
+      // temp method channel to ensure initialized
+      const MethodChannel channel = MethodChannel('window_manager_plus');
+      await channel.invokeMethod('ensureInitialized', arguments);
+      _current = WindowManagerPlus._(windowId);
+    } on MissingPluginException {
+      try {
+        final channel = MethodChannel('window_manager_plus_$windowId');
+        await channel.invokeMethod('ensureInitialized', arguments);
+        _current = WindowManagerPlus._(windowId);
+      } on MissingPluginException {
+        /// I think this is a good way of explicitly stating that I want
+        ///   it to throw an error if the plugin is not initialized, unlike the first attempt
+        rethrow;
+      }
+    }
   }
 
   Future<T?> _invokeMethod<T>(String method, [Map<String, dynamic>? arguments]) {

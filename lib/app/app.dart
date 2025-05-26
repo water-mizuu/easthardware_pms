@@ -1,83 +1,119 @@
-import 'dart:async';
-
-import 'package:easthardware_pms/app/main_screen.dart';
+import 'package:async_queue/async_queue.dart';
+import 'package:easthardware_pms/app/bottom_text.dart';
+import 'package:easthardware_pms/app/dependency_injector.dart';
+import 'package:easthardware_pms/data/database/database_helper.dart';
+import 'package:easthardware_pms/presentation/bloc/authentication/'
+    'authentication/authentication_bloc.dart';
+import 'package:easthardware_pms/presentation/bloc/security/userloglist/user_log_list_bloc.dart';
+import 'package:easthardware_pms/presentation/bloc/server/server_bloc.dart';
+import 'package:easthardware_pms/presentation/router/app_router.dart';
 import 'package:fluent_ui/fluent_ui.dart';
-import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart' show AlertDialog, TextButton;
-import 'package:window_manager_plus/window_manager_plus.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
+import 'package:provider/single_child_widget.dart';
 
 class App extends StatefulWidget {
-  const App({super.key});
+  const App({required this.rootKey, super.key});
+
+  final GlobalKey<NavigatorState> rootKey;
 
   @override
-  State<App> createState() => _AppState();
+  State<StatefulWidget> createState() => _AppState();
 }
 
-class _AppState extends State<App> with WindowListener {
-  late final GlobalKey<NavigatorState> rootKey = GlobalKey();
+class _AppState extends State<App> with WidgetsBindingObserver {
+  late final AsyncQueue asyncQueue = AsyncQueue.autoStart();
+  late final ValueNotifier<String> bottomText = ValueNotifier<String>("");
+
+  late GoRouter _router;
+  late final ServerBloc serverBloc;
+  late DatabaseHelper? databaseHelper;
+  late DependencyInjector di;
+
+  List<SingleChildWidget> get providers {
+    return [
+      ...di.inject(),
+      BlocProvider.value(value: serverBloc),
+      Provider.value(value: BottomTextNotifier(bottomText)),
+    ];
+  }
+
+  List<SingleChildWidget> get blocListeners {
+    return [
+      BlocListener<ServerBloc, ServerState>(
+        bloc: serverBloc,
+        listenWhen: (p, c) => p.databaseHelper != c.databaseHelper,
+        listener: (context, state) async {
+          databaseHelper = state.databaseHelper;
+          await di.initialize(databaseHelper);
+          if (!mounted || !context.mounted) return;
+
+          setState(() {});
+        },
+      ),
+      BlocListener<ServerBloc, ServerState>(
+        bloc: serverBloc,
+        listenWhen: (p, c) => p.lastUpdated != c.lastUpdated,
+        listener: (context, state) {
+          di.markNeedsRefresh();
+        },
+      ),
+    ];
+  }
 
   @override
   void initState() {
     super.initState();
 
-    WindowManagerPlus.current.addListener(this);
-    unawaited(_init());
+    di = DependencyInjector();
+    di.initialize(null);
+
+    serverBloc = ServerBloc(widget.rootKey, bottomText)..add(const ServerInit());
+    _router = router(widget.rootKey);
+  }
+
+  @override
+  void didUpdateWidget(covariant App oldWidget) {
+    super.didUpdateWidget(oldWidget);
+
+    if (oldWidget.rootKey != widget.rootKey) {
+      serverBloc.add(ServerChangeKey(key: widget.rootKey));
+      _router = router(widget.rootKey);
+    }
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.detached) {
+      final user = context.read<AuthenticationBloc>().state.user;
+      if (user != null) {
+        context.read<UserLogListBloc>().add(AddLogoutEvent(user));
+      }
+    }
+    super.didChangeAppLifecycleState(state);
   }
 
   @override
   void dispose() {
-    WindowManagerPlus.current.removeListener(this);
+    serverBloc.close();
 
     super.dispose();
   }
 
   @override
-  void onWindowEvent(String eventName, [int? windowId]) {
-    windowId ??= 0;
-
-    if (kDebugMode) {
-      print('Window event: $eventName, windowId: $windowId');
-    }
-  }
-
-  @override
-  void onWindowClose([int? windowId]) async {
-    final isPreventClose = await WindowManagerPlus.current.isPreventClose();
-    if (!mounted) return;
-
-    if (isPreventClose) {
-      showDialog(
-        context: rootKey.currentContext!,
-        builder: (context) {
-          return AlertDialog(
-            title: Text('Are you sure you want to close this window?'),
-            actions: [
-              TextButton(
-                child: Text('No'),
-                onPressed: () {
-                  Navigator.of(context).pop();
-                },
-              ),
-              TextButton(
-                child: Text('Yes'),
-                onPressed: () async {
-                  Navigator.of(context).pop();
-                  await WindowManagerPlus.current.destroy();
-                },
-              ),
-            ],
-          );
-        },
-      );
-    }
-  }
-
-  @override
-  MainScreen build(BuildContext context) => MainScreen(rootKey: rootKey);
-
-  Future<void> _init() async {
-    await WindowManagerPlus.current.setPreventClose(true);
-
-    setState(() {});
+  Widget build(BuildContext context) {
+    return MultiProvider(
+      providers: providers,
+      child: MultiBlocListener(
+        listeners: blocListeners,
+        child: FluentApp.router(
+          debugShowCheckedModeBanner: false,
+          routerConfig: _router,
+          themeMode: ThemeMode.light,
+          theme: FluentThemeData(micaBackgroundColor: Colors.grey[10]),
+        ),
+      ),
+    );
   }
 }

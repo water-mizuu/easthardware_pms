@@ -1,5 +1,5 @@
 import 'package:easthardware_pms/backend/extensions/to_message_channel.dart';
-import 'package:easthardware_pms/presentation/bloc/server/server_event.dart';
+import 'package:easthardware_pms/presentation/bloc/server/server_bloc.dart';
 import 'package:easthardware_pms/utils/message_channel.dart';
 import 'package:flutter/foundation.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';

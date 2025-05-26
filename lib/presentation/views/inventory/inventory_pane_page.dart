@@ -12,7 +12,6 @@ import 'package:easthardware_pms/presentation/widgets/text.dart';
 import 'package:fluent_ui/fluent_ui.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart' show DataColumn, DataTable;
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:scroll_animator/scroll_animator.dart';
@@ -27,13 +26,13 @@ class InventoryPanePage extends StatelessWidget {
     return Padding(
       padding: AppPadding.panePadding,
       child: LayoutBuilder(builder: (context, constraints) {
-        final ratio = constraints.maxWidth / constraints.maxHeight;
+        final width = constraints.maxWidth;
         if (kDebugMode) {
-          print(ratio);
+          print(width);
         }
-        final layoutMode = ratio > 1.33
+        final layoutMode = width > 850
             ? LayoutMode.wide
-            : ratio > 0.85
+            : width > 0.85
                 ? LayoutMode.constrained
                 : LayoutMode.compact;
 
@@ -272,66 +271,65 @@ class ProductsDataTable extends StatefulWidget {
 
 class _ProductsDataTableState extends State<ProductsDataTable> {
   late final AnimatedScrollController _scrollController;
-  late final AnimatedScrollController _horizontalScrollController;
 
   @override
   void initState() {
     super.initState();
 
     _scrollController = AnimatedScrollController(animationFactory: ChromiumEaseInOut());
-    _horizontalScrollController = AnimatedScrollController(animationFactory: ChromiumEaseInOut());
   }
 
   @override
   void dispose() {
     _scrollController.dispose();
-    _horizontalScrollController.dispose();
 
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<ProductListBloc, ProductListState>(
-      builder: (context, state) {
-        if (state.status == DataStatus.loading) {
-          return const Expanded(
-            child: Center(
-              child: ProgressRing(),
-            ),
-          );
-        }
+    final state = context.watch<ProductListBloc>().state;
+    if (state.status == DataStatus.loading) {
+      return const Expanded(
+        child: Center(
+          child: ProgressRing(),
+        ),
+      );
+    }
 
-        final allProducts = state.allProducts.where((p) => p.archiveStatus == 0).toList();
+    // We only want to show products that are not archived
+    final allProducts = state.allProducts.where((p) => p.archiveStatus == 0).toList();
+    if (allProducts.isEmpty) {
+      return const DataTablePlaceHolder(FluentIcons.product_list, 'Products');
+    }
 
-        if (allProducts.isEmpty) {
-          return const DataTablePlaceHolder(FluentIcons.product_list, 'Products');
-        }
-
-        return Expanded(
-          child: DecoratedBox(
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(4),
-            ),
-            child: DataTable(
-                showCheckboxColumn: true,
-                columns: const [
-                  DataColumn(label: Text('Name')),
-                  DataColumn(label: Text('Category')),
-                  DataColumn(label: Text('Price')),
-                  DataColumn(label: Text('Cost')),
-                  DataColumn(label: Text('Quantity')),
-                  DataColumn(label: Text('Actions')),
-                ],
-                rows: allProducts.map((product) {
-                  return DataRowMapper.mapProductToRow(product, () {
-                    context.push(AppRoutes.editProductPage, extra: product);
-                  });
-                }).toList()),
+    return Expanded(
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(4),
+        ),
+        child: SingleChildScrollView(
+          controller: _scrollController,
+          child: DataTable(
+            showCheckboxColumn: true,
+            columns: const [
+              DataColumn(label: Text('Name')),
+              DataColumn(label: Text('Category')),
+              DataColumn(label: Text('Price')),
+              DataColumn(label: Text('Cost')),
+              DataColumn(label: Text('Quantity')),
+              DataColumn(label: Text('Actions')),
+            ],
+            rows: [
+              for (var product in allProducts)
+                DataRowMapper.mapProductToRow(product, () {
+                  context.push(AppRoutes.editProductPage, extra: product);
+                }),
+            ],
           ),
-        );
-      },
+        ),
+      ),
     );
   }
 }
