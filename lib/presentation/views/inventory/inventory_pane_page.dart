@@ -61,18 +61,22 @@ class PageHeader extends StatelessWidget {
       children: [
         const HeadingText('Products'),
         const Spacer(flex: 1),
-        TextButton('Manage Categories', onPressed: () {
-          const route = AppRoutes.categoriesPage;
-          context
-              .read<NavigationBloc>()
-              .add(NavigationIndexChanged(index: RouteIndexMapper.getIndexFromRoute(route)!));
-        }),
-        TextButtonFilled('New Product', onPressed: () {
-          const route = AppRoutes.createProductPage;
-          context
-              .read<NavigationBloc>()
-              .add(NavigationIndexChanged(index: RouteIndexMapper.getIndexFromRoute(route)!));
-        }),
+        Row(
+          children: [
+            TextButton('Manage Categories', onPressed: () {
+              const route = AppRoutes.categoriesPage;
+              context
+                  .read<NavigationBloc>()
+                  .add(NavigationIndexChanged(index: RouteIndexMapper.getIndexFromRoute(route)!));
+            }),
+            TextButtonFilled('New Product', onPressed: () {
+              const route = AppRoutes.createProductPage;
+              context
+                  .read<NavigationBloc>()
+                  .add(NavigationIndexChanged(index: RouteIndexMapper.getIndexFromRoute(route)!));
+            })
+          ].withSpacing(() => Spacing.h16),
+        ),
       ].withSpacing(() => Spacing.h16),
     );
   }

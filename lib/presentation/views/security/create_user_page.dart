@@ -168,7 +168,7 @@ class PageHeader extends StatelessWidget {
               ..add(UserIdChangedEvent(userId))
               ..add(FormButtonPressedEvent());
           },
-        )
+        ),
       ].withSpacing(() => Spacing.h16),
     );
   }

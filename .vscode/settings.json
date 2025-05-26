@@ -3,5 +3,9 @@
   "github.copilot.chat.editor.temporalContext.enabled": true,
   "github.copilot.chat.edits.temporalContext.enabled": true,
   "github.copilot.editor.enableAutoCompletions": true,
-  "dart.flutterSdkPath": ".fvm/versions/3.24.3"
+  "dart.flutterSdkPath": ".fvm/versions/3.24.3",
+  "files.associations": {
+    "*.dart_grammar": "dart",
+    "map": "cpp"
+  }
 }

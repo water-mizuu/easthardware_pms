@@ -30,11 +30,16 @@ void main(List<String> args) async {
       size: startSize,
       minimumSize: minimumSize,
       center: true,
-      backgroundColor: Colors.transparent,
       skipTaskbar: false,
     );
+
     WindowManagerPlus.current.waitUntilReadyToShow(options, () async {
       await WindowManagerPlus.current.setTitle('My App');
+      if (Platform.isWindows) {
+        await WindowManagerPlus.current.setAlwaysOnBottom(false);
+      }
+
+      await WindowManagerPlus.current.setTitleBarStyle(TitleBarStyle.hidden);
       await WindowManagerPlus.current.show();
       await WindowManagerPlus.current.focus();
     });

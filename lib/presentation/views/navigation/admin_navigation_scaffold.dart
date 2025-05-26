@@ -1,3 +1,4 @@
+import 'package:easthardware_pms/app/app_window.dart';
 import 'package:easthardware_pms/presentation/bloc/navigation/navigation_bloc.dart';
 import 'package:easthardware_pms/presentation/widgets/brand/navrail_header.dart';
 import 'package:easthardware_pms/presentation/widgets/helper/route_index_mapper.dart';
@@ -22,56 +23,58 @@ class AdminNavigationScaffold extends StatelessWidget {
         }
       },
       builder: (context, state) {
-        return OverflowBox(
-          child: NavigationView(
-            clipBehavior: Clip.hardEdge,
-            paneBodyBuilder: (item, body) {
-              return children[shell.currentIndex];
+        return NavigationView(
+          clipBehavior: Clip.hardEdge,
+          paneBodyBuilder: (item, body) {
+            final padding = TitleBar.of(context) //
+                ? EdgeInsets.only(top: 32.0)
+                : EdgeInsets.zero;
+
+            return Padding(padding: padding, child: children[shell.currentIndex]);
+          },
+          pane: NavigationPane(
+            header: const LogoRow(),
+            selected: state.selectedIndex,
+            displayMode: PaneDisplayMode.auto,
+            onItemPressed: (index) {
+              if ([1, 12].contains(index)) {
+                index++; // Example: skip separator, handle expander index
+              }
+              if (index == 16) return; // Example: specific index to ignore
+              context.read<NavigationBloc>().add(NavigationIndexChanged(index: index));
             },
-            pane: NavigationPane(
-              header: const LogoRow(),
-              selected: state.selectedIndex,
-              displayMode: PaneDisplayMode.auto,
-              onItemPressed: (index) {
-                if ([1, 12].contains(index)) {
-                  index++; // Example: skip separator, handle expander index
-                }
-                if (index == 16) return; // Example: specific index to ignore
-                context.read<NavigationBloc>().add(NavigationIndexChanged(index: index));
-              },
-              items: [
-                _createNavItem(
-                  icon: FluentIcons.dynamic_list,
-                  title: "Dashboard",
-                ),
-                PaneItemSeparator(),
-                _createNavItem(
-                  icon: FluentIcons.product,
-                  title: "Inventory",
-                  items: _getInventorySubItems(),
-                ),
-                _createNavItem(
-                  icon: FluentIcons.text_document,
-                  title: 'Billing',
-                  items: _getBillingSubItems(),
-                ),
-                _createNavItem(
-                  icon: FluentIcons.bill,
-                  title: 'Orders',
-                  items: _getOrderSubItems(),
-                ),
-                _createNavItem(
-                  icon: FluentIcons.bar_chart_vertical_fill,
-                  title: 'Reports',
-                ),
-                _createNavItem(
-                  icon: FluentIcons.local_admin,
-                  title: 'Security',
-                  items: _getSecuritySubItems(),
-                )
-                //
-              ],
-            ),
+            items: [
+              _createNavItem(
+                icon: FluentIcons.dynamic_list,
+                title: "Dashboard",
+              ),
+              PaneItemSeparator(),
+              _createNavItem(
+                icon: FluentIcons.product,
+                title: "Inventory",
+                items: _getInventorySubItems(),
+              ),
+              _createNavItem(
+                icon: FluentIcons.text_document,
+                title: 'Billing',
+                items: _getBillingSubItems(),
+              ),
+              _createNavItem(
+                icon: FluentIcons.bill,
+                title: 'Orders',
+                items: _getOrderSubItems(),
+              ),
+              _createNavItem(
+                icon: FluentIcons.bar_chart_vertical_fill,
+                title: 'Reports',
+              ),
+              _createNavItem(
+                icon: FluentIcons.local_admin,
+                title: 'Security',
+                items: _getSecuritySubItems(),
+              )
+              //
+            ],
           ),
         );
       },
