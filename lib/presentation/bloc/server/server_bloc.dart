@@ -30,11 +30,15 @@ export 'server_state.dart';
 ///   It is responsible for managing the server connection and
 ///   prompting the user for server/client information.
 class ServerBloc extends Bloc<ServerEvent, ServerState> {
-  final GlobalKey rootKey;
+  GlobalKey rootKey;
   final ValueNotifier<String?> bottomTextNotifier;
 
   ServerBloc(this.rootKey, this.bottomTextNotifier)
       : super(ServerState(status: ServerStatus.initial)) {
+    on<ServerChangeKey>((event, emit) {
+      rootKey = event.key;
+    });
+
     /// Logic paths:
     ///   read the persisting data.
     ///   if no data is found, prompt the user for server/client information.

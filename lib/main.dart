@@ -4,6 +4,7 @@ import 'dart:async';
 
 import 'package:easthardware_pms/app/app.dart';
 import 'package:fluent_ui/fluent_ui.dart';
+import 'package:window_manager_plus/window_manager_plus.dart';
 
 Future<(T?, (Object, StackTrace)?)> runAsync<T>(Future<T> future) async {
   try {
@@ -13,8 +14,23 @@ Future<(T?, (Object, StackTrace)?)> runAsync<T>(Future<T> future) async {
   }
 }
 
-void main() {
+void main(List<String> args) async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  final id = args.isEmpty ? 0 : int.tryParse(args[0]) ?? 0;
+  final (_) = await runAsync(WindowManagerPlus.ensureInitialized(id));
+
+  var options = WindowOptions(
+    size: const Size(800, 600),
+    minimumSize: const Size(800, 600),
+    center: true,
+    backgroundColor: Colors.transparent,
+    skipTaskbar: false,
+  );
+  WindowManagerPlus.current.waitUntilReadyToShow(options, () async {
+    await WindowManagerPlus.current.show();
+    await WindowManagerPlus.current.focus();
+  });
 
   /// Current idea:
   ///   1. scan for all ips in the subnetwork.
@@ -25,35 +41,6 @@ void main() {
   ///     4.1 if yes, connect to the server as needed.
   ///     4.2 if no, check if the server is reachable at the saved ip.
   ///   5. if nothing works, prompt the user to enter the ip address of the server.
-  // var isolate = Isolate.spawn((rootIsolateToken) async {
-  //   BackgroundIsolateBinaryMessenger.ensureInitialized(rootIsolateToken);
-
-  //   var stopwatch = Stopwatch()..start();
-  //   var futures = <Future>[];
-  //   var successes = [];
-  //   print("Start pinging");
-  //   for (var i = 1; i < 256; ++i) {
-  //     for (var j = 1; j < 256; ++j) {
-  //       var ip = "192.168.$i.$j";
-  //       var future = runAsync(() async {
-  //         try {
-  //           var socket = await Socket.connect(ip, 80, timeout: const Duration(seconds: 1));
-  //           successes.add(ip);
-  //           socket.destroy();
-  //         } catch (e) {
-  //           // ignore
-  //         }
-  //       });
-  //       futures.add(future);
-  //     }
-  //   }
-
-  //   await Future.wait(futures);
-  //   print("Ping completed");
-  //   print("Successes: $successes");
-  //   stopwatch.stop();
-  //   print("Elapsed time: ${stopwatch.elapsed.inSeconds} seconds");
-  // }, RootIsolateToken.instance!);
 
   runApp(App());
 }

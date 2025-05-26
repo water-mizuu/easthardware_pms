@@ -6,11 +6,11 @@ import 'package:easthardware_pms/presentation/widgets/data_row.dart';
 import 'package:easthardware_pms/presentation/widgets/spacing.dart';
 import 'package:easthardware_pms/presentation/widgets/text.dart';
 import 'package:fluent_ui/fluent_ui.dart';
-import 'package:intl/intl.dart';
 import 'package:flutter/material.dart' show DataCell, DataRow;
+import 'package:intl/intl.dart';
 
 class DataRowMapper {
-  static DataRow mapProductToRow(Product product, Function() action) {
+  static DataRow mapProductToRow(Product product, void Function() action) {
     if (product.isBelowCriticalLevel!) {
       return WarningDataRow([
         DataCell(Text(product.name)),

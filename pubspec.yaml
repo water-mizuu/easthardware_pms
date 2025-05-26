@@ -56,6 +56,9 @@ dependencies:
   web_socket_channel: ^3.0.3
   shelf_router: ^1.1.4
   async_queue: ^2.0.2
+  two_dimensional_scrollables: ^0.3.4
+  window_manager_plus:
+    path: ./packages/window_manager_plus-1.0.5
 
 dev_dependencies:
   flutter_test:

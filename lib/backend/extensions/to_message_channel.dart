@@ -45,25 +45,25 @@ extension MessageChannelExtension on WebSocketChannel {
       dispose?.call();
     }
 
-    this
-      ..stream.where((v) => v is String).cast<String>().map(jsonDecode).listen(
-        (message) {
-          if (kDebugMode) {
-            final messageString = message.toString();
-            final shortcut = messageString.substring(0, min(30, messageString.length));
-            print("[WebSocketChannel] Received message: $shortcut...");
-          }
+    stream.where((v) => v is String).cast<String>().map(jsonDecode).listen(
+      (message) {
+        if (kDebugMode) {
+          final messageString = message.toString();
+          final shortcut = messageString.substring(0, min(30, messageString.length));
+          print("[WebSocketChannel] Received message: $shortcut...");
+        }
 
-          final [name as String, args] = message as List<Object?>;
-          if (args case [String id, ["ping", _]]) {
-            messageChannel.sendPort.send(id, "pong");
-          }
+        final [name as String, args] = message as List<Object?>;
+        if (args case [String id, ["ping", _]]) {
+          messageChannel.sendPort.send(id, "pong");
+        }
 
-          sendPort.send(name, args);
-        },
-      )
-      ..sink.done.whenComplete(() => close());
+        sendPort.send(name, args);
+      },
+    );
 
-    return MessageChannel(receivePort, internalSendPort);
+    sink.done.whenComplete(() => close());
+
+    return messageChannel;
   }
 }

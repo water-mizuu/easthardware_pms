@@ -10,9 +10,14 @@ import 'package:easthardware_pms/presentation/widgets/kpi_card.dart';
 import 'package:easthardware_pms/presentation/widgets/spacing.dart';
 import 'package:easthardware_pms/presentation/widgets/text.dart';
 import 'package:fluent_ui/fluent_ui.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart' show DataColumn, DataTable;
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
+import 'package:scroll_animator/scroll_animator.dart';
+
+enum LayoutMode { wide, constrained, compact }
 
 class InventoryPanePage extends StatelessWidget {
   const InventoryPanePage({super.key});
@@ -21,14 +26,29 @@ class InventoryPanePage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: AppPadding.panePadding,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          const PageHeader(),
-          const InventorySummary(),
-          const ProductListSection(),
-        ].withSpacing(() => Spacing.v16),
-      ),
+      child: LayoutBuilder(builder: (context, constraints) {
+        final ratio = constraints.maxWidth / constraints.maxHeight;
+        if (kDebugMode) {
+          print(ratio);
+        }
+        final layoutMode = ratio > 1.33
+            ? LayoutMode.wide
+            : ratio > 0.85
+                ? LayoutMode.constrained
+                : LayoutMode.compact;
+
+        return Provider.value(
+          value: layoutMode,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const PageHeader(),
+              const InventorySummary(),
+              const ProductListSection(),
+            ].withSpacing(() => Spacing.v16),
+          ),
+        );
+      }),
     );
   }
 }
@@ -64,42 +84,71 @@ class InventorySummary extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Expanded(
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(minHeight: 100),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            const SubheadingText('Inventory Summary'),
-            BlocBuilder<ProductListBloc, ProductListState>(
-              builder: (context, state) {
-                final activeCount =
-                    state.allProducts.where((product) => product.archiveStatus == 0).length;
-                final lowStockCount = state.lowStockProducts.length;
-                final fastMovingCount = state.fastMovingProducts.length;
-                final deadCount = state.deadStockProducts.length;
+    final state = context.watch<ProductListBloc>().state;
+    final activeCount = state.allProducts.where((product) => product.archiveStatus == 0).length;
+    final lowStockCount = state.lowStockProducts.length;
+    final fastMovingCount = state.fastMovingProducts.length;
+    final deadCount = state.deadStockProducts.length;
 
-                return Expanded(
-                  child: Row(
-                    children: [
-                      ActiveCountCard(value: activeCount.toString()),
-                      LowStockCountCard(value: lowStockCount.toString()),
-                      HangingCountCard(value: deadCount.toString()),
-                      FastMovingCountCard(value: fastMovingCount.toString()),
-                    ].withSpacing(() => Spacing.h16),
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        const SubheadingText('Inventory Summary'),
+        Builder(builder: (context) {
+          final layoutMode = context.watch<LayoutMode>();
+          switch (layoutMode) {
+            case LayoutMode.wide:
+              return IntrinsicHeight(
+                child: Row(
+                  children: [
+                    ActiveCountCard(value: activeCount.toString()),
+                    LowStockCountCard(value: lowStockCount.toString()),
+                    HangingCountCard(value: deadCount.toString()),
+                    FastMovingCountCard(value: fastMovingCount.toString()),
+                  ].withSpacing(() => Spacing.h16),
+                ),
+              );
+            case LayoutMode.constrained:
+              return Column(
+                children: [
+                  IntrinsicHeight(
+                    child: Row(
+                      children: [
+                        ActiveCountCard(value: activeCount.toString()),
+                        LowStockCountCard(value: lowStockCount.toString()),
+                      ].withSpacing(() => Spacing.h16),
+                    ),
                   ),
-                );
-              },
-            ),
-          ].withSpacing(() => Spacing.v8),
-        ),
-      ),
+                  IntrinsicHeight(
+                    child: Row(
+                      children: [
+                        HangingCountCard(value: deadCount.toString()),
+                        FastMovingCountCard(value: fastMovingCount.toString()),
+                      ].withSpacing(() => Spacing.h16),
+                    ),
+                  ),
+                ].withSpacing(() => Spacing.v8),
+              );
+            case LayoutMode.compact:
+              return Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  ActiveCountCard(value: activeCount.toString(), isExpanded: false),
+                  LowStockCountCard(value: lowStockCount.toString(), isExpanded: false),
+                  HangingCountCard(value: deadCount.toString(), isExpanded: false),
+                  FastMovingCountCard(value: fastMovingCount.toString(), isExpanded: false),
+                ].withSpacing(() => Spacing.v8),
+              );
+          }
+        }),
+      ].withSpacing(() => Spacing.v8),
     );
   }
 }
 
 class ActiveCountCard extends KPICard {
-  const ActiveCountCard({super.key, required super.value})
+  const ActiveCountCard({super.key, required super.value, super.isExpanded})
       : super(
           'Active Products',
           icon: const Icon(FluentIcons.product),
@@ -107,7 +156,7 @@ class ActiveCountCard extends KPICard {
 }
 
 class LowStockCountCard extends KPICard {
-  const LowStockCountCard({super.key, required super.value})
+  const LowStockCountCard({super.key, required super.value, super.isExpanded})
       : super(
           'Low Stock Products',
           icon: const Icon(FluentIcons.product_warning),
@@ -115,7 +164,7 @@ class LowStockCountCard extends KPICard {
 }
 
 class HangingCountCard extends KPICard {
-  const HangingCountCard({super.key, required super.value})
+  const HangingCountCard({super.key, required super.value, super.isExpanded})
       : super(
           'Hanging Products',
           icon: const Icon(FluentIcons.market_down),
@@ -123,7 +172,7 @@ class HangingCountCard extends KPICard {
 }
 
 class FastMovingCountCard extends KPICard {
-  const FastMovingCountCard({super.key, required super.value})
+  const FastMovingCountCard({super.key, required super.value, super.isExpanded})
       : super(
           'Fast Moving Products',
           icon: const Icon(FluentIcons.market),
@@ -200,6 +249,7 @@ class ProductListSection extends StatelessWidget {
     return Expanded(
       flex: 4,
       child: Column(
+        mainAxisSize: MainAxisSize.max,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           const SubheadingText('List of Products'),
@@ -211,10 +261,34 @@ class ProductListSection extends StatelessWidget {
   }
 }
 
-class ProductsDataTable extends StatelessWidget {
+class ProductsDataTable extends StatefulWidget {
   const ProductsDataTable({
     super.key,
   });
+
+  @override
+  State<ProductsDataTable> createState() => _ProductsDataTableState();
+}
+
+class _ProductsDataTableState extends State<ProductsDataTable> {
+  late final AnimatedScrollController _scrollController;
+  late final AnimatedScrollController _horizontalScrollController;
+
+  @override
+  void initState() {
+    super.initState();
+
+    _scrollController = AnimatedScrollController(animationFactory: ChromiumEaseInOut());
+    _horizontalScrollController = AnimatedScrollController(animationFactory: ChromiumEaseInOut());
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    _horizontalScrollController.dispose();
+
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {

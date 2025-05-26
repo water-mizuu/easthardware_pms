@@ -1,6 +1,4 @@
-import 'package:flutter/widgets.dart';
-
-mixin ProductFormValidator on Widget {
+mixin ProductFormValidator {
   String? validateProductName(String? value) {
     if (value == null || value.trim().isEmpty) {
       return "Product name cannot be empty";

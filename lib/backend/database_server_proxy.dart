@@ -7,22 +7,26 @@ import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 ///  which supports invoking methods on the database.
 class Server {
   final MessageChannel? _channel;
-  Server(this._channel);
+  const Server(this._channel);
 
   bool get isOpen => _channel != null && !(_channel!.receivePort.isClosed);
 
   Future<dynamic> invokeDatabaseMethod(String method, List<Object?> arguments) async {
-    final result = await _channel!.invoke("db", [method, arguments]);
-    final didChange = await _channel!.receivePort.next<bool>("didChange");
-    if (kDebugMode) {
-      print("[DATABASE] Method: $method, Did Change: $didChange");
+    final channel = _channel;
+    if (channel == null) {
+      throw StateError("Server channel is not initialized.");
     }
 
-    return result;
+    return await channel.invoke("db", [method, arguments]);
   }
 
   Future<dynamic> invokeMethod(String method, List<Object?> arguments) async {
-    return await _channel!.invoke(method, arguments);
+    final channel = _channel;
+    if (channel == null) {
+      throw StateError("Server channel is not initialized.");
+    }
+
+    return await channel.invoke(method, arguments);
   }
 }
 

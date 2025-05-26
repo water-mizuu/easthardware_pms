@@ -1,5 +1,6 @@
 import 'package:easthardware_pms/presentation/bloc/server/server_bloc.dart';
 import 'package:fluent_ui/fluent_ui.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart' show Icons;
 import 'package:provider/provider.dart';
 
@@ -39,7 +40,7 @@ class BottomText extends StatelessWidget {
                       },
                     ),
                   ),
-                  if (serverBloc.state.databaseArgs != null)
+                  if (kDebugMode && serverBloc.state.databaseArgs != null)
                     Button(
                       child: const Text("Reset Connection"),
                       onPressed: () {

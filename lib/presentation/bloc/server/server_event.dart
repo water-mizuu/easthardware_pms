@@ -1,9 +1,16 @@
 import 'package:easthardware_pms/presentation/bloc/server/server_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/server/server_state.dart';
 import 'package:easthardware_pms/utils/message_channel.dart';
+import 'package:fluent_ui/fluent_ui.dart';
 
 sealed class ServerEvent {
   const ServerEvent();
+}
+
+class ServerChangeKey extends ServerEvent {
+  const ServerChangeKey({required this.key});
+
+  final GlobalKey<NavigatorState> key;
 }
 
 class ServerReset extends ServerEvent {
