@@ -9,14 +9,11 @@ import 'package:easthardware_pms/presentation/router/app_router.dart';
 import 'package:easthardware_pms/presentation/widgets/bottom_text.dart';
 import 'package:fluent_ui/fluent_ui.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:provider/single_child_widget.dart';
 
 class App extends StatefulWidget {
-  const App({required this.rootKey, super.key});
-
-  final GlobalKey<NavigatorState> rootKey;
+  const App({super.key});
 
   @override
   State<StatefulWidget> createState() => _AppState();
@@ -26,7 +23,6 @@ class _AppState extends State<App> with WidgetsBindingObserver {
   late final AsyncQueue asyncQueue = AsyncQueue.autoStart();
   late final ValueNotifier<String> bottomText = ValueNotifier<String>("");
 
-  late GoRouter _router;
   late final ServerBloc serverBloc;
   late DatabaseHelper? databaseHelper;
   late DependencyInjector di;
@@ -69,18 +65,7 @@ class _AppState extends State<App> with WidgetsBindingObserver {
     di = DependencyInjector();
     di.initialize(null);
 
-    serverBloc = ServerBloc(widget.rootKey, bottomText)..add(const ServerInit());
-    _router = createRouter(widget.rootKey);
-  }
-
-  @override
-  void didUpdateWidget(covariant App oldWidget) {
-    super.didUpdateWidget(oldWidget);
-
-    if (oldWidget.rootKey != widget.rootKey) {
-      serverBloc.add(ServerChangeKey(key: widget.rootKey));
-      _router = createRouter(widget.rootKey);
-    }
+    serverBloc = ServerBloc(bottomText)..add(const ServerInit());
   }
 
   @override
@@ -109,7 +94,7 @@ class _AppState extends State<App> with WidgetsBindingObserver {
         listeners: blocListeners,
         child: FluentApp.router(
           debugShowCheckedModeBanner: false,
-          routerConfig: _router,
+          routerConfig: router,
           themeMode: ThemeMode.light,
         ),
       ),

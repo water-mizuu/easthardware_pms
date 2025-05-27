@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:easthardware_pms/app/app.dart';
+import 'package:easthardware_pms/presentation/router/app_router.dart';
 import 'package:fluent_ui/fluent_ui.dart';
 import 'package:window_manager_plus/window_manager_plus.dart';
 
@@ -13,8 +14,6 @@ class AppWindow extends StatefulWidget {
 
 /// This widget handles only the window. Events like close, minimize, maximize, etc.
 class _AppWindowState extends State<AppWindow> with WindowListener {
-  late final GlobalKey<NavigatorState> rootKey = GlobalKey();
-
   @override
   void initState() {
     super.initState();
@@ -43,7 +42,7 @@ class _AppWindowState extends State<AppWindow> with WindowListener {
 
     if (isPreventClose) {
       await showDialog<void>(
-        context: rootKey.currentContext!,
+        context: rootNavigatorKey.currentContext!,
         builder: (context) {
           return ContentDialog(
             title: Text('Close Application'),
@@ -76,7 +75,7 @@ class _AppWindowState extends State<AppWindow> with WindowListener {
 
   @override
   Widget build(BuildContext context) {
-    return App(rootKey: rootKey);
+    return const App();
   }
 
   Future<void> _init() async {

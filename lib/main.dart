@@ -55,5 +55,5 @@ void main(List<String> args) async {
   ///     4.2 if no, check if the server is reachable at the saved ip.
   ///   5. if nothing works, prompt the user to enter the ip address of the server.
 
-  runApp(AppWindow());
+  runApp(const AppWindow());
 }

@@ -10,6 +10,7 @@ import 'package:easthardware_pms/presentation/bloc/server/services/server_connec
     as connection_service;
 import 'package:easthardware_pms/presentation/bloc/server/services/server_preferences_service.dart'
     as server_preferences;
+import 'package:easthardware_pms/presentation/router/app_router.dart';
 import 'package:easthardware_pms/presentation/widgets/server/client_connection_dialog.dart';
 import 'package:easthardware_pms/presentation/widgets/server/server_configuration_dialog.dart';
 import 'package:easthardware_pms/presentation/widgets/server/server_mode_selection_dialog.dart';
@@ -30,15 +31,9 @@ part 'server_state.dart';
 ///   It is responsible for managing the server connection and
 ///   prompting the user for server/client information.
 class ServerBloc extends Bloc<ServerEvent, ServerState> {
-  GlobalKey rootKey;
   final ValueNotifier<String?> bottomTextNotifier;
 
-  ServerBloc(this.rootKey, this.bottomTextNotifier)
-      : super(ServerState(status: ServerStatus.initial)) {
-    on<ServerChangeKey>((event, emit) {
-      rootKey = event.key;
-    });
-
+  ServerBloc(this.bottomTextNotifier) : super(ServerState(status: ServerStatus.initial)) {
     /// Logic paths:
     ///   read the persisting data.
     ///   if no data is found, prompt the user for server/client information.
@@ -76,8 +71,7 @@ class ServerBloc extends Bloc<ServerEvent, ServerState> {
 
   /// A helper method that connects to the server. It indicates that whenever the connection
   ///   is disposed, the server is reset.
-  Future<(WebSocketChannel, MessageChannel)> _connectToServer(
-      String serverIp, int port) async {
+  Future<(WebSocketChannel, MessageChannel)> _connectToServer(String serverIp, int port) async {
     final (websocketChannel, serverChannel) = await connectToServer(
       serverIp,
       port,
@@ -96,14 +90,12 @@ class ServerBloc extends Bloc<ServerEvent, ServerState> {
 
   Future<void> _onInit(ServerInit event, Emitter<ServerState> emit) async {
     /// Close any server or client connections that are open.
-    if (state.databaseArgs
-        case ServerDatabaseArgs(:var close) || ClientDatabaseArgs(:var close)) {
+    if (state.databaseArgs case ServerDatabaseArgs(:var close) || ClientDatabaseArgs(:var close)) {
       await close();
     }
 
     /// Reset the state to initial.
-    emit(ServerState(status: ServerStatus.initial)
-        .copyWith(status: ServerStatus.loading));
+    emit(ServerState(status: ServerStatus.initial).copyWith(status: ServerStatus.loading));
     bottomTextNotifier.value = "Loading server data...";
 
     /// Load the server data from the root key.
@@ -145,7 +137,7 @@ class ServerBloc extends Bloc<ServerEvent, ServerState> {
   ) async {
     emit(state.copyWith(status: ServerStatus.promptingUser));
 
-    switch (await ServerModeSelectionDialog.show(rootKey.currentContext!)) {
+    switch (await ServerModeSelectionDialog.show(rootNavigatorKey.currentContext!)) {
       case _ when isClosed:
         return;
       case null:
@@ -170,10 +162,10 @@ class ServerBloc extends Bloc<ServerEvent, ServerState> {
       databaseArgs: null,
       databaseHelper: null,
     ));
-    var context = rootKey.currentContext!;
+    var context = rootNavigatorKey.currentContext!;
 
     await ClientConnectionDialog.show(
-      context: rootKey.currentContext!,
+      context: rootNavigatorKey.currentContext!,
       onCreateServer: _connectToServer,
       onCancel: () {
         Navigator.of(context).pop();
@@ -210,8 +202,7 @@ class ServerBloc extends Bloc<ServerEvent, ServerState> {
       final [serverIp, portString] = serverAddress.split(":");
       final port = int.parse(portString);
 
-      final (websocketChannel, serverChannel) =
-          await connection_service.connectToServer(
+      final (websocketChannel, serverChannel) = await connection_service.connectToServer(
         serverIp,
         port,
         () => add(ServerReset()),
@@ -265,7 +256,7 @@ class ServerBloc extends Bloc<ServerEvent, ServerState> {
       if (isClosed) return;
 
       await ServerConfigurationDialog.show(
-        context: rootKey.currentContext!,
+        context: rootNavigatorKey.currentContext!,
         defaultPort: defaultPort,
         onStartServer: (port) => connection_service.startServer(port),
         onCancel: () => add(ServerPromptingUserFromNull()),
@@ -342,12 +333,11 @@ class ServerBloc extends Bloc<ServerEvent, ServerState> {
     if (event.popupToUser) {
       final didUserCancelCompleter = Completer<bool>();
       await ClientConnectionSuccessDialog.show(
-        context: rootKey.currentContext!,
+        context: rootNavigatorKey.currentContext!,
         onCancel: () async {
-          bottomTextNotifier.value =
-              "Cancelled connection. Loading client data...";
+          bottomTextNotifier.value = "Cancelled connection. Loading client data...";
           didUserCancelCompleter.complete(true);
-          Navigator.of(rootKey.currentContext!).pop();
+          Navigator.of(rootNavigatorKey.currentContext!).pop();
           final args = state.databaseArgs as ClientDatabaseArgs;
           await args.close();
           if (isClosed) return;
@@ -356,7 +346,7 @@ class ServerBloc extends Bloc<ServerEvent, ServerState> {
         },
         onConfirm: () {
           // Dialog will be dismissed automatically
-          Navigator.of(rootKey.currentContext!).pop();
+          Navigator.of(rootNavigatorKey.currentContext!).pop();
           didUserCancelCompleter.complete(false);
         },
       );
@@ -377,21 +367,20 @@ class ServerBloc extends Bloc<ServerEvent, ServerState> {
   }
 
   /// This runs whenever a server is started.
-  Future<void> _onServerStarted(
-      ServerServerStarted event, Emitter<ServerState> emit) async {
+  Future<void> _onServerStarted(ServerServerStarted event, Emitter<ServerState> emit) async {
     final address = '${event.args.ip}:${event.args.port}';
     bottomTextNotifier.value = "Hosting at: $address";
 
     if (event.popupToUser) {
       final didUserCancelCompleter = Completer<bool>();
       ServerStartedSuccessDialog.show(
-        context: rootKey.currentContext!,
+        context: rootNavigatorKey.currentContext!,
         serverIp: event.args.ip,
         port: event.args.port,
         onGoBack: () async {
           bottomTextNotifier.value = "Cancelled server. Loading server data...";
           didUserCancelCompleter.complete(true);
-          Navigator.of(rootKey.currentContext!).pop();
+          Navigator.of(rootNavigatorKey.currentContext!).pop();
           if (isClosed) return;
 
           var args = event.args;
@@ -401,7 +390,7 @@ class ServerBloc extends Bloc<ServerEvent, ServerState> {
           add(ServerPromptingServerInformation());
         },
         onConfirm: () {
-          Navigator.of(rootKey.currentContext!).pop();
+          Navigator.of(rootNavigatorKey.currentContext!).pop();
           didUserCancelCompleter.complete(false);
         },
       );
@@ -440,15 +429,13 @@ class ServerBloc extends Bloc<ServerEvent, ServerState> {
     Emitter<ServerState> emit,
   ) async {
     emit(state.copyWith(lastUpdated: event.lastUpdated));
-    bottomTextNotifier.value =
-        "Server updated at: ${event.lastUpdated.toLocal()}";
+    bottomTextNotifier.value = "Server updated at: ${event.lastUpdated.toLocal()}";
 
     Future.delayed(const Duration(seconds: 2), () {
       if (isClosed) return;
       if (state.databaseArgs case ServerDatabaseArgs(:var ip, :var port)) {
         bottomTextNotifier.value = "Hosting at: $ip:$port";
-      } else if (state.databaseArgs
-          case ClientDatabaseArgs(:var parentIp, :var port)) {
+      } else if (state.databaseArgs case ClientDatabaseArgs(:var parentIp, :var port)) {
         bottomTextNotifier.value = "Connected to: $parentIp:$port";
       }
     });

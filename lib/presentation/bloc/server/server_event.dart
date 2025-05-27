@@ -4,12 +4,6 @@ sealed class ServerEvent {
   const ServerEvent();
 }
 
-class ServerChangeKey extends ServerEvent {
-  const ServerChangeKey({required this.key});
-
-  final GlobalKey<NavigatorState> key;
-}
-
 class ServerReset extends ServerEvent {
   const ServerReset();
 }
