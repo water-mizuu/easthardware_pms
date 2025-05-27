@@ -14,14 +14,13 @@ import 'package:easthardware_pms/domain/repository/user_log_repository.dart';
 import 'package:easthardware_pms/domain/repository/user_repository.dart';
 import 'package:easthardware_pms/presentation/bloc/authentication/authentication/'
     'authentication_bloc.dart';
-import 'package:easthardware_pms/presentation/bloc/inventory/categorylist/category_list_bloc.dart';
-import 'package:easthardware_pms/presentation/bloc/inventory/productlist/product_list_bloc.dart';
-import 'package:easthardware_pms/presentation/bloc/inventory/unitlist/unit_list_bloc.dart';
+import 'package:easthardware_pms/presentation/bloc/inventory/category_list/category_list_bloc.dart';
+import 'package:easthardware_pms/presentation/bloc/inventory/product_list/product_list_bloc.dart';
+import 'package:easthardware_pms/presentation/bloc/inventory/unit_list/unit_list_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/navigation/navigation_bloc.dart';
-import 'package:easthardware_pms/presentation/bloc/security/securityquestions/'
-    'security_question_list_bloc.dart';
-import 'package:easthardware_pms/presentation/bloc/security/userlist/user_list_bloc.dart';
-import 'package:easthardware_pms/presentation/bloc/security/userloglist/user_log_list_bloc.dart';
+import 'package:easthardware_pms/presentation/bloc/security/security_questions/security_question_list_bloc.dart';
+import 'package:easthardware_pms/presentation/bloc/security/user_list/user_list_bloc.dart';
+import 'package:easthardware_pms/presentation/bloc/security/user_log_list/user_log_list_bloc.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:provider/single_child_widget.dart';

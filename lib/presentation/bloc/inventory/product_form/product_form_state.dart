@@ -22,8 +22,8 @@ class ProductFormState extends Equatable {
   // Form specific attribute to handle automated critical level creation
   final bool isCriticalLevelEdited;
 
-  final String deadstockTreshold;
-  final String fastmovingTreshold;
+  final String deadStockThreshold;
+  final String fastMovingThreshold;
 
   // Product Secondary Units
   final List<FormUnit> secondaryUnits;
@@ -51,8 +51,8 @@ class ProductFormState extends Equatable {
     List<FormUnit>? secondaryUnits,
     this.criticalLevel = '',
     this.isCriticalLevelEdited = false,
-    String? deadstockTreshold,
-    String? fastmovingTreshold,
+    String? deadStockThreshold,
+    String? fastMovingThreshold,
     DateTime? creationDate,
     this.creatorId,
     this.productId,
@@ -61,8 +61,8 @@ class ProductFormState extends Equatable {
   })  : sku = const Uuid().v4().toString(),
         secondaryUnits = secondaryUnits ?? [FormUnit(name: '', factor: '')],
         creationDate = creationDate ?? DateTime.now(),
-        deadstockTreshold = deadstockTreshold ?? DEFAULT_DEAD_STOCK_THRESHOLD.toString(),
-        fastmovingTreshold = fastmovingTreshold ?? DEFAULT_FAST_MOVING_STOCK_THRESHOLD.toString();
+        deadStockThreshold = deadStockThreshold ?? DEFAULT_DEAD_STOCK_THRESHOLD.toString(),
+        fastMovingThreshold = fastMovingThreshold ?? DEFAULT_FAST_MOVING_STOCK_THRESHOLD.toString();
 
   ProductFormState Function({
     String name,
@@ -77,8 +77,8 @@ class ProductFormState extends Equatable {
     List<FormUnit> secondaryUnits,
     String criticalLevel,
     bool isCriticalLevelEdited,
-    String deadstockTreshold,
-    String fastmovingTreshold,
+    String deadStockThreshold,
+    String fastMovingThreshold,
     DateTime creationDate,
     int? archiveStatus,
     int? creatorId,
@@ -98,8 +98,8 @@ class ProductFormState extends Equatable {
       Object? secondaryUnits = undefined,
       Object? criticalLevel = undefined,
       Object? isCriticalLevelEdited = undefined,
-      Object? deadstockTreshold = undefined,
-      Object? fastmovingTreshold = undefined,
+      Object? deadStockThreshold = undefined,
+      Object? fastMovingThreshold = undefined,
       Object? creationDate = undefined,
       Object? archiveStatus = undefined,
       Object? creatorId = undefined,
@@ -119,8 +119,8 @@ class ProductFormState extends Equatable {
         secondaryUnits: secondaryUnits.or(this.secondaryUnits),
         criticalLevel: criticalLevel.or(this.criticalLevel),
         isCriticalLevelEdited: isCriticalLevelEdited.or(this.isCriticalLevelEdited),
-        deadstockTreshold: deadstockTreshold.or(this.deadstockTreshold),
-        fastmovingTreshold: fastmovingTreshold.or(this.fastmovingTreshold),
+        deadStockThreshold: deadStockThreshold.or(this.deadStockThreshold),
+        fastMovingThreshold: fastMovingThreshold.or(this.fastMovingThreshold),
         creationDate: creationDate.or(this.creationDate),
         archiveStatus: archiveStatus.or(this.archiveStatus),
         creatorId: creatorId.or(this.creatorId),
@@ -144,8 +144,8 @@ class ProductFormState extends Equatable {
         secondaryUnits,
         criticalLevel,
         isCriticalLevelEdited,
-        deadstockTreshold,
-        fastmovingTreshold,
+        deadStockThreshold,
+        fastMovingThreshold,
         creationDate,
         archiveStatus,
         creatorId,
@@ -164,8 +164,8 @@ class ProductFormState extends Equatable {
       quantity: double.parse(quantity),
       mainUnit: mainUnit,
       criticalLevel: double.parse(criticalLevel),
-      deadStockThreshold: double.parse(deadstockTreshold),
-      fastMovingStockThreshold: double.parse(deadstockTreshold),
+      deadStockThreshold: double.parse(deadStockThreshold),
+      fastMovingStockThreshold: double.parse(deadStockThreshold),
       creationDate: creationDate.toIso8601String(),
       creatorId: creatorId!,
       archiveStatus: archiveStatus!,
@@ -184,8 +184,8 @@ class ProductFormState extends Equatable {
       quantity: product.quantity.toString(),
       mainUnit: product.mainUnit,
       criticalLevel: product.criticalLevel.toString(),
-      deadstockTreshold: product.deadStockThreshold.toString(),
-      fastmovingTreshold: product.fastMovingStockThreshold.toString(),
+      deadStockThreshold: product.deadStockThreshold.toString(),
+      fastMovingThreshold: product.fastMovingStockThreshold.toString(),
       secondaryUnits:
           units.isEmpty ? [FormUnit(name: '', factor: '')] : units.map(FormUnit.fromUnit).toList(),
       creationDate: DateTime.parse(product.creationDate),

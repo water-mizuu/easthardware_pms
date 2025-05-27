@@ -1,5 +1,5 @@
 import 'package:easthardware_pms/domain/enums/enums.dart';
-import 'package:easthardware_pms/presentation/bloc/inventory/productlist/product_list_bloc.dart';
+import 'package:easthardware_pms/presentation/bloc/inventory/product_list/product_list_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/navigation/navigation_bloc.dart';
 import 'package:easthardware_pms/presentation/router/app_routes.dart';
 import 'package:easthardware_pms/presentation/widgets/buttons/text_button.dart';
@@ -235,10 +235,10 @@ class SortByButton extends StatelessWidget {
       ),
       items: [
         MenuFlyoutItem(text: const BodyText('Name Ascending'), onPressed: () {}),
-        MenuFlyoutItem(text: const BodyText('Name Descendnig'), onPressed: () {}),
+        MenuFlyoutItem(text: const BodyText('Name Descending'), onPressed: () {}),
         const MenuFlyoutSeparator(),
         MenuFlyoutItem(text: const BodyText('Stock Ascending'), onPressed: () {}),
-        MenuFlyoutItem(text: const BodyText('Stock Descendnig'), onPressed: () {}),
+        MenuFlyoutItem(text: const BodyText('Stock Descending'), onPressed: () {}),
       ],
     );
   }

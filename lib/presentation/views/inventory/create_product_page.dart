@@ -2,14 +2,13 @@ import 'package:easthardware_pms/domain/enums/enums.dart';
 import 'package:easthardware_pms/domain/models/category.dart';
 import 'package:easthardware_pms/presentation/bloc/authentication/authentication/'
     'authentication_bloc.dart';
-import 'package:easthardware_pms/presentation/bloc/inventory/categorylist/category_list_bloc.dart';
-import 'package:easthardware_pms/presentation/bloc/inventory/productform/product_form_bloc.dart';
-import 'package:easthardware_pms/presentation/bloc/inventory/productform/'
-    'product_form_validator.dart';
-import 'package:easthardware_pms/presentation/bloc/inventory/productlist/product_list_bloc.dart';
-import 'package:easthardware_pms/presentation/bloc/inventory/unitlist/unit_list_bloc.dart';
+import 'package:easthardware_pms/presentation/bloc/inventory/category_list/category_list_bloc.dart';
+import 'package:easthardware_pms/presentation/bloc/inventory/product_form/product_form_bloc.dart';
+import 'package:easthardware_pms/presentation/bloc/inventory/product_form/product_form_validator.dart';
+import 'package:easthardware_pms/presentation/bloc/inventory/product_list/product_list_bloc.dart';
+import 'package:easthardware_pms/presentation/bloc/inventory/unit_list/unit_list_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/navigation/navigation_bloc.dart';
-import 'package:easthardware_pms/presentation/bloc/security/userloglist/user_log_list_bloc.dart';
+import 'package:easthardware_pms/presentation/bloc/security/user_log_list/user_log_list_bloc.dart';
 import 'package:easthardware_pms/presentation/router/app_routes.dart';
 import 'package:easthardware_pms/presentation/widgets/buttons/text_button.dart';
 import 'package:easthardware_pms/presentation/widgets/helper/route_index_mapper.dart';
@@ -559,9 +558,9 @@ class DeadFastStockFields extends StatelessWidget with ProductFormValidator {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const BodyText('Dead Stock Treshold'),
+              const BodyText('Dead Stock Threshold'),
               TextFormBox(
-                placeholder: context.read<ProductFormBloc>().state.deadstockTreshold,
+                placeholder: context.read<ProductFormBloc>().state.deadStockThreshold,
                 validator: validateDeadStockThreshold,
                 suffix: const Padding(padding: AppPadding.a4, child: GrayText('Days')),
                 onChanged: (value) {
@@ -575,9 +574,9 @@ class DeadFastStockFields extends StatelessWidget with ProductFormValidator {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const BodyText('Moving Stock Treshold'),
+              const BodyText('Moving Stock Threshold'),
               TextFormBox(
-                placeholder: context.read<ProductFormBloc>().state.fastmovingTreshold,
+                placeholder: context.read<ProductFormBloc>().state.fastMovingThreshold,
                 validator: validateFastMovingThreshold,
                 suffix: const Padding(padding: AppPadding.a4, child: GrayText('Days')),
                 onChanged: (value) {

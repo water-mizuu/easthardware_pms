@@ -11,10 +11,10 @@ import 'package:easthardware_pms/presentation/bloc/server/services/server_connec
 import 'package:easthardware_pms/presentation/bloc/server/services/server_preferences_service.dart'
     as server_preferences;
 import 'package:easthardware_pms/presentation/router/app_router.dart';
-import 'package:easthardware_pms/presentation/widgets/server/client_connection_dialog.dart';
-import 'package:easthardware_pms/presentation/widgets/server/server_configuration_dialog.dart';
-import 'package:easthardware_pms/presentation/widgets/server/server_mode_selection_dialog.dart';
-import 'package:easthardware_pms/presentation/widgets/server/server_success_dialogs.dart';
+import 'package:easthardware_pms/presentation/widgets/dialog/client_connection_dialog.dart';
+import 'package:easthardware_pms/presentation/widgets/dialog/server_configuration_dialog.dart';
+import 'package:easthardware_pms/presentation/widgets/dialog/server_mode_selection_dialog.dart';
+import 'package:easthardware_pms/presentation/widgets/dialog/server_success_dialogs.dart';
 import 'package:easthardware_pms/utils/message_channel.dart';
 import 'package:easthardware_pms/utils/undefined.dart';
 import 'package:equatable/equatable.dart';

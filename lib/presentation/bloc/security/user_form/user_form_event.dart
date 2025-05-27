@@ -12,24 +12,24 @@ class UserIdChangedEvent extends UserFormEvent {
   const UserIdChangedEvent(this.userId);
 }
 
-class FirstNameFieldChangedEevnt extends UserFormEvent {
+class FirstNameFieldChangedEvent extends UserFormEvent {
   final String firstName;
-  const FirstNameFieldChangedEevnt(this.firstName);
+  const FirstNameFieldChangedEvent(this.firstName);
 }
 
-class LastNameFieldChangedEevnt extends UserFormEvent {
+class LastNameFieldChangedEvent extends UserFormEvent {
   final String lastName;
-  const LastNameFieldChangedEevnt(this.lastName);
+  const LastNameFieldChangedEvent(this.lastName);
 }
 
-class UsernameFieldChangedEevnt extends UserFormEvent {
+class UsernameFieldChangedEvent extends UserFormEvent {
   final String username;
-  const UsernameFieldChangedEevnt(this.username);
+  const UsernameFieldChangedEvent(this.username);
 }
 
-class PasswordFieldChangedEevnt extends UserFormEvent {
+class PasswordFieldChangedEvent extends UserFormEvent {
   final String password;
-  const PasswordFieldChangedEevnt(this.password);
+  const PasswordFieldChangedEvent(this.password);
 }
 
 class ConfirmPasswordFieldChangedEvent extends UserFormEvent {
@@ -42,16 +42,16 @@ class AccessLevelFieldChangedEvent extends UserFormEvent {
   const AccessLevelFieldChangedEvent(this.accessLevel);
 }
 
-class QuestionFieldChangedEevnt extends UserFormEvent {
+class QuestionFieldChangedEvent extends UserFormEvent {
   final int index;
   final String question;
-  const QuestionFieldChangedEevnt(this.question, this.index);
+  const QuestionFieldChangedEvent(this.question, this.index);
 }
 
-class AnswerFieldChangedEevnt extends UserFormEvent {
+class AnswerFieldChangedEvent extends UserFormEvent {
   final int index;
   final String answer;
-  const AnswerFieldChangedEevnt(this.answer, this.index);
+  const AnswerFieldChangedEvent(this.answer, this.index);
 }
 
 class FormButtonPressedEvent extends UserFormEvent {}

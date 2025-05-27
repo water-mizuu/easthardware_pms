@@ -1,7 +1,7 @@
 import 'package:easthardware_pms/domain/enums/enums.dart';
 import 'package:easthardware_pms/domain/models/category.dart';
-import 'package:easthardware_pms/presentation/bloc/inventory/categorylist/category_list_bloc.dart';
-import 'package:easthardware_pms/presentation/bloc/inventory/productlist/product_list_bloc.dart';
+import 'package:easthardware_pms/presentation/bloc/inventory/category_list/category_list_bloc.dart';
+import 'package:easthardware_pms/presentation/bloc/inventory/product_list/product_list_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/navigation/navigation_bloc.dart';
 import 'package:easthardware_pms/presentation/cubit/inventory/categoryform/category_form_cubit.dart';
 import 'package:easthardware_pms/presentation/router/app_routes.dart';

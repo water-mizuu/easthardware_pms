@@ -1,9 +1,9 @@
 import 'package:easthardware_pms/data/database/database_helper.dart';
 
 abstract base class DaoBase {
-  final DatabaseHelper? _databaseHelper;
-
   const DaoBase(this._databaseHelper);
+
+  final DatabaseHelper? _databaseHelper;
 
   DatabaseHelper get databaseHelper {
     if (_databaseHelper == null) {

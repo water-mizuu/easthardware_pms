@@ -155,14 +155,14 @@ class ProductFormBloc extends Bloc<ProductFormEvent, ProductFormState> {
   }
 
   void _onDeadStockChanged(DeadstockFieldChangedEvent event, Emitter<ProductFormState> emit) {
-    final String treshold = event.treshold;
-    return emit(state.copyWith(deadstockTreshold: treshold));
+    final String threshold = event.threshold;
+    return emit(state.copyWith(deadStockThreshold: threshold));
   }
 
   void _onFastMovingStockChanged(
       FastMovingStockFieldChangedEvent event, Emitter<ProductFormState> emit) {
-    final String treshold = event.treshold;
-    return emit(state.copyWith(fastmovingTreshold: treshold));
+    final String threshold = event.threshold;
+    return emit(state.copyWith(fastMovingThreshold: threshold));
   }
 
   void _onProductStatusChanged(ProductStatusChangedEvent event, Emitter<ProductFormState> emit) {
@@ -213,8 +213,8 @@ class ProductFormBloc extends Bloc<ProductFormEvent, ProductFormState> {
         mainUnit: event.product.mainUnit,
         secondaryUnits: event.secondaryUnits.map(FormUnit.fromUnit).toList(),
         criticalLevel: event.product.criticalLevel.toString(),
-        deadstockTreshold: event.product.deadStockThreshold.toString(),
-        fastmovingTreshold: event.product.fastMovingStockThreshold.toString(),
+        deadStockThreshold: event.product.deadStockThreshold.toString(),
+        fastMovingThreshold: event.product.fastMovingStockThreshold.toString(),
         archiveStatus: event.product.archiveStatus,
         formStatus: FormStatus.initial,
       ));

@@ -9,17 +9,10 @@ import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 /// Any data manipulation functions should be created in DAOs respective to entities.
 
 abstract base class DatabaseHelper {
-  /// Ensures there is only one instance of the database all througouht the applicaiton
-  /// This avoids any conflicts from multiple connections
   DatabaseHelper([this._database]);
 
   final Database? _database;
   Database get database => _database!;
-}
-
-///   to each database helper types
-final class NullDatabaseHelper extends DatabaseHelper {
-  NullDatabaseHelper() : super(null);
 }
 
 final class ServerDatabaseHelper extends DatabaseHelper {

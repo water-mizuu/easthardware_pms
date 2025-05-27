@@ -1,7 +1,7 @@
 import 'package:easthardware_pms/domain/enums/enums.dart';
 import 'package:easthardware_pms/presentation/bloc/navigation/navigation_bloc.dart';
-import 'package:easthardware_pms/presentation/bloc/security/userlist/user_list_bloc.dart';
-import 'package:easthardware_pms/presentation/bloc/security/userloglist/user_log_list_bloc.dart';
+import 'package:easthardware_pms/presentation/bloc/security/user_list/user_list_bloc.dart';
+import 'package:easthardware_pms/presentation/bloc/security/user_log_list/user_log_list_bloc.dart';
 import 'package:easthardware_pms/presentation/router/app_routes.dart';
 import 'package:easthardware_pms/presentation/widgets/data_table_place_holder.dart';
 import 'package:easthardware_pms/presentation/widgets/helper/data_row_mapper.dart';
@@ -101,7 +101,7 @@ class UserLogDataTable extends StatelessWidget {
                   child: ProgressRing(),
                 ));
               default:
-                final allLogs = state.userlogs;
+                final allLogs = state.userLogs;
                 if (allLogs.isEmpty) {
                   return const DataTablePlaceHolder(FluentIcons.activity_feed, 'Logs');
                 }

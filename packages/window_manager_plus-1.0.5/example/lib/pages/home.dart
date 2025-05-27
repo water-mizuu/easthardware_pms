@@ -76,9 +76,7 @@ class _HomePageState extends State<HomePage> with TrayListener, WindowListener {
 
   Future<void> _init() async {
     await trayManager.setIcon(
-      Platform.isWindows
-          ? 'images/tray_icon_original.ico'
-          : 'images/tray_icon_original.png',
+      Platform.isWindows ? 'images/tray_icon_original.ico' : 'images/tray_icon_original.png',
     );
     Menu menu = Menu(
       items: [
@@ -103,13 +101,11 @@ class _HomePageState extends State<HomePage> with TrayListener, WindowListener {
 
   Future<void> _handleSetIcon(String iconType) async {
     _iconType = iconType;
-    String iconPath =
-        Platform.isWindows ? 'images/tray_icon.ico' : 'images/tray_icon.png';
+    String iconPath = Platform.isWindows ? 'images/tray_icon.ico' : 'images/tray_icon.png';
 
     if (_iconType == 'original') {
-      iconPath = Platform.isWindows
-          ? 'images/tray_icon_original.ico'
-          : 'images/tray_icon_original.png';
+      iconPath =
+          Platform.isWindows ? 'images/tray_icon_original.ico' : 'images/tray_icon_original.png';
     }
 
     await WindowManagerPlus.current.setIcon(iconPath);
@@ -125,15 +121,11 @@ class _HomePageState extends State<HomePage> with TrayListener, WindowListener {
               detailText: Text('${sharedConfig.themeMode}'),
               onTap: () async {
                 ThemeMode newThemeMode =
-                    sharedConfig.themeMode == ThemeMode.light
-                        ? ThemeMode.dark
-                        : ThemeMode.light;
+                    sharedConfig.themeMode == ThemeMode.light ? ThemeMode.dark : ThemeMode.light;
 
                 await sharedConfigManager.setThemeMode(newThemeMode);
                 await WindowManagerPlus.current.setBrightness(
-                  newThemeMode == ThemeMode.light
-                      ? Brightness.light
-                      : Brightness.dark,
+                  newThemeMode == ThemeMode.light ? Brightness.light : Brightness.dark,
                 );
                 setState(() {});
               },
@@ -146,7 +138,8 @@ class _HomePageState extends State<HomePage> with TrayListener, WindowListener {
             PreferenceListItem(
               title: const Text('createWindow'),
               onTap: () async {
-                final newWindow = await WindowManagerPlus.createWindow(['test args 1', 'test args 2']);
+                final newWindow =
+                    await WindowManagerPlus.createWindow(['test args 1', 'test args 2']);
                 BotToast.showText(text: 'New Created Window: $newWindow');
                 /*await Future.delayed(Duration(seconds: 3));
                 await newWindow?.hide();
@@ -398,8 +391,7 @@ class _HomePageState extends State<HomePage> with TrayListener, WindowListener {
                 },
                 isSelected: _kSizes.map((e) => e == _size).toList(),
                 children: <Widget>[
-                  for (var size in _kSizes)
-                    Text(' ${size.width.toInt()}x${size.height.toInt()} '),
+                  for (var size in _kSizes) Text(' ${size.width.toInt()}x${size.height.toInt()} '),
                 ],
               ),
               onTap: () async {
@@ -714,8 +706,7 @@ class _HomePageState extends State<HomePage> with TrayListener, WindowListener {
                 BotToast.showText(
                   text: title.toString(),
                 );
-                title =
-                    'window_manager_example - ${DateTime.now().millisecondsSinceEpoch}';
+                title = 'window_manager_example - ${DateTime.now().millisecondsSinceEpoch}';
                 await WindowManagerPlus.current.setTitle(title);
               },
             ),
@@ -1105,13 +1096,17 @@ class _HomePageState extends State<HomePage> with TrayListener, WindowListener {
 
   @override
   void onWindowEvent(String eventName, [int? windowId]) {
-    print('[${windowId != null ? "Global Event for Window $windowId from ${WindowManagerPlus.current}" : WindowManagerPlus.current}] onWindowEvent: $eventName');
+    print(
+      '[${windowId != null ? "Global Event for Window $windowId from ${WindowManagerPlus.current}" : WindowManagerPlus.current}] onWindowEvent: $eventName',
+    );
   }
 
   @override
   Future<dynamic> onEventFromWindow(String eventName, int fromWindowId, dynamic arguments) async {
     BotToast.showText(
-        text: '[${WindowManagerPlus.current}] Event $eventName from Window $fromWindowId with arguments $arguments');
+      text:
+          '[${WindowManagerPlus.current}] Event $eventName from Window $fromWindowId with arguments $arguments',
+    );
     return 'Hello from ${WindowManagerPlus.current}';
   }
 }

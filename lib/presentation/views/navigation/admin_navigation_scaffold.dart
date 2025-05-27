@@ -28,11 +28,17 @@ class AdminNavigationScaffold extends StatelessWidget {
         var widget = NavigationView(
           clipBehavior: Clip.hardEdge,
           paneBodyBuilder: (item, body) {
-            final padding = TitleBar.of(context) && (!Platform.isMacOS) //
-                ? EdgeInsets.only(top: windowsTitleBarHeight)
-                : EdgeInsets.zero;
+            var child = children[shell.currentIndex];
 
-            return Padding(padding: padding, child: children[shell.currentIndex]);
+            /// We only impose a padding on the child if the title bar is present
+            ///   and we are not on macOS.
+            if (TitleBar.of(context) && !Platform.isMacOS) {
+              final padding = EdgeInsets.only(top: windowsTitleBarHeight);
+
+              child = Padding(padding: padding, child: child);
+            }
+
+            return child;
           },
           pane: NavigationPane(
             header: const LogoRow(),
@@ -99,20 +105,19 @@ class AdminNavigationScaffold extends StatelessWidget {
     required String title,
     List<NavigationPaneItem>? items,
     VoidCallback? onTap,
-    Widget body = const SizedBox(),
   }) {
     if (items != null && items.isNotEmpty) {
       return PaneItemExpander(
         icon: Icon(icon),
         title: Text(title),
         items: items,
-        body: body,
+        body: const SizedBox.shrink(),
       );
     } else {
       return PaneItem(
         icon: Icon(icon),
         title: Text(title),
-        body: body,
+        body: const SizedBox.shrink(),
         onTap: onTap,
       );
     }

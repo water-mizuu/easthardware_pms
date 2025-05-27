@@ -85,15 +85,15 @@ class CriticalLevelFieldChangedEvent extends ProductFormEvent {
 }
 
 class DeadstockFieldChangedEvent extends ProductFormEvent {
-  final String treshold;
+  final String threshold;
 
-  const DeadstockFieldChangedEvent(this.treshold);
+  const DeadstockFieldChangedEvent(this.threshold);
 }
 
 class FastMovingStockFieldChangedEvent extends ProductFormEvent {
-  final String treshold;
+  final String threshold;
 
-  const FastMovingStockFieldChangedEvent(this.treshold);
+  const FastMovingStockFieldChangedEvent(this.threshold);
 }
 
 class ProductStatusChangedEvent extends ProductFormEvent {

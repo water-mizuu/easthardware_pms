@@ -28,8 +28,8 @@ class UserLogListBloc extends Bloc<UserLogListEvent, UserLogListState> {
   void _onLoadUserLogs(LoadUserLogsEvent event, Emitter<UserLogListState> emit) async {
     emit(state.copyWith(status: DataStatus.loading));
     try {
-      final userlogs = await _repository.getAllUserLogs();
-      emit(state.copyWith(status: DataStatus.success, userlogs: userlogs));
+      final userLogs = await _repository.getAllUserLogs();
+      emit(state.copyWith(status: DataStatus.success, userLogs: userLogs));
     } catch (e) {
       if (kDebugMode) {
         print("BLoC Error loading user logs: $e");
@@ -48,9 +48,9 @@ class UserLogListBloc extends Bloc<UserLogListEvent, UserLogListState> {
         eventTime: logDateTime,
       );
       final insertedUserLog = await _repository.insertUserLog(userLog);
-      final userLogs = List<UserLog>.from(state.userlogs)..add(insertedUserLog);
+      final userLogs = List<UserLog>.from(state.userLogs)..add(insertedUserLog);
 
-      emit(state.copyWith(userlogs: userLogs, status: DataStatus.success));
+      emit(state.copyWith(userLogs: userLogs, status: DataStatus.success));
     } catch (e) {
       if (kDebugMode) {
         print("BLoC Error inserting user log: $e");
@@ -69,9 +69,9 @@ class UserLogListBloc extends Bloc<UserLogListEvent, UserLogListState> {
         eventTime: logDateTime,
       );
       final insertedUserLog = await _repository.insertUserLog(userLog);
-      final userLogs = List<UserLog>.from(state.userlogs)..add(insertedUserLog);
+      final userLogs = List<UserLog>.from(state.userLogs)..add(insertedUserLog);
 
-      emit(state.copyWith(userlogs: userLogs, status: DataStatus.success));
+      emit(state.copyWith(userLogs: userLogs, status: DataStatus.success));
     } catch (e) {
       if (kDebugMode) {
         print("BLoC Error inserting user log: $e");
@@ -90,9 +90,9 @@ class UserLogListBloc extends Bloc<UserLogListEvent, UserLogListState> {
         eventTime: logDateTime,
       );
       final insertedUserLog = await _repository.insertUserLog(userLog);
-      final userLogs = List<UserLog>.from(state.userlogs)..add(insertedUserLog);
+      final userLogs = List<UserLog>.from(state.userLogs)..add(insertedUserLog);
 
-      emit(state.copyWith(userlogs: userLogs, status: DataStatus.success));
+      emit(state.copyWith(userLogs: userLogs, status: DataStatus.success));
     } catch (e) {
       if (kDebugMode) {
         print("BLoC Error inserting user log: $e");
@@ -111,9 +111,9 @@ class UserLogListBloc extends Bloc<UserLogListEvent, UserLogListState> {
         eventTime: logDateTime,
       );
       final insertedUserLog = await _repository.insertUserLog(userLog);
-      final userLogs = List<UserLog>.from(state.userlogs)..add(insertedUserLog);
+      final userLogs = List<UserLog>.from(state.userLogs)..add(insertedUserLog);
 
-      emit(state.copyWith(userlogs: userLogs, status: DataStatus.success));
+      emit(state.copyWith(userLogs: userLogs, status: DataStatus.success));
     } catch (e) {
       if (kDebugMode) {
         print("BLoC Error inserting user log: $e");
@@ -126,14 +126,14 @@ class UserLogListBloc extends Bloc<UserLogListEvent, UserLogListState> {
     emit(state.copyWith(status: DataStatus.loading));
     try {
       final updatedUserLog = await _repository.updateUserLog(event.userLog);
-      final updatedUserLogs = List<UserLog>.from(state.userlogs);
+      final updatedUserLogs = List<UserLog>.from(state.userLogs);
 
       final index = updatedUserLogs.indexWhere((userLog) => userLog.id == updatedUserLog.id);
       if (index != -1) {
         updatedUserLogs[index] = updatedUserLog;
       }
 
-      emit(state.copyWith(userlogs: updatedUserLogs, status: DataStatus.success));
+      emit(state.copyWith(userLogs: updatedUserLogs, status: DataStatus.success));
     } catch (e) {
       if (kDebugMode) {
         print("BLoC Error updating user log: $e");
@@ -146,10 +146,10 @@ class UserLogListBloc extends Bloc<UserLogListEvent, UserLogListState> {
     emit(state.copyWith(status: DataStatus.loading));
     try {
       await _repository.deleteUserLog(event.userLog);
-      final updatedUserLogs = List<UserLog>.from(state.userlogs)
+      final updatedUserLogs = List<UserLog>.from(state.userLogs)
           .where((userLog) => userLog.id != event.userLog.id)
           .toList();
-      emit(state.copyWith(userlogs: updatedUserLogs, status: DataStatus.success));
+      emit(state.copyWith(userLogs: updatedUserLogs, status: DataStatus.success));
     } catch (e) {
       if (kDebugMode) {
         print("BLoC Error deleting user log: $e");
@@ -181,9 +181,9 @@ class UserLogListBloc extends Bloc<UserLogListEvent, UserLogListState> {
         eventTime: logDateTime,
       );
       final insertedUserLog = await _repository.insertUserLog(userLog);
-      final userLogs = List<UserLog>.from(state.userlogs)..add(insertedUserLog);
+      final userLogs = List<UserLog>.from(state.userLogs)..add(insertedUserLog);
 
-      emit(state.copyWith(userlogs: userLogs, status: DataStatus.success));
+      emit(state.copyWith(userLogs: userLogs, status: DataStatus.success));
     } catch (e) {
       if (kDebugMode) {
         print("BLoC Error inserting user log: $e");

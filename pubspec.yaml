@@ -33,30 +33,30 @@ dependencies:
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
-  cupertino_icons: ^1.0.8
-  flutter_bloc: ^9.1.1
-  equatable: ^2.0.7
-  sqflite_common_ffi: ^2.3.4+4
-  path_provider: ^2.1.5
-  crypto: ^3.0.6
+  async_queue: ^2.0.2
   bloc: ^9.0.0
-  fluent_ui: ^4.9.2
-  provider: ^6.1.2
-  go_router: ^15.1.2
-  scroll_animator: ^0.3.0
-  uuid: ^4.5.1
-  intl: ^0.19.0
+  crypto: ^3.0.6
+  cupertino_icons: ^1.0.8
+  equatable: ^2.0.7
   fl_chart:
-  shared_preferences: ^2.5.3
-  path: ^1.9.0
-  network_tools: ^5.0.6
+  fluent_ui: ^4.9.2
+  flutter_bloc: ^9.1.1
+  go_router: ^15.1.2
+  intl: ^0.19.0
   network_info_plus: ^6.1.4
+  network_tools: ^5.0.6
+  path: ^1.9.0
+  path_provider: ^2.1.5
+  provider: ^6.1.2
+  scroll_animator: ^0.3.0
+  shared_preferences: ^2.5.3
   shelf: ^1.4.1
   shelf_web_socket: ^3.0.0
-  web_socket_channel: ^3.0.3
   shelf_router: ^1.1.4
-  async_queue: ^2.0.2
+  sqflite_common_ffi: ^2.3.4+4
   two_dimensional_scrollables: ^0.3.4
+  uuid: ^4.5.1
+  web_socket_channel: ^3.0.3
   window_manager_plus:
     path: ./packages/window_manager_plus-1.0.5
 

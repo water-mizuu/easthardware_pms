@@ -1,8 +1,7 @@
 import 'package:easthardware_pms/presentation/bloc/authentication/'
     'authentication/authentication_bloc.dart';
-import 'package:easthardware_pms/presentation/bloc/authentication/loginform/login_form_bloc.dart';
-import 'package:easthardware_pms/presentation/bloc/authentication/'
-    'loginform/login_form_validator.dart';
+import 'package:easthardware_pms/presentation/bloc/authentication/login_form/login_form_bloc.dart';
+import 'package:easthardware_pms/presentation/bloc/authentication/login_form/login_form_validator.dart';
 import 'package:easthardware_pms/presentation/widgets/spacing.dart';
 import 'package:easthardware_pms/presentation/widgets/text.dart';
 import 'package:fluent_ui/fluent_ui.dart';

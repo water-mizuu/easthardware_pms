@@ -19,14 +19,14 @@ class UserFormBloc extends Bloc<UserFormEvent, UserFormState> {
       : formKey = GlobalKey<FormState>(),
         super(const UserFormState()) {
     on<UserIdChangedEvent>(_onUserIdChanged);
-    on<FirstNameFieldChangedEevnt>(_onFirstNameChanged);
-    on<LastNameFieldChangedEevnt>(_onLastNameChanged);
-    on<UsernameFieldChangedEevnt>(_onUsernameChanged);
-    on<PasswordFieldChangedEevnt>(_onPasswordChanged);
+    on<FirstNameFieldChangedEvent>(_onFirstNameChanged);
+    on<LastNameFieldChangedEvent>(_onLastNameChanged);
+    on<UsernameFieldChangedEvent>(_onUsernameChanged);
+    on<PasswordFieldChangedEvent>(_onPasswordChanged);
     on<ConfirmPasswordFieldChangedEvent>(_onConfirmPasswordChanged);
     on<AccessLevelFieldChangedEvent>(_onAccessLevelChanged);
-    on<QuestionFieldChangedEevnt>(_onQuestionChanged);
-    on<AnswerFieldChangedEevnt>(_onAnswerChanged);
+    on<QuestionFieldChangedEvent>(_onQuestionChanged);
+    on<AnswerFieldChangedEvent>(_onAnswerChanged);
     on<FormButtonPressedEvent>(_onButtonPressed);
     on<FormSubmittedEvent>(_onFormSubmitted);
     on<FormResetEvent>(_onFormReset);
@@ -40,7 +40,7 @@ class UserFormBloc extends Bloc<UserFormEvent, UserFormState> {
     }
   }
 
-  void _onFirstNameChanged(FirstNameFieldChangedEevnt event, Emitter emit) async {
+  void _onFirstNameChanged(FirstNameFieldChangedEvent event, Emitter emit) async {
     try {
       emit(state.copyWith(firstName: event.firstName));
     } catch (e) {
@@ -48,7 +48,7 @@ class UserFormBloc extends Bloc<UserFormEvent, UserFormState> {
     }
   }
 
-  void _onLastNameChanged(LastNameFieldChangedEevnt event, Emitter emit) async {
+  void _onLastNameChanged(LastNameFieldChangedEvent event, Emitter emit) async {
     try {
       emit(state.copyWith(lastName: event.lastName));
     } catch (e) {
@@ -56,7 +56,7 @@ class UserFormBloc extends Bloc<UserFormEvent, UserFormState> {
     }
   }
 
-  void _onUsernameChanged(UsernameFieldChangedEevnt event, Emitter emit) async {
+  void _onUsernameChanged(UsernameFieldChangedEvent event, Emitter emit) async {
     try {
       emit(state.copyWith(username: event.username));
     } catch (e) {
@@ -64,7 +64,7 @@ class UserFormBloc extends Bloc<UserFormEvent, UserFormState> {
     }
   }
 
-  void _onPasswordChanged(PasswordFieldChangedEevnt event, Emitter emit) async {
+  void _onPasswordChanged(PasswordFieldChangedEvent event, Emitter emit) async {
     try {
       emit(state.copyWith(password: event.password));
     } catch (e) {
@@ -88,7 +88,7 @@ class UserFormBloc extends Bloc<UserFormEvent, UserFormState> {
     }
   }
 
-  void _onQuestionChanged(QuestionFieldChangedEevnt event, Emitter emit) async {
+  void _onQuestionChanged(QuestionFieldChangedEvent event, Emitter emit) async {
     try {
       final String question = event.question;
       final int index = event.index;
@@ -101,7 +101,7 @@ class UserFormBloc extends Bloc<UserFormEvent, UserFormState> {
     }
   }
 
-  void _onAnswerChanged(AnswerFieldChangedEevnt event, Emitter emit) async {
+  void _onAnswerChanged(AnswerFieldChangedEvent event, Emitter emit) async {
     try {
       final String answer = event.answer;
       final int index = event.index;
