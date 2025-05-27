@@ -269,7 +269,7 @@ class WindowManagerPlus {
     };
     try {
       // temp method channel to ensure initialized
-      const MethodChannel channel = MethodChannel('window_manager_plus');
+      const channel = MethodChannel('window_manager_plus');
       await channel.invokeMethod('ensureInitialized', arguments);
       _current = WindowManagerPlus._(windowId);
     } on MissingPluginException {

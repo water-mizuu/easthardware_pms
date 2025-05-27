@@ -22,7 +22,7 @@ void main(List<String> args) async {
   /// Load the window manager plus plugin.
   if ((!kIsWeb) && (Platform.isWindows || Platform.isMacOS)) {
     const startSize = Size(960, 640);
-    const minimumSize = Size(700, 600);
+    const minimumSize = Size(800, 600);
 
     final id = args.isEmpty ? 0 : int.tryParse(args[0]) ?? 0;
     final (_) = await runAsync(WindowManagerPlus.ensureInitialized(id));

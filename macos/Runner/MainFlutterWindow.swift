@@ -19,7 +19,6 @@ class MainFlutterWindow: NSWindow {
     override public func order(_ place: NSWindow.OrderingMode, relativeTo otherWin: Int) {
         super.order(place, relativeTo: otherWin)
 
-        print("Hidden window at launch")
         hiddenWindowAtLaunch()
     }
 }

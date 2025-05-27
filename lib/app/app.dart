@@ -1,5 +1,4 @@
 import 'package:async_queue/async_queue.dart';
-import 'package:easthardware_pms/app/bottom_text.dart';
 import 'package:easthardware_pms/app/dependency_injector.dart';
 import 'package:easthardware_pms/data/database/database_helper.dart';
 import 'package:easthardware_pms/presentation/bloc/authentication/'
@@ -7,6 +6,7 @@ import 'package:easthardware_pms/presentation/bloc/authentication/'
 import 'package:easthardware_pms/presentation/bloc/security/userloglist/user_log_list_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/server/server_bloc.dart';
 import 'package:easthardware_pms/presentation/router/app_router.dart';
+import 'package:easthardware_pms/presentation/widgets/bottom_text.dart';
 import 'package:fluent_ui/fluent_ui.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -70,7 +70,7 @@ class _AppState extends State<App> with WidgetsBindingObserver {
     di.initialize(null);
 
     serverBloc = ServerBloc(widget.rootKey, bottomText)..add(const ServerInit());
-    _router = router(widget.rootKey);
+    _router = createRouter(widget.rootKey);
   }
 
   @override
@@ -79,7 +79,7 @@ class _AppState extends State<App> with WidgetsBindingObserver {
 
     if (oldWidget.rootKey != widget.rootKey) {
       serverBloc.add(ServerChangeKey(key: widget.rootKey));
-      _router = router(widget.rootKey);
+      _router = createRouter(widget.rootKey);
     }
   }
 
@@ -111,7 +111,6 @@ class _AppState extends State<App> with WidgetsBindingObserver {
           debugShowCheckedModeBanner: false,
           routerConfig: _router,
           themeMode: ThemeMode.light,
-          theme: FluentThemeData(micaBackgroundColor: Colors.grey[10]),
         ),
       ),
     );

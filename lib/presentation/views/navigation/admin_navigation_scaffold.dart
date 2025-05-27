@@ -1,9 +1,9 @@
 import 'dart:io' show Platform;
 
-import 'package:easthardware_pms/app/app_window.dart';
 import 'package:easthardware_pms/presentation/bloc/navigation/navigation_bloc.dart';
 import 'package:easthardware_pms/presentation/widgets/brand/navrail_header.dart';
 import 'package:easthardware_pms/presentation/widgets/helper/route_index_mapper.dart';
+import 'package:easthardware_pms/presentation/widgets/title_bar.dart';
 import 'package:fluent_ui/fluent_ui.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -29,7 +29,7 @@ class AdminNavigationScaffold extends StatelessWidget {
           clipBehavior: Clip.hardEdge,
           paneBodyBuilder: (item, body) {
             final padding = TitleBar.of(context) && (!Platform.isMacOS) //
-                ? EdgeInsets.only(top: 32.0)
+                ? EdgeInsets.only(top: windowsTitleBarHeight)
                 : EdgeInsets.zero;
 
             return Padding(padding: padding, child: children[shell.currentIndex]);
@@ -80,10 +80,11 @@ class AdminNavigationScaffold extends StatelessWidget {
           ),
         ) as Widget;
 
+        /// If the platform is macOS, we need to account for the title bar on the left.
         if (Platform.isMacOS) {
           widget = Container(
             color: FluentTheme.of(context).micaBackgroundColor,
-            padding: EdgeInsets.only(top: 32.0),
+            padding: EdgeInsets.only(top: macOSTitleBarHeight),
             child: widget,
           );
         }
