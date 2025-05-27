@@ -163,7 +163,7 @@ class LeftColumn extends StatelessWidget {
       child: FocusTraversalGroup(
         child: Column(
           children: [
-            Expanded(child: BasicInformationSection()),
+            const Expanded(child: BasicInformationSection()),
           ].withSpacing(() => Spacing.v16),
         ),
       ),
@@ -256,7 +256,7 @@ class BasicInformationSection extends StatefulWidget {
 class _BasicInformationSectionState extends State<BasicInformationSection>
     with ProductFormValidator {
   late final AnimatedScrollController _scrollController =
-      AnimatedScrollController(animationFactory: ChromiumEaseInOut());
+      AnimatedScrollController(animationFactory: const ChromiumEaseInOut());
 
   @override
   Widget build(BuildContext context) {
@@ -376,7 +376,7 @@ class _CriticalLevelFieldState extends State<CriticalLevelField> {
           if (value == null || value.trim().isEmpty) {
             return "Critical level cannot be empty";
           }
-          final double? criticalLevel = double.tryParse(value);
+          final criticalLevel = double.tryParse(value);
           if (criticalLevel == null || criticalLevel < 0) {
             return "Critical level must be a non-negative number";
           }
@@ -612,8 +612,8 @@ class PageHeader extends StatelessWidget {
           'Save Product',
           onPressed: () {
             // Added 1 because SQLite has one-based indexing
-            final int creatorId = context.read<AuthenticationBloc>().state.user!.id!;
-            final int productId = 1 + context.read<ProductListBloc>().state.allProducts.length;
+            final creatorId = context.read<AuthenticationBloc>().state.user!.id!;
+            final productId = 1 + context.read<ProductListBloc>().state.allProducts.length;
             context.read<ProductFormBloc>().add(
                   FormButtonPressedEvent(productId: productId, creatorId: creatorId),
                 );

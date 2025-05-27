@@ -100,7 +100,7 @@ class _TitleBarState extends State<TitleBar> with WindowListener {
   SizedBox _titleBar() {
     late final buttonStyle = TextButton.styleFrom(
       foregroundColor: Colors.black,
-      shape: RoundedRectangleBorder(),
+      shape: const RoundedRectangleBorder(),
     );
 
     return SizedBox(
@@ -122,7 +122,7 @@ class _TitleBarState extends State<TitleBar> with WindowListener {
             TextButton(
               style: buttonStyle,
               onPressed: _minimize,
-              child: Icon(FluentIcons.chrome_minimize, size: 12.0),
+              child: const Icon(FluentIcons.chrome_minimize, size: 12.0),
             ),
             TextButton(
               style: buttonStyle,
@@ -147,7 +147,7 @@ class _TitleBarState extends State<TitleBar> with WindowListener {
               //   }),
               // ),
               onPressed: _close,
-              child: Icon(FluentIcons.chrome_close, size: 12.0),
+              child: const Icon(FluentIcons.chrome_close, size: 12.0),
             ),
           ]
         ],

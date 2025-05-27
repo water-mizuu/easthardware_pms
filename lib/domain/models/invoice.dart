@@ -1,23 +1,10 @@
 import 'package:easthardware_pms/domain/enums/enums.dart';
 import 'package:easthardware_pms/utils/undefined.dart';
+import 'package:flutter/foundation.dart';
 import 'package:uuid/uuid.dart';
 
+@immutable
 class Invoice {
-  final int? id;
-  final String uid;
-  final String customerName;
-  final DateTime invoiceDate;
-  final int paymentMethod;
-  final String? referenceNumber;
-  final String? memo;
-  final double? discount;
-  final DiscountType? discountType;
-  final DateTime creationDate;
-  final DateTime? paymentDate;
-  final double amountDue;
-  final double? amountPaid;
-  final int creatorId;
-
   Invoice({
     String? uid,
     this.id,
@@ -34,6 +21,38 @@ class Invoice {
     this.amountPaid,
     required this.creatorId,
   }) : uid = const Uuid().v4();
+
+  factory Invoice.fromMap(Map<String, dynamic> map) {
+    return Invoice(
+      id: map['id'],
+      customerName: map['customer_name'],
+      invoiceDate: DateTime.parse(map['invoice_date']),
+      paymentMethod: map['payment_method'],
+      referenceNumber: map['reference_number'],
+      memo: map['memo'],
+      discount: map['discount'],
+      discountType: DiscountType.values[map['discount_type'] as int],
+      creationDate: DateTime.parse(map['creation_date']),
+      paymentDate: map['payment_date'] != null ? DateTime.parse(map['payment_date']) : null,
+      amountDue: map['amount_due'],
+      amountPaid: map['amount_paid'],
+      creatorId: map['creator_id'],
+    );
+  }
+  final int? id;
+  final String uid;
+  final String customerName;
+  final DateTime invoiceDate;
+  final int paymentMethod;
+  final String? referenceNumber;
+  final String? memo;
+  final double? discount;
+  final DiscountType? discountType;
+  final DateTime creationDate;
+  final DateTime? paymentDate;
+  final double amountDue;
+  final double? amountPaid;
+  final int creatorId;
 
   Invoice Function({
     int? id,
@@ -102,23 +121,5 @@ class Invoice {
       'amount_paid': amountPaid,
       'creator_id': creatorId,
     };
-  }
-
-  factory Invoice.fromMap(Map<String, dynamic> map) {
-    return Invoice(
-      id: map['id'],
-      customerName: map['customer_name'],
-      invoiceDate: DateTime.parse(map['invoice_date']),
-      paymentMethod: map['payment_method'],
-      referenceNumber: map['reference_number'],
-      memo: map['memo'],
-      discount: map['discount'],
-      discountType: DiscountType.values[map['discount_type'] as int],
-      creationDate: DateTime.parse(map['creation_date']),
-      paymentDate: map['payment_date'] != null ? DateTime.parse(map['payment_date']) : null,
-      amountDue: map['amount_due'],
-      amountPaid: map['amount_paid'],
-      creatorId: map['creator_id'],
-    );
   }
 }

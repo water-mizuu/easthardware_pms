@@ -1,16 +1,6 @@
 import 'package:easthardware_pms/utils/undefined.dart';
 
 class OrderProduct {
-  final int? id;
-  final int orderId;
-  final int productId;
-  final String productName;
-  final String? description;
-  final double quantity;
-  final int? secondaryUnit;
-  final double? conversionFactor;
-  final double rate;
-  final double amount;
 
   OrderProduct({
     this.id,
@@ -24,6 +14,31 @@ class OrderProduct {
     required this.rate,
     required this.amount,
   });
+
+  factory OrderProduct.fromMap(Map<String, dynamic> map) {
+    return OrderProduct(
+      id: map['id'],
+      orderId: map['order_id'],
+      productId: map['product_id'],
+      productName: map['product_name'],
+      description: map['description'],
+      quantity: map['quantity'],
+      secondaryUnit: map['secondary_unit'],
+      conversionFactor: map['conversion_factor'],
+      rate: map['rate'],
+      amount: map['amount'],
+    );
+  }
+  final int? id;
+  final int orderId;
+  final int productId;
+  final String productName;
+  final String? description;
+  final double quantity;
+  final int? secondaryUnit;
+  final double? conversionFactor;
+  final double rate;
+  final double amount;
 
   OrderProduct Function({
     int? id,
@@ -76,20 +91,5 @@ class OrderProduct {
       'rate': rate,
       'amount': amount,
     };
-  }
-
-  factory OrderProduct.fromMap(Map<String, dynamic> map) {
-    return OrderProduct(
-      id: map['id'],
-      orderId: map['order_id'],
-      productId: map['product_id'],
-      productName: map['product_name'],
-      description: map['description'],
-      quantity: map['quantity'],
-      secondaryUnit: map['secondary_unit'],
-      conversionFactor: map['conversion_factor'],
-      rate: map['rate'],
-      amount: map['amount'],
-    );
   }
 }

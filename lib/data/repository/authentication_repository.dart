@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:typed_data';
 
 import 'package:easthardware_pms/data/database/database_helper.dart';
 import 'package:easthardware_pms/data/repository/user_repository.dart';
@@ -31,13 +30,13 @@ class AuthenticationRepositoryImpl implements AuthenticationRepository {
   Future<User> logIn({required String username, required String password}) async {
     // _validateInput(username, password);
     // Check if the user exists in the database
-    final User? user = await _userRepository.getUserByUsername(username);
+    final user = await _userRepository.getUserByUsername(username);
 
     if (user == null) {
       throw AuthenticationException('Invalid username or password');
     }
     // Hash the input password
-    final Uint8List hashedPassword = CryptographyService.generateHash(password, user.salt);
+    final hashedPassword = CryptographyService.generateHash(password, user.salt);
     // Compare the hashed password with the stored password
     if (user.passwordHash.toString() != hashedPassword.toString()) {
       throw AuthenticationException('Invalid username or password');

@@ -1,25 +1,6 @@
 part of 'user_form_bloc.dart';
 
 class UserFormState extends Equatable {
-  final String firstName;
-  final String lastName;
-  final String username;
-  final String accessLevel;
-  final String password;
-  final String confirmPassword;
-  final List<FormQuestion> questions;
-  final FormStatus status;
-
-  // Hidden attributes
-  final int? userId;
-  final String? creationDate;
-  final String? uid;
-  final Uint8List? salt;
-  final Uint8List? passwordHash;
-  final int? archiveStatus;
-
-  // Hidden attributes for the UI
-  final String? accessLevelErrorMessage;
 
   const UserFormState({
     this.userId,
@@ -42,6 +23,40 @@ class UserFormState extends Equatable {
     this.passwordHash,
     this.accessLevelErrorMessage,
   });
+
+  factory UserFormState.fromUser(User user) {
+    return UserFormState(
+      userId: user.id,
+      creationDate: user.creationDate,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      username: user.username,
+      accessLevel: user.accessLevel.name,
+      passwordHash: user.passwordHash,
+      salt: user.salt,
+      archiveStatus: user.status,
+      uid: user.uid,
+    );
+  }
+  final String firstName;
+  final String lastName;
+  final String username;
+  final String accessLevel;
+  final String password;
+  final String confirmPassword;
+  final List<FormQuestion> questions;
+  final FormStatus status;
+
+  // Hidden attributes
+  final int? userId;
+  final String? creationDate;
+  final String? uid;
+  final Uint8List? salt;
+  final Uint8List? passwordHash;
+  final int? archiveStatus;
+
+  // Hidden attributes for the UI
+  final String? accessLevelErrorMessage;
 
   @override
   List<Object> get props => [
@@ -126,21 +141,6 @@ class UserFormState extends Equatable {
       salt: salt!,
       status: archiveStatus!,
       creationDate: creationDate!,
-    );
-  }
-
-  factory UserFormState.fromUser(User user) {
-    return UserFormState(
-      userId: user.id,
-      creationDate: user.creationDate,
-      firstName: user.firstName,
-      lastName: user.lastName,
-      username: user.username,
-      accessLevel: user.accessLevel.name,
-      passwordHash: user.passwordHash,
-      salt: user.salt,
-      archiveStatus: user.status,
-      uid: user.uid,
     );
   }
 }

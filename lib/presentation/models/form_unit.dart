@@ -2,13 +2,20 @@ import 'package:easthardware_pms/domain/models/unit.dart';
 import 'package:easthardware_pms/utils/undefined.dart';
 
 class FormUnit {
-  final String name;
-  final String factor;
 
   FormUnit({
     required this.name,
     required this.factor,
   });
+
+  factory FormUnit.fromUnit(Unit unit) {
+    return FormUnit(
+      name: unit.name,
+      factor: unit.factor.toString(),
+    );
+  }
+  final String name;
+  final String factor;
   FormUnit Function({
     String name,
     String factor,
@@ -30,13 +37,6 @@ class FormUnit {
       name: name,
       productId: productId,
       factor: double.parse(factor),
-    );
-  }
-
-  factory FormUnit.fromUnit(Unit unit) {
-    return FormUnit(
-      name: unit.name,
-      factor: unit.factor.toString(),
     );
   }
 }

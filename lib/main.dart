@@ -17,7 +17,7 @@ void main(List<String> args) async {
 
     final id = args.isEmpty ? 0 : int.tryParse(args[0]) ?? 0;
     final (_) = await WindowManagerPlus.ensureInitialized(id).tryComplete();
-    final options = WindowOptions(
+    const options = WindowOptions(
       size: minimumSize,
       minimumSize: minimumSize,
       center: true,

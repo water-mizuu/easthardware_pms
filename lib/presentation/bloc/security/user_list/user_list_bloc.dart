@@ -14,11 +14,11 @@ class UserListBloc extends Bloc<UserListEvent, UserListState> {
     on<LoadAllUsersEvent>(_onLoadUsers);
     on<AddUserEvent>(_onAddUser);
     on<UpdateUserEvent>(_onUpdateUser);
-    on<DeleteUserEevnt>(_onDeleteUser);
+    on<DeleteUserEvent>(_onDeleteUser);
   }
   final UserRepository _repository;
 
-  void _onLoadUsers(LoadAllUsersEvent event, Emitter<UserListState> emit) async {
+  Future<void> _onLoadUsers(LoadAllUsersEvent event, Emitter<UserListState> emit) async {
     try {
       emit(state.copyWith(users: await _repository.getAllUsers()));
     } catch (e) {
@@ -29,7 +29,7 @@ class UserListBloc extends Bloc<UserListEvent, UserListState> {
     }
   }
 
-  void _onAddUser(AddUserEvent event, Emitter<UserListState> emit) async {
+  Future<void> _onAddUser(AddUserEvent event, Emitter<UserListState> emit) async {
     emit(state.copyWith(status: DataStatus.loading));
     try {
       final insertedUser = await _repository.insertUser(event.user);
@@ -44,7 +44,7 @@ class UserListBloc extends Bloc<UserListEvent, UserListState> {
     }
   }
 
-  void _onUpdateUser(UpdateUserEvent event, Emitter<UserListState> emit) async {
+  Future<void> _onUpdateUser(UpdateUserEvent event, Emitter<UserListState> emit) async {
     emit(state.copyWith(status: DataStatus.loading));
     try {
       final updatedUser = await _repository.updateUser(event.user);
@@ -64,7 +64,7 @@ class UserListBloc extends Bloc<UserListEvent, UserListState> {
     }
   }
 
-  void _onDeleteUser(DeleteUserEevnt event, Emitter<UserListState> emit) async {
+  Future<void> _onDeleteUser(DeleteUserEvent event, Emitter<UserListState> emit) async {
     emit(state.copyWith(status: DataStatus.loading));
     try {
       await _repository.deleteUser(event.user);

@@ -44,7 +44,7 @@ Future<(MessageChannel, Future<void> Function() close)> hostShelfServer(int port
 
   /// Next, a status code or an error is sent from the isolate.
   final status = await receivePort.next<Object>("status");
-  if (status case (Object error, StackTrace stackTrace)) {
+  if (status case (final Object error, final StackTrace stackTrace)) {
     Error.throwWithStackTrace(error, stackTrace);
   }
   assert(status == 0, "The isolate should yield 0 after spawning properly.");
@@ -84,7 +84,7 @@ Stream<ServerEvent> postServerSetup(MessageChannel channel) async* {
     final message = await receivePort.next("main");
 
     switch (message) {
-      case ["didUpdate", int msSinceEpoch]:
+      case ["didUpdate", final int msSinceEpoch]:
         // Notify the UI that the server has been updated.
         final dateTime = DateTime.fromMillisecondsSinceEpoch(msSinceEpoch);
         if (kDebugMode) {
@@ -140,7 +140,7 @@ Future<void> _spawnIsolate((RootIsolateToken, NamedSendPort, int) payload) async
     var run = true;
 
     /// This method handles closing the server and the objects created in this isolate.
-    void closeIsolate(String name) async {
+    Future<void> closeIsolate(String name) async {
       run = false;
 
       // Close the shelf server
@@ -172,12 +172,12 @@ Future<void> _spawnIsolate((RootIsolateToken, NamedSendPort, int) payload) async
     /// It listens for messages and performs actions based on the message type.
     while (run) {
       final message = await receivePort.next("invocation");
-      if (message case [String returnName, Object args]) {
+      if (message case [final String returnName, final Object args]) {
         switch (args) {
           case ["stop", ...]:
             closeIsolate(returnName);
             break;
-          case ["db", [String method, List<Object?> arguments]]:
+          case ["db", [final String method, final List<Object?> arguments]]:
             _dbMethodQueue.addJob((_) async {
               // Handle each db method call.
               final output = await serverHandleDatabaseMethod(method, arguments);
@@ -254,7 +254,7 @@ Future<void> _handleConnection(WebSocketChannel websocketChannel, [String? subpr
       final [name as String, message] = await messageChannel.receivePort.next("invocation");
 
       switch (message) {
-        case ["db", [String method, List<Object?> arguments]]:
+        case ["db", [final String method, final List<Object?> arguments]]:
           _dbMethodQueue.addJob((_) async {
             // Handle each db method call.
             final output = await serverHandleDatabaseMethod(method, arguments);
@@ -290,7 +290,7 @@ Future<void> _handleConnection(WebSocketChannel websocketChannel, [String? subpr
 
 /// This sends out a notification to all connected clients about a database change.
 /// This also sends the notification to the server as necessary.
-void _notifyEveryoneAboutDatabaseChange({
+Future<void> _notifyEveryoneAboutDatabaseChange({
   required WebSocketChannel? from,
   required bool isServerUpdated,
 }) async {
@@ -298,7 +298,7 @@ void _notifyEveryoneAboutDatabaseChange({
     mainChannel.sendPort.send("main", ["didUpdate", DateTime.now().millisecondsSinceEpoch]);
   }
 
-  for (var (client, channel) in _clientChannels) {
+  for (final (client, channel) in _clientChannels) {
     if (client != from) {
       // Notify all other clients about the database change.
       channel.sendPort.send("client", ["didUpdate", DateTime.now().millisecondsSinceEpoch]);

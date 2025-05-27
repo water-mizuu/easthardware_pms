@@ -20,7 +20,7 @@ class InvoiceProductsTable {
   static const String INVOICE_PRODUCTS_RATE = 'rate';
   static const String INVOICE_PRODUCTS_AMOUNT = 'amount';
 
-  static void createTable(Database database) async {
+  static Future<void> createTable(Database database) async {
     await database.execute('''
   CREATE TABLE $INVOICE_PRODUCTS_TABLE_NAME (
   $INVOICE_PRODUCTS_ID INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -42,7 +42,7 @@ class InvoiceProductsTable {
 ''');
   }
 
-  static void dropTable(Database database) async {
+  static Future<void> dropTable(Database database) async {
     await database.execute('DROP TABLE IF EXISTS $INVOICE_PRODUCTS_TABLE_NAME');
   }
 }

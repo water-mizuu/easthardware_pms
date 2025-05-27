@@ -8,50 +8,50 @@ sealed class UserFormEvent extends Equatable {
 }
 
 class UserIdChangedEvent extends UserFormEvent {
-  final int userId;
   const UserIdChangedEvent(this.userId);
+  final int userId;
 }
 
 class FirstNameFieldChangedEvent extends UserFormEvent {
-  final String firstName;
   const FirstNameFieldChangedEvent(this.firstName);
+  final String firstName;
 }
 
 class LastNameFieldChangedEvent extends UserFormEvent {
-  final String lastName;
   const LastNameFieldChangedEvent(this.lastName);
+  final String lastName;
 }
 
 class UsernameFieldChangedEvent extends UserFormEvent {
-  final String username;
   const UsernameFieldChangedEvent(this.username);
+  final String username;
 }
 
 class PasswordFieldChangedEvent extends UserFormEvent {
-  final String password;
   const PasswordFieldChangedEvent(this.password);
+  final String password;
 }
 
 class ConfirmPasswordFieldChangedEvent extends UserFormEvent {
-  final String confirmPassword;
   const ConfirmPasswordFieldChangedEvent(this.confirmPassword);
+  final String confirmPassword;
 }
 
 class AccessLevelFieldChangedEvent extends UserFormEvent {
-  final String accessLevel;
   const AccessLevelFieldChangedEvent(this.accessLevel);
+  final String accessLevel;
 }
 
 class QuestionFieldChangedEvent extends UserFormEvent {
+  const QuestionFieldChangedEvent(this.question, this.index);
   final int index;
   final String question;
-  const QuestionFieldChangedEvent(this.question, this.index);
 }
 
 class AnswerFieldChangedEvent extends UserFormEvent {
+  const AnswerFieldChangedEvent(this.answer, this.index);
   final int index;
   final String answer;
-  const AnswerFieldChangedEvent(this.answer, this.index);
 }
 
 class FormButtonPressedEvent extends UserFormEvent {}

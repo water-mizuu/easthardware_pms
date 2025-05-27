@@ -19,7 +19,7 @@ class OrderProductsTable {
   static const String ORDER_PRODUCTS_RATE = 'rate';
   static const String ORDER_PRODUCTS_AMOUNT = 'amount';
 
-  static void createTable(Database database) async {
+  static Future<void> createTable(Database database) async {
     await database.execute('''
   CREATE TABLE $ORDER_PRODUCTS_TABLE_NAME (
   $ORDER_PRODUCTS_ID INTEGER PRIMARY KEY AUTOINCREMENT,

@@ -7,111 +7,111 @@ sealed class ProductFormEvent extends Equatable {
 }
 
 class NameFieldChangedEvent extends ProductFormEvent {
-  final String name;
 
   const NameFieldChangedEvent(this.name);
+  final String name;
 }
 
 class SkuFieldChangedEvent extends ProductFormEvent {
-  final String sku;
   const SkuFieldChangedEvent(this.sku);
+  final String sku;
 }
 
 class CategoryFieldChangedEvent extends ProductFormEvent {
-  final String category;
 
   const CategoryFieldChangedEvent(this.category);
+  final String category;
 }
 
 class CategoryIdChangedEvent extends ProductFormEvent {
-  final int categoryId;
 
   const CategoryIdChangedEvent(this.categoryId);
+  final int categoryId;
 }
 
 class DescriptionFieldChangedEvent extends ProductFormEvent {
-  final String description;
 
   const DescriptionFieldChangedEvent(this.description);
+  final String description;
 }
 
 class PriceFieldChangedEvent extends ProductFormEvent {
-  final String price;
 
   const PriceFieldChangedEvent(this.price);
+  final String price;
 }
 
 class CostFieldChangedEvent extends ProductFormEvent {
-  final String cost;
 
   const CostFieldChangedEvent(this.cost);
+  final String cost;
 }
 
 class QuantityFieldChangedEvent extends ProductFormEvent {
-  final String quantity;
 
   const QuantityFieldChangedEvent(this.quantity);
+  final String quantity;
 }
 
 class MainUnitFieldChangedEvent extends ProductFormEvent {
-  final String unit;
 
   const MainUnitFieldChangedEvent(this.unit);
+  final String unit;
 }
 
 class SecondaryUnitFieldNameChangedEvent extends ProductFormEvent {
+  const SecondaryUnitFieldNameChangedEvent(this.name, this.index);
   final String name;
   final int index;
-  const SecondaryUnitFieldNameChangedEvent(this.name, this.index);
 }
 
 class SecondaryUnitFieldFactorChangedEvent extends ProductFormEvent {
+  const SecondaryUnitFieldFactorChangedEvent(this.factor, this.index);
   final String factor;
   final int index;
-  const SecondaryUnitFieldFactorChangedEvent(this.factor, this.index);
 }
 
 class SecondaryUnitFieldAddedEvent extends ProductFormEvent {}
 
 class SecondaryUnitFieldDeletedEvent extends ProductFormEvent {
-  final int index;
   const SecondaryUnitFieldDeletedEvent(this.index);
+  final int index;
 }
 
 class CriticalLevelFieldChangedEvent extends ProductFormEvent {
-  final String criticalLevel;
 
   const CriticalLevelFieldChangedEvent(this.criticalLevel);
+  final String criticalLevel;
 }
 
 class DeadstockFieldChangedEvent extends ProductFormEvent {
-  final String threshold;
 
   const DeadstockFieldChangedEvent(this.threshold);
+  final String threshold;
 }
 
 class FastMovingStockFieldChangedEvent extends ProductFormEvent {
-  final String threshold;
 
   const FastMovingStockFieldChangedEvent(this.threshold);
+  final String threshold;
 }
 
 class ProductStatusChangedEvent extends ProductFormEvent {
-  final int status;
 
   const ProductStatusChangedEvent(this.status);
+  final int status;
 }
 
 class FormButtonPressedEvent extends ProductFormEvent {
+  const FormButtonPressedEvent({required this.productId, required this.creatorId});
   final int productId;
   final int creatorId;
-  const FormButtonPressedEvent({required this.productId, required this.creatorId});
 }
 
 class ProductLoadedEvent extends ProductFormEvent {
+  const ProductLoadedEvent(this.product, this.secondaryUnits);
   final Product product;
   final List<Unit> secondaryUnits;
-  const ProductLoadedEvent(this.product, this.secondaryUnits);
 }
 
 class FormSubmittedEvent extends ProductFormEvent {}

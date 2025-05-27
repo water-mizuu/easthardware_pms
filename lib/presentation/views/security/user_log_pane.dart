@@ -41,7 +41,7 @@ class PageHeader extends StatelessWidget {
         IconButton(
           icon: const Icon(FluentIcons.back),
           onPressed: () {
-            var event = NavigationIndexChanged(
+            final event = NavigationIndexChanged(
               index: RouteIndexMapper.getIndexFromRoute(AppRoutes.usersPage)!,
             );
 

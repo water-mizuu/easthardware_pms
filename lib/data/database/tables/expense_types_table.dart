@@ -14,7 +14,7 @@ class ExpenseTypesTable {
     ''');
   }
 
-  static void dropTable(Database database) async {
+  static Future<void> dropTable(Database database) async {
     await database.execute('DROP TABLE IF EXISTS $EXPENSE_TYPE_TABLE_NAME');
   }
 }

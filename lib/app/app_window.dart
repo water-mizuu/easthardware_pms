@@ -36,7 +36,7 @@ class _AppWindowState extends State<AppWindow> with WindowListener {
   }
 
   @override
-  void onWindowClose([int? windowId]) async {
+  Future<void> onWindowClose([int? windowId]) async {
     final isPreventClose = await WindowManagerPlus.current.isPreventClose();
     if (!mounted) return;
 
@@ -45,16 +45,16 @@ class _AppWindowState extends State<AppWindow> with WindowListener {
         context: rootNavigatorKey.currentContext!,
         builder: (context) {
           return ContentDialog(
-            title: Text('Close Application'),
-            content: Text('Are you sure you want to close this window?'),
+            title: const Text('Close Application'),
+            content: const Text('Are you sure you want to close this window?'),
             actions: [
               Button(
                 style: ButtonStyle(
                   backgroundColor: WidgetStatePropertyAll(Colors.blue),
-                  foregroundColor: WidgetStatePropertyAll(Colors.white),
+                  foregroundColor: const WidgetStatePropertyAll(Colors.white),
                 ),
                 autofocus: true,
-                child: Text('No'),
+                child: const Text('No'),
                 onPressed: () {
                   Navigator.of(context).pop();
                 },
@@ -64,7 +64,7 @@ class _AppWindowState extends State<AppWindow> with WindowListener {
                   Navigator.of(context).pop();
                   await WindowManagerPlus.current.destroy();
                 },
-                child: Text('Yes'),
+                child: const Text('Yes'),
               ),
             ],
           );

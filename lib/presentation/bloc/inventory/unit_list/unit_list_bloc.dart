@@ -21,7 +21,7 @@ class UnitListBloc extends Bloc<UnitListEvent, UnitListState> {
 
   final UnitRepository _repository;
 
-  void _onLoad(LoadUnitsEvent event, Emitter emit) async {
+  Future<void> _onLoad(LoadUnitsEvent event, Emitter emit) async {
     emit(state.copyWith(status: DataStatus.loading));
     try {
       emit(state.copyWith(
@@ -39,7 +39,7 @@ class UnitListBloc extends Bloc<UnitListEvent, UnitListState> {
     }
   }
 
-  void _onFilter(FilterUnitsEvent event, Emitter emit) async {
+  Future<void> _onFilter(FilterUnitsEvent event, Emitter emit) async {
     emit(state.copyWith(status: DataStatus.loading));
     Future.delayed(Duration.zero, () {
       final filteredUnits = state.units.where((unit) {
@@ -49,7 +49,7 @@ class UnitListBloc extends Bloc<UnitListEvent, UnitListState> {
     });
   }
 
-  void _onReload(ReloadUnitsEvent event, Emitter emit) async {
+  Future<void> _onReload(ReloadUnitsEvent event, Emitter emit) async {
     emit(state.copyWith(status: DataStatus.loading));
     try {
       emit(state.copyWith(
@@ -62,7 +62,7 @@ class UnitListBloc extends Bloc<UnitListEvent, UnitListState> {
     }
   }
 
-  void _onAdd(AddUnitEvent event, Emitter emit) async {
+  Future<void> _onAdd(AddUnitEvent event, Emitter emit) async {
     emit(state.copyWith(status: DataStatus.loading));
     try {
       await _repository.insertUnit(event.unit);
@@ -75,7 +75,7 @@ class UnitListBloc extends Bloc<UnitListEvent, UnitListState> {
     }
   }
 
-  void _onUpdate(UpdateUnitEvent event, Emitter emit) async {
+  Future<void> _onUpdate(UpdateUnitEvent event, Emitter emit) async {
     emit(state.copyWith(status: DataStatus.loading));
     try {
       await _repository.updateUnit(event.unit);
@@ -88,7 +88,7 @@ class UnitListBloc extends Bloc<UnitListEvent, UnitListState> {
     }
   }
 
-  void _onDelete(DeleteUnitEvent event, Emitter emit) async {
+  Future<void> _onDelete(DeleteUnitEvent event, Emitter emit) async {
     emit(state.copyWith(status: DataStatus.loading));
     try {
       await _repository.deleteUnit(event.unitId);

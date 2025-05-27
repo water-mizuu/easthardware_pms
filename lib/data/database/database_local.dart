@@ -18,7 +18,7 @@ class DatabaseLocal implements Database {
     if (Platform.isWindows || Platform.isMacOS) {
       sqfliteFfiInit();
       databaseFactory = databaseFactoryFfi;
-      final String path = join(await getDatabasesPath(), 'app_database.db');
+      final path = join(await getDatabasesPath(), 'app_database.db');
 
       _instance = await openDatabase(
         path,

@@ -1,6 +1,55 @@
 part of 'product_form_bloc.dart';
 
 class ProductFormState extends Equatable {
+
+  ProductFormState({
+    this.name = '',
+    String? sku,
+    this.categoryName = '',
+    this.categoryId,
+    this.description,
+    this.price = '',
+    this.cost = '',
+    this.quantity = '',
+    this.mainUnit = '',
+    List<FormUnit>? secondaryUnits,
+    this.criticalLevel = '',
+    this.isCriticalLevelEdited = false,
+    String? deadStockThreshold,
+    String? fastMovingThreshold,
+    DateTime? creationDate,
+    this.creatorId,
+    this.productId,
+    this.archiveStatus,
+    this.formStatus = FormStatus.initial,
+  })  : sku = const Uuid().v4().toString(),
+        secondaryUnits = secondaryUnits ?? [FormUnit(name: '', factor: '')],
+        creationDate = creationDate ?? DateTime.now(),
+        deadStockThreshold = deadStockThreshold ?? DEFAULT_DEAD_STOCK_THRESHOLD.toString(),
+        fastMovingThreshold = fastMovingThreshold ?? DEFAULT_FAST_MOVING_STOCK_THRESHOLD.toString();
+
+  factory ProductFormState.fromProduct(Product product, List<Unit> units) {
+    return ProductFormState(
+      name: product.name,
+      sku: product.sku,
+      categoryId: product.categoryId,
+      categoryName: product.categoryName!,
+      description: product.description,
+      price: product.salePrice.toString(),
+      cost: product.orderCost.toString(),
+      quantity: product.quantity.toString(),
+      mainUnit: product.mainUnit,
+      criticalLevel: product.criticalLevel.toString(),
+      deadStockThreshold: product.deadStockThreshold.toString(),
+      fastMovingThreshold: product.fastMovingStockThreshold.toString(),
+      secondaryUnits:
+          units.isEmpty ? [FormUnit(name: '', factor: '')] : units.map(FormUnit.fromUnit).toList(),
+      creationDate: DateTime.parse(product.creationDate),
+      creatorId: product.creatorId,
+      archiveStatus: product.archiveStatus,
+      productId: product.id!,
+    );
+  }
   // Data Entity attributes
 
   // Basic Product Information
@@ -37,32 +86,6 @@ class ProductFormState extends Equatable {
   final int? productId;
 
   final FormStatus formStatus;
-
-  ProductFormState({
-    this.name = '',
-    String? sku,
-    this.categoryName = '',
-    this.categoryId,
-    this.description,
-    this.price = '',
-    this.cost = '',
-    this.quantity = '',
-    this.mainUnit = '',
-    List<FormUnit>? secondaryUnits,
-    this.criticalLevel = '',
-    this.isCriticalLevelEdited = false,
-    String? deadStockThreshold,
-    String? fastMovingThreshold,
-    DateTime? creationDate,
-    this.creatorId,
-    this.productId,
-    this.archiveStatus,
-    this.formStatus = FormStatus.initial,
-  })  : sku = const Uuid().v4().toString(),
-        secondaryUnits = secondaryUnits ?? [FormUnit(name: '', factor: '')],
-        creationDate = creationDate ?? DateTime.now(),
-        deadStockThreshold = deadStockThreshold ?? DEFAULT_DEAD_STOCK_THRESHOLD.toString(),
-        fastMovingThreshold = fastMovingThreshold ?? DEFAULT_FAST_MOVING_STOCK_THRESHOLD.toString();
 
   ProductFormState Function({
     String name,
@@ -169,29 +192,6 @@ class ProductFormState extends Equatable {
       creationDate: creationDate.toIso8601String(),
       creatorId: creatorId!,
       archiveStatus: archiveStatus!,
-    );
-  }
-
-  factory ProductFormState.fromProduct(Product product, List<Unit> units) {
-    return ProductFormState(
-      name: product.name,
-      sku: product.sku,
-      categoryId: product.categoryId,
-      categoryName: product.categoryName!,
-      description: product.description,
-      price: product.salePrice.toString(),
-      cost: product.orderCost.toString(),
-      quantity: product.quantity.toString(),
-      mainUnit: product.mainUnit,
-      criticalLevel: product.criticalLevel.toString(),
-      deadStockThreshold: product.deadStockThreshold.toString(),
-      fastMovingThreshold: product.fastMovingStockThreshold.toString(),
-      secondaryUnits:
-          units.isEmpty ? [FormUnit(name: '', factor: '')] : units.map(FormUnit.fromUnit).toList(),
-      creationDate: DateTime.parse(product.creationDate),
-      creatorId: product.creatorId,
-      archiveStatus: product.archiveStatus,
-      productId: product.id!,
     );
   }
 }

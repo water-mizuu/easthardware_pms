@@ -8,7 +8,7 @@ class UnitsTable {
   static const String UNITS_PRODUCT_ID = 'product_id';
   static const String UNITS_CONVERSION_FACTOR = 'conversion_factor';
 
-  static void createTable(Database database) async {
+  static Future<void> createTable(Database database) async {
     await database.execute('''
     CREATE TABLE $UNITS_TABLE_NAME (
     $UNITS_ID INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -20,7 +20,7 @@ class UnitsTable {
     ''');
   }
 
-  static void dropTable(Database database) async {
+  static Future<void> dropTable(Database database) async {
     await database.execute('DROP TABLE IF EXISTS $UNITS_TABLE_NAME');
   }
 }

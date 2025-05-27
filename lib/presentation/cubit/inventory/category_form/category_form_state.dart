@@ -1,12 +1,12 @@
 part of 'category_form_cubit.dart';
 
 class CategoryFormState extends Equatable {
-  final String? name;
-  final FormStatus status;
   const CategoryFormState({
     this.name = '',
     this.status = FormStatus.initial,
   });
+  final String? name;
+  final FormStatus status;
 
   @override
   List<Object?> get props => [name, status];

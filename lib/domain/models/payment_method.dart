@@ -1,13 +1,20 @@
 import 'package:easthardware_pms/utils/undefined.dart';
 
 class PaymentMethod {
-  final int? id;
-  final String name;
 
   PaymentMethod({
     this.id,
     required this.name,
   });
+
+  factory PaymentMethod.fromMap(Map<String, dynamic> map) {
+    return PaymentMethod(
+      id: map['id'] as int,
+      name: map['name'] as String,
+    );
+  }
+  final int? id;
+  final String name;
   PaymentMethod Function({
     int? id,
     String name,
@@ -27,12 +34,5 @@ class PaymentMethod {
     return {
       'name': name,
     };
-  }
-
-  factory PaymentMethod.fromMap(Map<String, dynamic> map) {
-    return PaymentMethod(
-      id: map['id'] as int,
-      name: map['name'] as String,
-    );
   }
 }

@@ -4,7 +4,6 @@ import 'package:easthardware_pms/data/repository/product_repository.dart';
 import 'package:easthardware_pms/domain/enums/enums.dart';
 import 'package:easthardware_pms/domain/errors/exceptions.dart';
 import 'package:easthardware_pms/domain/models/invoice_product.dart';
-import 'package:easthardware_pms/domain/models/product.dart';
 import 'package:easthardware_pms/domain/repository/invoice_product_repository.dart';
 
 class InvoiceProductRepositoryImpl implements InvoiceProductRepository {
@@ -67,13 +66,13 @@ class InvoiceProductRepositoryImpl implements InvoiceProductRepository {
     }
   }
 
-  void _validateInvoiceProduct(InvoiceProduct invoiceProduct) async {
-    ProductRepositoryImpl productRepository = _productRepository;
+  Future<void> _validateInvoiceProduct(InvoiceProduct invoiceProduct) async {
+    final productRepository = _productRepository;
 
     if (invoiceProduct.quantity <= 0) {
       throw ArgumentError('Quantity should be greater than 0');
     }
-    Product? product = await productRepository.getProductById(invoiceProduct.productId);
+    final product = await productRepository.getProductById(invoiceProduct.productId);
 
     if (invoiceProduct.quantity > product!.quantity) {
       throw ArgumentError('Quantity should be less than or equal to the available quantity');

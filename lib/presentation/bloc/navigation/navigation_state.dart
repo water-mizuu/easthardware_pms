@@ -1,13 +1,13 @@
 part of 'navigation_bloc.dart';
 
-class NavigationState {
-  final int selectedIndex;
-  final String currentRouteName;
-
+class NavigationState with EquatableMixin {
   const NavigationState({
     required this.selectedIndex,
     required this.currentRouteName,
   });
+
+  final int selectedIndex;
+  final String currentRouteName;
 
   NavigationState Function({
     int selectedIndex,
@@ -23,4 +23,7 @@ class NavigationState {
       );
     };
   }
+
+  @override
+  List<Object?> get props => [selectedIndex, currentRouteName];
 }

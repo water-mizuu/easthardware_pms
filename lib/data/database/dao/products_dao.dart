@@ -28,7 +28,7 @@ final class ProductsDaoImpl extends DaoBase implements ProductsDao {
 
   @override
   Future<void> deleteProduct(int id) async {
-    final Database database = databaseHelper.database;
+    final database = databaseHelper.database;
     await database.delete(
       ProductsTable.PRODUCTS_TABLE_NAME,
       where: '${ProductsTable.PRODUCTS_ID} = ?',
@@ -38,8 +38,8 @@ final class ProductsDaoImpl extends DaoBase implements ProductsDao {
 
   @override
   Future<List<Product>> getAllProducts() async {
-    final Database database = databaseHelper.database;
-    var queryResults = await database.query(ProductFlagsView.PRODUCT_STATUS_VIEW_TABLE);
+    final database = databaseHelper.database;
+    final queryResults = await database.query(ProductFlagsView.PRODUCT_STATUS_VIEW_TABLE);
 
     return List.generate(queryResults.length, (i) {
       return Product.fromMap(queryResults[i]);
@@ -48,15 +48,15 @@ final class ProductsDaoImpl extends DaoBase implements ProductsDao {
 
   @override
   Future<Product?> getProductById(int id) async {
-    final Database database = databaseHelper.database;
-    var queryResults = await database.query(
+    final database = databaseHelper.database;
+    final queryResults = await database.query(
       ProductsTable.PRODUCTS_TABLE_NAME,
       where: '${ProductsTable.PRODUCTS_ID} = ?',
       whereArgs: [id],
     );
 
     try {
-      var json = queryResults.single;
+      final json = queryResults.single;
 
       return Product.fromMap(json);
     } on StateError {
@@ -69,8 +69,8 @@ final class ProductsDaoImpl extends DaoBase implements ProductsDao {
 
   @override
   Future<Product> insertProduct(Product product) async {
-    final Database database = databaseHelper.database;
-    int id = await database.insert(
+    final database = databaseHelper.database;
+    final id = await database.insert(
       ProductsTable.PRODUCTS_TABLE_NAME,
       product.toMap(),
       conflictAlgorithm: ConflictAlgorithm.fail,
@@ -82,8 +82,8 @@ final class ProductsDaoImpl extends DaoBase implements ProductsDao {
 
   @override
   Future<Product> updateProduct(Product product) async {
-    final Database database = databaseHelper.database;
-    int affected = await database.update(
+    final database = databaseHelper.database;
+    final affected = await database.update(
       ProductsTable.PRODUCTS_TABLE_NAME,
       product.toMap(),
       where: '${ProductsTable.PRODUCTS_ID} = ?',
@@ -97,8 +97,8 @@ final class ProductsDaoImpl extends DaoBase implements ProductsDao {
 
   @override
   Future<List<Product>> getDeadStockProducts() async {
-    final Database database = databaseHelper.database;
-    List<Map<String, dynamic>> maps = await database.rawQuery("SELECT p.* FROM products p "
+    final database = databaseHelper.database;
+    final List<Map<String, dynamic>> maps = await database.rawQuery("SELECT p.* FROM products p "
         "WHERE p.id NOT IN ("
         "  SELECT p2.id FROM products p2 "
         "  JOIN invoice_products ip ON p2.id = ip.product_id "
@@ -115,8 +115,8 @@ final class ProductsDaoImpl extends DaoBase implements ProductsDao {
 
   @override
   Future<List<Product>> getFastMovingProducts() async {
-    final Database database = databaseHelper.database;
-    List<Map<String, dynamic>> maps = await database.rawQuery(
+    final database = databaseHelper.database;
+    final List<Map<String, dynamic>> maps = await database.rawQuery(
       "SELECT products.* FROM products "
       "JOIN invoice_products ON products.id = invoice_products.product_id "
       "JOIN invoices ON invoice_products.invoice_id = invoices.id "
@@ -134,8 +134,8 @@ final class ProductsDaoImpl extends DaoBase implements ProductsDao {
   // Refactor all special case queries, as archived products won't be interacted from them
   @override
   Future<List<Product>> getLowStockProducts() async {
-    final Database database = databaseHelper.database;
-    var res = await database.query(
+    final database = databaseHelper.database;
+    final res = await database.query(
       ProductsTable.PRODUCTS_TABLE_NAME,
       where:
           '${ProductsTable.PRODUCTS_QUANTITY} <= ${ProductsTable.PRODUCTS_CRITICAL_LEVEL} AND ${ProductsTable.PRODUCTS_ARCHIVE_STATUS} = 0',
@@ -145,8 +145,8 @@ final class ProductsDaoImpl extends DaoBase implements ProductsDao {
 
   @override
   Future<List<Product>> getProductsByCategoryId(int categoryId) async {
-    final Database database = databaseHelper.database;
-    var res = await database.query(
+    final database = databaseHelper.database;
+    final res = await database.query(
       ProductsTable.PRODUCTS_TABLE_NAME,
       where: '${ProductsTable.PRODUCTS_CATEGORY} = ?',
       whereArgs: [categoryId],
@@ -156,8 +156,8 @@ final class ProductsDaoImpl extends DaoBase implements ProductsDao {
 
   @override
   Future<List<Product>> getProductsByCreatorId(int creatorId) async {
-    final Database database = databaseHelper.database;
-    var res = await database.query(
+    final database = databaseHelper.database;
+    final res = await database.query(
       ProductsTable.PRODUCTS_TABLE_NAME,
       where: '${ProductsTable.PRODUCTS_CREATOR_ID} = ?',
       whereArgs: [creatorId],

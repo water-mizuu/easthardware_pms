@@ -2,11 +2,6 @@ import 'package:easthardware_pms/utils/undefined.dart';
 import 'package:uuid/uuid.dart';
 
 class UserLog {
-  final int? id;
-  final String uid;
-  final int userId;
-  final String event;
-  final DateTime eventTime;
   UserLog({
     String? uid,
     this.id,
@@ -24,6 +19,11 @@ class UserLog {
       eventTime: DateTime.parse(map['event_time']),
     );
   }
+  final int? id;
+  final String uid;
+  final int userId;
+  final String event;
+  final DateTime eventTime;
 
   UserLog Function({
     int? id,

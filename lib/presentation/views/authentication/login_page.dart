@@ -67,7 +67,7 @@ class _LoginPageState extends State<LoginPage> {
         bloc: loginFormBloc,
         listener: (context, state) {
           if (state.status == FormStatus.submitting) {
-            var event = AuthenticationLoginEvent(
+            final event = AuthenticationLoginEvent(
               username: state.username,
               password: state.password,
             );

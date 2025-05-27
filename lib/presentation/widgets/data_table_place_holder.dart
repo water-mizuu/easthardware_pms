@@ -2,13 +2,13 @@ import 'package:easthardware_pms/presentation/widgets/spacing.dart';
 import 'package:fluent_ui/fluent_ui.dart';
 
 class DataTablePlaceHolder extends StatelessWidget {
-  final IconData icon;
-  final String items;
   const DataTablePlaceHolder(
     this.icon,
     this.items, {
     super.key,
   });
+  final IconData icon;
+  final String items;
 
   @override
   Widget build(BuildContext context) {

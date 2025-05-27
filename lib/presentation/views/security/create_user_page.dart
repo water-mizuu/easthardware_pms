@@ -161,7 +161,7 @@ class PageHeader extends StatelessWidget {
         TextButtonFilled(
           'Save User',
           onPressed: () {
-            final int userId = context.read<UserListBloc>().state.users.length + 1;
+            final userId = context.read<UserListBloc>().state.users.length + 1;
 
             context.read<UserFormBloc>()
               ..add(UserIdChangedEvent(userId))
@@ -214,7 +214,7 @@ class SecuritySection extends StatelessWidget {
               SubheadingText('Account Information'),
               AccessLevelField(),
               SecurityQuestionFields(),
-              // Include access level permisions
+              // Include access level permissions
             ].withSpacing(() => Spacing.v16),
           ),
         ),
@@ -405,7 +405,7 @@ class SecurityQuestionFields extends StatelessWidget with UserFormValidator {
                         );
                       },
                       items: [
-                        for (var staticQuestion in SECURITY_QUESTIONS)
+                        for (final staticQuestion in SECURITY_QUESTIONS)
                           AutoSuggestBoxItem(
                             label: staticQuestion,
                             value: staticQuestion,

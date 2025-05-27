@@ -1,13 +1,21 @@
 import 'package:easthardware_pms/utils/undefined.dart';
 
 class ExpenseType {
-  final int? id;
-  final String name;
 
   ExpenseType({
     this.id,
     required this.name,
   });
+
+  //from map to object
+  factory ExpenseType.fromMap(Map<String, dynamic> map) {
+    return ExpenseType(
+      id: map['id'] as int,
+      name: map['name'] as String,
+    );
+  }
+  final int? id;
+  final String name;
   ExpenseType Function({
     int? id,
     String name,
@@ -27,13 +35,5 @@ class ExpenseType {
     return <String, dynamic>{
       "name": name,
     };
-  }
-
-  //from map to object
-  factory ExpenseType.fromMap(Map<String, dynamic> map) {
-    return ExpenseType(
-      id: map['id'] as int,
-      name: map['name'] as String,
-    );
   }
 }

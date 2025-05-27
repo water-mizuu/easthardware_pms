@@ -1,10 +1,6 @@
 import 'package:easthardware_pms/utils/undefined.dart';
 
 class Unit {
-  final int? id;
-  final int? productId;
-  final String name;
-  final double factor;
 
   Unit({
     this.id,
@@ -12,6 +8,19 @@ class Unit {
     required this.name,
     required this.factor,
   });
+
+  factory Unit.fromMap(Map<String, dynamic> map) {
+    return Unit(
+      id: map['id'] as int,
+      productId: map['product_id'] as int,
+      name: map['name'] as String,
+      factor: map['conversion_factor'] as double,
+    );
+  }
+  final int? id;
+  final int? productId;
+  final String name;
+  final double factor;
 
   Unit Function({
     int? id,
@@ -32,15 +41,6 @@ class Unit {
         factor: factor.or(this.factor),
       );
     };
-  }
-
-  factory Unit.fromMap(Map<String, dynamic> map) {
-    return Unit(
-      id: map['id'] as int,
-      productId: map['product_id'] as int,
-      name: map['name'] as String,
-      factor: map['conversion_factor'] as double,
-    );
   }
 
   Map<String, dynamic> toMap() {

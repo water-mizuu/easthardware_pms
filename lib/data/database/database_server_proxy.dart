@@ -6,8 +6,8 @@ import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 ///  Specifically, the database must be on another isolate
 ///  which supports invoking methods on the database.
 class Server {
-  final MessageChannel channel;
   const Server(this.channel);
+  final MessageChannel channel;
 
   bool get isOpen => !channel.receivePort.isClosed;
 
@@ -80,7 +80,7 @@ class DatabaseServerProxy implements Database {
     int? limit,
     int? offset,
   }) async {
-    var result = await _server.invokeDatabaseMethod(
+    final result = await _server.invokeDatabaseMethod(
       'query',
       [
         table,
@@ -99,7 +99,7 @@ class DatabaseServerProxy implements Database {
     );
 
     return [
-      for (var entry in result as List<dynamic>)
+      for (final entry in result as List<dynamic>)
         (entry as Map<String, dynamic>).cast<String, Object?>()
     ];
   }
@@ -116,10 +116,10 @@ class DatabaseServerProxy implements Database {
 
   @override
   Future<List<Map<String, Object?>>> rawQuery(String sql, [List<Object?>? arguments]) async {
-    var result = await _server.invokeDatabaseMethod('rawQuery', [sql, arguments]);
+    final result = await _server.invokeDatabaseMethod('rawQuery', [sql, arguments]);
 
     return [
-      for (var entry in result as List<dynamic>)
+      for (final entry in result as List<dynamic>)
         (entry as Map<String, dynamic>).cast<String, Object?>()
     ];
   }

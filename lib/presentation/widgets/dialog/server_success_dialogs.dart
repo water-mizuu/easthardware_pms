@@ -3,24 +3,24 @@ import 'package:fluent_ui/fluent_ui.dart';
 
 /// Dialog shown when client connection is established
 class ClientConnectionSuccessDialog extends StatelessWidget {
-  final VoidCallback onCancel;
-  final VoidCallback onConfirm;
 
   const ClientConnectionSuccessDialog({
     super.key,
     required this.onCancel,
     required this.onConfirm,
   });
+  final VoidCallback onCancel;
+  final VoidCallback onConfirm;
 
   @override
   Widget build(BuildContext context) {
     return ContentDialog(
       title: const Text("Client Connected"),
-      content: Column(
+      content: const Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           Text.rich(
-            const TextSpan(
+            TextSpan(
               children: [
                 TextSpan(
                   text: "Client connected successfully. ",
@@ -32,7 +32,7 @@ class ClientConnectionSuccessDialog extends StatelessWidget {
                 ),
               ],
             ),
-            style: const TextStyle(height: 1.5),
+            style: TextStyle(height: 1.5),
           ),
         ],
       ),
@@ -68,10 +68,6 @@ class ClientConnectionSuccessDialog extends StatelessWidget {
 
 /// Dialog shown when server is started successfully
 class ServerStartedSuccessDialog extends StatelessWidget {
-  final String serverIp;
-  final int port;
-  final VoidCallback onGoBack;
-  final VoidCallback onConfirm;
 
   const ServerStartedSuccessDialog({
     super.key,
@@ -80,6 +76,10 @@ class ServerStartedSuccessDialog extends StatelessWidget {
     required this.onGoBack,
     required this.onConfirm,
   });
+  final String serverIp;
+  final int port;
+  final VoidCallback onGoBack;
+  final VoidCallback onConfirm;
 
   @override
   Widget build(BuildContext context) {
@@ -92,8 +92,8 @@ class ServerStartedSuccessDialog extends StatelessWidget {
       content: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text.rich(
-            const TextSpan(
+          const Text.rich(
+            TextSpan(
               children: [
                 TextSpan(
                   text: "Server started successfully. ",
@@ -106,7 +106,7 @@ class ServerStartedSuccessDialog extends StatelessWidget {
                 ),
               ],
             ),
-            style: const TextStyle(height: 1.5),
+            style: TextStyle(height: 1.5),
           ),
           const SizedBox(height: 12.0),
           Row(

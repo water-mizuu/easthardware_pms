@@ -33,7 +33,7 @@ class AdminNavigationScaffold extends StatelessWidget {
             /// We only impose a padding on the child if the title bar is present
             ///   and we are not on macOS.
             if (TitleBar.of(context) && !Platform.isMacOS) {
-              final padding = EdgeInsets.only(top: windowsTitleBarHeight);
+              const padding = EdgeInsets.only(top: windowsTitleBarHeight);
 
               child = Padding(padding: padding, child: child);
             }
@@ -90,7 +90,7 @@ class AdminNavigationScaffold extends StatelessWidget {
         if (Platform.isMacOS) {
           widget = Container(
             color: FluentTheme.of(context).micaBackgroundColor,
-            padding: EdgeInsets.only(top: macOSTitleBarHeight),
+            padding: const EdgeInsets.only(top: macOSTitleBarHeight),
             child: widget,
           );
         }

@@ -2,13 +2,20 @@ import 'package:easthardware_pms/domain/models/security_question.dart';
 import 'package:easthardware_pms/utils/undefined.dart';
 
 class FormQuestion {
-  final String question;
-  final String answer;
 
   const FormQuestion({
     required this.question,
     required this.answer,
   });
+
+  factory FormQuestion.fromSecurityQuestion(SecurityQuestion question) {
+    return FormQuestion(
+      question: question.question,
+      answer: question.answer,
+    );
+  }
+  final String question;
+  final String answer;
 
   FormQuestion Function({
     String question,
@@ -30,13 +37,6 @@ class FormQuestion {
       userId: userId,
       question: question,
       answer: answer,
-    );
-  }
-
-  factory FormQuestion.fromSecurityQuestion(SecurityQuestion question) {
-    return FormQuestion(
-      question: question.question,
-      answer: question.answer,
     );
   }
 }

@@ -2,19 +2,6 @@ import 'package:easthardware_pms/utils/undefined.dart';
 import 'package:uuid/uuid.dart';
 
 class Order {
-  final int? id;
-  final String uid;
-  final String payeeName;
-  final int expenseType;
-  final DateTime orderDate;
-  final int paymentMethod;
-  final String? referenceNumber;
-  final String? memo;
-  final double amountDue;
-  final double? amountPaid;
-  final DateTime? paymentDate;
-  final DateTime creationDate;
-  final int creatorId;
 
   Order({
     String? uid,
@@ -31,6 +18,37 @@ class Order {
     required this.creationDate,
     required this.creatorId,
   }) : uid = uid ?? const Uuid().v4();
+
+  factory Order.fromMap(Map<String, dynamic> map) {
+    return Order(
+      id: map['id'],
+      uid: map['uid'],
+      payeeName: map['payee_name'],
+      expenseType: map['expense_type'],
+      orderDate: DateTime.parse(map['order_date']),
+      paymentMethod: map['payment_method'],
+      referenceNumber: map['reference_number'],
+      memo: map['memo'],
+      amountDue: map['amount_due'],
+      amountPaid: map['amount_paid'],
+      paymentDate: map['payment_date'] != null ? DateTime.parse(map['payment_date']) : null,
+      creationDate: DateTime.parse(map['creation_date']),
+      creatorId: map['creator_id'],
+    );
+  }
+  final int? id;
+  final String uid;
+  final String payeeName;
+  final int expenseType;
+  final DateTime orderDate;
+  final int paymentMethod;
+  final String? referenceNumber;
+  final String? memo;
+  final double amountDue;
+  final double? amountPaid;
+  final DateTime? paymentDate;
+  final DateTime creationDate;
+  final int creatorId;
   Order Function({
     int? id,
     String uid,
@@ -94,23 +112,5 @@ class Order {
       'creation_date': creationDate.toIso8601String(),
       'creator_id': creatorId,
     };
-  }
-
-  factory Order.fromMap(Map<String, dynamic> map) {
-    return Order(
-      id: map['id'],
-      uid: map['uid'],
-      payeeName: map['payee_name'],
-      expenseType: map['expense_type'],
-      orderDate: DateTime.parse(map['order_date']),
-      paymentMethod: map['payment_method'],
-      referenceNumber: map['reference_number'],
-      memo: map['memo'],
-      amountDue: map['amount_due'],
-      amountPaid: map['amount_paid'],
-      paymentDate: map['payment_date'] != null ? DateTime.parse(map['payment_date']) : null,
-      creationDate: DateTime.parse(map['creation_date']),
-      creatorId: map['creator_id'],
-    );
   }
 }

@@ -23,9 +23,9 @@ final class UsersDaoImpl extends DaoBase implements UsersDao {
   @override
   Future<List<User>> getAllUsers() async {
     final database = databaseHelper.database;
-    var res = await database.query(UsersTable.USERS_TABLE_NAME);
+    final res = await database.query(UsersTable.USERS_TABLE_NAME);
 
-    List<User>? users = res.isNotEmpty ? res.map(User.fromMap).toList() : [];
+    final users = res.map(User.fromMap).toList();
 
     return users;
   }
@@ -39,7 +39,7 @@ final class UsersDaoImpl extends DaoBase implements UsersDao {
       whereArgs: [id],
     );
 
-    User? user = res.isNotEmpty ? User.fromMap(res.first) : null;
+    final user = res.isNotEmpty ? User.fromMap(res.first) : null;
 
     return user;
   }
@@ -53,7 +53,7 @@ final class UsersDaoImpl extends DaoBase implements UsersDao {
       whereArgs: [username],
     );
 
-    User? user = res.isNotEmpty ? User.fromMap(res.first) : null;
+    final user = res.isNotEmpty ? User.fromMap(res.first) : null;
 
     return user;
   }
@@ -90,13 +90,13 @@ final class UsersDaoImpl extends DaoBase implements UsersDao {
   @override
   Future<User?> getUserByUid(String uid) async {
     final database = databaseHelper.database;
-    var res = await database.query(
+    final res = await database.query(
       UsersTable.USERS_TABLE_NAME,
       where: "${UsersTable.USERS_UID} = ?",
       whereArgs: [uid],
     );
 
-    User? user = res.isNotEmpty ? User.fromMap(res.first) : null;
+    final user = res.isNotEmpty ? User.fromMap(res.first) : null;
 
     return user;
   }

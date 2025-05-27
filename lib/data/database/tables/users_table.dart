@@ -1,5 +1,3 @@
-import 'dart:typed_data';
-
 import 'package:easthardware_pms/domain/enums/enums.dart';
 import 'package:easthardware_pms/domain/models/user.dart';
 import 'package:easthardware_pms/domain/services/cryptography_service.dart';
@@ -19,7 +17,7 @@ class UsersTable {
   static const String USERS_CREATION_DATE = 'creation_date';
   static const String USERS_STATUS = 'status';
 
-  static void createTable(Database database) async {
+  static Future<void> createTable(Database database) async {
     await database.execute('''
       CREATE TABLE $USERS_TABLE_NAME (
       $USERS_ID INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -37,17 +35,17 @@ class UsersTable {
     _insertInitialAdmin(database);
   }
 
-  static void dropTable(Database database) async {
+  static Future<void> dropTable(Database database) async {
     await database.execute('DROP TABLE IF EXISTS $USERS_TABLE_NAME');
   }
 
   // private function: create initial admin
-  static void _insertInitialAdmin(Database database) async {
-    const String password = 'Admin123';
-    Uint8List salt = CryptographyService.generateSalt();
-    Uint8List passwordHash = CryptographyService.generateHash(password, salt);
+  static Future<void> _insertInitialAdmin(Database database) async {
+    const password = 'Admin123';
+    final salt = CryptographyService.generateSalt();
+    final passwordHash = CryptographyService.generateHash(password, salt);
 
-    User admin = User(
+    final admin = User(
       uid: const Uuid().v4(),
       status: 0,
       creationDate: DateTime.now().toIso8601String(),

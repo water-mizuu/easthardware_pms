@@ -1,13 +1,13 @@
 part of 'user_list_bloc.dart';
 
 class UserListState extends Equatable {
-  final List<User> users;
-  final DataStatus status;
-
   const UserListState({
     this.users = const [],
     this.status = DataStatus.initial,
   });
+
+  final List<User> users;
+  final DataStatus status;
 
   UserListState Function({
     List<User>? users,

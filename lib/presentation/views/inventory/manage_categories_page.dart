@@ -3,7 +3,7 @@ import 'package:easthardware_pms/domain/models/category.dart';
 import 'package:easthardware_pms/presentation/bloc/inventory/category_list/category_list_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/inventory/product_list/product_list_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/navigation/navigation_bloc.dart';
-import 'package:easthardware_pms/presentation/cubit/inventory/categoryform/category_form_cubit.dart';
+import 'package:easthardware_pms/presentation/cubit/inventory/category_form/category_form_cubit.dart';
 import 'package:easthardware_pms/presentation/router/app_routes.dart';
 import 'package:easthardware_pms/presentation/widgets/buttons/text_button.dart';
 import 'package:easthardware_pms/presentation/widgets/helper/data_row_mapper.dart';
@@ -51,8 +51,7 @@ class PageTable extends StatelessWidget {
         return BlocBuilder<CategoryListBloc, CategoryListState>(
           builder: (context, state) {
             final categories = context.read<CategoryListBloc>().state.categories;
-            //
-            Map<int, int> categoryRowMap = {};
+            final categoryRowMap = <int, int>{};
 
             for (final p in activeProducts) {
               categoryRowMap.update(p.categoryId!, (count) => count + 1, ifAbsent: () => 1);
@@ -126,7 +125,7 @@ class PageActions extends StatelessWidget {
   }
 }
 
-void showContentDialog(BuildContext context, [Category? category]) async {
+Future<void> showContentDialog(BuildContext context, [Category? category]) async {
   await showDialog(
       context: context,
       builder: (context) {

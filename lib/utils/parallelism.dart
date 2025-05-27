@@ -22,12 +22,12 @@ extension type ListenedReceivePort._(ReceivePort _port) {
 
     _port.listen((payload) async {
       /// We add the message to the queue.
-      var [name as String, message] = payload as List<Object?>;
+      final [name as String, message] = payload as List<Object?>;
       _queue[name] ??= Queue();
       _queue[name]!.addFirst(message);
 
       /// If there is a completer waiting for a message, we complete it.
-      if (_completer[name] case var completer?) {
+      if (_completer[name] case final completer?) {
         completer.complete(message);
         _queue[name]!.removeLast();
 
@@ -59,9 +59,9 @@ extension type ListenedReceivePort._(ReceivePort _port) {
       return _queue[name]!.removeFirst() as T;
     }
 
-    var completer = Completer<void>();
+    final completer = Completer<void>();
     _completer[name] = completer;
-    var rawValue = await completer.future as Object?;
+    final rawValue = await completer.future as Object?;
     if (_completer[name] != completer) {
       completer.completeError(
         Exception("The completer for the name '$name' has been replaced."),
@@ -75,7 +75,7 @@ extension type ListenedReceivePort._(ReceivePort _port) {
       "The value received from the [ReceivePort] must be of type $T. "
       "Got ${rawValue.runtimeType} instead",
     );
-    var value = rawValue as T;
+    final value = rawValue as T;
     _completer.remove(name);
 
     return value;

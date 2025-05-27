@@ -32,22 +32,22 @@ final class UnitsDaoImpl extends DaoBase implements UnitsDao {
   @override
   Future<List<Unit>> getAllUnits() async {
     final database = databaseHelper.database;
-    var res = await database.query(UnitsTable.UNITS_TABLE_NAME);
+    final res = await database.query(UnitsTable.UNITS_TABLE_NAME);
 
-    List<Unit>? units = res.isNotEmpty ? res.map(Unit.fromMap).toList() : [];
+    final units = res.map(Unit.fromMap).toList();
     return units;
   }
 
   @override
   Future<Unit?> getUnitById(int id) async {
     final database = databaseHelper.database;
-    var res = await database.query(
+    final res = await database.query(
       UnitsTable.UNITS_TABLE_NAME,
       where: "${UnitsTable.UNITS_ID} = ?",
       whereArgs: [id],
     );
 
-    Unit? unit = res.isNotEmpty ? Unit.fromMap(res.first) : null;
+    final unit = res.isNotEmpty ? Unit.fromMap(res.first) : null;
     return unit;
   }
 
@@ -73,13 +73,13 @@ final class UnitsDaoImpl extends DaoBase implements UnitsDao {
   @override
   Future<List<Unit>> getAllUnitsOfProduct(int id) async {
     final database = databaseHelper.database;
-    var res = await database.query(
+    final res = await database.query(
       UnitsTable.UNITS_TABLE_NAME,
       where: "${UnitsTable.UNITS_PRODUCT_ID} = ?",
       whereArgs: [id],
     );
 
-    List<Unit>? units = res.isNotEmpty ? res.map(Unit.fromMap).toList() : [];
+    final units = res.map(Unit.fromMap).toList();
     return units;
   }
 }

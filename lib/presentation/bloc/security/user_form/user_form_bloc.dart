@@ -14,7 +14,6 @@ part 'user_form_event.dart';
 part 'user_form_state.dart';
 
 class UserFormBloc extends Bloc<UserFormEvent, UserFormState> {
-  final GlobalKey<FormState> formKey;
   UserFormBloc()
       : formKey = GlobalKey<FormState>(),
         super(const UserFormState()) {
@@ -31,8 +30,9 @@ class UserFormBloc extends Bloc<UserFormEvent, UserFormState> {
     on<FormSubmittedEvent>(_onFormSubmitted);
     on<FormResetEvent>(_onFormReset);
   }
+  final GlobalKey<FormState> formKey;
 
-  void _onUserIdChanged(UserIdChangedEvent event, Emitter emit) async {
+  Future<void> _onUserIdChanged(UserIdChangedEvent event, Emitter emit) async {
     try {
       emit(state.copyWith(userId: event.userId));
     } catch (e) {
@@ -40,7 +40,7 @@ class UserFormBloc extends Bloc<UserFormEvent, UserFormState> {
     }
   }
 
-  void _onFirstNameChanged(FirstNameFieldChangedEvent event, Emitter emit) async {
+  Future<void> _onFirstNameChanged(FirstNameFieldChangedEvent event, Emitter emit) async {
     try {
       emit(state.copyWith(firstName: event.firstName));
     } catch (e) {
@@ -48,7 +48,7 @@ class UserFormBloc extends Bloc<UserFormEvent, UserFormState> {
     }
   }
 
-  void _onLastNameChanged(LastNameFieldChangedEvent event, Emitter emit) async {
+  Future<void> _onLastNameChanged(LastNameFieldChangedEvent event, Emitter emit) async {
     try {
       emit(state.copyWith(lastName: event.lastName));
     } catch (e) {
@@ -56,7 +56,7 @@ class UserFormBloc extends Bloc<UserFormEvent, UserFormState> {
     }
   }
 
-  void _onUsernameChanged(UsernameFieldChangedEvent event, Emitter emit) async {
+  Future<void> _onUsernameChanged(UsernameFieldChangedEvent event, Emitter emit) async {
     try {
       emit(state.copyWith(username: event.username));
     } catch (e) {
@@ -64,7 +64,7 @@ class UserFormBloc extends Bloc<UserFormEvent, UserFormState> {
     }
   }
 
-  void _onPasswordChanged(PasswordFieldChangedEvent event, Emitter emit) async {
+  Future<void> _onPasswordChanged(PasswordFieldChangedEvent event, Emitter emit) async {
     try {
       emit(state.copyWith(password: event.password));
     } catch (e) {
@@ -72,7 +72,8 @@ class UserFormBloc extends Bloc<UserFormEvent, UserFormState> {
     }
   }
 
-  void _onConfirmPasswordChanged(ConfirmPasswordFieldChangedEvent event, Emitter emit) async {
+  Future<void> _onConfirmPasswordChanged(
+      ConfirmPasswordFieldChangedEvent event, Emitter emit) async {
     try {
       emit(state.copyWith(confirmPassword: event.confirmPassword));
     } catch (e) {
@@ -80,7 +81,7 @@ class UserFormBloc extends Bloc<UserFormEvent, UserFormState> {
     }
   }
 
-  void _onAccessLevelChanged(AccessLevelFieldChangedEvent event, Emitter emit) async {
+  Future<void> _onAccessLevelChanged(AccessLevelFieldChangedEvent event, Emitter emit) async {
     try {
       emit(state.copyWith(accessLevel: event.accessLevel));
     } catch (e) {
@@ -88,11 +89,11 @@ class UserFormBloc extends Bloc<UserFormEvent, UserFormState> {
     }
   }
 
-  void _onQuestionChanged(QuestionFieldChangedEvent event, Emitter emit) async {
+  Future<void> _onQuestionChanged(QuestionFieldChangedEvent event, Emitter emit) async {
     try {
-      final String question = event.question;
-      final int index = event.index;
-      final List<FormQuestion> updatedQuestions = List.from(state.questions);
+      final question = event.question;
+      final index = event.index;
+      final updatedQuestions = List<FormQuestion>.from(state.questions);
 
       updatedQuestions[index] = updatedQuestions[index].copyWith(question: question);
       emit(state.copyWith(questions: updatedQuestions));
@@ -101,11 +102,11 @@ class UserFormBloc extends Bloc<UserFormEvent, UserFormState> {
     }
   }
 
-  void _onAnswerChanged(AnswerFieldChangedEvent event, Emitter emit) async {
+  Future<void> _onAnswerChanged(AnswerFieldChangedEvent event, Emitter emit) async {
     try {
-      final String answer = event.answer;
-      final int index = event.index;
-      final List<FormQuestion> updatedQuestions = List.from(state.questions);
+      final answer = event.answer;
+      final index = event.index;
+      final updatedQuestions = List<FormQuestion>.from(state.questions);
 
       updatedQuestions[index] = updatedQuestions[index].copyWith(answer: answer);
       emit(state.copyWith(questions: updatedQuestions));
@@ -114,13 +115,13 @@ class UserFormBloc extends Bloc<UserFormEvent, UserFormState> {
     }
   }
 
-  void _onButtonPressed(FormButtonPressedEvent event, Emitter emit) async {
+  Future<void> _onButtonPressed(FormButtonPressedEvent event, Emitter emit) async {
     try {
       if (state.accessLevel.trim().isEmpty) {
         // For displaying error message
         emit(state.copyWith(accessLevelErrorMessage: 'Please select an access level'));
       }
-      if (formKey.currentState case FormState formState when formState.validate()) {
+      if (formKey.currentState case final FormState formState when formState.validate()) {
         final uid = const Uuid().v4();
         final creationDate = DateTime.now().toIso8601String();
         final salt = CryptographyService.generateSalt();
@@ -144,7 +145,7 @@ class UserFormBloc extends Bloc<UserFormEvent, UserFormState> {
     }
   }
 
-  void _onFormSubmitted(FormSubmittedEvent event, Emitter emit) async {
+  Future<void> _onFormSubmitted(FormSubmittedEvent event, Emitter emit) async {
     try {
       emit(state.copyWith(status: FormStatus.submitted));
     } catch (e) {
@@ -152,7 +153,7 @@ class UserFormBloc extends Bloc<UserFormEvent, UserFormState> {
     }
   }
 
-  void _onFormReset(FormResetEvent event, Emitter emit) async {
+  Future<void> _onFormReset(FormResetEvent event, Emitter emit) async {
     try {
       emit(const UserFormState());
     } catch (e) {

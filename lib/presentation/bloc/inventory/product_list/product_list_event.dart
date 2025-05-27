@@ -12,27 +12,26 @@ class LoadAllProductsEvent extends ProductListEvent {}
 class ReloadAllProductsEvent extends ProductListEvent {}
 
 class AddProductEvent extends ProductListEvent {
-  final Product product;
-
   const AddProductEvent(this.product);
+
+  final Product product;
 
   @override
   List<Object> get props => [product];
 }
 
 class UpdateProductEvent extends ProductListEvent {
-  final Product product;
-
   const UpdateProductEvent(this.product);
+
+  final Product product;
 
   @override
   List<Object> get props => [product];
 }
 
 class DeleteProductEvent extends ProductListEvent {
-  final int productId;
-
   const DeleteProductEvent(this.productId);
+  final int productId;
 
   @override
   List<Object> get props => [productId];

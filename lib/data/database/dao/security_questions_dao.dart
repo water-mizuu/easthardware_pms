@@ -31,7 +31,7 @@ final class SecurityQuestionsDaoImpl extends DaoBase implements SecurityQuestion
   @override
   Future<List<SecurityQuestion>> getAllSecurityQuestions() async {
     final database = databaseHelper.database;
-    var queryResults = await database.query(SecurityQuestionsTable.SECURITY_QUESTIONS_TABLE);
+    final queryResults = await database.query(SecurityQuestionsTable.SECURITY_QUESTIONS_TABLE);
 
     return queryResults.map(SecurityQuestion.fromMap).toList();
   }
@@ -39,14 +39,14 @@ final class SecurityQuestionsDaoImpl extends DaoBase implements SecurityQuestion
   @override
   Future<SecurityQuestion?> getSecurityQuestionById(int id) async {
     final database = databaseHelper.database;
-    var queryResults = await database.query(
+    final queryResults = await database.query(
       SecurityQuestionsTable.SECURITY_QUESTIONS_TABLE,
       where: '${SecurityQuestionsTable.SECURITY_QUESTIONS_ID} = ?',
       whereArgs: [id],
     );
 
     try {
-      var json = queryResults.single;
+      final json = queryResults.single;
 
       return SecurityQuestion.fromMap(json);
     } on StateError {
@@ -80,7 +80,7 @@ final class SecurityQuestionsDaoImpl extends DaoBase implements SecurityQuestion
   @override
   Future<List<SecurityQuestion>> getSecurityQuestionsByUserId(int id) async {
     final database = databaseHelper.database;
-    var queryResults = await database.query(
+    final queryResults = await database.query(
       SecurityQuestionsTable.SECURITY_QUESTIONS_TABLE,
       where: '${SecurityQuestionsTable.SECURITY_QUESTIONS_USER_ID} = ?',
       whereArgs: [id],

@@ -20,7 +20,7 @@ class SecurityQuestionListBloc extends Bloc<SecurityQuestionListEvent, SecurityQ
 
   final SecurityQuestionRepository _repository;
 
-  void _onFetchSecurityQuestions(
+  Future<void> _onFetchSecurityQuestions(
       FetchSecurityQuestionsEvent event, Emitter<SecurityQuestionListState> emit) async {
     emit(state.copyWith(status: DataStatus.loading));
     try {
@@ -41,7 +41,7 @@ class SecurityQuestionListBloc extends Bloc<SecurityQuestionListEvent, SecurityQ
     emit(state.copyWith(filteredQuestions: filteredQuestions));
   }
 
-  void _onAddSecurityQuestion(
+  Future<void> _onAddSecurityQuestion(
       AddSecurityQuestionEvent event, Emitter<SecurityQuestionListState> emit) async {
     try {
       final insertedQuestion = await _repository.addSecurityQuestion(event.question);
@@ -56,7 +56,7 @@ class SecurityQuestionListBloc extends Bloc<SecurityQuestionListEvent, SecurityQ
     }
   }
 
-  void _onUpdateSecurityQuestion(
+  Future<void> _onUpdateSecurityQuestion(
       UpdateSecurityQuestionEvent event, Emitter<SecurityQuestionListState> emit) async {
     try {
       final updatedQuestion = await _repository.updateSecurityQuestion(event.question);
@@ -72,7 +72,7 @@ class SecurityQuestionListBloc extends Bloc<SecurityQuestionListEvent, SecurityQ
     }
   }
 
-  void _onDeleteSecurityQuestion(
+  Future<void> _onDeleteSecurityQuestion(
       DeleteSecurityQuestionEvent event, Emitter<SecurityQuestionListState> emit) async {
     try {
       await _repository.deleteSecurityQuestion(event.question.id!);

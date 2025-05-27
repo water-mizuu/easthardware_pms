@@ -105,7 +105,7 @@ class DependencyInjector {
         create: (context) {
           _userLogListBloc?.close();
 
-          return _userLogListBloc = UserLogListBloc(_userLogRepository)..add(LoadUserLogsEvent());
+          return _userLogListBloc = UserLogListBloc(_userLogRepository)..add(const LoadUserLogsEvent());
         },
         key: ValueKey(_databaseHelper),
       ),
@@ -140,7 +140,7 @@ class DependencyInjector {
     _productListBloc?.add(LoadAllProductsEvent());
     _categoryListBloc?.add(LoadCategoriesEvent());
     _unitListBloc?.add(LoadUnitsEvent());
-    _userLogListBloc?.add(LoadUserLogsEvent());
+    _userLogListBloc?.add(const LoadUserLogsEvent());
     _securityQuestionListBloc?.add(const FetchSecurityQuestionsEvent());
   }
 }

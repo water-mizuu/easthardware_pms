@@ -2,7 +2,7 @@ import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 class ProductFlagsView {
   static const String PRODUCT_STATUS_VIEW_TABLE = 'product_status_view';
-  static void createView(Database database) async {
+  static Future<void> createView(Database database) async {
     await database.execute('''
       CREATE VIEW $PRODUCT_STATUS_VIEW_TABLE AS
       SELECT p.*,
@@ -43,7 +43,7 @@ class ProductFlagsView {
   }
 
   //"  AND date(p.creation_date) <= date('now', '-' || dead_stock_threshold || ' days')"
-  static void dropView(Database database) async {
+  static Future<void> dropView(Database database) async {
     await database.execute('DROP VIEW IF EXISTS $PRODUCT_STATUS_VIEW_TABLE');
   }
 }

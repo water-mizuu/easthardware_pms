@@ -11,8 +11,6 @@ part 'user_log_list_event.dart';
 part 'user_log_list_state.dart';
 
 class UserLogListBloc extends Bloc<UserLogListEvent, UserLogListState> {
-  final UserLogRepository _repository;
-
   UserLogListBloc(this._repository) : super(const UserLogListState()) {
     on<LoadUserLogsEvent>(_onLoadUserLogs);
     on<AddCreateEvent>(_onAddCreateLog);
@@ -24,8 +22,9 @@ class UserLogListBloc extends Bloc<UserLogListEvent, UserLogListState> {
     on<AddLogoutEvent>(_onAddLogoutLog);
     on<FilterUserLogsEvent>(_onFilterUserLogs);
   }
+  final UserLogRepository _repository;
 
-  void _onLoadUserLogs(LoadUserLogsEvent event, Emitter<UserLogListState> emit) async {
+  Future<void> _onLoadUserLogs(LoadUserLogsEvent event, Emitter<UserLogListState> emit) async {
     emit(state.copyWith(status: DataStatus.loading));
     try {
       final userLogs = await _repository.getAllUserLogs();
@@ -38,11 +37,11 @@ class UserLogListBloc extends Bloc<UserLogListEvent, UserLogListState> {
     }
   }
 
-  void _onAddCreateLog(AddCreateEvent event, Emitter<UserLogListState> emit) async {
+  Future<void> _onAddCreateLog(AddCreateEvent event, Emitter<UserLogListState> emit) async {
     try {
-      final String logEvent = "Created ${event.item}";
-      final DateTime logDateTime = DateTime.now();
-      final UserLog userLog = UserLog(
+      final logEvent = "Created ${event.item}";
+      final logDateTime = DateTime.now();
+      final userLog = UserLog(
         userId: event.user.id!,
         event: logEvent,
         eventTime: logDateTime,
@@ -59,11 +58,11 @@ class UserLogListBloc extends Bloc<UserLogListEvent, UserLogListState> {
     }
   }
 
-  void _onAddUpdateLog(AddUpdateEvent event, Emitter<UserLogListState> emit) async {
+  Future<void> _onAddUpdateLog(AddUpdateEvent event, Emitter<UserLogListState> emit) async {
     try {
-      final String logEvent = "Updated ${event.item}";
-      final DateTime logDateTime = DateTime.now();
-      final UserLog userLog = UserLog(
+      final logEvent = "Updated ${event.item}";
+      final logDateTime = DateTime.now();
+      final userLog = UserLog(
         userId: event.user.id!,
         event: logEvent,
         eventTime: logDateTime,
@@ -80,11 +79,11 @@ class UserLogListBloc extends Bloc<UserLogListEvent, UserLogListState> {
     }
   }
 
-  void _onAddArchiveLog(AddArchiveEvent event, Emitter<UserLogListState> emit) async {
+  Future<void> _onAddArchiveLog(AddArchiveEvent event, Emitter<UserLogListState> emit) async {
     try {
-      final String logEvent = "Archived ${event.item}";
-      final DateTime logDateTime = DateTime.now();
-      final UserLog userLog = UserLog(
+      final logEvent = "Archived ${event.item}";
+      final logDateTime = DateTime.now();
+      final userLog = UserLog(
         userId: event.user.id!,
         event: logEvent,
         eventTime: logDateTime,
@@ -101,11 +100,11 @@ class UserLogListBloc extends Bloc<UserLogListEvent, UserLogListState> {
     }
   }
 
-  void _onAddLoginLog(AddLoginEvent event, Emitter emit) async {
+  Future<void> _onAddLoginLog(AddLoginEvent event, Emitter emit) async {
     try {
-      final String logEvent = "${event.user.firstName} ${event.user.lastName} Logged in";
-      final DateTime logDateTime = DateTime.now();
-      final UserLog userLog = UserLog(
+      final logEvent = "${event.user.firstName} ${event.user.lastName} Logged in";
+      final logDateTime = DateTime.now();
+      final userLog = UserLog(
         userId: event.user.id!,
         event: logEvent,
         eventTime: logDateTime,
@@ -122,7 +121,7 @@ class UserLogListBloc extends Bloc<UserLogListEvent, UserLogListState> {
     }
   }
 
-  void _onUpdateUserLog(UpdateUserLogEvent event, Emitter<UserLogListState> emit) async {
+  Future<void> _onUpdateUserLog(UpdateUserLogEvent event, Emitter<UserLogListState> emit) async {
     emit(state.copyWith(status: DataStatus.loading));
     try {
       final updatedUserLog = await _repository.updateUserLog(event.userLog);
@@ -142,7 +141,7 @@ class UserLogListBloc extends Bloc<UserLogListEvent, UserLogListState> {
     }
   }
 
-  void _onDeleteUserLog(DeleteUserLogEvent event, Emitter<UserLogListState> emit) async {
+  Future<void> _onDeleteUserLog(DeleteUserLogEvent event, Emitter<UserLogListState> emit) async {
     emit(state.copyWith(status: DataStatus.loading));
     try {
       await _repository.deleteUserLog(event.userLog);
@@ -158,7 +157,7 @@ class UserLogListBloc extends Bloc<UserLogListEvent, UserLogListState> {
     }
   }
 
-  void _onFilterUserLogs(FilterUserLogsEvent event, Emitter<UserLogListState> emit) async {
+  Future<void> _onFilterUserLogs(FilterUserLogsEvent event, Emitter<UserLogListState> emit) async {
     emit(state.copyWith(status: DataStatus.loading));
     try {
       final filteredUserLogs = await _repository.getUserLogByUserId(event.id);
@@ -171,11 +170,11 @@ class UserLogListBloc extends Bloc<UserLogListEvent, UserLogListState> {
     }
   }
 
-  void _onAddLogoutLog(AddLogoutEvent event, Emitter emit) async {
+  Future<void> _onAddLogoutLog(AddLogoutEvent event, Emitter emit) async {
     try {
-      final String logEvent = "${event.user.firstName} ${event.user.lastName} Logged out";
-      final DateTime logDateTime = DateTime.now();
-      final UserLog userLog = UserLog(
+      final logEvent = "${event.user.firstName} ${event.user.lastName} Logged out";
+      final logDateTime = DateTime.now();
+      final userLog = UserLog(
         userId: event.user.id!,
         event: logEvent,
         eventTime: logDateTime,

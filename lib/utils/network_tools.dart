@@ -18,18 +18,18 @@ MessageChannel? _isolateMessageChannel;
 Future<void> initializeNetworkTools() async {
   assert(RootIsolateToken.instance != null, "This function must be called from the root isolate.");
 
-  var deviceIp = await NetworkInfo().getWifiIP().then((p) => p!);
+  final deviceIp = await NetworkInfo().getWifiIP().then((p) => p!);
   if (kDebugMode) {
     print("Device IP: $deviceIp");
   }
 
   /// Initialize the network tools in the root isolate too.
-  var appDocDirectory = await getApplicationDocumentsDirectory();
+  final appDocDirectory = await getApplicationDocumentsDirectory();
   if (kDebugMode) {
     print("Application Document Directory: ${appDocDirectory.path}");
   }
 
-  var networkToolsReceivePort = ReceivePort().hostListener();
+  final networkToolsReceivePort = ReceivePort().hostListener();
   NamedSendPort networkToolsSendPort;
 
   await configureNetworkTools(appDocDirectory.path);
@@ -55,10 +55,10 @@ Future<void> initializeNetworkTools() async {
 Future<List<(Future<String>, String)>> scanIps() async {
   assert(_isolateMessageChannel != null, "Network tools not initialized.");
 
-  var result = await _isolateMessageChannel!.invoke<List<SendableActiveHost>>("scan_ips");
+  final result = await _isolateMessageChannel!.invoke<List<SendableActiveHost>>("scan_ips");
 
   return [
-    for (var sendableActiveHost in result)
+    for (final sendableActiveHost in result)
       (
         ActiveHost.fromSendableActiveHost(sendableActiveHost: sendableActiveHost) //
             .deviceName
@@ -73,15 +73,15 @@ Future<List<(Future<String>, String)>> scanIps() async {
 ///   The isolate waits for the receivePort.
 Future<void> _networkTools((SendPort, RootIsolateToken, String) payload) async {
   /// Isolate Initialization
-  var (sendPort, token, deviceIp) = payload;
+  final (sendPort, token, deviceIp) = payload;
   BackgroundIsolateBinaryMessenger.ensureInitialized(token);
 
   /// The local receive port within the isolate.
-  var receivePort = ReceivePort().hostListener();
+  final receivePort = ReceivePort().hostListener();
   sendPort.send(receivePort.sendPort);
 
   /// Necessary for the network tools to work in the separate isolate.
-  var appDocDirectory = await getApplicationDocumentsDirectory();
+  final appDocDirectory = await getApplicationDocumentsDirectory();
   await configureNetworkTools(appDocDirectory.path);
 
   unawaited(() async {
@@ -96,9 +96,9 @@ Future<void> _networkTools((SendPort, RootIsolateToken, String) payload) async {
       );
 
       if (message case ["scan_ips", _]) {
-        var subnet = deviceIp.substring(0, deviceIp.lastIndexOf("."));
-        var searcher = HostScannerService.instance.getAllSendablePingableDevices(subnet);
-        var devices = [await for (var device in searcher) device];
+        final subnet = deviceIp.substring(0, deviceIp.lastIndexOf("."));
+        final searcher = HostScannerService.instance.getAllSendablePingableDevices(subnet);
+        final devices = [await for (final device in searcher) device];
         sendPort.send(devices);
       } else {
         throw StateError("Unrecognized message $message.");

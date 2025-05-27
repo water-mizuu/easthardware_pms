@@ -96,16 +96,16 @@ class _ClientConnectionDialogState extends State<ClientConnectionDialog> {
                           focusNodes[i].unfocus();
                           focusNodes[i + 1].requestFocus();
                           controllers[i].value = TextEditingValue(text: value.trimRight());
-                          controllers[i + 1].value = TextEditingValue(text: " ");
+                          controllers[i + 1].value = const TextEditingValue(text: " ");
                         }
                       } else {
                         if (i > 0) {
                           focusNodes[i].unfocus();
                           focusNodes[i - 1].requestFocus();
-                          controllers[i].value = TextEditingValue(text: "");
+                          controllers[i].value = const TextEditingValue(text: "");
 
                           if (controllers[i - 1].text.isEmpty) {
-                            controllers[i - 1].value = TextEditingValue(text: " ");
+                            controllers[i - 1].value = const TextEditingValue(text: " ");
                           }
                         }
                       }
@@ -121,7 +121,7 @@ class _ClientConnectionDialogState extends State<ClientConnectionDialog> {
               strokeWidth: 2.0,
               value: null,
             ),
-            Text(
+            const Text(
               "Connecting...",
               style: TextStyle(color: Colors.black),
             ),

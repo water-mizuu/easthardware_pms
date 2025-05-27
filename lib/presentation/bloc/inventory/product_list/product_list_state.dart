@@ -1,19 +1,19 @@
 part of 'product_list_bloc.dart';
 
-class ProductListState {
-  final List<Product> allProducts;
-  final List<Product> lowStockProducts;
-  final List<Product> deadStockProducts;
-  final List<Product> fastMovingProducts;
-  final DataStatus status;
-
-  ProductListState({
+class ProductListState with EquatableMixin {
+  const ProductListState({
     required this.allProducts,
     required this.lowStockProducts,
     required this.deadStockProducts,
     required this.fastMovingProducts,
     this.status = DataStatus.initial,
   });
+
+  final List<Product> allProducts;
+  final List<Product> lowStockProducts;
+  final List<Product> deadStockProducts;
+  final List<Product> fastMovingProducts;
+  final DataStatus status;
 
   ProductListState Function({
     List<Product> allProducts,
@@ -38,6 +38,15 @@ class ProductListState {
       );
     };
   }
+
+  @override
+  List<Object?> get props => [
+        allProducts,
+        lowStockProducts,
+        deadStockProducts,
+        fastMovingProducts,
+        status,
+      ];
 }
 
 class ProductsStateInitial extends ProductListState {

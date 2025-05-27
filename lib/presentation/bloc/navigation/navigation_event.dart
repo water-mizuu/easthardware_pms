@@ -7,9 +7,13 @@ sealed class NavigationEvent extends Equatable {
   List<Object> get props => [];
 }
 
-class NavigationIndexChanged extends NavigationEvent {
-  final int index;
+class NavigationIndexChanged with EquatableMixin implements NavigationEvent {
   const NavigationIndexChanged({
     required this.index,
   });
+
+  final int index;
+
+  @override
+  List<Object> get props => [index];
 }

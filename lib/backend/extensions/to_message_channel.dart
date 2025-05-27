@@ -54,7 +54,7 @@ extension MessageChannelExtension on WebSocketChannel {
         }
 
         final [name as String, args] = message as List<Object?>;
-        if (args case [String id, ["ping", _]]) {
+        if (args case [final String id, ["ping", _]]) {
           messageChannel.sendPort.send(id, "pong");
         }
 

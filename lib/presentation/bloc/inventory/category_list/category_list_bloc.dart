@@ -19,7 +19,7 @@ class CategoryListBloc extends Bloc<CategoryListEvent, CategoryListState> {
 
   final CategoryRepository _repository;
 
-  void _onLoad(LoadCategoriesEvent event, Emitter emit) async {
+  Future<void> _onLoad(LoadCategoriesEvent event, Emitter emit) async {
     emit(state.copyWith(status: DataStatus.loading));
     try {
       emit(state.copyWith(
@@ -31,7 +31,7 @@ class CategoryListBloc extends Bloc<CategoryListEvent, CategoryListState> {
     }
   }
 
-  void _onReload(ReloadCategoriesEvent event, Emitter emit) async {
+  Future<void> _onReload(ReloadCategoriesEvent event, Emitter emit) async {
     emit(state.copyWith(status: DataStatus.loading));
     try {
       emit(state.copyWith(
@@ -43,7 +43,7 @@ class CategoryListBloc extends Bloc<CategoryListEvent, CategoryListState> {
     }
   }
 
-  void _onAdd(AddCategoryEvent event, Emitter emit) async {
+  Future<void> _onAdd(AddCategoryEvent event, Emitter emit) async {
     emit(state.copyWith(status: DataStatus.loading));
     try {
       final category = await _repository.insertCategory(event.category);
@@ -54,7 +54,7 @@ class CategoryListBloc extends Bloc<CategoryListEvent, CategoryListState> {
     }
   }
 
-  void _onUpdate(UpdateCategoryEvent event, Emitter emit) async {
+  Future<void> _onUpdate(UpdateCategoryEvent event, Emitter emit) async {
     emit(state.copyWith(status: DataStatus.loading));
     try {
       _repository.updateCategory(event.category);
@@ -67,7 +67,7 @@ class CategoryListBloc extends Bloc<CategoryListEvent, CategoryListState> {
     }
   }
 
-  void _onDelete(DeleteCategoryEvent event, Emitter emit) async {
+  Future<void> _onDelete(DeleteCategoryEvent event, Emitter emit) async {
     emit(state.copyWith(status: DataStatus.loading));
     try {
       _repository.deleteCategory(event.categoryId);

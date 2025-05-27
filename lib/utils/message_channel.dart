@@ -18,7 +18,7 @@ extension type const MessageChannel._((ListenedReceivePort, NamedSendPort) pair)
   /// Invokes a method on the channel with the given arguments.
   /// Returns a future which completes with the result of the invocation.
   Future<T> invoke<T>(String method, [List<Object?>? arguments]) {
-    final name = Uuid().v4();
+    final name = const Uuid().v4();
     final payload = [method, arguments];
 
     /// We send an invocation request, alongside the completer name and the payload.

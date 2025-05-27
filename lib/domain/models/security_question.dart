@@ -1,10 +1,6 @@
 import 'package:easthardware_pms/utils/undefined.dart';
 
 class SecurityQuestion {
-  final int? id;
-  final int userId;
-  final String question;
-  final String answer;
 
   SecurityQuestion({
     this.id,
@@ -21,6 +17,10 @@ class SecurityQuestion {
       answer: map['answer'],
     );
   }
+  final int? id;
+  final int userId;
+  final String question;
+  final String answer;
 
   SecurityQuestion Function({
     int? id,

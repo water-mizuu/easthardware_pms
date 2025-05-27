@@ -7,20 +7,20 @@ import 'package:fluent_ui/fluent_ui.dart';
 part 'category_form_state.dart';
 
 class CategoryFormCubit extends Cubit<CategoryFormState> {
-  final GlobalKey<FormState> formKey;
   CategoryFormCubit()
       : formKey = GlobalKey<FormState>(),
         super(const CategoryFormState());
+  final GlobalKey<FormState> formKey;
 
   void onFormNameChanged(String name) {
     emit(state.copyWith(name: name));
   }
 
-  void onButtonPressed() async {
+  Future<void> onButtonPressed() async {
     emit(state.copyWith(status: FormStatus.validating));
     await Future.delayed(Duration.zero);
     if (formKey.currentState?.mounted != true) return;
-    if (formKey.currentState case FormState formState when formState.validate()) {
+    if (formKey.currentState case final FormState formState when formState.validate()) {
       emit(state.copyWith(status: FormStatus.submitting));
     }
   }

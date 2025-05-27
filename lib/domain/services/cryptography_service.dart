@@ -10,7 +10,7 @@ class CryptographyService {
   static Uint8List generateSalt([int length = 16]) {
     final secureRandom = Random.secure();
     final salt = Uint8List(length);
-    for (int i = 0; i < length; i++) {
+    for (var i = 0; i < length; i++) {
       salt[i] = secureRandom.nextInt(256);
     }
     return salt;

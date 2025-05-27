@@ -2,25 +2,6 @@
 import 'package:easthardware_pms/utils/undefined.dart';
 
 class Product {
-  final int? id;
-  final String name;
-  final int? categoryId;
-  String? categoryName;
-  final String sku;
-  final String? description;
-  final double salePrice;
-  final double orderCost;
-  final double quantity;
-  final String mainUnit;
-  final double criticalLevel;
-  final double deadStockThreshold;
-  final double fastMovingStockThreshold;
-  final String creationDate;
-  final int creatorId;
-  final int archiveStatus;
-  final bool? isBelowCriticalLevel;
-  final bool? isFastMovingStock;
-  final bool? isDeadStock;
 
   Product({
     this.id,
@@ -43,6 +24,48 @@ class Product {
     this.isFastMovingStock,
     this.isDeadStock,
   });
+
+  factory Product.fromMap(Map<String, dynamic> map) {
+    return Product(
+      id: map['id'] as int?,
+      name: map['name']?.toString() ?? '',
+      sku: map['sku']?.toString() ?? '',
+      categoryId: map['category'] as int?,
+      description: map['description']?.toString(),
+      salePrice: (map['sale_price'] as num).toDouble(),
+      orderCost: (map['order_cost'] as num).toDouble(),
+      quantity: (map['quantity'] as num).toDouble(),
+      mainUnit: map['main_unit']?.toString() ?? '',
+      criticalLevel: (map['critical_level'] as num).toDouble(),
+      deadStockThreshold: (map['dead_stock_threshold'] as num).toDouble(),
+      fastMovingStockThreshold: (map['fast_moving_threshold'] as num).toDouble(),
+      creationDate: map['creation_date']?.toString() ?? '',
+      creatorId: map['creator_id'] as int,
+      archiveStatus: map['archive_status'] as int,
+      isBelowCriticalLevel: map['is_below_critical_level'] == 1,
+      isFastMovingStock: map['is_fast_moving_stock'] == 1,
+      isDeadStock: map['is_dead_stock'] == 1,
+    );
+  }
+  final int? id;
+  final String name;
+  final int? categoryId;
+  String? categoryName;
+  final String sku;
+  final String? description;
+  final double salePrice;
+  final double orderCost;
+  final double quantity;
+  final String mainUnit;
+  final double criticalLevel;
+  final double deadStockThreshold;
+  final double fastMovingStockThreshold;
+  final String creationDate;
+  final int creatorId;
+  final int archiveStatus;
+  final bool? isBelowCriticalLevel;
+  final bool? isFastMovingStock;
+  final bool? isDeadStock;
 
   Product Function({
     int? id,
@@ -127,28 +150,5 @@ class Product {
       'creator_id': creatorId,
       'archive_status': archiveStatus,
     };
-  }
-
-  factory Product.fromMap(Map<String, dynamic> map) {
-    return Product(
-      id: map['id'] as int?,
-      name: map['name']?.toString() ?? '',
-      sku: map['sku']?.toString() ?? '',
-      categoryId: map['category'] as int?,
-      description: map['description']?.toString(),
-      salePrice: (map['sale_price'] as num).toDouble(),
-      orderCost: (map['order_cost'] as num).toDouble(),
-      quantity: (map['quantity'] as num).toDouble(),
-      mainUnit: map['main_unit']?.toString() ?? '',
-      criticalLevel: (map['critical_level'] as num).toDouble(),
-      deadStockThreshold: (map['dead_stock_threshold'] as num).toDouble(),
-      fastMovingStockThreshold: (map['fast_moving_threshold'] as num).toDouble(),
-      creationDate: map['creation_date']?.toString() ?? '',
-      creatorId: map['creator_id'] as int,
-      archiveStatus: map['archive_status'] as int,
-      isBelowCriticalLevel: map['is_below_critical_level'] == 1,
-      isFastMovingStock: map['is_fast_moving_stock'] == 1,
-      isDeadStock: map['is_dead_stock'] == 1,
-    );
   }
 }

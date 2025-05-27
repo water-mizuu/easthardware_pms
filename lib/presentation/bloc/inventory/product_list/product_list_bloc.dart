@@ -19,7 +19,7 @@ class ProductListBloc extends Bloc<ProductListEvent, ProductListState> {
   }
   final ProductRepository _repository;
 
-  void _onLoad(LoadAllProductsEvent event, Emitter emit) async {
+  Future<void> _onLoad(LoadAllProductsEvent event, Emitter emit) async {
     emit(state.copyWith(status: DataStatus.loading));
     try {
       emit(
@@ -36,7 +36,7 @@ class ProductListBloc extends Bloc<ProductListEvent, ProductListState> {
     }
   }
 
-  void _onReloadAllProducts(ReloadAllProductsEvent event, Emitter emit) async {
+  Future<void> _onReloadAllProducts(ReloadAllProductsEvent event, Emitter emit) async {
     emit(state.copyWith(status: DataStatus.loading));
     try {
       emit(
@@ -53,7 +53,7 @@ class ProductListBloc extends Bloc<ProductListEvent, ProductListState> {
     }
   }
 
-  void _onAdd(AddProductEvent event, Emitter emit) async {
+  Future<void> _onAdd(AddProductEvent event, Emitter emit) async {
     emit(state.copyWith(status: DataStatus.loading));
     try {
       final insertedProduct = event.product.copyWith(
@@ -82,7 +82,7 @@ class ProductListBloc extends Bloc<ProductListEvent, ProductListState> {
     }
   }
 
-  void _onUpdate(UpdateProductEvent event, Emitter emit) async {
+  Future<void> _onUpdate(UpdateProductEvent event, Emitter emit) async {
     emit(state.copyWith(status: DataStatus.loading));
 
     try {
@@ -114,7 +114,7 @@ class ProductListBloc extends Bloc<ProductListEvent, ProductListState> {
     }
   }
 
-  void _onDelete(DeleteProductEvent event, Emitter emit) async {
+  Future<void> _onDelete(DeleteProductEvent event, Emitter emit) async {
     emit(state.copyWith(status: DataStatus.loading));
     try {
       await _repository.deleteProduct(event.productId);

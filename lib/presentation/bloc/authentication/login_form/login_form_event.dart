@@ -3,13 +3,13 @@ part of 'login_form_bloc.dart';
 sealed class LoginFormEvent {}
 
 class LoginFormUsernameChanged extends LoginFormEvent {
-  final String username;
   LoginFormUsernameChanged(this.username);
+  final String username;
 }
 
 class LoginFormPasswordChanged extends LoginFormEvent {
-  final String password;
   LoginFormPasswordChanged(this.password);
+  final String password;
 }
 
 class LoginFormButtonPressed extends LoginFormEvent {}

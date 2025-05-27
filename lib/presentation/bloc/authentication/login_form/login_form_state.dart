@@ -1,15 +1,15 @@
 part of 'login_form_bloc.dart';
 
 class LoginFormState {
-  final String username;
-  final String password;
-  final FormStatus status;
 
   const LoginFormState({
     this.username = '',
     this.password = '',
     this.status = FormStatus.initial,
   });
+  final String username;
+  final String password;
+  final FormStatus status;
 
   LoginFormState Function({
     String username,

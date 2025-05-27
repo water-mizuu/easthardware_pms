@@ -7,8 +7,6 @@ part 'login_form_event.dart';
 part 'login_form_state.dart';
 
 class LoginFormBloc extends Bloc<LoginFormEvent, LoginFormState> {
-  final GlobalKey<FormState> formKey;
-
   LoginFormBloc()
       : formKey = GlobalKey<FormState>(),
         super(const LoginFormState()) {
@@ -18,6 +16,7 @@ class LoginFormBloc extends Bloc<LoginFormEvent, LoginFormState> {
     on<LoginFormReturned>(_onFormReturned);
     on<LoginFormResetEvent>(_onReset);
   }
+  final GlobalKey<FormState> formKey;
 
   void _onUsernameChanged(LoginFormUsernameChanged event, Emitter emit) {
     final username = event.username;
@@ -32,14 +31,14 @@ class LoginFormBloc extends Bloc<LoginFormEvent, LoginFormState> {
   void _onButtonPressed(LoginFormButtonPressed event, Emitter emit) {
     emit(state.copyWith(status: FormStatus.validating));
 
-    if (formKey.currentState case FormState formState when formState.validate()) {
+    if (formKey.currentState case final FormState formState when formState.validate()) {
       emit(state.copyWith(status: FormStatus.submitting));
     } else {
       emit(state.copyWith(status: FormStatus.error));
     }
   }
 
-  void _onFormReturned(LoginFormReturned event, Emitter emit) async {
+  Future<void> _onFormReturned(LoginFormReturned event, Emitter emit) async {
     emit(state.copyWith(status: FormStatus.initial));
   }
 

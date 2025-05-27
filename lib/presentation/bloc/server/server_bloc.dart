@@ -31,9 +31,8 @@ part 'server_state.dart';
 ///   It is responsible for managing the server connection and
 ///   prompting the user for server/client information.
 class ServerBloc extends Bloc<ServerEvent, ServerState> {
-  final ValueNotifier<String?> bottomTextNotifier;
 
-  ServerBloc(this.bottomTextNotifier) : super(ServerState(status: ServerStatus.initial)) {
+  ServerBloc(this.bottomTextNotifier) : super(const ServerState(status: ServerStatus.initial)) {
     /// Logic paths:
     ///   read the persisting data.
     ///   if no data is found, prompt the user for server/client information.
@@ -59,6 +58,7 @@ class ServerBloc extends Bloc<ServerEvent, ServerState> {
 
     on<ServerDatabaseUpdated>(_onDatabaseUpdated);
   }
+  final ValueNotifier<String?> bottomTextNotifier;
 
   @override
   void onEvent(ServerEvent event) {
@@ -76,7 +76,7 @@ class ServerBloc extends Bloc<ServerEvent, ServerState> {
       serverIp,
       port,
       () {
-        add(ServerReset());
+        add(const ServerReset());
       },
     );
 
@@ -85,33 +85,33 @@ class ServerBloc extends Bloc<ServerEvent, ServerState> {
 
   Future<void> _onReset(ServerReset event, Emitter<ServerState> emit) async {
     await server_preferences.resetSharedPreferences();
-    add(ServerInit());
+    add(const ServerInit());
   }
 
   Future<void> _onInit(ServerInit event, Emitter<ServerState> emit) async {
     /// Close any server or client connections that are open.
-    if (state.databaseArgs case ServerDatabaseArgs(:var close) || ClientDatabaseArgs(:var close)) {
+    if (state.databaseArgs case ServerDatabaseArgs(:final close) || ClientDatabaseArgs(:final close)) {
       await close();
     }
 
     /// Reset the state to initial.
-    emit(ServerState(status: ServerStatus.initial).copyWith(status: ServerStatus.loading));
+    emit(const ServerState(status: ServerStatus.initial).copyWith(status: ServerStatus.loading));
     bottomTextNotifier.value = "Loading server data...";
 
     /// Load the server data from the root key.
     switch (await server_preferences.getSavedDatabaseMode()) {
       case null:
         bottomTextNotifier.value = "Found no saved data.";
-        add(ServerPromptingUserFromNull());
+        add(const ServerPromptingUserFromNull());
 
         return;
       case DatabaseMode.client:
         bottomTextNotifier.value = "Found existing client data.";
 
-        var address = await server_preferences.getSavedServerAddress();
+        final address = await server_preferences.getSavedServerAddress();
 
         if (address == null) {
-          add(ServerPromptingServerInformation());
+          add(const ServerPromptingServerInformation());
         } else {
           add(ServerLoadingClientFromPreferences(
             address: address,
@@ -120,11 +120,11 @@ class ServerBloc extends Bloc<ServerEvent, ServerState> {
           ));
         }
       case DatabaseMode.server:
-        var port = await server_preferences.getSavedServerPort();
+        final port = await server_preferences.getSavedServerPort();
         bottomTextNotifier.value = "Found existing server data. $port";
 
         if (port == null) {
-          add(ServerPromptingServerInformation());
+          add(const ServerPromptingServerInformation());
         } else {
           add(ServerLoadingServerFromPreferences(port: port));
         }
@@ -141,15 +141,15 @@ class ServerBloc extends Bloc<ServerEvent, ServerState> {
       case _ when isClosed:
         return;
       case null:
-        add(ServerPromptingUserFromNull());
+        add(const ServerPromptingUserFromNull());
       case DatabaseMode.client:
         bottomTextNotifier.value = "Client mode selected.";
         emit(state.copyWith(status: ServerStatus.promptingClientInformation));
-        add(ServerPromptingClientInformation());
+        add(const ServerPromptingClientInformation());
       case DatabaseMode.server:
         bottomTextNotifier.value = "Server mode selected.";
         emit(state.copyWith(status: ServerStatus.promptingServerInformation));
-        add(ServerPromptingServerInformation());
+        add(const ServerPromptingServerInformation());
     }
   }
 
@@ -162,7 +162,7 @@ class ServerBloc extends Bloc<ServerEvent, ServerState> {
       databaseArgs: null,
       databaseHelper: null,
     ));
-    var context = rootNavigatorKey.currentContext!;
+    final context = rootNavigatorKey.currentContext!;
 
     await ClientConnectionDialog.show(
       context: rootNavigatorKey.currentContext!,
@@ -170,7 +170,7 @@ class ServerBloc extends Bloc<ServerEvent, ServerState> {
       onCancel: () {
         Navigator.of(context).pop();
 
-        add(ServerPromptingUserFromNull());
+        add(const ServerPromptingUserFromNull());
       },
       onConfirm: (channel, args) async {
         Navigator.of(context).pop();
@@ -205,7 +205,7 @@ class ServerBloc extends Bloc<ServerEvent, ServerState> {
       final (websocketChannel, serverChannel) = await connection_service.connectToServer(
         serverIp,
         port,
-        () => add(ServerReset()),
+        () => add(const ServerReset()),
       );
 
       add(
@@ -229,7 +229,7 @@ class ServerBloc extends Bloc<ServerEvent, ServerState> {
       if (kDebugMode) {
         print(e);
       }
-      add(ServerPromptingClientInformation());
+      add(const ServerPromptingClientInformation());
     }
   }
 
@@ -244,7 +244,7 @@ class ServerBloc extends Bloc<ServerEvent, ServerState> {
     ));
 
     final defaultPort = () {
-      var args = state.databaseArgs;
+      final args = state.databaseArgs;
       if (args is ServerDatabaseArgs) {
         return args.port.toString();
       }
@@ -259,7 +259,7 @@ class ServerBloc extends Bloc<ServerEvent, ServerState> {
         context: rootNavigatorKey.currentContext!,
         defaultPort: defaultPort,
         onStartServer: (port) => connection_service.startServer(port),
-        onCancel: () => add(ServerPromptingUserFromNull()),
+        onCancel: () => add(const ServerPromptingUserFromNull()),
         onSuccess: (channel, close, port) {
           add(ServerServerStarted(
             saveToPreferences: true,
@@ -277,7 +277,7 @@ class ServerBloc extends Bloc<ServerEvent, ServerState> {
       if (kDebugMode) {
         print('Error getting local IP or showing dialog: $e');
       }
-      add(ServerPromptingUserFromNull());
+      add(const ServerPromptingUserFromNull());
     }
   }
 
@@ -318,7 +318,7 @@ class ServerBloc extends Bloc<ServerEvent, ServerState> {
           popupToUser: false,
         ));
       } else {
-        add(ServerPromptingServerInformation());
+        add(const ServerPromptingServerInformation());
       }
     }
   }
@@ -327,7 +327,7 @@ class ServerBloc extends Bloc<ServerEvent, ServerState> {
     ServerClientConnectionEstablished event,
     Emitter<ServerState> emit,
   ) async {
-    var address = '${event.args.parentIp}:${event.args.port}';
+    final address = '${event.args.parentIp}:${event.args.port}';
     bottomTextNotifier.value = "Connected to: $address";
 
     if (event.popupToUser) {
@@ -342,7 +342,7 @@ class ServerBloc extends Bloc<ServerEvent, ServerState> {
           await args.close();
           if (isClosed) return;
 
-          add(ServerPromptingClientInformation());
+          add(const ServerPromptingClientInformation());
         },
         onConfirm: () {
           // Dialog will be dismissed automatically
@@ -383,11 +383,11 @@ class ServerBloc extends Bloc<ServerEvent, ServerState> {
           Navigator.of(rootNavigatorKey.currentContext!).pop();
           if (isClosed) return;
 
-          var args = event.args;
+          final args = event.args;
           await args.close();
           if (isClosed) return;
 
-          add(ServerPromptingServerInformation());
+          add(const ServerPromptingServerInformation());
         },
         onConfirm: () {
           Navigator.of(rootNavigatorKey.currentContext!).pop();
@@ -433,9 +433,9 @@ class ServerBloc extends Bloc<ServerEvent, ServerState> {
 
     Future.delayed(const Duration(seconds: 2), () {
       if (isClosed) return;
-      if (state.databaseArgs case ServerDatabaseArgs(:var ip, :var port)) {
+      if (state.databaseArgs case ServerDatabaseArgs(:final ip, :final port)) {
         bottomTextNotifier.value = "Hosting at: $ip:$port";
-      } else if (state.databaseArgs case ClientDatabaseArgs(:var parentIp, :var port)) {
+      } else if (state.databaseArgs case ClientDatabaseArgs(:final parentIp, :final port)) {
         bottomTextNotifier.value = "Connected to: $parentIp:$port";
       }
     });

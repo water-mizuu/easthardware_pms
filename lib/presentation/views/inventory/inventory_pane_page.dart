@@ -280,7 +280,7 @@ class _ProductsDataTableState extends State<ProductsDataTable> {
   void initState() {
     super.initState();
 
-    _scrollController = AnimatedScrollController(animationFactory: ChromiumEaseInOut());
+    _scrollController = AnimatedScrollController(animationFactory: const ChromiumEaseInOut());
   }
 
   @override
@@ -326,7 +326,7 @@ class _ProductsDataTableState extends State<ProductsDataTable> {
               DataColumn(label: Text('Actions')),
             ],
             rows: [
-              for (var product in allProducts)
+              for (final product in allProducts)
                 DataRowMapper.mapProductToRow(product, () {
                   context.push(AppRoutes.editProductPage, extra: product);
                 }),

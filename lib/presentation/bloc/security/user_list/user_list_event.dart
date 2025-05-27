@@ -10,19 +10,16 @@ sealed class UserListEvent extends Equatable {
 class LoadAllUsersEvent extends UserListEvent {}
 
 class AddUserEvent extends UserListEvent {
-  final User user;
-
   const AddUserEvent(this.user);
+  final User user;
 }
 
 class UpdateUserEvent extends UserListEvent {
-  final User user;
-
   const UpdateUserEvent(this.user);
+  final User user;
 }
 
-class DeleteUserEevnt extends UserListEvent {
+class DeleteUserEvent extends UserListEvent {
+  const DeleteUserEvent(this.user);
   final User user;
-
-  const DeleteUserEevnt(this.user);
 }

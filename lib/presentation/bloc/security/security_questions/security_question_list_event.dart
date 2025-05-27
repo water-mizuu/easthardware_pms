@@ -12,21 +12,21 @@ class FetchSecurityQuestionsEvent extends SecurityQuestionListEvent {
 }
 
 class FilterSecurityQuestionsEvent extends SecurityQuestionListEvent {
-  final int userId;
   const FilterSecurityQuestionsEvent(this.userId);
+  final int userId;
 }
 
 class AddSecurityQuestionEvent extends SecurityQuestionListEvent {
-  final SecurityQuestion question;
   const AddSecurityQuestionEvent(this.question);
+  final SecurityQuestion question;
 }
 
 class UpdateSecurityQuestionEvent extends SecurityQuestionListEvent {
-  final SecurityQuestion question;
   const UpdateSecurityQuestionEvent(this.question);
+  final SecurityQuestion question;
 }
 
 class DeleteSecurityQuestionEvent extends SecurityQuestionListEvent {
-  final SecurityQuestion question;
   const DeleteSecurityQuestionEvent(this.question);
+  final SecurityQuestion question;
 }

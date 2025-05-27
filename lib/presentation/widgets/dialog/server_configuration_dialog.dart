@@ -4,10 +4,6 @@ import 'package:flutter/foundation.dart';
 
 /// Dialog for configuring server information (port number)
 class ServerConfigurationDialog extends StatefulWidget {
-  final String? defaultPort;
-  final Future<(MessageChannel, Future<void> Function())> Function(int port) onStartServer;
-  final VoidCallback onCancel;
-  final Function(MessageChannel channel, Future<void> Function() close, int port) onSuccess;
 
   const ServerConfigurationDialog({
     super.key,
@@ -16,6 +12,10 @@ class ServerConfigurationDialog extends StatefulWidget {
     required this.onCancel,
     required this.onSuccess,
   });
+  final String? defaultPort;
+  final Future<(MessageChannel, Future<void> Function())> Function(int port) onStartServer;
+  final VoidCallback onCancel;
+  final Function(MessageChannel channel, Future<void> Function() close, int port) onSuccess;
 
   @override
   State<ServerConfigurationDialog> createState() => _ServerConfigurationDialogState();

@@ -5,24 +5,24 @@ enum AuthenticationStatus { unknown, loading, success, failure }
 enum FormElement { username, password, passwordVerification, securityQuestion, securityAnswer }
 
 class ErrorMessage {
+  const ErrorMessage({required this.message, required this.target});
+
   final String message;
   final FormElement target;
-
-  const ErrorMessage({required this.message, required this.target});
 }
 
 class AuthenticationState {
-  final AuthenticationStatus status;
-  final User? user;
-  final int loginAttempts;
-  final List<ErrorMessage> errors;
-
   AuthenticationState({
     this.status = AuthenticationStatus.unknown,
     this.user,
     this.loginAttempts = 0,
     this.errors = const [],
   });
+
+  final AuthenticationStatus status;
+  final User? user;
+  final int loginAttempts;
+  final List<ErrorMessage> errors;
 
   AuthenticationState Function({
     AuthenticationStatus status,

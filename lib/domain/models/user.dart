@@ -4,16 +4,6 @@ import "package:easthardware_pms/domain/enums/enums.dart";
 import "package:easthardware_pms/utils/undefined.dart";
 
 class User {
-  final int? id;
-  final String uid;
-  final String firstName;
-  final String lastName;
-  final String username;
-  final AccessLevel accessLevel;
-  final Uint8List salt;
-  final Uint8List passwordHash;
-  final int status;
-  final String creationDate;
 
   User({
     required this.uid,
@@ -27,6 +17,31 @@ class User {
     required this.status,
     required this.creationDate,
   });
+
+  factory User.fromMap(Map<String, dynamic> map) {
+    return User(
+      id: map['id'] as int,
+      uid: map['uid'] as String,
+      firstName: map['first_name'] as String,
+      lastName: map['last_name'] as String,
+      username: map['username'] as String,
+      accessLevel: AccessLevel.values[map['access_level'] as int],
+      passwordHash: Uint8List.fromList((map['password_hash'] as List<dynamic>).cast<int>()),
+      salt: Uint8List.fromList((map['salt'] as List<dynamic>).cast<int>()),
+      creationDate: map['creation_date'] as String,
+      status: map['status'] as int,
+    );
+  }
+  final int? id;
+  final String uid;
+  final String firstName;
+  final String lastName;
+  final String username;
+  final AccessLevel accessLevel;
+  final Uint8List salt;
+  final Uint8List passwordHash;
+  final int status;
+  final String creationDate;
 
   User Function({
     int? id,
@@ -79,20 +94,5 @@ class User {
       'status': status,
       'creation_date': creationDate,
     };
-  }
-
-  factory User.fromMap(Map<String, dynamic> map) {
-    return User(
-      id: map['id'] as int,
-      uid: map['uid'] as String,
-      firstName: map['first_name'] as String,
-      lastName: map['last_name'] as String,
-      username: map['username'] as String,
-      accessLevel: AccessLevel.values[map['access_level'] as int],
-      passwordHash: Uint8List.fromList((map['password_hash'] as List<dynamic>).cast<int>()),
-      salt: Uint8List.fromList((map['salt'] as List<dynamic>).cast<int>()),
-      creationDate: map['creation_date'] as String,
-      status: map['status'] as int,
-    );
   }
 }

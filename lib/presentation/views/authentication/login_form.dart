@@ -17,7 +17,7 @@ class LoginForm extends StatelessWidget {
       child: Padding(
         padding: AppPadding.a32,
         child: Builder(builder: (context) {
-          var formKey = context.read<LoginFormBloc>().formKey;
+          final formKey = context.read<LoginFormBloc>().formKey;
           return Form(
             key: formKey,
             child: Column(
@@ -93,7 +93,7 @@ class _FormPasswordField extends StatelessWidget with LoginFormValidator {
 class _FormButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    var state = context.watch<AuthenticationBloc>().state;
+    final state = context.watch<AuthenticationBloc>().state;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,

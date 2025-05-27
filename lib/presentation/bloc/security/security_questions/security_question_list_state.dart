@@ -1,15 +1,15 @@
 part of 'security_question_list_bloc.dart';
 
 class SecurityQuestionListState extends Equatable {
-  final List<SecurityQuestion> securityQuestions;
-  final List<SecurityQuestion> filteredQuestions;
-  final DataStatus status;
-
   const SecurityQuestionListState({
     this.securityQuestions = const [],
     this.filteredQuestions = const [],
     this.status = DataStatus.initial,
   });
+
+  final List<SecurityQuestion> securityQuestions;
+  final List<SecurityQuestion> filteredQuestions;
+  final DataStatus status;
 
   SecurityQuestionListState Function({
     List<SecurityQuestion> securityQuestions,

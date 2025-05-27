@@ -9,9 +9,9 @@ import 'package:provider/provider.dart';
 /// This serves as a key to access the bottom text notifier from anywhere in the app.
 ///   This only wraps a [ValueNotifier<String>] to provide a simple way to access it.
 class BottomTextNotifier {
-  final ValueNotifier<String> notifier;
 
   const BottomTextNotifier(this.notifier);
+  final ValueNotifier<String> notifier;
 }
 
 class BottomText extends StatelessWidget {
@@ -22,7 +22,7 @@ class BottomText extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final serverBloc = context.watch<ServerBloc>();
-    var content = context.read<BottomTextNotifier>();
+    final content = context.read<BottomTextNotifier>();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -31,11 +31,11 @@ class BottomText extends StatelessWidget {
         ColoredBox(
           color: Colors.white,
           child: Padding(
-            padding: EdgeInsets.all(2.0),
+            padding: const EdgeInsets.all(2.0),
             child: Row(
               children: [
                 const SizedBox(width: 2.0),
-                Icon(Icons.signal_cellular_alt_outlined),
+                const Icon(Icons.signal_cellular_alt_outlined),
                 const SizedBox(width: 4.0),
                 Expanded(
                   child: ValueListenableBuilder(
@@ -50,7 +50,7 @@ class BottomText extends StatelessWidget {
                     child: const Text("Reset Connection"),
                     onPressed: () {
                       context.go(AppRoutes.login);
-                      context.read<ServerBloc>().add(ServerReset());
+                      context.read<ServerBloc>().add(const ServerReset());
                     },
                   ),
               ],

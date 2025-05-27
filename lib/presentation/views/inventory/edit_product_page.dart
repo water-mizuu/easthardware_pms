@@ -21,14 +21,14 @@ import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class EditProductPage extends StatelessWidget {
-  final Product product;
   const EditProductPage({required this.product, super.key});
+  final Product product;
 
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (context) {
-        final List<Unit> secondaryUnits = context
+        final secondaryUnits = context
             .read<UnitListBloc>()
             .state
             .units
@@ -44,11 +44,10 @@ class EditProductPage extends StatelessWidget {
               break;
             case FormStatus.submitting:
               // Handle Category Search and Creation
-              final String formCategory = state.categoryName;
-              final List<Category> stateCategories =
-                  context.read<CategoryListBloc>().state.categories;
+              final formCategory = state.categoryName;
+              final stateCategories = context.read<CategoryListBloc>().state.categories;
 
-              final Category matchedCategory = stateCategories.firstWhere(
+              final matchedCategory = stateCategories.firstWhere(
                 (category) => category.name == formCategory,
                 orElse: () {
                   final newCategory = Category(name: formCategory, id: stateCategories.length + 1);
@@ -57,7 +56,7 @@ class EditProductPage extends StatelessWidget {
                 },
               );
 
-              final Product mappedProduct = state.toProduct().copyWith(
+              final mappedProduct = state.toProduct().copyWith(
                     categoryId: matchedCategory.id,
                     categoryName: matchedCategory.name,
                     id: state.productId,
@@ -70,7 +69,7 @@ class EditProductPage extends StatelessWidget {
 
               context.read<ProductListBloc>().add(UpdateProductEvent(mappedProduct));
               final stateUnits = context.read<UnitListBloc>().state.units;
-              final List<Unit> mappedUnits = state.secondaryUnits
+              final mappedUnits = state.secondaryUnits
                   .map((unit) {
                     if (unit.name.isNotEmpty && unit.factor.isNotEmpty) {
                       return unit.toUnit(state.productId!);
@@ -80,8 +79,8 @@ class EditProductPage extends StatelessWidget {
                   .where((unit) => unit != null)
                   .cast<Unit>()
                   .toList();
-              final List<Unit> existingUnits = mappedUnits.where(stateUnits.contains).toList();
-              final List<Unit> newUnits = List.from(mappedUnits);
+              final existingUnits = mappedUnits.where(stateUnits.contains).toList();
+              final newUnits = List<Unit>.from(mappedUnits);
               mappedUnits.retainWhere(stateUnits.contains);
 
               for (final unit in existingUnits) {
@@ -344,7 +343,7 @@ class _CriticalLevelFieldState extends State<CriticalLevelField> {
           if (value == null || value.trim().isEmpty) {
             return "Critical level cannot be empty";
           }
-          final double? criticalLevel = double.tryParse(value);
+          final criticalLevel = double.tryParse(value);
           if (criticalLevel == null || criticalLevel < 0) {
             return "Critical level must be a non-negative number";
           }
@@ -604,8 +603,8 @@ class PageHeader extends StatelessWidget {
           context.read<ProductFormBloc>().add(ProductStatusChangedEvent(current));
 
           // Update Product
-          final int productId = context.read<ProductFormBloc>().state.productId!;
-          final int creatorId = context.read<AuthenticationBloc>().state.user!.id!;
+          final productId = context.read<ProductFormBloc>().state.productId!;
+          final creatorId = context.read<AuthenticationBloc>().state.user!.id!;
           context.read<UserLogListBloc>().add(AddArchiveEvent(
                 'Product #${context.read<ProductFormBloc>().state.productId}',
                 context.read<AuthenticationBloc>().state.user!,
@@ -619,8 +618,8 @@ class PageHeader extends StatelessWidget {
           // Added 1 because SQLite has one-based indexing
           // Take actual productId
           // Add onUpdate Event
-          final int productId = context.read<ProductFormBloc>().state.productId!;
-          final int creatorId = context.read<ProductFormBloc>().state.creatorId!;
+          final productId = context.read<ProductFormBloc>().state.productId!;
+          final creatorId = context.read<ProductFormBloc>().state.creatorId!;
           context.read<ProductFormBloc>().add(FormButtonPressedEvent(
                 productId: productId,
                 creatorId: creatorId,

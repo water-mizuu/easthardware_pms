@@ -101,14 +101,14 @@ Future<DatabaseMethodResult> _executeBatch(
   assert(RootIsolateToken.instance == null);
   final batch = db.batch();
 
-  bool hasModifyingOperations = false;
+  var hasModifyingOperations = false;
 
   for (final op in operations) {
     switch (op) {
-      case [String method, Object? params]:
+      case [final String method, final Object? params]:
         switch (method) {
           case 'rawInsert':
-            if (params case [String sql, List<Object?>? arguments]) {
+            if (params case [final String sql, final List<Object?>? arguments]) {
               batch.rawInsert(sql, arguments);
               hasModifyingOperations = true;
             }
@@ -117,11 +117,11 @@ Future<DatabaseMethodResult> _executeBatch(
           case 'insert':
             if (params
                 case [
-                  String table,
-                  Map<String, Object?> values,
+                  final String table,
+                  final Map<String, Object?> values,
                   {
-                    'nullColumnHack': String? nullColumnHack,
-                    'conflictAlgorithm': int? conflictAlgorithm
+                    'nullColumnHack': final String? nullColumnHack,
+                    'conflictAlgorithm': final int? conflictAlgorithm
                   }
                 ]) {
               batch.insert(
@@ -137,7 +137,7 @@ Future<DatabaseMethodResult> _executeBatch(
             break;
 
           case 'rawUpdate':
-            if (params case [String sql, List<Object?>? arguments]) {
+            if (params case [final String sql, final List<Object?>? arguments]) {
               batch.rawUpdate(sql, arguments);
               hasModifyingOperations = true;
             }
@@ -146,12 +146,12 @@ Future<DatabaseMethodResult> _executeBatch(
           case 'update':
             if (params
                 case [
-                  String table,
-                  Map<String, Object?> values,
+                  final String table,
+                  final Map<String, Object?> values,
                   {
-                    'where': String? where,
-                    'whereArgs': List<Object?>? whereArgs,
-                    'conflictAlgorithm': int? conflictAlgorithm,
+                    'where': final String? where,
+                    'whereArgs': final List<Object?>? whereArgs,
+                    'conflictAlgorithm': final int? conflictAlgorithm,
                   }
                 ]) {
               batch.update(
@@ -168,7 +168,7 @@ Future<DatabaseMethodResult> _executeBatch(
             break;
 
           case 'rawDelete':
-            if (params case [String sql, List<Object?>? arguments]) {
+            if (params case [final String sql, final List<Object?>? arguments]) {
               batch.rawDelete(sql, arguments);
               hasModifyingOperations = true;
             }
@@ -177,8 +177,8 @@ Future<DatabaseMethodResult> _executeBatch(
           case 'delete':
             if (params
                 case [
-                  String table,
-                  {'where': String? where, 'whereArgs': List<Object?>? whereArgs}
+                  final String table,
+                  {'where': final String? where, 'whereArgs': final List<Object?>? whereArgs}
                 ]) {
               batch.delete(table, where: where, whereArgs: whereArgs);
               hasModifyingOperations = true;
@@ -186,7 +186,7 @@ Future<DatabaseMethodResult> _executeBatch(
             break;
 
           case 'execute':
-            if (params case [String sql, List<Object?>? arguments]) {
+            if (params case [final String sql, final List<Object?>? arguments]) {
               batch.execute(sql, arguments);
               hasModifyingOperations = true;
             }
@@ -195,17 +195,17 @@ Future<DatabaseMethodResult> _executeBatch(
           case 'query':
             if (params
                 case [
-                  String table,
+                  final String table,
                   {
-                    'distinct': bool? distinct,
-                    'columns': List<String>? columns,
-                    'where': String? where,
-                    'whereArgs': List<Object?>? whereArgs,
-                    'groupBy': String? groupBy,
-                    'having': String? having,
-                    'orderBy': String? orderBy,
-                    'limit': int? limit,
-                    'offset': int? offset,
+                    'distinct': final bool? distinct,
+                    'columns': final List<String>? columns,
+                    'where': final String? where,
+                    'whereArgs': final List<Object?>? whereArgs,
+                    'groupBy': final String? groupBy,
+                    'having': final String? having,
+                    'orderBy': final String? orderBy,
+                    'limit': final int? limit,
+                    'offset': final int? offset,
                   }
                 ]) {
               batch.query(table,
@@ -223,7 +223,7 @@ Future<DatabaseMethodResult> _executeBatch(
             break;
 
           case 'rawQuery':
-            if (params case [String sql, List<Object?>? arguments]) {
+            if (params case [final String sql, final List<Object?>? arguments]) {
               batch.rawQuery(sql, arguments);
               // Query operations don't modify the database
             }
@@ -269,18 +269,18 @@ Future<DatabaseMethodResult> serverHandleDatabaseMethod(
     case 'delete':
       if (arguments
           case [
-            String table,
-            {'where': String? where, 'whereArgs': List<Object?>? whereArgs},
+            final String table,
+            {'where': final String? where, 'whereArgs': final List<Object?>? whereArgs},
           ]) {
-        var result = await isolateDatabase.delete(table, where: where, whereArgs: whereArgs);
-        var hasChanged = result > 0;
+        final result = await isolateDatabase.delete(table, where: where, whereArgs: whereArgs);
+        final hasChanged = result > 0;
 
         return DatabaseMethodResult(result: result, hasChanged: hasChanged);
       }
       break;
 
     case 'execute':
-      if (arguments case [String sql, List<Object?>? sqlArgs]) {
+      if (arguments case [final String sql, final List<Object?>? sqlArgs]) {
         await isolateDatabase.execute(sql, sqlArgs);
         // Execute doesn't return a count, but we assume it modified the database
         return DatabaseMethodResult(result: null, hasChanged: true);
@@ -290,11 +290,14 @@ Future<DatabaseMethodResult> serverHandleDatabaseMethod(
     case 'insert':
       if (arguments
           case [
-            String table,
-            Map<String, Object?> values,
-            {'nullColumnHack': String? nullColumnHack, 'conflictAlgorithm': int? conflictAlgorithm}
+            final String table,
+            final Map<String, Object?> values,
+            {
+              'nullColumnHack': final String? nullColumnHack,
+              'conflictAlgorithm': final int? conflictAlgorithm
+            }
           ]) {
-        var result = await isolateDatabase.insert(
+        final result = await isolateDatabase.insert(
           table,
           values,
           nullColumnHack: nullColumnHack,
@@ -302,7 +305,7 @@ Future<DatabaseMethodResult> serverHandleDatabaseMethod(
               ? ConflictAlgorithm.values[conflictAlgorithm]
               : null,
         );
-        var hasChanged = result > 0;
+        final hasChanged = result > 0;
 
         return DatabaseMethodResult(result: result, hasChanged: hasChanged);
       }
@@ -311,20 +314,20 @@ Future<DatabaseMethodResult> serverHandleDatabaseMethod(
     case 'query':
       if (arguments
           case [
-            String table,
+            final String table,
             {
-              'distinct': bool? distinct,
-              'columns': List<String>? columns,
-              'where': String? where,
-              'whereArgs': List<Object?>? whereArgs,
-              'groupBy': String? groupBy,
-              'having': String? having,
-              'orderBy': String? orderBy,
-              'limit': int? limit,
-              'offset': int? offset,
+              'distinct': final bool? distinct,
+              'columns': final List<String>? columns,
+              'where': final String? where,
+              'whereArgs': final List<Object?>? whereArgs,
+              'groupBy': final String? groupBy,
+              'having': final String? having,
+              'orderBy': final String? orderBy,
+              'limit': final int? limit,
+              'offset': final int? offset,
             }
           ]) {
-        var result = await isolateDatabase.query(
+        final result = await isolateDatabase.query(
           table,
           distinct: distinct,
           columns: columns,
@@ -344,21 +347,21 @@ Future<DatabaseMethodResult> serverHandleDatabaseMethod(
     case 'queryCursor':
       if (arguments
           case [
-            String table,
+            final String table,
             {
-              'distinct': bool? distinct,
-              'columns': List<String>? columns,
-              'where': String? where,
-              'whereArgs': List<Object?>? whereArgs,
-              'groupBy': String? groupBy,
-              'having': String? having,
-              'orderBy': String? orderBy,
-              'limit': int? limit,
-              'offset': int? offset,
-              'bufferSize': int? bufferSize,
+              'distinct': final bool? distinct,
+              'columns': final List<String>? columns,
+              'where': final String? where,
+              'whereArgs': final List<Object?>? whereArgs,
+              'groupBy': final String? groupBy,
+              'having': final String? having,
+              'orderBy': final String? orderBy,
+              'limit': final int? limit,
+              'offset': final int? offset,
+              'bufferSize': final int? bufferSize,
             }
           ]) {
-        var result = await isolateDatabase.queryCursor(
+        final result = await isolateDatabase.queryCursor(
           table,
           distinct: distinct,
           columns: columns,
@@ -377,57 +380,62 @@ Future<DatabaseMethodResult> serverHandleDatabaseMethod(
       break;
 
     case 'rawDelete':
-      if (arguments case [String sql, List<Object?>? args]) {
-        var result = await isolateDatabase.rawDelete(sql, args);
-        var hasChanged = result > 0;
+      if (arguments case [final String sql, final List<Object?>? args]) {
+        final result = await isolateDatabase.rawDelete(sql, args);
+        final hasChanged = result > 0;
         return DatabaseMethodResult(result: result, hasChanged: hasChanged);
-      } else if (arguments case [String sql]) {
-        var result = await isolateDatabase.rawDelete(sql);
-        var hasChanged = result > 0;
+      } else if (arguments case [final String sql]) {
+        final result = await isolateDatabase.rawDelete(sql);
+        final hasChanged = result > 0;
         return DatabaseMethodResult(result: result, hasChanged: hasChanged);
       }
       break;
 
     case 'rawInsert':
-      if (arguments case [String sql, List<Object?>? args]) {
-        var result = await isolateDatabase.rawInsert(sql, args);
-        var hasChanged = result > 0;
+      if (arguments case [final String sql, final List<Object?>? args]) {
+        final result = await isolateDatabase.rawInsert(sql, args);
+        final hasChanged = result > 0;
         return DatabaseMethodResult(result: result, hasChanged: hasChanged);
-      } else if (arguments case [String sql]) {
-        var result = await isolateDatabase.rawInsert(sql);
-        var hasChanged = result > 0;
+      } else if (arguments case [final String sql]) {
+        final result = await isolateDatabase.rawInsert(sql);
+        final hasChanged = result > 0;
         return DatabaseMethodResult(result: result, hasChanged: hasChanged);
       }
       break;
 
     case 'rawQuery':
-      if (arguments case [String sql, List<Object?>? args]) {
-        var result = await isolateDatabase.rawQuery(sql, args);
+      if (arguments case [final String sql, final List<Object?>? args]) {
+        final result = await isolateDatabase.rawQuery(sql, args);
         // Query operations don't modify the database
         return DatabaseMethodResult(result: result, hasChanged: false);
-      } else if (arguments case [String sql]) {
-        var result = await isolateDatabase.rawQuery(sql);
+      } else if (arguments case [final String sql]) {
+        final result = await isolateDatabase.rawQuery(sql);
         // Query operations don't modify the database
         return DatabaseMethodResult(result: result, hasChanged: false);
       }
       break;
 
     case 'rawQueryCursor':
-      if (arguments case [String sql, List<Object?>? args, {'bufferSize': int? bufferSize}]) {
-        var result = await isolateDatabase.rawQueryCursor(sql, args, bufferSize: bufferSize);
+      if (arguments
+          case [
+            final String sql,
+            final List<Object?>? args,
+            {'bufferSize': final int? bufferSize}
+          ]) {
+        final result = await isolateDatabase.rawQueryCursor(sql, args, bufferSize: bufferSize);
         // Query operations don't modify the database
         return DatabaseMethodResult(result: result, hasChanged: false);
       }
       break;
 
     case 'rawUpdate':
-      if (arguments case [String sql, List<Object?>? args]) {
-        var result = await isolateDatabase.rawUpdate(sql, args);
-        var hasChanged = result > 0;
+      if (arguments case [final String sql, final List<Object?>? args]) {
+        final result = await isolateDatabase.rawUpdate(sql, args);
+        final hasChanged = result > 0;
         return DatabaseMethodResult(result: result, hasChanged: hasChanged);
-      } else if (arguments case [String sql]) {
-        var result = await isolateDatabase.rawUpdate(sql);
-        var hasChanged = result > 0;
+      } else if (arguments case [final String sql]) {
+        final result = await isolateDatabase.rawUpdate(sql);
+        final hasChanged = result > 0;
         return DatabaseMethodResult(result: result, hasChanged: hasChanged);
       }
       break;
@@ -435,15 +443,15 @@ Future<DatabaseMethodResult> serverHandleDatabaseMethod(
     case 'update':
       if (arguments
           case [
-            String table,
-            Map<String, Object?> values,
+            final String table,
+            final Map<String, Object?> values,
             {
-              'where': String? where,
-              'whereArgs': List<Object?>? whereArgs,
-              'conflictAlgorithm': int? conflictAlgorithm,
+              'where': final String? where,
+              'whereArgs': final List<Object?>? whereArgs,
+              'conflictAlgorithm': final int? conflictAlgorithm,
             }
           ]) {
-        var result = await isolateDatabase.update(
+        final result = await isolateDatabase.update(
           table,
           values,
           where: where,
@@ -452,7 +460,7 @@ Future<DatabaseMethodResult> serverHandleDatabaseMethod(
               ? ConflictAlgorithm.values[conflictAlgorithm]
               : null,
         );
-        var hasChanged = result > 0;
+        final hasChanged = result > 0;
 
         return DatabaseMethodResult(result: result, hasChanged: hasChanged);
       }
@@ -461,11 +469,11 @@ Future<DatabaseMethodResult> serverHandleDatabaseMethod(
     case 'batch.commit':
       if (arguments
           case [
-            List<Object> operations,
+            final List<Object> operations,
             {
-              'exclusive': bool? exclusive,
-              'noResult': bool? noResult,
-              'continueOnError': bool? continueOnError,
+              'exclusive': final bool? exclusive,
+              'noResult': final bool? noResult,
+              'continueOnError': final bool? continueOnError,
             }
           ]) {
         return _executeBatch(
@@ -482,8 +490,8 @@ Future<DatabaseMethodResult> serverHandleDatabaseMethod(
     case 'batch.apply':
       if (arguments
           case [
-            List<Object> operations,
-            {'noResult': bool? noResult, 'continueOnError': bool? continueOnError}
+            final List<Object> operations,
+            {'noResult': final bool? noResult, 'continueOnError': final bool? continueOnError}
           ]) {
         return _executeBatch(
           isolateDatabase,
@@ -501,10 +509,9 @@ Future<DatabaseMethodResult> serverHandleDatabaseMethod(
 }
 
 class DatabaseMethodResult {
+  DatabaseMethodResult({required this.result, required this.hasChanged});
   final dynamic result;
   final bool hasChanged;
-
-  DatabaseMethodResult({required this.result, required this.hasChanged});
 
   @override
   String toString() {

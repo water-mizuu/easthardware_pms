@@ -3,18 +3,6 @@ import 'package:easthardware_pms/domain/enums/enums.dart';
 import 'package:easthardware_pms/utils/undefined.dart';
 
 class InvoiceProduct {
-  final int? id;
-  final int invoiceId;
-  final int productId;
-  final String productName;
-  final String? description;
-  final double? discount;
-  final DiscountType? discountType;
-  final double quantity;
-  final int? secondaryUnit;
-  final double? conversionFactor;
-  final double rate;
-  final double amount;
 
   InvoiceProduct({
     this.id,
@@ -30,6 +18,36 @@ class InvoiceProduct {
     required this.rate,
     required this.amount,
   });
+
+  factory InvoiceProduct.fromMap(Map<String, dynamic> map) {
+    return InvoiceProduct(
+      id: map[InvoiceProductsTable.INVOICE_PRODUCTS_ID],
+      invoiceId: map[InvoiceProductsTable.INVOICE_PRODUCTS_INVOICE],
+      productId: map[InvoiceProductsTable.INVOICE_PRODUCTS_PRODUCT],
+      productName: map[InvoiceProductsTable.INVOICE_PRODUCTS_NAME],
+      description: map[InvoiceProductsTable.INVOICE_PRODUCTS_DESCRIPTION],
+      discount: map[InvoiceProductsTable.INVOICE_PRODUCTS_DISCOUNT],
+      discountType:
+          DiscountType.values[map[InvoiceProductsTable.INVOICE_PRODUCTS_DISCOUNT_TYPE] as int],
+      quantity: map[InvoiceProductsTable.INVOICE_PRODUCTS_QUANTITY],
+      secondaryUnit: map[InvoiceProductsTable.INVOICE_PRODUCTS_SECONDARY_UNIT],
+      conversionFactor: map[InvoiceProductsTable.INVOICE_PRODUCTS_CONVERSION_FACTOR],
+      rate: map[InvoiceProductsTable.INVOICE_PRODUCTS_RATE],
+      amount: map[InvoiceProductsTable.INVOICE_PRODUCTS_AMOUNT],
+    );
+  }
+  final int? id;
+  final int invoiceId;
+  final int productId;
+  final String productName;
+  final String? description;
+  final double? discount;
+  final DiscountType? discountType;
+  final double quantity;
+  final int? secondaryUnit;
+  final double? conversionFactor;
+  final double rate;
+  final double amount;
 
   InvoiceProduct Function({
     int? id,
@@ -90,23 +108,5 @@ class InvoiceProduct {
       InvoiceProductsTable.INVOICE_PRODUCTS_RATE: rate,
       InvoiceProductsTable.INVOICE_PRODUCTS_AMOUNT: amount,
     };
-  }
-
-  factory InvoiceProduct.fromMap(Map<String, dynamic> map) {
-    return InvoiceProduct(
-      id: map[InvoiceProductsTable.INVOICE_PRODUCTS_ID],
-      invoiceId: map[InvoiceProductsTable.INVOICE_PRODUCTS_INVOICE],
-      productId: map[InvoiceProductsTable.INVOICE_PRODUCTS_PRODUCT],
-      productName: map[InvoiceProductsTable.INVOICE_PRODUCTS_NAME],
-      description: map[InvoiceProductsTable.INVOICE_PRODUCTS_DESCRIPTION],
-      discount: map[InvoiceProductsTable.INVOICE_PRODUCTS_DISCOUNT],
-      discountType:
-          DiscountType.values[map[InvoiceProductsTable.INVOICE_PRODUCTS_DISCOUNT_TYPE] as int],
-      quantity: map[InvoiceProductsTable.INVOICE_PRODUCTS_QUANTITY],
-      secondaryUnit: map[InvoiceProductsTable.INVOICE_PRODUCTS_SECONDARY_UNIT],
-      conversionFactor: map[InvoiceProductsTable.INVOICE_PRODUCTS_CONVERSION_FACTOR],
-      rate: map[InvoiceProductsTable.INVOICE_PRODUCTS_RATE],
-      amount: map[InvoiceProductsTable.INVOICE_PRODUCTS_AMOUNT],
-    );
   }
 }

@@ -1,58 +1,81 @@
 part of 'user_log_list_bloc.dart';
 
-sealed class UserLogListEvent extends Equatable {
+sealed class UserLogListEvent {
   const UserLogListEvent();
+}
+
+class LoadUserLogsEvent with EquatableMixin implements UserLogListEvent {
+  const LoadUserLogsEvent();
 
   @override
-  List<Object> get props => [];
+  List<Object?> get props => [];
 }
 
-class LoadUserLogsEvent extends UserLogListEvent {}
+class FilterUserLogsEvent with EquatableMixin implements UserLogListEvent {
+  const FilterUserLogsEvent(this.id);
 
-class FilterUserLogsEvent extends UserLogListEvent {
   final int id;
 
-  const FilterUserLogsEvent(this.id);
+  @override
+  List<Object?> get props => [id];
 }
 
-class AddCreateEvent extends UserLogListEvent {
-  final String item;
-  final User user;
+class AddCreateEvent with EquatableMixin implements UserLogListEvent {
   const AddCreateEvent(this.item, this.user);
-}
 
-class AddLoginEvent extends UserLogListEvent {
+  final String item;
   final User user;
 
+  @override
+  List<Object?> get props => [item, user];
+}
+
+class AddLoginEvent with EquatableMixin implements UserLogListEvent {
   const AddLoginEvent(this.user);
-}
-
-class AddLogoutEvent extends UserLogListEvent {
   final User user;
 
+  @override
+  List<Object?> get props => [user];
+}
+
+class AddLogoutEvent with EquatableMixin implements UserLogListEvent {
   const AddLogoutEvent(this.user);
+  final User user;
+
+  @override
+  List<Object?> get props => [user];
 }
 
-class AddUpdateEvent extends UserLogListEvent {
-  final String item;
-  final User user;
+class AddUpdateEvent with EquatableMixin implements UserLogListEvent {
   const AddUpdateEvent(this.item, this.user);
-}
-
-class AddArchiveEvent extends UserLogListEvent {
   final String item;
   final User user;
+
+  @override
+  List<Object?> get props => [item, user];
+}
+
+class AddArchiveEvent with EquatableMixin implements UserLogListEvent {
   const AddArchiveEvent(this.item, this.user);
+  final String item;
+  final User user;
+
+  @override
+  List<Object?> get props => [item, user];
 }
 
-class UpdateUserLogEvent extends UserLogListEvent {
-  final UserLog userLog;
-
+class UpdateUserLogEvent with EquatableMixin implements UserLogListEvent {
   const UpdateUserLogEvent(this.userLog);
-}
-
-class DeleteUserLogEvent extends UserLogListEvent {
   final UserLog userLog;
 
+  @override
+  List<Object?> get props => [userLog];
+}
+
+class DeleteUserLogEvent with EquatableMixin implements UserLogListEvent {
   const DeleteUserLogEvent(this.userLog);
+  final UserLog userLog;
+
+  @override
+  List<Object?> get props => [userLog];
 }

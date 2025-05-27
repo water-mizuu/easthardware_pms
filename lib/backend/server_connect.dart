@@ -36,7 +36,7 @@ Stream<ServerEvent> postConnectionSetup(MessageChannel channel) async* {
     final message = await channel.receivePort.next("client");
 
     switch (message) {
-      case ["didUpdate", int msSinceEpoch]:
+      case ["didUpdate", final int msSinceEpoch]:
         // Notify the UI that the server has been updated.
         final dateTime = DateTime.fromMillisecondsSinceEpoch(msSinceEpoch);
         if (kDebugMode) {

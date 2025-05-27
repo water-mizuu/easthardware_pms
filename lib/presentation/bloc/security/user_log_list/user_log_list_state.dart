@@ -1,14 +1,15 @@
 part of 'user_log_list_bloc.dart';
 
 class UserLogListState extends Equatable {
-  final List<UserLog> userLogs;
-  final List<UserLog> filteredLogs;
-  final DataStatus status;
   const UserLogListState({
     this.userLogs = const [],
     this.filteredLogs = const [],
     this.status = DataStatus.initial,
   });
+
+  final List<UserLog> userLogs;
+  final List<UserLog> filteredLogs;
+  final DataStatus status;
 
   @override
   List<Object> get props => [userLogs, filteredLogs, status];
