@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:easthardware_pms/backend/enum/database_mode.dart';
+import 'package:easthardware_pms/backend/extension_types/shelf_server.dart';
 import 'package:easthardware_pms/backend/server_connect.dart';
 import 'package:easthardware_pms/backend/server_host.dart';
 import 'package:easthardware_pms/data/database/database_helper.dart';
@@ -31,7 +32,6 @@ part 'server_state.dart';
 ///   It is responsible for managing the server connection and
 ///   prompting the user for server/client information.
 class ServerBloc extends Bloc<ServerEvent, ServerState> {
-
   ServerBloc(this.bottomTextNotifier) : super(const ServerState(status: ServerStatus.initial)) {
     /// Logic paths:
     ///   read the persisting data.
@@ -72,7 +72,7 @@ class ServerBloc extends Bloc<ServerEvent, ServerState> {
   /// A helper method that connects to the server. It indicates that whenever the connection
   ///   is disposed, the server is reset.
   Future<(WebSocketChannel, MessageChannel)> _connectToServer(String serverIp, int port) async {
-    final (websocketChannel, serverChannel) = await connectToServer(
+    final (webSocketChannel, serverChannel) = await connection_service.connectToServer(
       serverIp,
       port,
       () {
@@ -80,7 +80,7 @@ class ServerBloc extends Bloc<ServerEvent, ServerState> {
       },
     );
 
-    return (websocketChannel, serverChannel);
+    return (webSocketChannel, serverChannel);
   }
 
   Future<void> _onReset(ServerReset event, Emitter<ServerState> emit) async {
@@ -90,7 +90,10 @@ class ServerBloc extends Bloc<ServerEvent, ServerState> {
 
   Future<void> _onInit(ServerInit event, Emitter<ServerState> emit) async {
     /// Close any server or client connections that are open.
-    if (state.databaseArgs case ServerDatabaseArgs(:final close) || ClientDatabaseArgs(:final close)) {
+    if (state.databaseArgs case final ServerDatabaseArgs args) {
+      await args.landingServer.close();
+      await args.webSocketServer.close();
+    } else if (state.databaseArgs case ClientDatabaseArgs(:final close)) {
       await close();
     }
 
@@ -202,7 +205,7 @@ class ServerBloc extends Bloc<ServerEvent, ServerState> {
       final [serverIp, portString] = serverAddress.split(":");
       final port = int.parse(portString);
 
-      final (websocketChannel, serverChannel) = await connection_service.connectToServer(
+      final (webSocketChannel, serverChannel) = await connection_service.connectToServer(
         serverIp,
         port,
         () => add(const ServerReset()),
@@ -215,10 +218,10 @@ class ServerBloc extends Bloc<ServerEvent, ServerState> {
           args: ClientDatabaseArgs(
             parentIp: serverIp,
             port: port,
-            webSocketChannel: websocketChannel,
+            webSocketChannel: webSocketChannel,
             messageChannel: serverChannel,
             close: () async {
-              await websocketChannel.sink.close();
+              await webSocketChannel.sink.close();
             },
           ),
           channel: serverChannel,
@@ -258,17 +261,18 @@ class ServerBloc extends Bloc<ServerEvent, ServerState> {
       await ServerConfigurationDialog.show(
         context: rootNavigatorKey.currentContext!,
         defaultPort: defaultPort,
-        onStartServer: (port) => connection_service.startServer(port),
+        onStartServer: (port) => connection_service.startServers(port),
         onCancel: () => add(const ServerPromptingUserFromNull()),
-        onSuccess: (channel, close, port) {
+        onSuccess: (landing, webSocket, stream) {
           add(ServerServerStarted(
             saveToPreferences: true,
             popupToUser: true,
-            channel: channel,
             args: ServerDatabaseArgs(
               ip: localIp,
-              port: port,
-              close: close,
+              port: landing.port,
+              landingServer: landing,
+              webSocketServer: webSocket,
+              stream: stream,
             ),
           ));
         },
@@ -295,14 +299,19 @@ class ServerBloc extends Bloc<ServerEvent, ServerState> {
     final localIp = await NetworkInfo().getWifiIP().then((p) => p!);
     if (isClosed) return;
     try {
-      final (serverChannel, close) = await hostShelfServer(port);
+      final (landing, webSocket, stream) = await connection_service.startServers(port);
       if (isClosed) return;
 
       add(ServerServerStarted(
         saveToPreferences: event.saveToPreferences,
         popupToUser: false,
-        args: ServerDatabaseArgs(ip: localIp, port: port, close: close),
-        channel: serverChannel,
+        args: ServerDatabaseArgs(
+          ip: localIp,
+          port: port,
+          landingServer: landing,
+          webSocketServer: webSocket,
+          stream: stream,
+        ),
       ));
     } on SocketException catch (e) {
       if (e.osError case OSError(errorCode: 48)) {
@@ -384,7 +393,8 @@ class ServerBloc extends Bloc<ServerEvent, ServerState> {
           if (isClosed) return;
 
           final args = event.args;
-          await args.close();
+          await args.landingServer.close();
+          await args.webSocketServer.close();
           if (isClosed) return;
 
           add(const ServerPromptingServerInformation());
@@ -399,12 +409,16 @@ class ServerBloc extends Bloc<ServerEvent, ServerState> {
       if (isClosed || didUserCancel) return;
     }
 
+    /// If we confirmed, start listening for events.
+    event.args.stream.listen(add);
+
+    final channel = event.args.webSocketServer.channel;
     emit(state.copyWith(
       status: ServerStatus.running,
       databaseArgs: event.args,
-      databaseHelper: ServerDatabaseHelper(Server(event.channel)),
+      databaseHelper: ServerDatabaseHelper(Server(channel)),
     ));
-    postServerSetup(event.channel).listen(add);
+
     if (event.saveToPreferences) {
       add(ServerSaveServerInformation(port: event.args.port));
     }

@@ -15,16 +15,53 @@ extension type const MessageChannel._((ListenedReceivePort, NamedSendPort) pair)
   bool get isClosed => receivePort.isClosed;
   bool get isOpen => !receivePort.isClosed;
 
-  /// Invokes a method on the channel with the given arguments.
+  /// Invokes a method on a specified channel with the given arguments.
   /// Returns a future which completes with the result of the invocation.
-  Future<T> invoke<T>(String method, [List<Object?>? arguments]) {
-    final name = const Uuid().v4();
+  Future<T> invokeNamed<T>(String name, String method, [List<Object?>? arguments]) {
+    final uuid = const Uuid().v4();
     final payload = [method, arguments];
 
     /// We send an invocation request, alongside the completer name and the payload.
     /// The completer name is used to identify the response.
-    sendPort.send("invocation", [name, payload]);
+    sendPort.send(name, [uuid, payload]);
 
-    return receivePort.next(name);
+    return receivePort.next(uuid);
   }
+
+  /// Invokes a method on the channel with the given arguments.
+  /// Returns a future which completes with the result of the invocation.
+  Future<T> invoke<T>(String method, [List<Object?>? arguments]) =>
+      invokeNamed("invocation", method, arguments);
+
+  Future<(String, T)> receiveNamed<T>(String name) {
+    return receivePort.next<List<Object?>>(name).then((result) {
+      final [name as String, value as T] = result;
+
+      return (name, value);
+    });
+  }
+
+  Future<T> receive<T>(String name) => receivePort.next(name);
+  void send(String name, Object? message) => sendPort.send(name, message);
 }
+
+// extension type const StrictMessageChannel._(MessageChannel channel) implements MessageChannel {
+//   const StrictMessageChannel(MessageChannel channel) : this._(channel);
+
+//   ListenedReceivePort get receivePort => channel.receivePort;
+//   NamedSendPort get sendPort => channel.sendPort;
+
+//   bool get isClosed => channel.isClosed;
+//   bool get isOpen => channel.isOpen;
+
+//   Future<T> invokeNamed<T>(String name, String method, [List<Object?>? arguments]) =>
+//       channel.invokeNamed(name, method, arguments);
+
+//   Future<T> invoke<T>(String method, [List<Object?>? arguments]) =>
+//       channel.invoke(method, arguments);
+
+//   Future<(String, T)> receiveNamed<T>(String name) => channel.receiveNamed(name);
+
+//   Future<T> receive<T>(String name) => channel.receive(name);
+//   void send(String name, Object message) => channel.send(name, message);
+// }

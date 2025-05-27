@@ -16,7 +16,7 @@ void main(List<String> args) async {
     const minimumSize = Size(800, 600);
 
     final id = args.isEmpty ? 0 : int.tryParse(args[0]) ?? 0;
-    final (_) = await WindowManagerPlus.ensureInitialized(id).tryComplete();
+    final (_) = await WindowManagerPlus.ensureInitialized(id).tryCatch();
     const options = WindowOptions(
       size: minimumSize,
       minimumSize: minimumSize,

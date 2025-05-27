@@ -13,13 +13,13 @@ Future<(WebSocketChannel, MessageChannel)> connectToServer(
   if (kDebugMode) {
     print("Connecting to $uri");
   }
-  final websocketChannel = WebSocketChannel.connect(uri);
-  await websocketChannel.ready;
+  final webSocketChannel = WebSocketChannel.connect(uri);
+  await webSocketChannel.ready;
   if (kDebugMode) {
     print("Connected to $uri");
   }
 
-  final serverChannel = websocketChannel.toMessageChannel(onConnectionClose);
+  final serverChannel = webSocketChannel.toMessageChannel(onConnectionClose);
   final status = await serverChannel.receivePort.next("status");
   if (kDebugMode) {
     print("Received status: $status");
@@ -28,7 +28,7 @@ Future<(WebSocketChannel, MessageChannel)> connectToServer(
   final isSuccessful = status == 0;
   if (!isSuccessful) throw Error();
 
-  return (websocketChannel, serverChannel);
+  return (webSocketChannel, serverChannel);
 }
 
 Stream<ServerEvent> postConnectionSetup(MessageChannel channel) async* {

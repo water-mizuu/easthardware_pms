@@ -18,8 +18,8 @@ extension MessageChannelExtension on WebSocketChannel {
     final sendPort = receivePort.sendPort;
 
     /// The internal receive port works as a mapper for the messages
-    ///   into the websocket channel. It encodes the messages to JSON string
-    ///   and sends them to the websocket channel.
+    ///   into the webSocket channel. It encodes the messages to JSON string
+    ///   and sends them to the webSocket channel.
     final internalReceivePort = ReceivePort()
       ..map(jsonEncode).listen((message) {
         if (kDebugMode) {

@@ -22,7 +22,8 @@ class ClientConnectionDialog extends StatefulWidget {
   static Future<void> show({
     required BuildContext context,
     required VoidCallback onCancel,
-    required Future<(WebSocketChannel, MessageChannel)> Function(String ip, int port) onCreateServer,
+    required Future<(WebSocketChannel, MessageChannel)> Function(String ip, int port)
+        onCreateServer,
     required void Function(MessageChannel channel, ClientDatabaseArgs args) onConfirm,
   }) {
     return showDialog(
@@ -152,13 +153,13 @@ class _ClientConnectionDialogState extends State<ClientConnectionDialog> {
               if (!context.mounted) return;
 
               try {
-                final (websocket, message) = await widget.onCreateServer(parentIp!, port!);
+                final (webSocket, message) = await widget.onCreateServer(parentIp!, port!);
                 setState(() {
                   testMessage = "Successfully connected to $ipAddress.";
                   testMessageColor = Colors.green;
                   isConnecting = false;
 
-                  loadedWebsocketChannel = websocket;
+                  loadedWebsocketChannel = webSocket;
                   loadedMessageChannel = message;
                 });
               } on Object {

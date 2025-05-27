@@ -1,10 +1,10 @@
-import 'package:easthardware_pms/utils/message_channel.dart';
+import 'package:easthardware_pms/backend/extension_types/shelf_server.dart';
+import 'package:easthardware_pms/presentation/bloc/server/server_bloc.dart';
 import 'package:fluent_ui/fluent_ui.dart';
 import 'package:flutter/foundation.dart';
 
 /// Dialog for configuring server information (port number)
 class ServerConfigurationDialog extends StatefulWidget {
-
   const ServerConfigurationDialog({
     super.key,
     this.defaultPort,
@@ -13,9 +13,9 @@ class ServerConfigurationDialog extends StatefulWidget {
     required this.onSuccess,
   });
   final String? defaultPort;
-  final Future<(MessageChannel, Future<void> Function())> Function(int port) onStartServer;
+  final Future<(ShelfServer, ShelfServer, Stream<ServerEvent>)> Function(int port) onStartServer;
   final VoidCallback onCancel;
-  final Function(MessageChannel channel, Future<void> Function() close, int port) onSuccess;
+  final Function(ShelfServer landing, ShelfServer webSocket, Stream<ServerEvent>) onSuccess;
 
   @override
   State<ServerConfigurationDialog> createState() => _ServerConfigurationDialogState();
@@ -23,9 +23,10 @@ class ServerConfigurationDialog extends StatefulWidget {
   static Future<void> show({
     required BuildContext context,
     String? defaultPort,
-    required Future<(MessageChannel, Future<void> Function())> Function(int port) onStartServer,
+    required Future<(ShelfServer, ShelfServer, Stream<ServerEvent>)> Function(int port)
+        onStartServer,
     required VoidCallback onCancel,
-    required Function(MessageChannel channel, Future<void> Function() close, int port) onSuccess,
+    required Function(ShelfServer landing, ShelfServer webSocket, Stream<ServerEvent>) onSuccess,
   }) {
     return showDialog(
       context: context,
@@ -81,12 +82,12 @@ class _ServerConfigurationDialogState extends State<ServerConfigurationDialog> {
         throw Exception("Port number must be between 2000 and 65535.");
       }
 
-      final (channel, close) = await widget.onStartServer(port);
+      final (landing, webSocket, stream) = await widget.onStartServer(port);
 
       if (!mounted) return;
 
       Navigator.of(context).pop();
-      widget.onSuccess(channel, close, port);
+      widget.onSuccess(landing, webSocket, stream);
     } catch (e) {
       if (kDebugMode) {
         print('Server start error: $e');
