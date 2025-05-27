@@ -5,18 +5,11 @@ import 'package:easthardware_pms/backend/server_host.dart';
 import 'package:easthardware_pms/presentation/bloc/server/server_bloc.dart';
 import 'package:network_info_plus/network_info_plus.dart';
 
-export 'package:easthardware_pms/backend/server_connect.dart' show connectToServer;
+export 'package:easthardware_pms/backend/server_connect.dart' show connectToWebSocketServer;
 
 /// Starts a server on the given port
-Future<
-    (
-      ShelfServer landing,
-      ShelfServer webSocket,
-      Stream<ServerEvent> eventStream,
-    )> startServers(int port) async {
-  final (channel, close, eventStream) = await hostShelfServer(port);
-
-  return (channel, close, eventStream);
+Future<(ShelfServer, ShelfServer, Stream<ServerEvent>)> startServers(int port) async {
+  return await hostShelfServer(port);
 }
 
 /// Gets the local WiFi IP address

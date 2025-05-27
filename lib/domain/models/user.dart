@@ -1,11 +1,11 @@
+import "dart:convert";
 import "dart:typed_data";
 
 import "package:easthardware_pms/domain/enums/enums.dart";
 import "package:easthardware_pms/utils/undefined.dart";
 
 class User {
-
-  User({
+  const User({
     required this.uid,
     this.id,
     required this.firstName,
@@ -26,8 +26,8 @@ class User {
       lastName: map['last_name'] as String,
       username: map['username'] as String,
       accessLevel: AccessLevel.values[map['access_level'] as int],
-      passwordHash: Uint8List.fromList((map['password_hash'] as List<dynamic>).cast<int>()),
-      salt: Uint8List.fromList((map['salt'] as List<dynamic>).cast<int>()),
+      passwordHash: base64Decode(map['password_hash'] as String),
+      salt: base64Decode(map['salt'] as String),
       creationDate: map['creation_date'] as String,
       status: map['status'] as int,
     );
@@ -84,13 +84,14 @@ class User {
 
   Map<String, dynamic> toMap() {
     return <String, dynamic>{
+      'id': id,
       'uid': uid,
       'first_name': firstName,
       'last_name': lastName,
       'username': username,
       'access_level': accessLevel.index,
-      'password_hash': passwordHash,
-      'salt': salt,
+      'password_hash': base64Encode(passwordHash),
+      'salt': base64Encode(salt),
       'status': status,
       'creation_date': creationDate,
     };

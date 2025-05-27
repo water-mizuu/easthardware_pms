@@ -1,8 +1,11 @@
 import 'dart:async';
+import 'dart:convert' show jsonEncode;
 import 'dart:io';
 import 'dart:isolate';
 
 import 'package:async_queue/async_queue.dart';
+import 'package:easthardware_pms/domain/errors/exceptions.dart' show AuthenticationException;
+import 'package:easthardware_pms/domain/services/cryptography_service.dart';
 import 'package:easthardware_pms/utils/message_channel.dart';
 import 'package:easthardware_pms/utils/parallelism.dart';
 import 'package:easthardware_pms/utils/try_future.dart';
@@ -13,7 +16,7 @@ import 'package:shelf/shelf.dart';
 import "package:shelf/shelf_io.dart" as shelf_io;
 import 'package:shelf_router/shelf_router.dart';
 
-late MessageChannel mainChannel;
+late MessageChannel channel;
 late AsyncQueue _handleConnectionQueue;
 
 /// Spawns an isolate to handle database operations and WebSocket connections.
@@ -35,7 +38,7 @@ Future<void> spawnLandingIsolate((RootIsolateToken, NamedSendPort, int port) pay
   final receivePort = ReceivePort().hostListener();
   sendPort.send("setup", receivePort.sendPort);
 
-  mainChannel = MessageChannel(receivePort, sendPort);
+  channel = MessageChannel(receivePort, sendPort);
 
   // Start a shelf server on any port.
   final (server, error) = await _initiateLandingServer(port).tryCatch();
@@ -107,11 +110,50 @@ Future<HttpServer> _initiateLandingServer(int port) async {
     return completer.future;
   });
 
+  /// TODO: Make it so that it requires a sesion token.
   router.get("/request-ws-port", (Request request) {
     final completer = Completer<Response>.sync();
     _handleConnectionQueue.addJob((_) async {
       final port = await _requestWsPort();
       completer.complete(Response.ok(port.toString()));
+    });
+
+    return completer.future;
+  });
+
+  router.get("/auth", (Request request) {
+    final query = request.url.queryParameters;
+    final completer = Completer<Response>.sync();
+    _handleConnectionQueue.addJob((_) async {
+      final username = query["username"];
+      if (username == null) {
+        return completer.complete(Response.badRequest(body: "Invalid credentials"));
+      }
+
+      final password = query["password"];
+      if (password == null) {
+        return completer.complete(Response.badRequest(body: "Invalid credentials 1"));
+      }
+
+      final (res, err1) = await _requestComparisonAuth(username).tryCatch();
+      if (err1 != null) {
+        if (kDebugMode) {
+          print(err1);
+        }
+        return completer.complete(Response.badRequest(body: "Invalid credentials 2"));
+      }
+      final [hash, salt] = res!;
+      final inputHash = CryptographyService.generateHash(query["password"]!, salt);
+
+      if (inputHash.toString() != hash.toString()) {
+        return completer.complete(Response.badRequest(body: "Invalid credentials 3"));
+      }
+
+      final id = await _requestUserId(username);
+      final sessionToken = await _requestSessionToken(id);
+      final response = jsonEncode({"sessionToken": sessionToken, "user_id": id});
+
+      completer.complete(Response.ok(response));
     });
 
     return completer.future;
@@ -132,8 +174,35 @@ Future<HttpServer> _initiateLandingServer(int port) async {
   return server;
 }
 
+Future<int> _requestSessionToken(int userId) async {
+  final result = await channel.invokeNamed<Object>("main", "requestSessionToken", [userId]);
+  if (result is AuthenticationException) throw result;
+  if (kDebugMode) {
+    print("Received result: $result");
+  }
+
+  return result as int;
+}
+
+Future<int> _requestUserId(String username) async {
+  final result = await channel.invokeNamed<Object>("main", "requestUserId", [username]);
+  if (result is AuthenticationException) throw result;
+  if (kDebugMode) {
+    print("Received result: $result");
+  }
+
+  return result as int;
+}
+
+Future<List<Uint8List>> _requestComparisonAuth(String username) async {
+  final [hashed, salt] = await channel //
+      .invokeNamed<List<Uint8List>>("main", "requestComparisonAuth", [username]);
+
+  return [hashed, salt];
+}
+
 Future<int> _requestWsPort() async {
-  final result = await mainChannel.invokeNamed<int>("main", "requestWsPort", []);
+  final result = await channel.invokeNamed<int>("main", "requestWsPort", []);
   if (kDebugMode) {
     print("Received result: $result");
   }

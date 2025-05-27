@@ -3,8 +3,6 @@ import 'dart:io';
 
 import 'package:easthardware_pms/backend/enum/database_mode.dart';
 import 'package:easthardware_pms/backend/extension_types/shelf_server.dart';
-import 'package:easthardware_pms/backend/server_connect.dart';
-import 'package:easthardware_pms/backend/server_host.dart';
 import 'package:easthardware_pms/data/database/database_helper.dart';
 import 'package:easthardware_pms/data/database/database_server_proxy.dart';
 import 'package:easthardware_pms/presentation/bloc/server/services/server_connection_service.dart'
@@ -71,20 +69,20 @@ class ServerBloc extends Bloc<ServerEvent, ServerState> {
 
   /// A helper method that connects to the server. It indicates that whenever the connection
   ///   is disposed, the server is reset.
-  Future<(WebSocketChannel, MessageChannel)> _connectToServer(String serverIp, int port) async {
-    final (webSocketChannel, serverChannel) = await connection_service.connectToServer(
+  Future<(WebSocketChannel, MessageChannel, Stream<ServerEvent>)> _connectToServer(
+    String serverIp,
+    int port,
+  ) async {
+    return await connection_service.connectToWebSocketServer(
       serverIp,
       port,
-      () {
-        add(const ServerReset());
-      },
+      () => add(const ServerReset()),
     );
-
-    return (webSocketChannel, serverChannel);
   }
 
   Future<void> _onReset(ServerReset event, Emitter<ServerState> emit) async {
     await server_preferences.resetSharedPreferences();
+
     add(const ServerInit());
   }
 
@@ -93,7 +91,7 @@ class ServerBloc extends Bloc<ServerEvent, ServerState> {
     if (state.databaseArgs case final ServerDatabaseArgs args) {
       await args.landingServer.close();
       await args.webSocketServer.close();
-    } else if (state.databaseArgs case ClientDatabaseArgs(:final close)) {
+    } else if (state.databaseArgs case ClientDatabaseArgs(:final close?)) {
       await close();
     }
 
@@ -169,21 +167,26 @@ class ServerBloc extends Bloc<ServerEvent, ServerState> {
 
     await ClientConnectionDialog.show(
       context: rootNavigatorKey.currentContext!,
-      onCreateServer: _connectToServer,
       onCancel: () {
         Navigator.of(context).pop();
 
         add(const ServerPromptingUserFromNull());
       },
-      onConfirm: (channel, args) async {
+      onConfirm: (parentIp, port) async {
         Navigator.of(context).pop();
 
         add(
           ServerClientConnectionEstablished(
             saveToPreferences: true,
             popupToUser: true,
-            channel: channel!,
-            args: args,
+            args: ClientDatabaseArgs(
+              parentIp: parentIp,
+              port: port,
+              webSocketChannel: null,
+              messageChannel: null,
+              close: null,
+              stream: null,
+            ),
           ),
         );
       },
@@ -194,6 +197,8 @@ class ServerBloc extends Bloc<ServerEvent, ServerState> {
     ServerLoadingClientFromPreferences event,
     Emitter<ServerState> emit,
   ) async {
+    throw UnimplementedError();
+
     try {
       emit(state.copyWith(
         status: ServerStatus.loadingClient,
@@ -204,12 +209,7 @@ class ServerBloc extends Bloc<ServerEvent, ServerState> {
       final serverAddress = event.address;
       final [serverIp, portString] = serverAddress.split(":");
       final port = int.parse(portString);
-
-      final (webSocketChannel, serverChannel) = await connection_service.connectToServer(
-        serverIp,
-        port,
-        () => add(const ServerReset()),
-      );
+      final (webSocket, message, stream) = await _connectToServer(serverIp, port);
 
       add(
         ServerClientConnectionEstablished(
@@ -218,13 +218,13 @@ class ServerBloc extends Bloc<ServerEvent, ServerState> {
           args: ClientDatabaseArgs(
             parentIp: serverIp,
             port: port,
-            webSocketChannel: webSocketChannel,
-            messageChannel: serverChannel,
+            webSocketChannel: webSocket,
+            messageChannel: message,
             close: () async {
-              await webSocketChannel.sink.close();
+              await webSocket.sink.close();
             },
+            stream: stream,
           ),
-          channel: serverChannel,
         ),
       );
     } catch (e) {
@@ -246,21 +246,12 @@ class ServerBloc extends Bloc<ServerEvent, ServerState> {
       databaseHelper: null,
     ));
 
-    final defaultPort = () {
-      final args = state.databaseArgs;
-      if (args is ServerDatabaseArgs) {
-        return args.port.toString();
-      }
-      return null;
-    }();
-
     try {
       final localIp = await connection_service.getLocalIpAddress();
       if (isClosed) return;
 
       await ServerConfigurationDialog.show(
         context: rootNavigatorKey.currentContext!,
-        defaultPort: defaultPort,
         onStartServer: (port) => connection_service.startServers(port),
         onCancel: () => add(const ServerPromptingUserFromNull()),
         onSuccess: (landing, webSocket, stream) {
@@ -341,14 +332,14 @@ class ServerBloc extends Bloc<ServerEvent, ServerState> {
 
     if (event.popupToUser) {
       final didUserCancelCompleter = Completer<bool>();
-      await ClientConnectionSuccessDialog.show(
+      ClientConnectionSuccessDialog.show(
         context: rootNavigatorKey.currentContext!,
         onCancel: () async {
           bottomTextNotifier.value = "Cancelled connection. Loading client data...";
           didUserCancelCompleter.complete(true);
           Navigator.of(rootNavigatorKey.currentContext!).pop();
           final args = state.databaseArgs as ClientDatabaseArgs;
-          await args.close();
+          await args.close?.call();
           if (isClosed) return;
 
           add(const ServerPromptingClientInformation());
@@ -364,12 +355,16 @@ class ServerBloc extends Bloc<ServerEvent, ServerState> {
       if (isClosed || didUserCancel) return;
     }
 
+    /// If we confirmed, stream the events to this bloc.
+    event.args.stream?.listen(add);
+
+    /// Let the user know that we are connected.
+    final channel = event.args.messageChannel!;
     emit(state.copyWith(
       status: ServerStatus.running,
       databaseArgs: event.args,
-      databaseHelper: ServerDatabaseHelper(Server(event.channel)),
+      databaseHelper: ServerDatabaseHelper(Server(channel)),
     ));
-    postConnectionSetup(event.channel).listen(add);
     if (event.saveToPreferences) {
       add(ServerSaveClientInformation(serverAddress: address));
     }
@@ -412,6 +407,7 @@ class ServerBloc extends Bloc<ServerEvent, ServerState> {
     /// If we confirmed, start listening for events.
     event.args.stream.listen(add);
 
+    /// We let the user know that the server is running.
     final channel = event.args.webSocketServer.channel;
     emit(state.copyWith(
       status: ServerStatus.running,

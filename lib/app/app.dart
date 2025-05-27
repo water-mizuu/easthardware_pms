@@ -42,7 +42,7 @@ class _AppState extends State<App> with WidgetsBindingObserver {
         listenWhen: (p, c) => p.databaseHelper != c.databaseHelper,
         listener: (context, state) async {
           databaseHelper = state.databaseHelper;
-          await di.initialize(databaseHelper);
+          await di.initialize(databaseArgs: state.databaseArgs, databaseHelper: databaseHelper);
           if (!mounted || !context.mounted) return;
 
           setState(() {});
@@ -63,7 +63,7 @@ class _AppState extends State<App> with WidgetsBindingObserver {
     super.initState();
 
     di = DependencyInjector();
-    di.initialize(null);
+    di.initialize();
 
     serverBloc = ServerBloc(bottomText)..add(const ServerInit());
   }

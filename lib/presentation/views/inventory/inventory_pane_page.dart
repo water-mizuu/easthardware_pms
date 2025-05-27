@@ -10,7 +10,6 @@ import 'package:easthardware_pms/presentation/widgets/kpi_card.dart';
 import 'package:easthardware_pms/presentation/widgets/spacing.dart';
 import 'package:easthardware_pms/presentation/widgets/text.dart';
 import 'package:fluent_ui/fluent_ui.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart' show DataColumn, DataTable;
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
@@ -27,9 +26,6 @@ class InventoryPanePage extends StatelessWidget {
       padding: AppPadding.panePadding,
       child: LayoutBuilder(builder: (context, constraints) {
         final width = constraints.maxWidth;
-        if (kDebugMode) {
-          print(width);
-        }
         final layoutMode = width > 850
             ? LayoutMode.wide
             : width > 0.85

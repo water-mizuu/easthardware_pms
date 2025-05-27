@@ -79,11 +79,13 @@ final class ClientDatabaseArgs extends DatabaseArgs {
     required this.webSocketChannel,
     required this.messageChannel,
     required this.close,
+    required this.stream,
   }) : super(DatabaseMode.client);
 
   final String parentIp;
   final int port;
   final WebSocketChannel? webSocketChannel;
   final MessageChannel? messageChannel;
-  final Future<void> Function() close;
+  final Future<void> Function()? close;
+  final Stream<ServerEvent>? stream;
 }

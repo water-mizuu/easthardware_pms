@@ -19,244 +19,7 @@ import 'package:flutter/services.dart';
 import 'package:path/path.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
-// Database instance cache
-Database? _databaseInstance;
-
-/// The creation of the database instance is here.
-///   It is created after a server isolate is spawned.
-Future<Database> _getDatabase() async {
-  assert(RootIsolateToken.instance == null, "This should be called on another isolate.");
-  if (_databaseInstance == null) {
-    // Initialize the database - this would typically be your actual database initialization
-    // For example:
-    if (Platform.isWindows || Platform.isMacOS) {
-      sqfliteFfiInit();
-      databaseFactory = databaseFactoryFfi;
-    }
-
-    final path = join(await getDatabasesPath(), 'server_return database.db');
-    _databaseInstance = await openDatabase(
-      path,
-      version: 2,
-      onCreate: (db, version) {
-        CategoriesTable.createTable(db);
-        ExpenseTypesTable.createTable(db);
-        PaymentMethodsTable.createTable(db);
-        UsersTable.createTable(db);
-        UserLogsTable.createTable(db);
-        ProductsTable.createTable(db);
-        UnitsTable.createTable(db);
-        OrdersTable.createTable(db);
-        OrderProductsTable.createTable(db);
-        InvoicesTable.createTable(db);
-        InvoiceProductsTable.createTable(db);
-        SecurityQuestionsTable.createTable(db);
-        ProductFlagsView.createView(db);
-      },
-      onUpgrade: (db, _, __) async {
-        // Drop all tables
-        CategoriesTable.dropTable(db);
-        ExpenseTypesTable.dropTable(db);
-        PaymentMethodsTable.dropTable(db);
-        UsersTable.dropTable(db);
-        UserLogsTable.dropTable(db);
-        ProductsTable.dropTable(db);
-        UnitsTable.dropTable(db);
-        OrdersTable.dropTable(db);
-        OrderProductsTable.dropTable(db);
-        InvoicesTable.dropTable(db);
-        InvoiceProductsTable.dropTable(db);
-        SecurityQuestionsTable.dropTable(db);
-        ProductFlagsView.dropView(db);
-        // Recreate all tables
-        CategoriesTable.createTable(db);
-        ExpenseTypesTable.createTable(db);
-        PaymentMethodsTable.createTable(db);
-        UsersTable.createTable(db);
-        UserLogsTable.createTable(db);
-        ProductsTable.createTable(db);
-        UnitsTable.createTable(db);
-        OrdersTable.createTable(db);
-        OrderProductsTable.createTable(db);
-        InvoicesTable.createTable(db);
-        InvoiceProductsTable.createTable(db);
-        SecurityQuestionsTable.createTable(db);
-        ProductFlagsView.createView(db);
-        // You can also add any additional migration logic here if needed
-        // For example, if you want to migrate data from old tables to new tables, you can do it here
-      },
-    );
-  }
-  return _databaseInstance!;
-}
-
-Future<DatabaseMethodResult> _executeBatch(
-  Database db,
-  List<Object> operations,
-  bool? exclusive,
-  bool? noResult,
-  bool? continueOnError, {
-  required bool isCommit,
-}) async {
-  assert(RootIsolateToken.instance == null);
-  final batch = db.batch();
-
-  var hasModifyingOperations = false;
-
-  for (final op in operations) {
-    switch (op) {
-      case [final String method, final Object? params]:
-        switch (method) {
-          case 'rawInsert':
-            if (params case [final String sql, final List<Object?>? arguments]) {
-              batch.rawInsert(sql, arguments);
-              hasModifyingOperations = true;
-            }
-            break;
-
-          case 'insert':
-            if (params
-                case [
-                  final String table,
-                  final Map<String, Object?> values,
-                  {
-                    'nullColumnHack': final String? nullColumnHack,
-                    'conflictAlgorithm': final int? conflictAlgorithm
-                  }
-                ]) {
-              batch.insert(
-                table,
-                values,
-                nullColumnHack: nullColumnHack,
-                conflictAlgorithm: conflictAlgorithm != null //
-                    ? ConflictAlgorithm.values[conflictAlgorithm]
-                    : null,
-              );
-              hasModifyingOperations = true;
-            }
-            break;
-
-          case 'rawUpdate':
-            if (params case [final String sql, final List<Object?>? arguments]) {
-              batch.rawUpdate(sql, arguments);
-              hasModifyingOperations = true;
-            }
-            break;
-
-          case 'update':
-            if (params
-                case [
-                  final String table,
-                  final Map<String, Object?> values,
-                  {
-                    'where': final String? where,
-                    'whereArgs': final List<Object?>? whereArgs,
-                    'conflictAlgorithm': final int? conflictAlgorithm,
-                  }
-                ]) {
-              batch.update(
-                table,
-                values,
-                where: where,
-                whereArgs: whereArgs,
-                conflictAlgorithm: conflictAlgorithm != null //
-                    ? ConflictAlgorithm.values[conflictAlgorithm]
-                    : null,
-              );
-              hasModifyingOperations = true;
-            }
-            break;
-
-          case 'rawDelete':
-            if (params case [final String sql, final List<Object?>? arguments]) {
-              batch.rawDelete(sql, arguments);
-              hasModifyingOperations = true;
-            }
-            break;
-
-          case 'delete':
-            if (params
-                case [
-                  final String table,
-                  {'where': final String? where, 'whereArgs': final List<Object?>? whereArgs}
-                ]) {
-              batch.delete(table, where: where, whereArgs: whereArgs);
-              hasModifyingOperations = true;
-            }
-            break;
-
-          case 'execute':
-            if (params case [final String sql, final List<Object?>? arguments]) {
-              batch.execute(sql, arguments);
-              hasModifyingOperations = true;
-            }
-            break;
-
-          case 'query':
-            if (params
-                case [
-                  final String table,
-                  {
-                    'distinct': final bool? distinct,
-                    'columns': final List<String>? columns,
-                    'where': final String? where,
-                    'whereArgs': final List<Object?>? whereArgs,
-                    'groupBy': final String? groupBy,
-                    'having': final String? having,
-                    'orderBy': final String? orderBy,
-                    'limit': final int? limit,
-                    'offset': final int? offset,
-                  }
-                ]) {
-              batch.query(table,
-                  distinct: distinct,
-                  columns: columns,
-                  where: where,
-                  whereArgs: whereArgs,
-                  groupBy: groupBy,
-                  having: having,
-                  orderBy: orderBy,
-                  limit: limit,
-                  offset: offset);
-              // Query operations don't modify the database
-            }
-            break;
-
-          case 'rawQuery':
-            if (params case [final String sql, final List<Object?>? arguments]) {
-              batch.rawQuery(sql, arguments);
-              // Query operations don't modify the database
-            }
-            break;
-
-          default:
-            if (kDebugMode) {
-              print('Unknown batch operation method: $method with params: $params');
-            }
-        }
-        break;
-
-      default:
-        if (kDebugMode) {
-          print('Unknown batch operation format: $op');
-        }
-    }
-  }
-
-  final result = isCommit
-      ? await batch.commit(
-          exclusive: exclusive,
-          noResult: noResult,
-          continueOnError: continueOnError,
-        )
-      : await batch.apply(
-          noResult: noResult,
-          continueOnError: continueOnError,
-        );
-
-  return DatabaseMethodResult(result: result, hasChanged: hasModifyingOperations);
-}
-
+/// Handles JSON encoded database method calls.
 Future<DatabaseMethodResult> serverHandleDatabaseMethod(
   String method,
   List<Object?> arguments,
@@ -506,6 +269,276 @@ Future<DatabaseMethodResult> serverHandleDatabaseMethod(
   }
 
   throw UnsupportedError('Unsupported database method: $method or invalid arguments: $arguments');
+}
+
+// Database instance cache
+Database? _databaseInstance;
+
+/// The creation of the database instance is here.
+///   It is created after a server isolate is spawned.
+Future<Database> _getDatabase() async {
+  assert(RootIsolateToken.instance == null, "This should be called on another isolate.");
+  if (_databaseInstance == null) {
+    // Initialize the database - this would typically be your actual database initialization
+    // For example:
+    if (Platform.isWindows || Platform.isMacOS) {
+      sqfliteFfiInit();
+      databaseFactory = databaseFactoryFfi;
+    }
+
+    final path = join(await getDatabasesPath(), 'database.db');
+    _databaseInstance = await openDatabase(
+      path,
+      version: 2,
+      onCreate: (db, version) {
+        CategoriesTable.createTable(db);
+        ExpenseTypesTable.createTable(db);
+        PaymentMethodsTable.createTable(db);
+        UsersTable.createTable(db);
+        UserLogsTable.createTable(db);
+        ProductsTable.createTable(db);
+        UnitsTable.createTable(db);
+        OrdersTable.createTable(db);
+        OrderProductsTable.createTable(db);
+        InvoicesTable.createTable(db);
+        InvoiceProductsTable.createTable(db);
+        SecurityQuestionsTable.createTable(db);
+        ProductFlagsView.createView(db);
+      },
+      onDowngrade: (db, _, __) async {
+        // Drop all tables
+        CategoriesTable.dropTable(db);
+        ExpenseTypesTable.dropTable(db);
+        PaymentMethodsTable.dropTable(db);
+        UsersTable.dropTable(db);
+        UserLogsTable.dropTable(db);
+        ProductsTable.dropTable(db);
+        UnitsTable.dropTable(db);
+        OrdersTable.dropTable(db);
+        OrderProductsTable.dropTable(db);
+        InvoicesTable.dropTable(db);
+        InvoiceProductsTable.dropTable(db);
+        SecurityQuestionsTable.dropTable(db);
+        ProductFlagsView.dropView(db);
+        // Recreate all tables
+        CategoriesTable.createTable(db);
+        ExpenseTypesTable.createTable(db);
+        PaymentMethodsTable.createTable(db);
+        UsersTable.createTable(db);
+        UserLogsTable.createTable(db);
+        ProductsTable.createTable(db);
+        UnitsTable.createTable(db);
+        OrdersTable.createTable(db);
+        OrderProductsTable.createTable(db);
+        InvoicesTable.createTable(db);
+        InvoiceProductsTable.createTable(db);
+        SecurityQuestionsTable.createTable(db);
+        ProductFlagsView.createView(db);
+        // You can also add any additional migration logic here if needed
+        // For example, if you want to migrate data from old tables to new tables, you can do it here
+      },
+      onUpgrade: (db, _, __) async {
+        // Drop all tables
+        CategoriesTable.dropTable(db);
+        ExpenseTypesTable.dropTable(db);
+        PaymentMethodsTable.dropTable(db);
+        UsersTable.dropTable(db);
+        UserLogsTable.dropTable(db);
+        ProductsTable.dropTable(db);
+        UnitsTable.dropTable(db);
+        OrdersTable.dropTable(db);
+        OrderProductsTable.dropTable(db);
+        InvoicesTable.dropTable(db);
+        InvoiceProductsTable.dropTable(db);
+        SecurityQuestionsTable.dropTable(db);
+        ProductFlagsView.dropView(db);
+        // Recreate all tables
+        CategoriesTable.createTable(db);
+        ExpenseTypesTable.createTable(db);
+        PaymentMethodsTable.createTable(db);
+        UsersTable.createTable(db);
+        UserLogsTable.createTable(db);
+        ProductsTable.createTable(db);
+        UnitsTable.createTable(db);
+        OrdersTable.createTable(db);
+        OrderProductsTable.createTable(db);
+        InvoicesTable.createTable(db);
+        InvoiceProductsTable.createTable(db);
+        SecurityQuestionsTable.createTable(db);
+        ProductFlagsView.createView(db);
+        // You can also add any additional migration logic here if needed
+        // For example, if you want to migrate data from old tables to new tables, you can do it here
+      },
+    );
+  }
+  return _databaseInstance!;
+}
+
+Future<DatabaseMethodResult> _executeBatch(
+  Database db,
+  List<Object> operations,
+  bool? exclusive,
+  bool? noResult,
+  bool? continueOnError, {
+  required bool isCommit,
+}) async {
+  assert(RootIsolateToken.instance == null);
+  final batch = db.batch();
+
+  var hasModifyingOperations = false;
+
+  for (final op in operations) {
+    switch (op) {
+      case [final String method, final Object? params]:
+        switch (method) {
+          case 'rawInsert':
+            if (params case [final String sql, final List<Object?>? arguments]) {
+              batch.rawInsert(sql, arguments);
+              hasModifyingOperations = true;
+            }
+            break;
+
+          case 'insert':
+            if (params
+                case [
+                  final String table,
+                  final Map<String, Object?> values,
+                  {
+                    'nullColumnHack': final String? nullColumnHack,
+                    'conflictAlgorithm': final int? conflictAlgorithm
+                  }
+                ]) {
+              batch.insert(
+                table,
+                values,
+                nullColumnHack: nullColumnHack,
+                conflictAlgorithm: conflictAlgorithm != null //
+                    ? ConflictAlgorithm.values[conflictAlgorithm]
+                    : null,
+              );
+              hasModifyingOperations = true;
+            }
+            break;
+
+          case 'rawUpdate':
+            if (params case [final String sql, final List<Object?>? arguments]) {
+              batch.rawUpdate(sql, arguments);
+              hasModifyingOperations = true;
+            }
+            break;
+
+          case 'update':
+            if (params
+                case [
+                  final String table,
+                  final Map<String, Object?> values,
+                  {
+                    'where': final String? where,
+                    'whereArgs': final List<Object?>? whereArgs,
+                    'conflictAlgorithm': final int? conflictAlgorithm,
+                  }
+                ]) {
+              batch.update(
+                table,
+                values,
+                where: where,
+                whereArgs: whereArgs,
+                conflictAlgorithm: conflictAlgorithm != null //
+                    ? ConflictAlgorithm.values[conflictAlgorithm]
+                    : null,
+              );
+              hasModifyingOperations = true;
+            }
+            break;
+
+          case 'rawDelete':
+            if (params case [final String sql, final List<Object?>? arguments]) {
+              batch.rawDelete(sql, arguments);
+              hasModifyingOperations = true;
+            }
+            break;
+
+          case 'delete':
+            if (params
+                case [
+                  final String table,
+                  {'where': final String? where, 'whereArgs': final List<Object?>? whereArgs}
+                ]) {
+              batch.delete(table, where: where, whereArgs: whereArgs);
+              hasModifyingOperations = true;
+            }
+            break;
+
+          case 'execute':
+            if (params case [final String sql, final List<Object?>? arguments]) {
+              batch.execute(sql, arguments);
+              hasModifyingOperations = true;
+            }
+            break;
+
+          case 'query':
+            if (params
+                case [
+                  final String table,
+                  {
+                    'distinct': final bool? distinct,
+                    'columns': final List<String>? columns,
+                    'where': final String? where,
+                    'whereArgs': final List<Object?>? whereArgs,
+                    'groupBy': final String? groupBy,
+                    'having': final String? having,
+                    'orderBy': final String? orderBy,
+                    'limit': final int? limit,
+                    'offset': final int? offset,
+                  }
+                ]) {
+              batch.query(table,
+                  distinct: distinct,
+                  columns: columns,
+                  where: where,
+                  whereArgs: whereArgs,
+                  groupBy: groupBy,
+                  having: having,
+                  orderBy: orderBy,
+                  limit: limit,
+                  offset: offset);
+              // Query operations don't modify the database
+            }
+            break;
+
+          case 'rawQuery':
+            if (params case [final String sql, final List<Object?>? arguments]) {
+              batch.rawQuery(sql, arguments);
+              // Query operations don't modify the database
+            }
+            break;
+
+          default:
+            if (kDebugMode) {
+              print('Unknown batch operation method: $method with params: $params');
+            }
+        }
+        break;
+
+      default:
+        if (kDebugMode) {
+          print('Unknown batch operation format: $op');
+        }
+    }
+  }
+
+  final result = isCommit
+      ? await batch.commit(
+          exclusive: exclusive,
+          noResult: noResult,
+          continueOnError: continueOnError,
+        )
+      : await batch.apply(
+          noResult: noResult,
+          continueOnError: continueOnError,
+        );
+
+  return DatabaseMethodResult(result: result, hasChanged: hasModifyingOperations);
 }
 
 class DatabaseMethodResult {

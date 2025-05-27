@@ -21,6 +21,7 @@ import 'package:easthardware_pms/presentation/bloc/navigation/navigation_bloc.da
 import 'package:easthardware_pms/presentation/bloc/security/security_questions/security_question_list_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/security/user_list/user_list_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/security/user_log_list/user_log_list_bloc.dart';
+import 'package:easthardware_pms/presentation/bloc/server/server_bloc.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:provider/single_child_widget.dart';
@@ -42,9 +43,17 @@ class DependencyInjector {
   UserLogListBloc? _userLogListBloc;
   SecurityQuestionListBloc? _securityQuestionListBloc;
 
-  Future<void> initialize([DatabaseHelper? databaseHelper]) async {
+  Future<void> initialize({
+    DatabaseArgs? databaseArgs,
+    DatabaseHelper? databaseHelper,
+  }) async {
     _databaseHelper = databaseHelper;
-    _authenticationRepository = AuthenticationRepository(databaseHelper);
+
+    _authenticationRepository = AuthenticationRepository(
+      databaseArgs is ClientDatabaseArgs ? databaseArgs.databaseMode! : null,
+      databaseHelper,
+    );
+
     _productRepository = ProductRepositoryImpl(databaseHelper);
     _categoryRepository = CategoryRepositoryImpl(databaseHelper);
     _unitRepository = UnitRepositoryImpl(databaseHelper);
@@ -105,7 +114,8 @@ class DependencyInjector {
         create: (context) {
           _userLogListBloc?.close();
 
-          return _userLogListBloc = UserLogListBloc(_userLogRepository)..add(const LoadUserLogsEvent());
+          return _userLogListBloc = UserLogListBloc(_userLogRepository)
+            ..add(const LoadUserLogsEvent());
         },
         key: ValueKey(_databaseHelper),
       ),

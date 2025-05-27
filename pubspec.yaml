@@ -59,6 +59,8 @@ dependencies:
   web_socket_channel: ^3.0.3
   window_manager_plus:
     path: ./packages/window_manager_plus-1.0.5
+  async: ^2.11.0
+  http: ^1.4.0
 
 dev_dependencies:
   flutter_test:

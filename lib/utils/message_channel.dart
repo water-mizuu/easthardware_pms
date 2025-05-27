@@ -33,14 +33,6 @@ extension type const MessageChannel._((ListenedReceivePort, NamedSendPort) pair)
   Future<T> invoke<T>(String method, [List<Object?>? arguments]) =>
       invokeNamed("invocation", method, arguments);
 
-  Future<(String, T)> receiveNamed<T>(String name) {
-    return receivePort.next<List<Object?>>(name).then((result) {
-      final [name as String, value as T] = result;
-
-      return (name, value);
-    });
-  }
-
   Future<T> receive<T>(String name) => receivePort.next(name);
   void send(String name, Object? message) => sendPort.send(name, message);
 }

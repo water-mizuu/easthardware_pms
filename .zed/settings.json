@@ -1,0 +1,9 @@
+{
+  "lsp": {
+    "dart": {
+      "settings": {
+        "lineLength": 100
+      }
+    }
+  }
+}

@@ -46,6 +46,7 @@ class UsersTable {
     final passwordHash = CryptographyService.generateHash(password, salt);
 
     final admin = User(
+      id: 0,
       uid: const Uuid().v4(),
       status: 0,
       creationDate: DateTime.now().toIso8601String(),

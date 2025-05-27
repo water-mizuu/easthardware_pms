@@ -3,37 +3,35 @@ import 'package:easthardware_pms/presentation/bloc/server/server_bloc.dart';
 import 'package:fluent_ui/fluent_ui.dart';
 import 'package:flutter/foundation.dart';
 
+typedef ServerTriple = (ShelfServer, ShelfServer, Stream<ServerEvent>);
+typedef OnSuccess = void Function(ShelfServer, ShelfServer, Stream<ServerEvent>);
+
 /// Dialog for configuring server information (port number)
 class ServerConfigurationDialog extends StatefulWidget {
   const ServerConfigurationDialog({
     super.key,
-    this.defaultPort,
     required this.onStartServer,
     required this.onCancel,
     required this.onSuccess,
   });
-  final String? defaultPort;
-  final Future<(ShelfServer, ShelfServer, Stream<ServerEvent>)> Function(int port) onStartServer;
+  final Future<ServerTriple> Function(int port) onStartServer;
   final VoidCallback onCancel;
-  final Function(ShelfServer landing, ShelfServer webSocket, Stream<ServerEvent>) onSuccess;
+  final OnSuccess onSuccess;
 
   @override
   State<ServerConfigurationDialog> createState() => _ServerConfigurationDialogState();
 
   static Future<void> show({
     required BuildContext context,
-    String? defaultPort,
-    required Future<(ShelfServer, ShelfServer, Stream<ServerEvent>)> Function(int port)
-        onStartServer,
+    required Future<ServerTriple> Function(int port) onStartServer,
     required VoidCallback onCancel,
-    required Function(ShelfServer landing, ShelfServer webSocket, Stream<ServerEvent>) onSuccess,
+    required OnSuccess onSuccess,
   }) {
     return showDialog(
       context: context,
       dismissWithEsc: false,
       builder: (context) => ServerConfigurationDialog(
         onStartServer: onStartServer,
-        defaultPort: defaultPort,
         onCancel: onCancel,
         onSuccess: onSuccess,
       ),
@@ -52,7 +50,8 @@ class _ServerConfigurationDialogState extends State<ServerConfigurationDialog> {
   @override
   void initState() {
     super.initState();
-    portController = TextEditingController(text: widget.defaultPort);
+
+    portController = TextEditingController();
   }
 
   @override
@@ -78,12 +77,8 @@ class _ServerConfigurationDialogState extends State<ServerConfigurationDialog> {
 
     try {
       final port = int.parse(portController.text);
-      if (port < 2000 || port > 65535) {
-        throw Exception("Port number must be between 2000 and 65535.");
-      }
-
+      if (formKey.currentState?.validate() != true) return;
       final (landing, webSocket, stream) = await widget.onStartServer(port);
-
       if (!mounted) return;
 
       Navigator.of(context).pop();

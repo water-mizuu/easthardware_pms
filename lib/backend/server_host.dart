@@ -5,8 +5,15 @@ library;
 import 'dart:async';
 import 'dart:isolate';
 
+import 'package:async/async.dart';
 import 'package:easthardware_pms/backend/server_host/landing_isolate.dart';
 import 'package:easthardware_pms/backend/server_host/web_socket_isolate.dart';
+import 'package:easthardware_pms/backend/utils/isolate_indicator.dart';
+import 'package:easthardware_pms/backend/utils/stream.dart';
+import 'package:easthardware_pms/data/database/database_helper.dart';
+import 'package:easthardware_pms/data/database/database_server_proxy.dart';
+import 'package:easthardware_pms/domain/errors/exceptions.dart';
+import 'package:easthardware_pms/domain/repository/user_repository.dart';
 import 'package:easthardware_pms/presentation/bloc/server/server_bloc.dart';
 import 'package:easthardware_pms/utils/message_channel.dart';
 import 'package:easthardware_pms/utils/parallelism.dart';
@@ -15,45 +22,80 @@ import 'package:flutter/services.dart';
 
 import 'extension_types/shelf_server.dart';
 
-/// Hosts a shelf server on the given port.
-/// Returns a tuple containing the server channel, and a function to close the server.
-/// - The server channel is used to communicate with the server.
-/// - The close function is used to stop the server.
+/// Hosts two shelf servers.
+///   The HTTP Server, or the landing server, is hosted on the port.
+///   The WebSocket Server, is dynamically hosted.
+///
+/// The [events] stream emits events related to the server status,
+///   resulted from the listening loop of the isolate.
 Future<(ShelfServer landing, ShelfServer webSocket, Stream<ServerEvent> events)> //
     hostShelfServer(int port) async {
+  assertMainIsolate();
   //
-  final streamController = StreamController<ServerEvent>.broadcast();
-  final (landingServer, webSocketServer) = await (
-    hostLandingServer(port),
-    hostWebSocketServer(),
-  ).wait;
+  final landingServer = await hostLandingServer(port);
+  final webSocketServer = await hostWebSocketServer();
 
   /// Handle calls from the landing isolate.
-  unawaited(() async {
+  final landingStream = stream<ServerEvent>(() async* {
     final channel = landingServer.channel;
-    while (channel.isOpen) {
-      final (name, message) = await channel.receiveNamed('main');
-      if (kDebugMode) {
-        print("*" * 20);
-        print("[LANDING@MAIN] Received message: $message");
-        print("*" * 20);
-      }
-
-      switch (message) {
-        case ['requestWsPort', _]:
-          channel.send(name, webSocketServer.port);
-      }
-    }
-  }());
-
-  /// Handle calls from the webSocket isolate.
-  unawaited(() async {
-    final channel = webSocketServer.channel;
     while (channel.isOpen) {
       final message = await channel.receive('main');
       if (kDebugMode) {
         print("*" * 20);
         print("[LANDING@MAIN] Received message: $message");
+        print("*" * 20);
+      }
+
+      if (message case [final String returnName, final Object request]) {
+        switch (request) {
+          case ['requestWsPort', _]:
+            channel.send(returnName, webSocketServer.port);
+            break;
+          case ['requestComparisonAuth', [final String username]]:
+            final databaseHelper = ServerDatabaseHelper(Server(webSocketServer.channel));
+            final userRepository = UserRepository(databaseHelper);
+            final user = await userRepository.getUserByUsername(username);
+
+            if (user == null) {
+              channel.send(returnName, AuthenticationException('Invalid username or password'));
+              break;
+            }
+
+            channel.send(returnName, [user.passwordHash, user.salt]);
+            break;
+          case ['requestUserId', [final String username]]:
+            final databaseHelper = ServerDatabaseHelper(Server(webSocketServer.channel));
+            final userRepository = UserRepository(databaseHelper);
+            final user = await userRepository.getUserByUsername(username);
+
+            if (user == null) {
+              channel.send(returnName, AuthenticationException('Invalid username or password'));
+              break;
+            }
+
+            if (user.id == null) {
+              channel.send(returnName, AuthenticationException('User ID not found'));
+              break;
+            }
+
+            channel.send(returnName, user.id!);
+            break;
+          case ['requestSessionToken', [final int userId]]:
+            final sessionToken = userId;
+            channel.send(returnName, sessionToken);
+        }
+      }
+    }
+  });
+
+  /// Handle calls from the webSocket isolate.
+  final webSocketStream = stream<ServerEvent>(() async* {
+    final channel = webSocketServer.channel;
+    while (channel.isOpen) {
+      final message = await channel.receive('main');
+      if (kDebugMode) {
+        print("*" * 20);
+        print("[WEB_SOCKET@MAIN] Received message: $message");
         print("*" * 20);
       }
 
@@ -63,15 +105,16 @@ Future<(ShelfServer landing, ShelfServer webSocket, Stream<ServerEvent> events)>
           if (kDebugMode) {
             print("Server updated at: $dateTime");
           }
-          streamController.add(ServerDatabaseUpdated(lastUpdated: dateTime));
+          yield ServerDatabaseUpdated(lastUpdated: dateTime);
           break;
       }
     }
-  }());
+  });
 
-  /// TODO: Add a method on close.
+  /// Merge the streams into one.
+  final fullStream = StreamGroup.merge([landingStream, webSocketStream]);
 
-  return (landingServer, webSocketServer, streamController.stream);
+  return (landingServer, webSocketServer, fullStream);
 }
 
 Future<ShelfServer> hostLandingServer(int port) async {
