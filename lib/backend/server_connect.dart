@@ -5,33 +5,11 @@ import 'package:easthardware_pms/backend/extensions/to_message_channel.dart';
 import 'package:easthardware_pms/backend/secure_http.dart';
 import 'package:easthardware_pms/backend/utils/stream.dart';
 import 'package:easthardware_pms/presentation/bloc/server/server_bloc.dart';
+import 'package:easthardware_pms/utils/boxed.dart';
 import 'package:easthardware_pms/utils/message_channel.dart';
 import 'package:easthardware_pms/utils/try_future.dart';
 import 'package:flutter/foundation.dart';
-import 'package:http/http.dart' as http;
 import 'package:web_socket_channel/web_socket_channel.dart';
-
-Future<bool> httpPing(
-  String address,
-  int port,
-) async {
-  final pingUri = Uri.parse("http://$address:$port/ping");
-  if (kDebugMode) {
-    print("Connecting to $pingUri");
-  }
-
-  final (response, error) = await http.get(pingUri).tryCatch();
-  if (error case (final Object error, final StackTrace stackTrace)) {
-    if (kDebugMode) {
-      print("Error connecting to $pingUri: $error");
-
-      Error.throwWithStackTrace(error, stackTrace);
-    }
-    return false;
-  }
-
-  return true;
-}
 
 Future<(WebSocketChannel, MessageChannel, Stream<ServerEvent>)> connectToWebSocketServer(
   String host,
@@ -39,8 +17,18 @@ Future<(WebSocketChannel, MessageChannel, Stream<ServerEvent>)> connectToWebSock
   void Function() onConnectionClose,
 ) async {
   final address = "$host:$port";
-  final (wsPort, sessionKey, encryptionKey, dispose) = await _webSocketHandshake(address);
-  final websocketUri = Uri.parse("ws://$host:$wsPort?k=$sessionKey");
+  final (result, error) = await _webSocketHandshake(address) //
+      .tryCatch();
+
+  if (error != null) {
+    if (kDebugMode) {
+      print("Failed to connect to WebSocket server at $address: $error");
+    }
+    throw Exception("Failed to connect to WebSocket server");
+  }
+
+  final (wsPort, sessionKey, encryptionKey, dispose) = result!.record;
+  final websocketUri = Uri.parse("ws://$host:$wsPort?key=$sessionKey");
   if (kDebugMode) {
     print("Connecting to $websocketUri");
   }
@@ -65,6 +53,7 @@ Future<(WebSocketChannel, MessageChannel, Stream<ServerEvent>)> connectToWebSock
   if (!isSuccessful) throw Error();
 
   final websocketStream = stream<ServerEvent>(() async* {
+    /// @LANDING2MAIN:client
     while (serverChannel.isOpen) {
       final message = await serverChannel.receive("client");
 
@@ -90,14 +79,17 @@ Future<(WebSocketChannel, MessageChannel, Stream<ServerEvent>)> connectToWebSock
   return (webSocketChannel, serverChannel, websocketStream);
 }
 
-Future<
-    (
-      int websocketPort,
-      int sessionKey,
-      BigInt encryptionKey,
-      Future<void> Function() dispose,
-    )> _webSocketHandshake(String landingAddress) async {
-  final websocketPortUri = Uri.parse("http://$landingAddress/request-ws-port");
+Future<WebSocketHandshakeResult> _webSocketHandshake(String landingAddress) async {
+  /// Requesting a websocket port requires a persistent
+  ///   secure connection to the server, therefore we need to create
+  ///   one beforehand.
+  final target = Uri.parse("http://$landingAddress");
+  final (sessionKey, encryptionKey, dispose) = await SecureHttp.pseudoTlsHandshake(
+    target,
+    isPersistent: true,
+  );
+
+  final websocketPortUri = Uri.parse("http://$landingAddress/request-ws-port?key=$sessionKey");
   final (websocketPortResponse, error1) = await SecureHttp.get(websocketPortUri).tryCatch();
   if (error1 != null) {
     if (kDebugMode) {
@@ -106,11 +98,29 @@ Future<
     throw Exception("Failed to get WebSocket port");
   }
 
-  final {"port": wsPort as int} = jsonDecode(websocketPortResponse!.body);
-  final (sessionKey, encryptionKey, dispose) = await SecureHttp.pseudoTlsHandshake(
-    websocketPortUri,
-    isPersistent: true,
-  );
+  if (jsonDecode(websocketPortResponse!.body) case {"port": final int wsPort}) {
+    return WebSocketHandshakeResult(wsPort, sessionKey, encryptionKey, dispose);
+  }
 
-  return (wsPort, sessionKey, encryptionKey, dispose);
+  if (kDebugMode) {
+    printBoxed(websocketPortResponse.body, "Unknown response from WS port request");
+  }
+  throw Exception("Invalid response from WebSocket port request");
+}
+
+extension type const WebSocketHandshakeResult._(
+    (
+      int websocketPort,
+      int sessionKey,
+      BigInt encryptionKey,
+      Future<void> Function() dispose,
+    ) record) {
+  const WebSocketHandshakeResult(
+      int webSocketPort, int sessionKey, BigInt encryptionKey, Future<void> Function() dispose)
+      : this._((webSocketPort, sessionKey, encryptionKey, dispose));
+
+  int get websocketPort => record.$1;
+  int get sessionKey => record.$2;
+  BigInt get encryptionKey => record.$3;
+  Future<void> Function() get dispose => record.$4;
 }

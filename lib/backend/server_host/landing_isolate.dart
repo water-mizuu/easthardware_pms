@@ -4,9 +4,13 @@ import 'dart:io';
 import 'dart:isolate';
 
 import 'package:async_queue/async_queue.dart';
+import 'package:easthardware_pms/backend/classes/handshake_connection.dart';
+import 'package:easthardware_pms/backend/classes/secure_connection.dart';
+import 'package:easthardware_pms/backend/classes/secure_response.dart';
 import 'package:easthardware_pms/backend/utils/isolate_indicator.dart';
 import 'package:easthardware_pms/backend/utils/random_int_from_date.dart';
 import 'package:easthardware_pms/domain/services/cryptography_service.dart';
+import 'package:easthardware_pms/utils/boxed.dart';
 import 'package:easthardware_pms/utils/message_channel.dart';
 import 'package:easthardware_pms/utils/parallelism.dart';
 import 'package:easthardware_pms/utils/try_future.dart';
@@ -27,47 +31,6 @@ late final AsyncQueue _requestQueue;
 
 late final Map<int, HandshakeConnection> _ongoingHandshakeConnections;
 late final Map<int, SecureConnection> _secureConnections;
-
-/// A handshake connection is a temporary connection that is used to establish
-///   a secure connection between the client and the server.
-///
-/// It is a multi-step process that involves the client and the server exchanging
-///   random values, public keys, and encrypted pre-master secrets. Once the handshake
-///   is complete, a secure connection is established that can be used for end-to-end encryption.
-/// The handshake connection is valid for a limited time, after which it is removed.
-class HandshakeConnection {
-  HandshakeConnection({
-    required this.limit,
-    required this.step,
-    required this.isPersistent,
-  });
-
-  final bool isPersistent;
-  final DateTime limit;
-  int step;
-
-  BigInt? clientRandom;
-  BigInt? serverRandom;
-  BigInt? preMasterSecret;
-  BigInt? sessionEncryptionKey;
-  String? randomValue;
-}
-
-/// These are single use tokens. Once a user has been authenticated,
-///   the secure connection is established for end to end encryption.
-///
-/// However, once the connection is closed, the secure connection is no longer valid.
-class SecureConnection {
-  SecureConnection({
-    required this.secureKey,
-    required this.encryptionKey,
-    required this.isPersistent,
-  });
-
-  final int secureKey;
-  final BigInt encryptionKey;
-  final bool isPersistent;
-}
 
 /// Spawns an isolate to handle database operations and WebSocket connections.
 ///   This isolate will handle incoming messages and perform database operations
@@ -92,9 +55,18 @@ Future<void> spawnLandingIsolate((RootIsolateToken, NamedSendPort, int port) pay
   _channel = MessageChannel(receivePort, sendPort);
 
   _generateKeys();
-
   _ongoingHandshakeConnections = {};
   _secureConnections = {};
+
+  /// Sweep the handshake connections that are lapsed.
+  Timer.periodic(const Duration(minutes: 1), (timer) {
+    final now = DateTime.now();
+    _ongoingHandshakeConnections.removeWhere((_, connection) => now.isAfter(connection.limit));
+
+    if (kDebugMode) {
+      print("Ongoing handshake connections: ${_ongoingHandshakeConnections.length}");
+    }
+  });
 
   // Start a shelf server on any port.
   final (server, error) = await _initiateLandingServer(port).tryCatch();
@@ -109,50 +81,41 @@ Future<void> spawnLandingIsolate((RootIsolateToken, NamedSendPort, int port) pay
   //  The main isolate compares the port to the one provided.
   sendPort.send("setup", server!.port);
 
-  /// Listen for messages from the main isolate.
-  unawaited(() async {
-    var run = true;
+  /// This method handles closing the server and the objects created in this isolate.
+  Future<void> closeIsolate(String name) async {
+    // Close the shelf server
+    await server.close(force: true);
 
-    /// This method handles closing the server and the objects created in this isolate.
-    Future<void> closeIsolate(String name) async {
-      run = false;
+    // Clear the async queues
+    _handleConnectionQueue.clear();
 
-      // Close the shelf server
-      await server.close(force: true);
+    // Close this isolate's receive port.
+    receivePort.close();
+    if (kDebugMode) {
+      print("Isolate stopped.");
+    }
 
-      // Clear the async queues
-      _handleConnectionQueue.clear();
+    /// Success code 0.
+    sendPort.send(name, 0);
+  }
 
-      // Close this isolate's receive port.
-      receivePort.close();
+  /// @MAIN2LANDING:invocation
+  _channel.listenAt("invocation", (message) async {
+    if (message case [final String returnName, final Object args]) {
+      switch (args) {
+        case ["stop", ...]:
+          closeIsolate(returnName);
+          break;
+        case ['requestConnection', [final int secureKey]]:
+          sendPort.send(returnName, _secureConnections[secureKey]);
+          break;
+      }
+    } else {
       if (kDebugMode) {
-        print("Isolate stopped.");
-      }
-
-      /// Success code 0.
-      sendPort.send(name, 0);
-    }
-
-    /// This part handles messages received from the main isolate.
-    /// It listens for messages and performs actions based on the message type.
-    while (run) {
-      final message = await receivePort.next("invocation");
-      if (message case [final String returnName, final Object args]) {
-        switch (args) {
-          case ["stop", ...]:
-            closeIsolate(returnName);
-            break;
-          case ['requestConnection', [final int secureKey]]:
-            sendPort.send(returnName, _secureConnections[secureKey]);
-            break;
-        }
-      } else {
-        if (kDebugMode) {
-          print("Received unexpected message: $message");
-        }
+        print("Received unexpected message: $message");
       }
     }
-  }());
+  });
 }
 
 Future<HttpServer> _initiateLandingServer(int port) async {
@@ -170,11 +133,44 @@ Future<HttpServer> _initiateLandingServer(int port) async {
   ///   by the application in a separate isolate. This is where the
   ///   WebSocket server is hosted.
   router.get("/request-ws-port", secureResponse((request, connection) async {
+    final queryParameters = request.url.queryParameters;
+    final rawPersistentKey = queryParameters["key"];
+    if (rawPersistentKey == null) {
+      return SecureResponse.forbidden(
+        "Secure key is required.",
+        connection.encryptionKey,
+      );
+    }
+    final persistentKey = int.tryParse(rawPersistentKey);
+    if (persistentKey == null || !_secureConnections.containsKey(persistentKey)) {
+      return SecureResponse.forbidden(
+        "Invalid secure key.",
+        connection.encryptionKey,
+      );
+    }
+
+    final pointedConnection = _secureConnections[persistentKey]!;
+    if (kDebugMode) {
+      printBoxed(
+          "pointedConnection: ${(
+            encryptionKey: pointedConnection.encryptionKey,
+            secureKey: pointedConnection.secureKey,
+            isPersistent: pointedConnection.isPersistent
+          )}",
+          "Secure Connection");
+    }
+    if (!pointedConnection.isPersistent) {
+      return SecureResponse.forbidden(
+        "Secure key is not persistent.",
+        connection.encryptionKey,
+      );
+    }
+
+    // If the connection is persistent, we can proceed to request the WebSocket port.
     final port = await _requestWsPort();
     final encoded = jsonEncode({"port": port});
-    final encrypted = _encryptSymmetric(encoded, connection.encryptionKey);
 
-    return SecureResponse.ok(encrypted);
+    return SecureResponse.ok(encoded, connection.encryptionKey);
   }));
 
   final network = NetworkInfo();
@@ -218,10 +214,7 @@ void _registerHandshakeRoutes(Router router) {
   /// A helper function that validates the handshake key given by the client.
   /// @returns A tuple containing the handshake key if valid, or null if invalid,
   ///   and a boolean indicating whether the key is valid.
-  (int?, bool) handshakeKey(Map<String, String> queryParameters, int expectedStep) {
-    final rawKey = queryParameters["key"];
-    if (rawKey == null) return (null, false);
-
+  (int?, bool) handshakeKey(String rawKey, int expectedStep) {
     final parsedKey = int.tryParse(rawKey);
     if (parsedKey == null) return (null, false);
     if (!_ongoingHandshakeConnections.containsKey(parsedKey)) return (null, false);
@@ -243,7 +236,7 @@ void _registerHandshakeRoutes(Router router) {
   router.get("/handshake-request", (Request request) {
     if (_ongoingHandshakeConnections.length >= _handshakeLimit) return Response.badRequest();
     final key = randomIntFromDate();
-    final isPersistent = request.url.queryParameters["persistent"] == "1";
+    final isPersistent = request.url.queryParameters["is-persistent"] == "1";
     _ongoingHandshakeConnections[key] = HandshakeConnection(
       step: 0,
       limit: DateTime.now().add(const Duration(minutes: 1)),
@@ -259,13 +252,13 @@ void _registerHandshakeRoutes(Router router) {
   ///   STEP 0:
   ///     The client gives a random string 'clientRandom'.
   ///     The server gives a random string 'serverRandom' and its public key.
-  router.get("/handshake-initiate", (Request request) {
+  router.get("/handshake-initiate/<key>", (Request request, String rawKey) {
     final queryParameters = request.url.queryParameters;
-    final (maybeKey, isValid) = handshakeKey(queryParameters, 0);
+    final (maybeKey, isValid) = handshakeKey(rawKey, 0);
     if (!isValid) return Response.badRequest();
 
     final key = maybeKey!;
-    final clientRandomRaw = queryParameters["clientRandom"];
+    final clientRandomRaw = queryParameters["client-random"];
     if (clientRandomRaw == null) return Response.badRequest();
     final clientRandom = BigInt.parse(clientRandomRaw);
 
@@ -287,13 +280,13 @@ void _registerHandshakeRoutes(Router router) {
   ///   STEP 1:
   ///     The client gives an encrypted random string using the public key.
   ///     The server gives back a random number encrypted using a computed symmetric key.
-  router.get("/handshake-premaster", (Request request) {
+  router.get("/handshake-premaster/<key>", (Request request, String rawKey) {
     final queryParameters = request.url.queryParameters;
-    final (maybeKey, isValid) = handshakeKey(queryParameters, 1);
+    final (maybeKey, isValid) = handshakeKey(rawKey, 1);
     if (!isValid) return Response.badRequest();
 
     final key = maybeKey!;
-    final encryptedPreMaster = queryParameters["encryptedPreMaster"];
+    final encryptedPreMaster = queryParameters["pre-master"];
     if (encryptedPreMaster == null) return Response.badRequest();
 
     final (n, p) = _privateKey;
@@ -320,9 +313,9 @@ void _registerHandshakeRoutes(Router router) {
   ///   STEP 2:
   ///     The client gives back the decrypted random number.
   ///     The server gives a secure-session key.
-  router.get("/handshake-confirmation", (Request request) {
+  router.get("/handshake-confirmation/<key>", (Request request, String rawKey) {
     final queryParameters = request.url.queryParameters;
-    final (maybeKey, isValid) = handshakeKey(queryParameters, 2);
+    final (maybeKey, isValid) = handshakeKey(rawKey, 2);
     if (!isValid) return Response.badRequest();
 
     final key = maybeKey!;
@@ -346,20 +339,12 @@ void _registerHandshakeRoutes(Router router) {
       isPersistent: connection.isPersistent,
     );
 
-    if (kDebugMode) {
-      print("Secure session key created: $secureSessionKey");
-    }
-
     return Response.ok("$secureSessionKey");
   });
 
   ///   STEP *:
   ///     The client tells the server that the session should be closed.
-  router.delete("/handshake-remove", (Request request) {
-    final queryParameters = request.url.queryParameters;
-    final rawKey = queryParameters["key"];
-    if (rawKey == null) return Response.badRequest();
-
+  router.delete("/handshake-remove/<key>", (Request request, String rawKey) {
     final key = int.tryParse(rawKey);
     if (key == null || !_secureConnections.containsKey(key)) return Response.badRequest();
 
@@ -379,7 +364,7 @@ void _registerHandshakeRoutes(Router router) {
 ///   and the secure key is removed from the map of secure connections.
 Function secureResponse(Future<SecureResponse> Function(Request, SecureConnection) handler) {
   return (Request request) async {
-    final rawSecureKey = request.url.queryParameters["k"];
+    final rawSecureKey = request.url.queryParameters["secure-key"];
     if (rawSecureKey == null) return Response.forbidden("Secure key is required.");
 
     // Parse the secure key from the query parameters.
@@ -397,7 +382,10 @@ Function secureResponse(Future<SecureResponse> Function(Request, SecureConnectio
     final (response, error) = await handler(request, secureConnection).tryCatch();
     if (error != null) {
       if (kDebugMode) {
-        print("Error in secure response handler: $error");
+        printBoxed(
+          "Error in secure response handler: $error",
+          "Secure Response Handler",
+        );
       }
       return Response.internalServerError(body: "Internal server error.");
     }
@@ -431,50 +419,4 @@ Future<T> _request<T>(String method, [List<Object>? args]) {
 /// Requests the WebSocket port from the main isolate to establish a WebSocket connection.
 Future<int> _requestWsPort() async {
   return _request<int>("requestWsPort");
-}
-
-/// A wrapper around the Shelf Response class that uses an encrypted body.
-///   It only accepts an `EncryptedString` as the body, which is a custom type
-/// that wraps a string and is used to represent encrypted data.
-class SecureResponse extends Response {
-  SecureResponse.ok(
-    EncryptedString super.body, {
-    super.context,
-    super.encoding,
-    super.headers,
-  }) : super.ok();
-
-  SecureResponse.badRequest({
-    EncryptedString? super.body,
-    super.context,
-    super.encoding,
-    super.headers,
-  }) : super.badRequest();
-
-  SecureResponse.unauthorized(
-    EncryptedString super.body, {
-    super.context,
-    super.encoding,
-    super.headers,
-  }) : super.unauthorized();
-
-  SecureResponse.forbidden(
-    EncryptedString super.body, {
-    super.context,
-    super.encoding,
-    super.headers,
-  }) : super.forbidden();
-
-  SecureResponse.notFound(
-    EncryptedString super.body, {
-    super.context,
-    super.encoding,
-    super.headers,
-  }) : super.notFound();
-}
-
-extension type const EncryptedString(String value) {}
-
-EncryptedString _encryptSymmetric(String value, BigInt key) {
-  return EncryptedString(CryptographyService.encryptSymmetric(value, key));
 }

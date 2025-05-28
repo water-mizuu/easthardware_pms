@@ -72,7 +72,7 @@ extension MessageChannelExtension on WebSocketChannel {
   MessageChannel toEncryptedMessageChannel(BigInt encryptionKey, [void Function()? dispose]) {
     if (kDebugMode) {
       printBoxed(
-        "Creating secure channel with encryption key: $encryptionKey",
+        "Creating encrypted channel with encryption key: ${encryptionKey.toRadixString(36)}",
         "WebSocketChannel",
       );
     }

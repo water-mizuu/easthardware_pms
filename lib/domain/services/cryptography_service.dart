@@ -82,20 +82,24 @@ class CryptographyService {
     final encrypted = chars
         .map(BigInt.from) //
         .map((m) => m.modPow(e, n))
+        .map((m) => m.toRadixString(36))
         .toList();
 
-    final jsonEncoded = jsonEncode(encrypted.map((c) => c.toString()).toList());
-    final base64Encoded = base64.encode(utf8.encode(jsonEncoded));
+    final jsonEncoded = jsonEncode(encrypted);
+    final utf8Encoded = utf8.encode(jsonEncoded);
+    final base64Encoded = base64.encode(utf8Encoded);
 
     return base64Encoded;
   }
 
   static String decryptAsymmetric(String a, BigInt n, BigInt d) {
     final base64Decoded = base64.decode(a);
-    final jsonDecoded = (jsonDecode(utf8.decode(base64Decoded)) as List<dynamic>).cast<String>();
+    final utf8Decoded = utf8.decode(base64Decoded);
+    final jsonDecoded = (jsonDecode(utf8Decoded) as List<dynamic>).cast<String>();
     final chars = jsonDecoded //
-        .map(BigInt.parse)
-        .map((c) => c.modPow(d, n).toInt())
+        .map((c) => BigInt.parse(c, radix: 36)) //
+        .map((c) => c.modPow(d, n))
+        .map((c) => c.toInt().toInt())
         .toList();
     final string = utf8.decode(chars);
 

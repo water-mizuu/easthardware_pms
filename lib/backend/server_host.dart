@@ -31,6 +31,7 @@ Future<(ShelfServer, ShelfServer, Stream<ServerEvent>)> hostShelfServer(int port
   final webSocketServer = await hostWebSocketServer();
 
   /// Handle calls from the landing isolate.
+  /// @LANDING2MAIN:main
   final landingStream = stream<ServerEvent>(() async* {
     final channel = landingServer.channel;
     while (channel.isOpen) {
@@ -54,6 +55,8 @@ Future<(ShelfServer, ShelfServer, Stream<ServerEvent>)> hostShelfServer(int port
   /// Handle calls from the webSocket isolate.
   final webSocketStream = stream<ServerEvent>(() async* {
     final channel = webSocketServer.channel;
+
+    /// @WS@MAIN:main
     while (channel.isOpen) {
       final message = await channel.receive('main');
       if (kDebugMode) {

@@ -3,11 +3,10 @@ import 'dart:io';
 import 'dart:isolate';
 
 import 'package:async_queue/async_queue.dart';
+import 'package:easthardware_pms/backend/classes/secure_connection.dart';
 import 'package:easthardware_pms/backend/extensions/to_message_channel.dart';
 import 'package:easthardware_pms/backend/server_database.dart';
-import 'package:easthardware_pms/backend/server_host/landing_isolate.dart';
 import 'package:easthardware_pms/backend/utils/isolate_indicator.dart';
-import 'package:easthardware_pms/utils/boxed.dart';
 import 'package:easthardware_pms/utils/message_channel.dart';
 import 'package:easthardware_pms/utils/parallelism.dart';
 import 'package:easthardware_pms/utils/try_future.dart';
@@ -60,72 +59,64 @@ Future<void> spawnWebSocketIsolate((RootIsolateToken, NamedSendPort) payload) as
   sendPort.send("setup", server!.port);
 
   /// Listen for messages from the main isolate.
-  unawaited(() async {
-    var run = true;
+  /// This method handles closing the server and the objects created in this isolate.
+  Future<void> closeIsolate(String name) async {
+    // Close the shelf server
+    await server.close(force: true);
 
-    /// This method handles closing the server and the objects created in this isolate.
-    Future<void> closeIsolate(String name) async {
-      run = false;
+    // Close all WebSocket connections
+    for (final (webSocket, messageChannel) in _clientChannels.toList()) {
+      await webSocket.sink.close();
 
-      // Close the shelf server
-      await server.close(force: true);
+      /// Ensure that the message channel for this WebSocket is closed to avoid memory leaks.
+      assert(messageChannel.receivePort.isClosed);
+    }
 
-      // Close all WebSocket connections
-      for (final (webSocket, messageChannel) in _clientChannels.toList()) {
-        await webSocket.sink.close();
+    // Clear the async queues
+    _handleConnectionQueue.clear();
+    _dbMethodQueue.clear();
 
-        /// Ensure that the message channel for this WebSocket is closed to avoid memory leaks.
-        assert(messageChannel.receivePort.isClosed);
+    // Close this isolate's receive port.
+    receivePort.close();
+    if (kDebugMode) {
+      print("Isolate stopped.");
+    }
+
+    /// Success code 0.
+    sendPort.send(name, 0);
+  }
+
+  /// @MAIN2WS:invocation
+  mainChannel.listenAt("invocation", (message) {
+    if (message case [final String returnName, final Object args]) {
+      switch (args) {
+        case ["stop", ...]:
+          closeIsolate(returnName);
+          break;
+        case ["db", [final String method, final List<Object?> arguments]]:
+          _dbMethodQueue.addJob((_) async {
+            // Handle each db method call.
+            final output = await serverHandleDatabaseMethod(method, arguments);
+            if (kDebugMode) {
+              print("Database method $method called with arguments: $arguments");
+            }
+
+            final DatabaseMethodResult(:result, :hasChanged) = output;
+
+            // Send the result back to the client.
+            sendPort.send(returnName, result);
+            if (hasChanged) {
+              _notifyEveryoneAboutDatabaseChange(from: null, isServerUpdated: false);
+            }
+          });
+          break;
       }
-
-      // Clear the async queues
-      _handleConnectionQueue.clear();
-      _dbMethodQueue.clear();
-
-      // Close this isolate's receive port.
-      receivePort.close();
+    } else {
       if (kDebugMode) {
-        print("Isolate stopped.");
-      }
-
-      /// Success code 0.
-      sendPort.send(name, 0);
-    }
-
-    /// This part handles messages received from the main isolate.
-    /// It listens for messages and performs actions based on the message type.
-    while (run) {
-      final message = await receivePort.next("invocation");
-      if (message case [final String returnName, final Object args]) {
-        switch (args) {
-          case ["stop", ...]:
-            closeIsolate(returnName);
-            break;
-          case ["db", [final String method, final List<Object?> arguments]]:
-            _dbMethodQueue.addJob((_) async {
-              // Handle each db method call.
-              final output = await serverHandleDatabaseMethod(method, arguments);
-              if (kDebugMode) {
-                print("Database method $method called with arguments: $arguments");
-              }
-
-              final DatabaseMethodResult(:result, :hasChanged) = output;
-
-              // Send the result back to the client.
-              sendPort.send(returnName, result);
-              if (hasChanged) {
-                _notifyEveryoneAboutDatabaseChange(from: null, isServerUpdated: false);
-              }
-            });
-            break;
-        }
-      } else {
-        if (kDebugMode) {
-          print("Received unexpected message: $message");
-        }
+        print("Received unexpected message: $message");
       }
     }
-  }());
+  });
 }
 
 /// Initializes the shelf server, returning the server instance and the port.
@@ -137,18 +128,15 @@ Future<HttpServer> _shelfWebSocketInitiate(int port) async {
   final network = NetworkInfo();
 
   final ip = await network.getWifiIP().then((p) => p!);
-  final handler = const Pipeline().addHandler((request) async {
+  final handler = const Pipeline().addMiddleware(logRequests()).addHandler((request) async {
     /// Get the key stored in the query parameters.
     final queryParams = request.url.queryParameters;
-    final sessionKeyRaw = queryParams['k'];
+    final sessionKeyRaw = queryParams['key'];
     if (sessionKeyRaw == null) return Response.forbidden("Missing session key");
 
     /// If it is the wrong type, return a forbidden response.
     final sessionKey = int.tryParse(sessionKeyRaw);
     if (sessionKey == null) return Response.forbidden("Invalid session key");
-    if (kDebugMode) {
-      printBoxed("$sessionKey", "Session Key");
-    }
 
     /// Now, we ask the other isolate for an existing connection.
     final (connection, error) = await _requestConnection(sessionKey).tryCatch();
@@ -191,40 +179,36 @@ Future<void> _handleConnection(
     // Send a status code of 0 to indicate success.
     ..sendPort.send("status", 0);
 
-  unawaited(() async {
-    /// This part handles incoming messages from the WebSocket connection.
-    ///   It listens for messages and performs actions based on the message type.
-    ///   It also handles database method calls.
-    while (messageChannel.isOpen) {
-      final [name as String, message] = await messageChannel.receivePort.next("invocation");
+  /// @MAIN2WS:invocation
+  messageChannel.listenAt("invocation", (object) {
+    final [name as String, message] = object as List<Object?>;
 
-      switch (message) {
-        case ["db", [final String method, final List<Object?> arguments]]:
-          _dbMethodQueue.addJob((_) async {
-            // Handle each db method call.
-            final output = await serverHandleDatabaseMethod(method, arguments);
-            if (kDebugMode) {
-              print("Database method $method called with arguments: $arguments");
-            }
-
-            final DatabaseMethodResult(:result, :hasChanged) = output;
-
-            // Send the result back to the client.
-            messageChannel.sendPort.send(name, result);
-
-            if (hasChanged) {
-              _notifyEveryoneAboutDatabaseChange(from: webSocketChannel, isServerUpdated: true);
-            }
-          });
-          break;
-        case _:
+    switch (message) {
+      case ["db", [final String method, final List<Object?> arguments]]:
+        _dbMethodQueue.addJob((_) async {
+          // Handle each db method call.
+          final output = await serverHandleDatabaseMethod(method, arguments);
           if (kDebugMode) {
-            print("Received unexpected message: $message");
+            print("Database method $method called with arguments: $arguments");
           }
-          break;
-      }
+
+          final DatabaseMethodResult(:result, :hasChanged) = output;
+
+          // Send the result back to the client.
+          messageChannel.sendPort.send(name, result);
+
+          if (hasChanged) {
+            _notifyEveryoneAboutDatabaseChange(from: webSocketChannel, isServerUpdated: true);
+          }
+        });
+        break;
+      case _:
+        if (kDebugMode) {
+          print("Received unexpected message: $message");
+        }
+        break;
     }
-  }());
+  });
 
   if (kDebugMode) {
     print("New connection established. Current connections: ${_clientChannels.length + 1}");
