@@ -85,7 +85,8 @@ Future<void> _networkTools((SendPort, RootIsolateToken, String) payload) async {
   await configureNetworkTools(appDocDirectory.path);
 
   unawaited(() async {
-    while (true) {
+    /// MAIN2NETWORK_TOOLS:message
+    while (!receivePort.isClosed) {
       final message = await receivePort.next("message");
       assert(
         message is List && message.first is String,

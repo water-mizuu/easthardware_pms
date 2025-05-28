@@ -1,15 +1,19 @@
 import 'dart:io';
 
+import 'package:easthardware_pms/backend/extension_types/shelf_server.dart';
 import 'package:easthardware_pms/backend/server_host.dart';
-import 'package:easthardware_pms/utils/message_channel.dart';
+import 'package:easthardware_pms/presentation/bloc/server/server_bloc.dart';
 import 'package:network_info_plus/network_info_plus.dart';
 
-export 'package:easthardware_pms/backend/server_connect.dart' show connectToServer;
+export 'package:easthardware_pms/backend/server_connect.dart' show connectToWebSocketServer;
 
-/// Starts a server on the given port
-Future<(MessageChannel, Future<void> Function())> startServer(int port) async {
-  final (channel, close) = await hostShelfServer(port);
-  return (channel, close);
+/// Starts the servers used in the application.
+///   The first server is the landing Shelf server, which is exposed
+///     to the public via the port specified in the `port` parameter.
+///   The second server is the WebSocket server, which is used for real-time communication.
+///     The port is not stable, and can only be accessed via the landing server.
+Future<(ShelfServer, ShelfServer, Stream<ServerEvent>)> startServers(int port) async {
+  return await hostShelfServer(port);
 }
 
 /// Gets the local WiFi IP address

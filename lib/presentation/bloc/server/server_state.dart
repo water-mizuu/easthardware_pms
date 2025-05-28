@@ -52,7 +52,6 @@ class ServerState with EquatableMixin {
 }
 
 sealed class DatabaseArgs {
-
   const DatabaseArgs(this.databaseMode);
   final DatabaseMode? databaseMode;
 }
@@ -61,12 +60,16 @@ final class ServerDatabaseArgs extends DatabaseArgs {
   const ServerDatabaseArgs({
     required this.ip,
     required this.port,
-    required this.close,
+    required this.landingServer,
+    required this.webSocketServer,
+    required this.stream,
   }) : super(DatabaseMode.server);
 
   final String ip;
   final int port;
-  final Future<void> Function() close;
+  final ShelfServer landingServer;
+  final ShelfServer webSocketServer;
+  final Stream<ServerEvent> stream;
 }
 
 final class ClientDatabaseArgs extends DatabaseArgs {
@@ -76,11 +79,13 @@ final class ClientDatabaseArgs extends DatabaseArgs {
     required this.webSocketChannel,
     required this.messageChannel,
     required this.close,
+    required this.stream,
   }) : super(DatabaseMode.client);
 
   final String parentIp;
   final int port;
   final WebSocketChannel? webSocketChannel;
   final MessageChannel? messageChannel;
-  final Future<void> Function() close;
+  final Future<void> Function()? close;
+  final Stream<ServerEvent>? stream;
 }

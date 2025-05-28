@@ -101,6 +101,8 @@ class _TitleBarState extends State<TitleBar> with WindowListener {
     late final buttonStyle = TextButton.styleFrom(
       foregroundColor: Colors.black,
       shape: const RoundedRectangleBorder(),
+      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+      minimumSize: Size.zero,
     );
 
     return SizedBox(
@@ -111,6 +113,7 @@ class _TitleBarState extends State<TitleBar> with WindowListener {
         children: [
           Expanded(
             child: GestureDetector(
+              behavior: HitTestBehavior.deferToChild,
               onPanStart: (_) async {
                 await WindowManagerPlus.current.startDragging();
               },
@@ -133,19 +136,10 @@ class _TitleBarState extends State<TitleBar> with WindowListener {
               ),
             ),
             TextButton(
-              style: buttonStyle,
-              // style: buttonStyle.copyWith(
-              //   overlayColor: WidgetStateProperty.resolveWith((state) {
-              //     if (state.contains(WidgetState.pressed)) {
-              //       return Colors.red.withAlpha(192);
-              //     } else if (state.contains(WidgetState.hovered)) {
-              //       return Colors.red.withAlpha(128);
-              //     } else if (state.contains(WidgetState.focused)) {
-              //       return Colors.red.withAlpha(128);
-              //     }
-              //     return Colors.transparent;
-              //   }),
-              // ),
+              style: buttonStyle.copyWith(
+                padding: WidgetStatePropertyAll(const EdgeInsets.symmetric(horizontal: 16.0) +
+                    const EdgeInsets.only(right: 2.0)),
+              ),
               onPressed: _close,
               child: const Icon(FluentIcons.chrome_close, size: 12.0),
             ),

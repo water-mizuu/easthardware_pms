@@ -35,13 +35,11 @@ class ServerPromptingClientInformation extends ServerEvent {
 class ServerClientConnectionEstablished extends ServerEvent {
   const ServerClientConnectionEstablished({
     required this.args,
-    required this.channel,
     required this.popupToUser,
     required this.saveToPreferences,
   });
 
   final ClientDatabaseArgs args;
-  final MessageChannel channel;
   final bool popupToUser;
   final bool saveToPreferences;
 }
@@ -65,13 +63,11 @@ class ServerPromptingServerInformation extends ServerEvent {
 class ServerServerStarted extends ServerEvent {
   const ServerServerStarted({
     required this.args,
-    required this.channel,
     required this.popupToUser,
     required this.saveToPreferences,
   });
 
   final ServerDatabaseArgs args;
-  final MessageChannel channel;
   final bool popupToUser;
   final bool saveToPreferences;
 }

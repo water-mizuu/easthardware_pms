@@ -21,7 +21,7 @@ should just work. Addressing the previous points:
   is complete
 2. --
 3. The proxy database approach works. Basically works as a manual reflection system.
-  Each invocation is encoded as a json, which is sent to the websocket / isolate,
+  Each invocation is encoded as a json, which is sent to the webSocket / isolate,
   which processes each request atomically.
   - For atomicity, each request is enqueued on a database queue. Race conditions be damned.
     (Testing is needed.)

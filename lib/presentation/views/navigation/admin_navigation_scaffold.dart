@@ -28,13 +28,12 @@ class AdminNavigationScaffold extends StatelessWidget {
         var widget = NavigationView(
           clipBehavior: Clip.hardEdge,
           paneBodyBuilder: (item, body) {
+            const padding = EdgeInsets.only(top: windowsTitleBarHeight);
             var child = children[shell.currentIndex];
 
             /// We only impose a padding on the child if the title bar is present
             ///   and we are not on macOS.
             if (TitleBar.of(context) && !Platform.isMacOS) {
-              const padding = EdgeInsets.only(top: windowsTitleBarHeight);
-
               child = Padding(padding: padding, child: child);
             }
 
