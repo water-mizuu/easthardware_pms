@@ -3,6 +3,7 @@
 library;
 
 import 'dart:async';
+import 'dart:convert';
 import 'dart:isolate';
 
 import 'package:async/async.dart';
@@ -14,6 +15,7 @@ import 'package:easthardware_pms/data/database/database_helper.dart';
 import 'package:easthardware_pms/data/database/database_server_proxy.dart';
 import 'package:easthardware_pms/domain/errors/exceptions.dart';
 import 'package:easthardware_pms/domain/repository/user_repository.dart';
+import 'package:easthardware_pms/domain/services/cryptography_service.dart';
 import 'package:easthardware_pms/presentation/bloc/server/server_bloc.dart';
 import 'package:easthardware_pms/utils/message_channel.dart';
 import 'package:easthardware_pms/utils/parallelism.dart';
@@ -51,7 +53,7 @@ Future<(ShelfServer landing, ShelfServer webSocket, Stream<ServerEvent> events)>
           case ['requestWsPort', _]:
             channel.send(returnName, webSocketServer.port);
             break;
-          case ['requestComparisonAuth', [final String username]]:
+          case ['requestSignIn', [final String username, final String password]]:
             final databaseHelper = ServerDatabaseHelper(Server(webSocketServer.channel));
             final userRepository = UserRepository(databaseHelper);
             final user = await userRepository.getUserByUsername(username);
@@ -61,28 +63,15 @@ Future<(ShelfServer landing, ShelfServer webSocket, Stream<ServerEvent> events)>
               break;
             }
 
-            channel.send(returnName, [user.passwordHash, user.salt]);
-            break;
-          case ['requestUserId', [final String username]]:
-            final databaseHelper = ServerDatabaseHelper(Server(webSocketServer.channel));
-            final userRepository = UserRepository(databaseHelper);
-            final user = await userRepository.getUserByUsername(username);
-
-            if (user == null) {
+            // Hash the input password
+            final hashedPassword = CryptographyService.generateHash(password, user.salt);
+            // Compare the hashed password with the stored password
+            if (user.passwordHash.toString() != hashedPassword.toString()) {
               channel.send(returnName, AuthenticationException('Invalid username or password'));
-              break;
             }
 
-            if (user.id == null) {
-              channel.send(returnName, AuthenticationException('User ID not found'));
-              break;
-            }
-
-            channel.send(returnName, user.id!);
+            channel.send(returnName, jsonEncode(user.toMap()));
             break;
-          case ['requestSessionToken', [final int userId]]:
-            final sessionToken = userId;
-            channel.send(returnName, sessionToken);
         }
       }
     }

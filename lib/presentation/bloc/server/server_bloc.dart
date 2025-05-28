@@ -197,7 +197,7 @@ class ServerBloc extends Bloc<ServerEvent, ServerState> {
     ServerLoadingClientFromPreferences event,
     Emitter<ServerState> emit,
   ) async {
-    throw UnimplementedError();
+    // throw UnimplementedError();
 
     try {
       emit(state.copyWith(
@@ -359,11 +359,9 @@ class ServerBloc extends Bloc<ServerEvent, ServerState> {
     event.args.stream?.listen(add);
 
     /// Let the user know that we are connected.
-    final channel = event.args.messageChannel!;
     emit(state.copyWith(
       status: ServerStatus.running,
       databaseArgs: event.args,
-      databaseHelper: ServerDatabaseHelper(Server(channel)),
     ));
     if (event.saveToPreferences) {
       add(ServerSaveClientInformation(serverAddress: address));

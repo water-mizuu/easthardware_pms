@@ -39,9 +39,12 @@ class _AppState extends State<App> with WidgetsBindingObserver {
     return [
       BlocListener<ServerBloc, ServerState>(
         bloc: serverBloc,
-        listenWhen: (p, c) => p.databaseHelper != c.databaseHelper,
+        listenWhen: (p, c) =>
+            p.databaseArgs != c.databaseArgs || //
+            p.databaseHelper != c.databaseHelper,
         listener: (context, state) async {
           databaseHelper = state.databaseHelper;
+
           await di.initialize(databaseArgs: state.databaseArgs, databaseHelper: databaseHelper);
           if (!mounted || !context.mounted) return;
 
