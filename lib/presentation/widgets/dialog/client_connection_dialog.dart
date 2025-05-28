@@ -1,18 +1,26 @@
+import 'package:easthardware_pms/presentation/bloc/server/server_bloc.dart';
 import 'package:easthardware_pms/presentation/widgets/spacing.dart';
+import 'package:easthardware_pms/utils/message_channel.dart';
 import 'package:easthardware_pms/utils/try_future.dart';
 import 'package:fluent_ui/fluent_ui.dart';
 import 'package:flutter/foundation.dart';
-import 'package:http/http.dart' as http;
+import 'package:web_socket_channel/web_socket_channel.dart';
 
 class ClientConnectionDialog extends StatefulWidget {
   const ClientConnectionDialog({
     super.key,
     required this.onCancel,
+    required this.onConnectToServer,
     required this.onConfirm,
   });
 
   final VoidCallback onCancel;
-  final void Function(String address, int port) onConfirm;
+
+  final Future<(WebSocketChannel, MessageChannel, Stream<ServerEvent>)> Function(
+    String serverIp,
+    int port,
+  ) onConnectToServer;
+  final void Function(MessageChannel, ClientDatabaseArgs) onConfirm;
 
   @override
   State<ClientConnectionDialog> createState() => _ClientConnectionDialogState();
@@ -20,13 +28,18 @@ class ClientConnectionDialog extends StatefulWidget {
   static Future<void> show({
     required BuildContext context,
     required VoidCallback onCancel,
-    required void Function(String address, int port) onConfirm,
+    required Future<(WebSocketChannel, MessageChannel, Stream<ServerEvent>)> Function(
+      String serverIp,
+      int port,
+    ) onConnectToServer,
+    required void Function(MessageChannel, ClientDatabaseArgs) onConfirm,
   }) {
     return showDialog(
       context: context,
       dismissWithEsc: false,
       builder: (context) => ClientConnectionDialog(
         onCancel: onCancel,
+        onConnectToServer: onConnectToServer,
         onConfirm: onConfirm,
       ),
     );
@@ -45,6 +58,10 @@ class _ClientConnectionDialogState extends State<ClientConnectionDialog> {
   var testMessage = null as String?;
   var testMessageColor = null as Color?;
 
+  var loadedWebSocketChannel = null as WebSocketChannel?;
+  var loadedMessageChannel = null as MessageChannel?;
+  var loadedStream = null as Stream<ServerEvent>?;
+
   void reset() {
     if (!context.mounted) return;
     setState(() {
@@ -54,6 +71,10 @@ class _ClientConnectionDialogState extends State<ClientConnectionDialog> {
 
       address = null;
       port = null;
+
+      loadedWebSocketChannel = null;
+      loadedMessageChannel = null;
+      loadedStream = null;
     });
   }
 
@@ -63,48 +84,49 @@ class _ClientConnectionDialogState extends State<ClientConnectionDialog> {
     address = controllers.take(4).map((s) => s.text.trim()).join(".");
     port = int.parse(controllers.last.text.trim());
 
-    final target = "$address:$port";
-    final uri = Uri.parse("http://$target/ping");
-    final (response, error) = await http.get(uri).tryCatch();
+    final (result, error) = await widget.onConnectToServer(address!, port!).tryCatch();
     if (error case (final Object error, final StackTrace stackTrace)) {
       if (kDebugMode) {
-        print("Failed to ping $target: $error");
+        print("Failed to: $error");
         print(stackTrace);
       }
 
       setState(() {
-        testMessage = "Failed to connect to $target.";
+        testMessage = "Failed to connect to $address:$port.";
         testMessageColor = Colors.red;
         isConnecting = false;
       });
       return;
     }
 
-    if (response!.statusCode != 200) {
-      if (kDebugMode) {
-        print("Failed to ping $target: ${response.statusCode}");
-      }
-
-      setState(() {
-        testMessage = "Failed to connect to $target.";
-        testMessageColor = Colors.red;
-        isConnecting = false;
-      });
-      return;
-    }
+    final (webSocketChannel, messageChannel, stream) = result!;
 
     setState(() {
-      testMessage = "Successfully connected to $target.";
+      testMessage = "Successfully connected to $address:$port.";
       testMessageColor = Colors.green;
       isConnecting = false;
+
+      loadedWebSocketChannel = webSocketChannel;
+      loadedMessageChannel = messageChannel;
+      loadedStream = stream;
     });
   }
 
   Future<void> _confirm() async {
-    if (address case final address?) {
-      if (port case final port?) {
-        widget.onConfirm(address, port);
-      }
+    if (loadedWebSocketChannel != null && loadedMessageChannel != null && loadedStream != null) {
+      widget.onConfirm(
+        loadedMessageChannel!,
+        ClientDatabaseArgs(
+          parentIp: address!,
+          port: port!,
+          webSocketChannel: loadedWebSocketChannel!,
+          messageChannel: loadedMessageChannel!,
+          stream: loadedStream!,
+          close: () async {
+            await loadedWebSocketChannel!.sink.close(0);
+          },
+        ),
+      );
     }
   }
 

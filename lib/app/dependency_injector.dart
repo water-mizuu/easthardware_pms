@@ -21,7 +21,6 @@ import 'package:easthardware_pms/presentation/bloc/navigation/navigation_bloc.da
 import 'package:easthardware_pms/presentation/bloc/security/security_questions/security_question_list_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/security/user_list/user_list_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/security/user_log_list/user_log_list_bloc.dart';
-import 'package:easthardware_pms/presentation/bloc/server/server_bloc.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:provider/single_child_widget.dart';
@@ -35,7 +34,6 @@ class DependencyInjector {
   late UserRepository _userRepository;
   late SecurityQuestionRepository _securityQuestionRepository;
 
-  late DatabaseArgs? _databaseArgs;
   late DatabaseHelper? _databaseHelper;
 
   UserListBloc? _userListBloc;
@@ -46,13 +44,11 @@ class DependencyInjector {
   SecurityQuestionListBloc? _securityQuestionListBloc;
 
   Future<void> initialize({
-    DatabaseArgs? databaseArgs,
     DatabaseHelper? databaseHelper,
   }) async {
-    _databaseArgs = databaseArgs;
     _databaseHelper = databaseHelper;
 
-    _authenticationRepository = AuthenticationRepository(databaseArgs, databaseHelper);
+    _authenticationRepository = AuthenticationRepository(databaseHelper);
 
     _productRepository = ProductRepositoryImpl(databaseHelper);
     _categoryRepository = CategoryRepositoryImpl(databaseHelper);
@@ -67,7 +63,7 @@ class DependencyInjector {
       print("Dependency Injector: Injecting dependencies");
     }
 
-    ValueKey key() => ValueKey((_databaseArgs, _databaseHelper));
+    ValueKey key() => ValueKey(_databaseHelper);
 
     return [
       RepositoryProvider.value(value: _categoryRepository),

@@ -7,7 +7,11 @@ import 'package:network_info_plus/network_info_plus.dart';
 
 export 'package:easthardware_pms/backend/server_connect.dart' show connectToWebSocketServer;
 
-/// Starts a server on the given port
+/// Starts the servers used in the application.
+///   The first server is the landing Shelf server, which is exposed
+///     to the public via the port specified in the `port` parameter.
+///   The second server is the WebSocket server, which is used for real-time communication.
+///     The port is not stable, and can only be accessed via the landing server.
 Future<(ShelfServer, ShelfServer, Stream<ServerEvent>)> startServers(int port) async {
   return await hostShelfServer(port);
 }

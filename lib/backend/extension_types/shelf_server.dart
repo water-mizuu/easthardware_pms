@@ -1,5 +1,8 @@
 import 'package:easthardware_pms/utils/message_channel.dart';
+import 'package:flutter/foundation.dart';
 
+/// Represents a Shelf server with its associated [MessageChannel], port, and close function.
+@immutable
 extension type const ShelfServer._((MessageChannel, int, Future<void> Function()) _pair) {
   const ShelfServer(MessageChannel channel, int port, Future<void> Function() close)
       : _pair = (channel, port, close);

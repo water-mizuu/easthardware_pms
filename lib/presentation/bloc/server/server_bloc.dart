@@ -110,7 +110,6 @@ class ServerBloc extends Bloc<ServerEvent, ServerState> {
         bottomTextNotifier.value = "Found existing client data.";
 
         final address = await server_preferences.getSavedServerAddress();
-
         if (address == null) {
           add(const ServerPromptingServerInformation());
         } else {
@@ -166,27 +165,21 @@ class ServerBloc extends Bloc<ServerEvent, ServerState> {
     final context = rootNavigatorKey.currentContext!;
 
     await ClientConnectionDialog.show(
-      context: rootNavigatorKey.currentContext!,
+      context: context,
+      onConnectToServer: _connectToServer,
       onCancel: () {
         Navigator.of(context).pop();
 
         add(const ServerPromptingUserFromNull());
       },
-      onConfirm: (parentIp, port) async {
+      onConfirm: (messageChannel, databaseArgs) async {
         Navigator.of(context).pop();
 
         add(
           ServerClientConnectionEstablished(
             saveToPreferences: true,
             popupToUser: true,
-            args: ClientDatabaseArgs(
-              parentIp: parentIp,
-              port: port,
-              webSocketChannel: null,
-              messageChannel: null,
-              close: null,
-              stream: null,
-            ),
+            args: databaseArgs,
           ),
         );
       },
@@ -197,15 +190,13 @@ class ServerBloc extends Bloc<ServerEvent, ServerState> {
     ServerLoadingClientFromPreferences event,
     Emitter<ServerState> emit,
   ) async {
-    // throw UnimplementedError();
+    emit(state.copyWith(
+      status: ServerStatus.loadingClient,
+      databaseArgs: null,
+      databaseHelper: null,
+    ));
 
     try {
-      emit(state.copyWith(
-        status: ServerStatus.loadingClient,
-        databaseArgs: null,
-        databaseHelper: null,
-      ));
-
       final serverAddress = event.address;
       final [serverIp, portString] = serverAddress.split(":");
       final port = int.parse(portString);

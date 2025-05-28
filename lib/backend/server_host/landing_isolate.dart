@@ -2,9 +2,10 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:isolate';
-import 'dart:math';
 
 import 'package:async_queue/async_queue.dart';
+import 'package:easthardware_pms/backend/utils/isolate_indicator.dart';
+import 'package:easthardware_pms/backend/utils/random_int_from_date.dart';
 import 'package:easthardware_pms/domain/models/user.dart';
 import 'package:easthardware_pms/domain/services/cryptography_service.dart';
 import 'package:easthardware_pms/utils/message_channel.dart';
@@ -144,14 +145,19 @@ Future<void> spawnLandingIsolate((RootIsolateToken, NamedSendPort, int port) pay
 }
 
 Future<HttpServer> _initiateLandingServer(int port) async {
-  assert(RootIsolateToken.instance == null, "This function must be called from another isolate.");
-  final network = NetworkInfo();
+  assertChildIsolate();
 
   final router = Router();
 
+  /// A basic route to check for server availability.
+  router.get("/ping", (Request request) => Response.ok("pong"));
+
+  /// Add all necessary routes for handshake.
   _registerHandshakeRoutes(router);
 
-  router.get("/ping", (Request request) => Response.ok("pong"));
+  /// This route is used to request for the websocket port hosted
+  ///   by the application in a separate isolate. This is where the
+  ///   WebSocket server is hosted.
   router.get("/request-ws-port", secureResponse((request, connection) async {
     final port = await _requestWsPort();
     final encoded = jsonEncode({"port": port});
@@ -197,6 +203,7 @@ Future<HttpServer> _initiateLandingServer(int port) async {
     );
   }));
 
+  final network = NetworkInfo();
   final ip = await network.getWifiIP().then((p) => p!);
   final handler = const Pipeline() //
       .addMiddleware(logRequests())
@@ -212,6 +219,9 @@ Future<HttpServer> _initiateLandingServer(int port) async {
   return server;
 }
 
+/// This function generates a pair of keys for asymmetric encryption.
+///   This is used by the server to encrypt messages sent to the client,
+///   and by the client to encrypt messages sent to the server.
 void _generateKeys() {
   final (p, q) = CryptographyService.generateTwoPrimes();
   final n = p * q;
@@ -232,6 +242,8 @@ void _generateKeys() {
 /// This function registers the routes that are used in creating a
 void _registerHandshakeRoutes(Router router) {
   /// A helper function that validates the handshake key given by the client.
+  /// @returns A tuple containing the handshake key if valid, or null if invalid,
+  ///   and a boolean indicating whether the key is valid.
   (int?, bool) handshakeKey(Map<String, String> queryParameters, int expectedStep) {
     final rawKey = queryParameters["key"];
     if (rawKey == null) return (null, false);
@@ -242,19 +254,21 @@ void _registerHandshakeRoutes(Router router) {
 
     final now = DateTime.now();
     final connection = _ongoingHandshakeConnections[parsedKey]!;
+    if (connection.step != expectedStep) return (null, false);
+
     final isLapsed = now.isAfter(connection.limit);
-    if (connection.step != expectedStep || isLapsed) return (null, false);
+    if (isLapsed) {
+      _ongoingHandshakeConnections.remove(parsedKey);
+      return (null, false);
+    }
 
     return (parsedKey, true);
   }
 
   /// All handshakes start with a request.
   router.get("/handshake-request", (Request request) {
-    if (_ongoingHandshakeConnections.length >= _handshakeLimit) {
-      return Response.badRequest();
-    }
-
-    final key = Random().nextInt(1 << 31) + 1 << 24;
+    if (_ongoingHandshakeConnections.length >= _handshakeLimit) return Response.badRequest();
+    final key = randomIntFromDate();
     _ongoingHandshakeConnections[key] = HandshakeConnection(
       step: 0,
       limit: DateTime.now().add(const Duration(minutes: 1)),
@@ -279,7 +293,7 @@ void _registerHandshakeRoutes(Router router) {
     if (clientRandomRaw == null) return Response.badRequest();
     final clientRandom = BigInt.parse(clientRandomRaw);
 
-    final serverRandom = BigInt.from((DateTime.now().hashCode * Random().nextDouble()).hashCode);
+    final serverRandom = BigInt.from(randomIntFromDate());
     final responseBody = {
       "identity": 1231,
       "serverRandom": serverRandom.toString(),
@@ -310,7 +324,9 @@ void _registerHandshakeRoutes(Router router) {
     final decodedPreMasterSecret = CryptographyService.decryptAsymmetric(encryptedPreMaster, n, p);
     final preMasterSecret = BigInt.parse(decodedPreMasterSecret);
 
-    final connection = _ongoingHandshakeConnections[key]!;
+    final connection = _ongoingHandshakeConnections[key];
+    if (connection == null) return Response.badRequest();
+
     final encryptionKey = (connection.clientRandom! % n) * //
         (connection.serverRandom! % n) *
         (preMasterSecret % n);
@@ -319,15 +335,10 @@ void _registerHandshakeRoutes(Router router) {
     connection.preMasterSecret = preMasterSecret;
     connection.step += 1;
 
-    final randomValue = BigInt.from((DateTime.now().hashCode * Random().nextDouble()).hashCode);
-    connection.randomValue = randomValue.toString();
+    final randomValue = randomIntFromDate().toString();
+    connection.randomValue = randomValue;
 
-    final encryptedRandomValue = CryptographyService.encryptSymmetric(
-      randomValue.toString(),
-      encryptionKey,
-    );
-
-    return Response.ok(encryptedRandomValue);
+    return Response.ok(CryptographyService.encryptSymmetric(randomValue, encryptionKey));
   });
 
   ///   STEP 2:
@@ -342,7 +353,9 @@ void _registerHandshakeRoutes(Router router) {
     final decryptedRandomValue = queryParameters["decrypted"];
     if (decryptedRandomValue == null) return Response.badRequest();
 
-    final connection = _ongoingHandshakeConnections[key]!;
+    final connection = _ongoingHandshakeConnections[key];
+    if (connection == null) return Response.badRequest();
+
     final encryptionKey = connection.sessionEncryptionKey!;
     if (decryptedRandomValue != connection.randomValue) return Response.badRequest();
 
@@ -350,7 +363,7 @@ void _registerHandshakeRoutes(Router router) {
     _ongoingHandshakeConnections.remove(key);
 
     // Create a secure connection.
-    final secureSessionKey = (DateTime.now().hashCode * Random().nextDouble()).hashCode;
+    final secureSessionKey = randomIntFromDate();
     _secureConnections[secureSessionKey] = SecureConnection(
       secureKey: secureSessionKey,
       encryptionKey: encryptionKey,
@@ -360,22 +373,19 @@ void _registerHandshakeRoutes(Router router) {
       print("Secure session key created: $secureSessionKey");
     }
 
-    return Response.ok(secureSessionKey.toString());
+    return Response.ok("$secureSessionKey");
   });
 }
 
-Function secureResponse(
-  FutureOr<SecureResponse> Function(Request request, SecureConnection connection) handler,
-) {
+/// Creates a shelf handler that processes requests with a secure connection.
+///   For a secure connection to be established, the request must contain a valid secure key
+///   in the query parameters. The secure key is used to identify the secure connection.
+/// Once the [handler] is called, it is assumed that the secure connection is valid
+///   and the secure key is removed from the map of secure connections.
+Function secureResponse(Future<SecureResponse> Function(Request, SecureConnection) handler) {
   return (Request request) async {
     final rawSecureKey = request.url.queryParameters["k"];
-    if (rawSecureKey == null) {
-      return Response.forbidden("Secure key is required.");
-    }
-
-    if (rawSecureKey.isEmpty) {
-      return Response.forbidden("Secure key cannot be empty.");
-    }
+    if (rawSecureKey == null) return Response.forbidden("Secure key is required.");
 
     // Parse the secure key from the query parameters.
     final secureKey = int.tryParse(rawSecureKey);
@@ -387,21 +397,24 @@ Function secureResponse(
     }
 
     final secureConnection = _secureConnections[secureKey];
-    if (secureConnection == null) {
-      return Response.forbidden("Secure connection not found.");
-    }
+    if (secureConnection == null) return Response.forbidden("Provided connection not found.");
 
-    try {
-      return await handler(request, secureConnection);
-    } catch (e) {
+    final (response, error) = await handler(request, secureConnection).tryCatch();
+    if (error != null) {
       if (kDebugMode) {
-        print("Error in secure response: $e");
+        print("Error in secure response handler: $error");
       }
       return Response.internalServerError(body: "Internal server error.");
     }
+
+    _secureConnections.remove(secureKey);
+    return response;
   };
 }
 
+/// Requests an object from the main isolate using the provided method and arguments.
+///   This sends a message to the main isolate through the "main" channel,
+///   and returns a future that completes with the result of the request.
 Future<T> _request<T>(String method, [List<Object>? args]) {
   final completer = Completer<T>.sync();
 
@@ -418,16 +431,21 @@ Future<T> _request<T>(String method, [List<Object>? args]) {
   return completer.future;
 }
 
+/// Requests the user object from the main isolate, provided the username and password.
 Future<User> _requestSignIn(String username, String password) async {
   final result = await _request<String>("requestSignIn", [username, password]);
 
   return User.fromMap(jsonDecode(result));
 }
 
+/// Requests the WebSocket port from the main isolate to establish a WebSocket connection.
 Future<int> _requestWsPort() async {
   return _request<int>("requestWsPort");
 }
 
+/// A wrapper around the Shelf Response class that uses an encrypted body.
+///   It only accepts an `EncryptedString` as the body, which is a custom type
+/// that wraps a string and is used to represent encrypted data.
 class SecureResponse extends Response {
   SecureResponse.ok(
     EncryptedString super.body, {
@@ -469,8 +487,4 @@ extension type const EncryptedString(String value) {}
 
 EncryptedString _encryptSymmetric(String value, BigInt key) {
   return EncryptedString(CryptographyService.encryptSymmetric(value, key));
-}
-
-String _decryptSymmetric(EncryptedString encrypted, BigInt key) {
-  return CryptographyService.decryptSymmetric(encrypted.value, key);
 }
