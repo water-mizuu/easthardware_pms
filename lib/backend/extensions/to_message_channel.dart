@@ -2,6 +2,8 @@ import 'dart:convert';
 import 'dart:isolate';
 import 'dart:math';
 
+import 'package:easthardware_pms/domain/services/cryptography_service.dart';
+import 'package:easthardware_pms/utils/boxed.dart';
 import 'package:easthardware_pms/utils/message_channel.dart';
 import 'package:easthardware_pms/utils/parallelism.dart';
 import 'package:flutter/foundation.dart';
@@ -66,4 +68,79 @@ extension MessageChannelExtension on WebSocketChannel {
 
     return messageChannel;
   }
+
+  MessageChannel toEncryptedMessageChannel(BigInt encryptionKey, [void Function()? dispose]) {
+    if (kDebugMode) {
+      printBoxed(
+        "Creating secure channel with encryption key: $encryptionKey",
+        "WebSocketChannel",
+      );
+    }
+
+    /// The [ReceivePort] is used to receive messages from the [WebSocketChannel].
+    ///   We map each message through [jsonDecode], and send it to the sendPort.
+    final receivePort = ReceivePort().hostListener();
+    final sendPort = receivePort.sendPort;
+
+    /// The internal receive port works as a mapper for the messages
+    ///   into the webSocket channel. It encodes the messages to JSON string
+    ///   and sends them to the webSocket channel.
+    final internalReceivePort = ReceivePort()
+      ..map(jsonEncode).listen((message) {
+        final encrypted = CryptographyService.encryptSymmetric(message, encryptionKey);
+        if (kDebugMode) {
+          final messageString = encrypted.toString();
+          final shortcut = messageString.substring(0, min(50, messageString.length));
+
+          printBoxed("Sending encrypted message: $shortcut...", "WebSocketChannel");
+        }
+
+        // We send the message as a string to the WebSocketChannel.
+        sink.add(encrypted);
+      });
+
+    final internalSendPort = NamedSendPort(internalReceivePort.sendPort);
+    final messageChannel = MessageChannel(receivePort, internalSendPort);
+
+    void close() {
+      if (kDebugMode) {
+        print("[WebSocketChannel] Closing channel.");
+      }
+      internalReceivePort.close();
+      receivePort.close();
+      sink.close();
+      dispose?.call();
+    }
+
+    stream
+        .whereType<String>()
+        .map((v) => CryptographyService.decryptSymmetric(v, encryptionKey))
+        .map((v) => jsonDecode(v))
+        .listen(
+      (message) {
+        if (kDebugMode) {
+          final messageString = message.toString();
+          final shortcut = messageString.substring(0, min(30, messageString.length));
+
+          print("[WebSocketChannel] Received decrypted message: $shortcut...");
+        }
+
+        final [name as String, args] = message as List<Object?>;
+        if (args case [final String id, ["ping", _]]) {
+          messageChannel.sendPort.send(id, "pong");
+        }
+
+        sendPort.send(name, args);
+      },
+    );
+
+    sink.done.whenComplete(() => close());
+
+    return messageChannel;
+  }
+}
+
+extension WhereType on Stream<Object?> {
+  /// Filters the stream to only include events of type [T].
+  Stream<T> whereType<T>() => where((event) => event is T).cast<T>();
 }

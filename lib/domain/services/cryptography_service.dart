@@ -29,6 +29,7 @@ class CryptographyService {
   }
 
   /// Generates a coprime number to [n].
+  ///   Technically, this generates a prime number.
   static int generateCoprime(int n) {
     final primes = <int>[2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37];
 
@@ -155,7 +156,7 @@ class CryptographyService {
 
   /// Generates two small prime numbers. This is just for basic security.
   static (int, int) generateTwoPrimes() {
-    final primes = <int>[2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37];
+    final primes = <int>[2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41];
 
     var increment = 2;
 

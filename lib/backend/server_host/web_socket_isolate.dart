@@ -5,13 +5,16 @@ import 'dart:isolate';
 import 'package:async_queue/async_queue.dart';
 import 'package:easthardware_pms/backend/extensions/to_message_channel.dart';
 import 'package:easthardware_pms/backend/server_database.dart';
+import 'package:easthardware_pms/backend/server_host/landing_isolate.dart';
 import 'package:easthardware_pms/backend/utils/isolate_indicator.dart';
+import 'package:easthardware_pms/utils/boxed.dart';
 import 'package:easthardware_pms/utils/message_channel.dart';
 import 'package:easthardware_pms/utils/parallelism.dart';
 import 'package:easthardware_pms/utils/try_future.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:network_info_plus/network_info_plus.dart';
+import 'package:shelf/shelf.dart';
 import "package:shelf/shelf_io.dart" as shelf_io;
 import 'package:shelf_web_socket/shelf_web_socket.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
@@ -134,9 +137,32 @@ Future<HttpServer> _shelfWebSocketInitiate(int port) async {
   final network = NetworkInfo();
 
   final ip = await network.getWifiIP().then((p) => p!);
-  final handler = webSocketHandler((c, [sp]) {
-    _handleConnectionQueue.addJob((_) => _handleConnection(c, sp));
-  }, pingInterval: const Duration(seconds: 3));
+  final handler = const Pipeline().addHandler((request) async {
+    /// Get the key stored in the query parameters.
+    final queryParams = request.url.queryParameters;
+    final sessionKeyRaw = queryParams['k'];
+    if (sessionKeyRaw == null) return Response.forbidden("Missing session key");
+
+    /// If it is the wrong type, return a forbidden response.
+    final sessionKey = int.tryParse(sessionKeyRaw);
+    if (sessionKey == null) return Response.forbidden("Invalid session key");
+    if (kDebugMode) {
+      printBoxed("$sessionKey", "Session Key");
+    }
+
+    /// Now, we ask the other isolate for an existing connection.
+    final (connection, error) = await _requestConnection(sessionKey).tryCatch();
+    if (error != null) {
+      if (kDebugMode) {
+        print("Error requesting connection: $error");
+      }
+      return Response.internalServerError(body: "Error requesting connection");
+    }
+
+    return webSocketHandler((c, [sp]) {
+      _handleConnectionQueue.addJob((_) => _handleConnection(connection!, c));
+    }, pingInterval: const Duration(seconds: 3))(request);
+  });
 
   final server = await shelf_io.serve(handler, ip, port);
   final hostedPort = server.port;
@@ -150,12 +176,17 @@ Future<HttpServer> _shelfWebSocketInitiate(int port) async {
 
 /// Handles the WebSocket connection.
 /// A webSocket connection is established whenever a client connects to the server.
-Future<void> _handleConnection(WebSocketChannel webSocketChannel, [String? subprotocol]) async {
+Future<void> _handleConnection(
+  SecureConnection connection,
+  WebSocketChannel webSocketChannel,
+) async {
   assertChildIsolate();
 
   late final MessageChannel messageChannel;
-  messageChannel = webSocketChannel
-      .toMessageChannel(() => _clientChannels.remove((webSocketChannel, messageChannel)))
+  messageChannel = webSocketChannel.toEncryptedMessageChannel(
+    connection.encryptionKey,
+    () => _clientChannels.remove((webSocketChannel, messageChannel)),
+  )
 
     // Send a status code of 0 to indicate success.
     ..sendPort.send("status", 0);
@@ -218,5 +249,16 @@ Future<void> _notifyEveryoneAboutDatabaseChange({
       // Notify all other clients about the database change.
       channel.sendPort.send("client", ["didUpdate", DateTime.now().millisecondsSinceEpoch]);
     }
+  }
+}
+
+Future<SecureConnection> _requestConnection(int sessionKey) async {
+  assertChildIsolate();
+
+  final connection = await mainChannel.invokeNamed("main", "requestConnection", [sessionKey]);
+  if (connection case SecureConnection()) {
+    return connection;
+  } else {
+    throw Exception("Invalid connection response: $connection");
   }
 }

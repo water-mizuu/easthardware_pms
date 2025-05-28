@@ -13,21 +13,25 @@ class SecureHttp {
     Uri uri, {
     Map<String, String>? headers,
   }) async {
-    final (sessionKey, encryptionKey) = await _pseudoTlsHandshake(uri);
-    final queryParameters = {"k": "$sessionKey", ...uri.queryParameters};
-    final targetUri = uri.replace(queryParameters: queryParameters);
+    final (sessionKey, encryptionKey, dispose) = await pseudoTlsHandshake(uri);
+    try {
+      final queryParameters = {"k": "$sessionKey", ...uri.queryParameters};
+      final targetUri = uri.replace(queryParameters: queryParameters);
 
-    final response = await http.get(targetUri, headers: headers);
+      final response = await http.get(targetUri, headers: headers);
 
-    return http.Response(
-      CryptographyService.decryptSymmetric(response.body, encryptionKey),
-      response.statusCode,
-      headers: response.headers,
-      request: response.request,
-      isRedirect: response.isRedirect,
-      persistentConnection: response.persistentConnection,
-      reasonPhrase: response.reasonPhrase,
-    );
+      return http.Response(
+        CryptographyService.decryptSymmetric(response.body, encryptionKey),
+        response.statusCode,
+        headers: response.headers,
+        request: response.request,
+        isRedirect: response.isRedirect,
+        persistentConnection: response.persistentConnection,
+        reasonPhrase: response.reasonPhrase,
+      );
+    } finally {
+      await dispose();
+    }
   }
 
   /// Sends a POST request to the specified [uri] with the given [headers] and [body].
@@ -42,33 +46,43 @@ class SecureHttp {
     if (kDebugMode) {
       print("Target: $target");
     }
-    final (sessionKey, encryptionKey) = await _pseudoTlsHandshake(uri);
-    final encryptedBody = body != null //
-        ? CryptographyService.encryptSymmetric(body, encryptionKey)
-        : null;
+    final (sessionKey, encryptionKey, dispose) = await pseudoTlsHandshake(uri);
+    try {
+      final encryptedBody = body != null //
+          ? CryptographyService.encryptSymmetric(body, encryptionKey)
+          : null;
 
-    final queryParameters = {"k": "$sessionKey", ...uri.queryParameters};
-    final targetUri = uri.replace(queryParameters: queryParameters);
-    final response = await http.post(targetUri, headers: headers, body: encryptedBody);
+      final queryParameters = {"k": "$sessionKey", ...uri.queryParameters};
+      final targetUri = uri.replace(queryParameters: queryParameters);
+      final response = await http.post(targetUri, headers: headers, body: encryptedBody);
 
-    return http.Response(
-      CryptographyService.decryptSymmetric(response.body, encryptionKey),
-      response.statusCode,
-      headers: response.headers,
-      request: response.request,
-      isRedirect: response.isRedirect,
-      persistentConnection: response.persistentConnection,
-      reasonPhrase: response.reasonPhrase,
-    );
+      return http.Response(
+        CryptographyService.decryptSymmetric(response.body, encryptionKey),
+        response.statusCode,
+        headers: response.headers,
+        request: response.request,
+        isRedirect: response.isRedirect,
+        persistentConnection: response.persistentConnection,
+        reasonPhrase: response.reasonPhrase,
+      );
+    } finally {
+      await dispose();
+    }
   }
 
   /// Runs a TLS-like handshake with the server at [targetUri] to attempt to
   ///   establish a weakly-secure connection. It basically allows encryption of data
   ///   before being send over HTTP.
-  static Future<(int, BigInt)> _pseudoTlsHandshake(Uri targetUri) async {
+  static Future<(int, BigInt, Future<void> Function() closeSession)> pseudoTlsHandshake(
+    Uri targetUri, {
+    bool isPersistent = false,
+  }) async {
     final address = "${targetUri.host}:${targetUri.port}";
 
-    final handshakeRequestUri = Uri.parse('http://$address/handshake-request');
+    final handshakeRequestUri = Uri.parse(
+      'http://$address/handshake-request'
+      '?isPersistent=${isPersistent ? 1 : 0}',
+    );
     final response1 = await http.get(handshakeRequestUri);
     final handshakeKey = int.parse(response1.body);
 
@@ -81,7 +95,7 @@ class SecureHttp {
       "?key=$handshakeKey"
       "&clientRandom=$clientRandom",
     );
-    final response2 = await http.get(handshakeInitiateUri);
+    final response2 = await http.get(handshakeInitiateUri.replace());
     final decodedResponse2 = jsonDecode(response2.body);
 
     final BigInt serverRandom;
@@ -143,7 +157,14 @@ class SecureHttp {
     }
 
     final sessionKey = int.parse(response4.body);
+    Future<void> dispose() async {
+      final removeUri = Uri.parse(
+        "http://$address/handshake-remove"
+        "?key=$handshakeKey",
+      );
+      await http.delete(removeUri);
+    }
 
-    return (sessionKey, encryptionKey);
+    return (sessionKey, encryptionKey, dispose);
   }
 }

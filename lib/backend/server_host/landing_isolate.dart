@@ -6,7 +6,6 @@ import 'dart:isolate';
 import 'package:async_queue/async_queue.dart';
 import 'package:easthardware_pms/backend/utils/isolate_indicator.dart';
 import 'package:easthardware_pms/backend/utils/random_int_from_date.dart';
-import 'package:easthardware_pms/domain/models/user.dart';
 import 'package:easthardware_pms/domain/services/cryptography_service.dart';
 import 'package:easthardware_pms/utils/message_channel.dart';
 import 'package:easthardware_pms/utils/parallelism.dart';
@@ -25,6 +24,7 @@ late final (BigInt, BigInt) _privateKey;
 late final MessageChannel _channel;
 late final AsyncQueue _handleConnectionQueue;
 late final AsyncQueue _requestQueue;
+
 late final Map<int, HandshakeConnection> _ongoingHandshakeConnections;
 late final Map<int, SecureConnection> _secureConnections;
 
@@ -39,8 +39,10 @@ class HandshakeConnection {
   HandshakeConnection({
     required this.limit,
     required this.step,
+    required this.isPersistent,
   });
 
+  final bool isPersistent;
   final DateTime limit;
   int step;
 
@@ -56,10 +58,15 @@ class HandshakeConnection {
 ///
 /// However, once the connection is closed, the secure connection is no longer valid.
 class SecureConnection {
-  SecureConnection({required this.secureKey, required this.encryptionKey});
+  SecureConnection({
+    required this.secureKey,
+    required this.encryptionKey,
+    required this.isPersistent,
+  });
 
   final int secureKey;
   final BigInt encryptionKey;
+  final bool isPersistent;
 }
 
 /// Spawns an isolate to handle database operations and WebSocket connections.
@@ -85,6 +92,7 @@ Future<void> spawnLandingIsolate((RootIsolateToken, NamedSendPort, int port) pay
   _channel = MessageChannel(receivePort, sendPort);
 
   _generateKeys();
+
   _ongoingHandshakeConnections = {};
   _secureConnections = {};
 
@@ -134,6 +142,9 @@ Future<void> spawnLandingIsolate((RootIsolateToken, NamedSendPort, int port) pay
           case ["stop", ...]:
             closeIsolate(returnName);
             break;
+          case ['requestConnection', [final int secureKey]]:
+            sendPort.send(returnName, _secureConnections[secureKey]);
+            break;
         }
       } else {
         if (kDebugMode) {
@@ -164,43 +175,6 @@ Future<HttpServer> _initiateLandingServer(int port) async {
     final encrypted = _encryptSymmetric(encoded, connection.encryptionKey);
 
     return SecureResponse.ok(encrypted);
-  }));
-
-  router.post("/auth", secureResponse((request, connection) async {
-    final (decodedBody, error1) = await (request.readAsString()) //
-        .then((v) => CryptographyService.decryptSymmetric(v, connection.encryptionKey))
-        .then((m) => jsonDecode(m))
-        .tryCatch();
-
-    if (decodedBody == null) {
-      if (kDebugMode) {
-        print("Failed to decode body: $error1");
-      }
-
-      return SecureResponse.badRequest(
-        body: _encryptSymmetric("Invalid request body.", connection.encryptionKey),
-      );
-    }
-
-    final {"username": String username, "password": String password} =
-        decodedBody as Map<String, dynamic>;
-
-    // Request the user ID from the main isolate.
-    final (user, error) = await _requestSignIn(username, password).tryCatch();
-    if (user == null || error != null) {
-      if (kDebugMode) {
-        print("Authentication failed: $error");
-      }
-
-      return SecureResponse.forbidden(
-        _encryptSymmetric("Invalid credentials.", connection.encryptionKey),
-      );
-    }
-
-    // Return the user as a response.
-    return SecureResponse.ok(
-      _encryptSymmetric(jsonEncode(user.toMap()), connection.encryptionKey),
-    );
   }));
 
   final network = NetworkInfo();
@@ -269,9 +243,11 @@ void _registerHandshakeRoutes(Router router) {
   router.get("/handshake-request", (Request request) {
     if (_ongoingHandshakeConnections.length >= _handshakeLimit) return Response.badRequest();
     final key = randomIntFromDate();
+    final isPersistent = request.url.queryParameters["persistent"] == "1";
     _ongoingHandshakeConnections[key] = HandshakeConnection(
       step: 0,
       limit: DateTime.now().add(const Duration(minutes: 1)),
+      isPersistent: isPersistent,
     );
 
     return Response.ok(key.toString());
@@ -367,6 +343,7 @@ void _registerHandshakeRoutes(Router router) {
     _secureConnections[secureSessionKey] = SecureConnection(
       secureKey: secureSessionKey,
       encryptionKey: encryptionKey,
+      isPersistent: connection.isPersistent,
     );
 
     if (kDebugMode) {
@@ -374,6 +351,24 @@ void _registerHandshakeRoutes(Router router) {
     }
 
     return Response.ok("$secureSessionKey");
+  });
+
+  ///   STEP *:
+  ///     The client tells the server that the session should be closed.
+  router.delete("/handshake-remove", (Request request) {
+    final queryParameters = request.url.queryParameters;
+    final rawKey = queryParameters["key"];
+    if (rawKey == null) return Response.badRequest();
+
+    final key = int.tryParse(rawKey);
+    if (key == null || !_secureConnections.containsKey(key)) return Response.badRequest();
+
+    _secureConnections.remove(key);
+    if (kDebugMode) {
+      print("Secure connection removed: $key");
+    }
+
+    return Response.ok("Connection removed.");
   });
 }
 
@@ -407,7 +402,9 @@ Function secureResponse(Future<SecureResponse> Function(Request, SecureConnectio
       return Response.internalServerError(body: "Internal server error.");
     }
 
-    _secureConnections.remove(secureKey);
+    if (!secureConnection.isPersistent) {
+      _secureConnections.remove(secureKey);
+    }
     return response;
   };
 }
@@ -429,13 +426,6 @@ Future<T> _request<T>(String method, [List<Object>? args]) {
   });
 
   return completer.future;
-}
-
-/// Requests the user object from the main isolate, provided the username and password.
-Future<User> _requestSignIn(String username, String password) async {
-  final result = await _request<String>("requestSignIn", [username, password]);
-
-  return User.fromMap(jsonDecode(result));
 }
 
 /// Requests the WebSocket port from the main isolate to establish a WebSocket connection.

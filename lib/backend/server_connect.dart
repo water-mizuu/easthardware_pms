@@ -34,37 +34,28 @@ Future<bool> httpPing(
 }
 
 Future<(WebSocketChannel, MessageChannel, Stream<ServerEvent>)> connectToWebSocketServer(
-  String address,
+  String host,
   int port,
   void Function() onConnectionClose,
 ) async {
-  final landingAddress = "$address:$port";
-  final websocketPortUri = Uri.parse("http://$landingAddress/request-ws-port");
-  final (websocketPortResponse, error1) = await SecureHttp.get(websocketPortUri).tryCatch();
-  if (error1 != null) {
-    if (kDebugMode) {
-      print("Failed to get WebSocket port: $error1");
-    }
-    throw Exception("Failed to get WebSocket port");
-  }
-
-  final {"port": wsPort as int} = jsonDecode(websocketPortResponse!.body);
-
-  if (kDebugMode) {
-    print("WebSocket port for $landingAddress is $wsPort");
-  }
-
-  final websocketUri = Uri.parse("ws://$address:$wsPort");
+  final address = "$host:$port";
+  final (wsPort, sessionKey, encryptionKey, dispose) = await _webSocketHandshake(address);
+  final websocketUri = Uri.parse("ws://$host:$wsPort?k=$sessionKey");
   if (kDebugMode) {
     print("Connecting to $websocketUri");
   }
+
   final webSocketChannel = WebSocketChannel.connect(websocketUri);
   await webSocketChannel.ready;
   if (kDebugMode) {
     print("Connected to $websocketUri");
   }
 
-  final serverChannel = webSocketChannel.toMessageChannel(onConnectionClose);
+  final serverChannel = webSocketChannel.toEncryptedMessageChannel(
+    encryptionKey,
+    onConnectionClose,
+  );
+
   final status = await serverChannel.receivePort.next("status");
   if (kDebugMode) {
     print("Received status: $status");
@@ -97,4 +88,29 @@ Future<(WebSocketChannel, MessageChannel, Stream<ServerEvent>)> connectToWebSock
   });
 
   return (webSocketChannel, serverChannel, websocketStream);
+}
+
+Future<
+    (
+      int websocketPort,
+      int sessionKey,
+      BigInt encryptionKey,
+      Future<void> Function() dispose,
+    )> _webSocketHandshake(String landingAddress) async {
+  final websocketPortUri = Uri.parse("http://$landingAddress/request-ws-port");
+  final (websocketPortResponse, error1) = await SecureHttp.get(websocketPortUri).tryCatch();
+  if (error1 != null) {
+    if (kDebugMode) {
+      print("Failed to get WebSocket port: $error1");
+    }
+    throw Exception("Failed to get WebSocket port");
+  }
+
+  final {"port": wsPort as int} = jsonDecode(websocketPortResponse!.body);
+  final (sessionKey, encryptionKey, dispose) = await SecureHttp.pseudoTlsHandshake(
+    websocketPortUri,
+    isPersistent: true,
+  );
+
+  return (wsPort, sessionKey, encryptionKey, dispose);
 }

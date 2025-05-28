@@ -353,6 +353,7 @@ class ServerBloc extends Bloc<ServerEvent, ServerState> {
     emit(state.copyWith(
       status: ServerStatus.running,
       databaseArgs: event.args,
+      databaseHelper: ServerDatabaseHelper(Server(event.args.messageChannel!)),
     ));
     if (event.saveToPreferences) {
       add(ServerSaveClientInformation(serverAddress: address));
