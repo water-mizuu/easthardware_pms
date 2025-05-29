@@ -87,7 +87,7 @@ Future<void> spawnWebSocketIsolate((RootIsolateToken, NamedSendPort) payload) as
   }
 
   /// @MAIN2WS:invocation
-  mainChannel.listenAt("invocation", (message) {
+  mainChannel.listenFrom("invocation", (message) {
     if (message case [final String returnName, final Object args]) {
       switch (args) {
         case ["stop", ...]:
@@ -180,7 +180,7 @@ Future<void> _handleConnection(
     ..sendPort.send("status", 0);
 
   /// @MAIN2WS:invocation
-  messageChannel.listenAt("invocation", (object) {
+  messageChannel.listenFrom("invocation", (object) {
     final [name as String, message] = object as List<Object?>;
 
     switch (message) {

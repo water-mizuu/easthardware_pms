@@ -1,3 +1,5 @@
+import 'package:easthardware_pms/backend/extension_types/secure_keys.dart';
+
 /// A handshake connection is a temporary connection that is used to establish
 ///   a secure connection between the client and the server.
 ///
@@ -19,6 +21,6 @@ class HandshakeConnection {
   BigInt? clientRandom;
   BigInt? serverRandom;
   BigInt? preMasterSecret;
-  BigInt? sessionEncryptionKey;
+  EncryptionKey? sessionEncryptionKey;
   String? randomValue;
 }

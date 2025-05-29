@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:isolate';
 
+import 'package:easthardware_pms/backend/utils/stream.dart';
 import 'package:uuid/uuid.dart';
 
 import 'parallelism.dart';
@@ -39,12 +40,12 @@ extension type const MessageChannel._((ListenedReceivePort, NamedSendPort) pair)
   Future<T> invoke<T>(String method, [List<Object?>? arguments]) =>
       invokeNamed("invocation", method, arguments);
 
-  Future<T> receive<T>(String name) => receivePort.next(name);
-  void send(String name, Object? message) => sendPort.send(name, message);
+  Future<T> receive<T>({required String from}) => receivePort.next(from);
+  void send(Object? message, {required String to}) => sendPort.send(to, message);
 
   /// Creates a listener for messages on the specified channel.
   ///   The listener will call the provided [onMessage] function
-  void listenAt(
+  void listenFrom(
     String name,
     FutureOr<void> Function(Object? message) onMessage, {
     void Function()? onDone,
@@ -59,6 +60,23 @@ extension type const MessageChannel._((ListenedReceivePort, NamedSendPort) pair)
 
       onDone?.call();
     }());
+  }
+
+  Stream<T> listenStream<T>(
+    Stream<T> Function(Object? message) onMessage, {
+    required String from,
+    void Function()? onDone,
+  }) {
+    return stream<T>(() async* {
+      /// @LANDING2MAIN:message
+      while (!receivePort.isClosed) {
+        final message = await receivePort.next(from);
+
+        yield* onMessage(message);
+      }
+
+      onDone?.call();
+    });
   }
 }
 
@@ -81,8 +99,8 @@ extension type const DisposableMessageChannel._(MessageChannel channel) implemen
   Future<T> invoke<T>(String method, [List<Object?>? arguments]) =>
       channel.invoke(method, arguments);
 
-  Future<T> receive<T>(String name) => channel.receive(name);
-  void send(String name, Object message) => channel.send(name, message);
+  Future<T> receive<T>({required String from}) => channel.receive(from: from);
+  void send(Object? message, {required String to}) => channel.send(message, to: to);
 
   /// Closes the message channel and its receive port.
   void close() {

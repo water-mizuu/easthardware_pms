@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:isolate';
 import 'dart:math';
 
+import 'package:easthardware_pms/backend/extension_types/secure_keys.dart';
 import 'package:easthardware_pms/domain/services/cryptography_service.dart';
 import 'package:easthardware_pms/utils/boxed.dart';
 import 'package:easthardware_pms/utils/message_channel.dart';
@@ -69,10 +70,13 @@ extension MessageChannelExtension on WebSocketChannel {
     return messageChannel;
   }
 
-  MessageChannel toEncryptedMessageChannel(BigInt encryptionKey, [void Function()? dispose]) {
+  MessageChannel toEncryptedMessageChannel(
+    EncryptionKey encryptionKey, [
+    void Function()? dispose,
+  ]) {
     if (kDebugMode) {
       printBoxed(
-        "Creating encrypted channel with encryption key: ${encryptionKey.toRadixString(36)}",
+        "Creating encrypted channel with encryption key: $encryptionKey",
         "WebSocketChannel",
       );
     }

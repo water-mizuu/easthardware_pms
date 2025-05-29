@@ -76,7 +76,7 @@ class ServerBloc extends Bloc<ServerEvent, ServerState> {
     return await connection_service.connectToWebSocketServer(
       serverIp,
       port,
-      () => add(const ServerReset()),
+      onConnectionClose: () => add(const ServerReset()),
     );
   }
 

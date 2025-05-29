@@ -1,3 +1,5 @@
+import 'package:easthardware_pms/backend/extension_types/secure_keys.dart';
+
 /// These are individual encryption tokens. Once a user has been authenticated,
 ///   the secure connection is established for end to end encryption.
 ///
@@ -11,6 +13,6 @@ class SecureConnection {
   });
 
   final int secureKey;
-  final BigInt encryptionKey;
+  final EncryptionKey encryptionKey;
   final bool isPersistent;
 }

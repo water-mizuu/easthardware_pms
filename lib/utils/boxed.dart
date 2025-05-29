@@ -8,10 +8,9 @@ void printBoxed(Object? value, [String? label]) {
   if (kDebugMode) {
     const maxLength = 120;
 
-    final longestLength = max(label?.length ?? 0, value.toString().length);
+    final lines = value.toString().split('\n');
+    final longestLength = max(label?.length ?? 0, lines.map((e) => e.length).fold(0, max));
     final followedLength = min(longestLength + 2, maxLength);
-
-    final valueString = value.toString();
 
     final truncatedLabel = label != null && label.isNotEmpty //
         ? label.length > followedLength
@@ -19,14 +18,17 @@ void printBoxed(Object? value, [String? label]) {
             : label
         : '';
 
-    final truncatedValue = valueString.length > followedLength //
-        ? '${valueString.substring(0, followedLength - 5)}...'
-        : valueString;
+    final truncatedLines = lines.map((e) => e.length > followedLength //
+        ? '${e.substring(0, followedLength - 5)}...'
+        : e);
 
-    final box = '+ $truncatedLabel ${'-' * (followedLength - (truncatedLabel.length + 2))}+\n'
-        '| $truncatedValue |\n'
-        '+${'-' * followedLength}+';
+    final buffer = StringBuffer()
+      ..writeln('+ $truncatedLabel ${'-' * (followedLength - (truncatedLabel.length + 2))}+');
+    for (final line in truncatedLines) {
+      buffer.writeln('| $line ${' ' * (followedLength - (line.length + 2))}|');
+    }
+    buffer.writeln('+${'-' * followedLength}+');
 
-    stdout.writeln(box);
+    stdout.write(buffer);
   }
 }

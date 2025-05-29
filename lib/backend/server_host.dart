@@ -6,11 +6,12 @@ import 'dart:async';
 import 'dart:isolate';
 
 import 'package:async/async.dart';
+import 'package:easthardware_pms/microservices/key_microservice.dart' as keys_ms;
 import 'package:easthardware_pms/backend/server_host/landing_isolate.dart';
 import 'package:easthardware_pms/backend/server_host/web_socket_isolate.dart';
 import 'package:easthardware_pms/backend/utils/isolate_indicator.dart';
-import 'package:easthardware_pms/backend/utils/stream.dart';
 import 'package:easthardware_pms/presentation/bloc/server/server_bloc.dart';
+import 'package:easthardware_pms/utils/boxed.dart';
 import 'package:easthardware_pms/utils/message_channel.dart';
 import 'package:easthardware_pms/utils/parallelism.dart';
 import 'package:flutter/foundation.dart';
@@ -26,43 +27,50 @@ import 'extension_types/shelf_server.dart';
 ///   resulted from the listening loop of the isolate.
 Future<(ShelfServer, ShelfServer, Stream<ServerEvent>)> hostShelfServer(int port) async {
   assertMainIsolate();
-  //
+
   final landingServer = await hostLandingServer(port);
+  if (kDebugMode) {
+    printBoxed("Hosting HTTP server on port ${landingServer.port}", "hostShelfServer");
+  }
+
   final webSocketServer = await hostWebSocketServer();
+  if (kDebugMode) {
+    printBoxed("Hosting WebSocket server on port ${webSocketServer.port}", "hostShelfServer");
+  }
 
   /// Handle calls from the landing isolate.
   /// @LANDING2MAIN:main
-  final landingStream = stream<ServerEvent>(() async* {
-    final channel = landingServer.channel;
-    while (channel.isOpen) {
-      final message = await channel.receive('main');
+  final landingStream = landingServer.channel.listenStream<ServerEvent>(
+    from: "main",
+    (message) async* {
+      final channel = landingServer.channel;
       if (kDebugMode) {
-        print("*" * 20);
-        print("[LANDING@MAIN] Received message: $message");
-        print("*" * 20);
+        printBoxed(message, "LANDING2MAIN:main");
       }
 
       if (message case [final String returnName, final Object request]) {
         switch (request) {
           case ['requestWsPort', _]:
-            channel.send(returnName, webSocketServer.port);
+            channel.send(to: returnName, webSocketServer.port);
+            break;
+          case ['requestKeys', _]:
+            final requested = await keys_ms.keys;
+
+            channel.send(to: returnName, requested);
             break;
         }
       }
-    }
-  });
+    },
+  );
 
-  /// Handle calls from the webSocket isolate.
-  final webSocketStream = stream<ServerEvent>(() async* {
-    final channel = webSocketServer.channel;
-
-    /// @WS@MAIN:main
-    while (channel.isOpen) {
-      final message = await channel.receive('main');
+  /// @WS2MAIN:main
+  final webSocketStream = webSocketServer.channel.listenStream<ServerEvent>(
+    from: "main",
+    (message) async* {
+      /// Handle calls from the webSocket isolate.
+      final channel = webSocketServer.channel;
       if (kDebugMode) {
-        print("*" * 20);
-        print("[WEB_SOCKET@MAIN] Received message: $message");
-        print("*" * 20);
+        printBoxed(message, "WS2MAIN:main");
       }
 
       switch (message) {
@@ -81,13 +89,13 @@ Future<(ShelfServer, ShelfServer, Stream<ServerEvent>)> hostShelfServer(int port
                 [sessionKey],
               );
 
-              channel.send(returnName, secureConnection);
+              channel.send(to: returnName, secureConnection);
               break;
           }
           break;
       }
-    }
-  });
+    },
+  );
 
   /// Merge the streams into one.
   final fullStream = StreamGroup.merge([landingStream, webSocketStream]);

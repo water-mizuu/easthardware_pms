@@ -3,6 +3,7 @@
 import 'dart:io';
 
 import 'package:easthardware_pms/app/app_window.dart';
+import 'package:easthardware_pms/microservices/key_microservice.dart';
 import 'package:easthardware_pms/utils/try_future.dart';
 import 'package:fluent_ui/fluent_ui.dart';
 import 'package:flutter/foundation.dart';
@@ -34,6 +35,8 @@ void main(List<String> args) async {
       await WindowManagerPlus.current.focus();
     });
   }
+
+  await setupKeyMicroService();
 
   /// Current idea:
   ///   1. scan for all ips in the subnetwork.

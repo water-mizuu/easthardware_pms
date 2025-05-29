@@ -1,3 +1,4 @@
+import 'package:easthardware_pms/backend/extension_types/secure_keys.dart';
 import 'package:easthardware_pms/domain/services/cryptography_service.dart';
 import 'package:shelf/shelf.dart';
 
@@ -7,7 +8,7 @@ import 'package:shelf/shelf.dart';
 class SecureResponse extends Response {
   SecureResponse.ok(
     String body,
-    BigInt encryptionKey, {
+    EncryptionKey encryptionKey, {
     super.context,
     super.encoding,
     super.headers,
@@ -15,7 +16,7 @@ class SecureResponse extends Response {
 
   SecureResponse.badRequest({
     String? body,
-    BigInt? encryptionKey,
+    EncryptionKey? encryptionKey,
     super.context,
     super.encoding,
     super.headers,
@@ -27,7 +28,7 @@ class SecureResponse extends Response {
 
   SecureResponse.unauthorized(
     String body,
-    BigInt encryptionKey, {
+    EncryptionKey encryptionKey, {
     super.context,
     super.encoding,
     super.headers,
@@ -35,7 +36,7 @@ class SecureResponse extends Response {
 
   SecureResponse.forbidden(
     String body,
-    BigInt encryptionKey, {
+    EncryptionKey encryptionKey, {
     super.context,
     super.encoding,
     super.headers,
@@ -43,13 +44,13 @@ class SecureResponse extends Response {
 
   SecureResponse.notFound(
     String body,
-    BigInt encryptionKey, {
+    EncryptionKey encryptionKey, {
     super.context,
     super.encoding,
     super.headers,
   }) : super.notFound(_encryptSymmetric(body, encryptionKey));
 }
 
-String _encryptSymmetric(String value, BigInt key) {
+String _encryptSymmetric(String value, EncryptionKey key) {
   return CryptographyService.encryptSymmetric(value, key);
 }
