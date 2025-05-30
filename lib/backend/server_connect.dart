@@ -18,7 +18,7 @@ Future<(WebSocketChannel, MessageChannel, Stream<ServerEvent>)> connectToWebSock
 }) async {
   if (kDebugMode) {
     printBoxed(
-      "Connecting to WebSocket server at $host:$port",
+      "Connecting to server at $host:$port",
       "connectToWebSocketServer",
     );
   }
@@ -86,9 +86,7 @@ Future<(WebSocketChannel, MessageChannel, Stream<ServerEvent>)> connectToWebSock
     from: "client",
     (message) async* {
       if (kDebugMode) {
-        if (kDebugMode) {
-          printBoxed(message, "LANDING2MAIN:client");
-        }
+        printBoxed(message, "LANDING2MAIN:client");
       }
 
       switch (message) {

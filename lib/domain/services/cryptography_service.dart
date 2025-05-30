@@ -3,6 +3,7 @@ import 'dart:math';
 
 import 'package:crypto/crypto.dart';
 import 'package:easthardware_pms/backend/extension_types/secure_keys.dart';
+import 'package:easthardware_pms/backend/microservices/key_microservice.dart';
 import 'package:flutter/foundation.dart';
 
 class CryptographyService {
@@ -29,10 +30,25 @@ class CryptographyService {
     return Uint8List.fromList(digest.bytes);
   }
 
+  /// Generates a key pair according to the RSA algorithm.
+  ///   Note: This is not a secure implementation, and only generates small-sized keys.
+  static AsymmetricKeys generateKeyPair() {
+    final (p, q) = CryptographyService.generateTwoPrimes();
+    final n = p * q;
+    final phiN = (p - 1) * (q - 1);
+    final e = CryptographyService.generatePrimeLessThanRootOf(phiN);
+    final d = CryptographyService.generateModularInverse(e, phiN);
+
+    final publicKey = (BigInt.from(n), BigInt.from(e));
+    final privateKey = (BigInt.from(n), BigInt.from(d));
+
+    return (publicKey, privateKey);
+  }
+
   /// Generates a coprime number to [n].
   ///   Technically, this generates a prime number.
   static int generatePrimeLessThanRootOf(int n) {
-    final primes = <int>[2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37];
+    final primes = _primeBasis.toList(growable: true);
     final root = pow(n, 0.5).toInt();
 
     var increment = 2;
@@ -78,7 +94,9 @@ class CryptographyService {
 
   /// Encrypts a string using an RSA-based asymmetric encryption scheme.
   /// Returns the Base64-encoded string containing the encrypted data and integrity hash.
-  static String encryptAsymmetric(String plaintext, BigInt n, BigInt e) {
+  static String encryptAsymmetric(String plaintext, AsymmetricKey publicKey) {
+    final (n, e) = publicKey;
+
     // Convert the input string to UTF-8 bytes.
     final utf8PlaintextBytes = utf8.encode(plaintext);
 
@@ -113,7 +131,8 @@ class CryptographyService {
   /// Decrypts a string that was encrypted using the custom RSA-based asymmetric scheme.
   /// Returns the original plaintext string if decryption and integrity check are successful.
   /// Throws an ArgumentError if the integrity check fails or the input format is invalid.
-  static String decryptAsymmetric(String base64Ciphertext, BigInt n, BigInt d) {
+  static String decryptAsymmetric(String base64Ciphertext, AsymmetricKey encryptionKey) {
+    final (n, d) = encryptionKey;
     final inputBytes = base64.decode(base64Ciphertext);
 
     // Define the length of the SHA-256 hash (32 bytes).
@@ -130,8 +149,6 @@ class CryptographyService {
     final calculatedIntegrityHash = sha256.convert(utf8JsonBytes).bytes;
 
     // Verify the integrity of the data using a constant-time comparison.
-    // Note: _ChaCha20Poly1305._constantTimeEquals is used here for convenience,
-    // assuming it's a general-purpose constant-time equality check for Uint8List.
     if (!_ChaCha20Poly1305._constantTimeEquals(
       receivedIntegrityHash,
       Uint8List.fromList(calculatedIntegrityHash),
@@ -151,12 +168,47 @@ class CryptographyService {
         .toList();
 
     // Convert the list of decrypted bytes back to a string using UTF-8 decoding.
-    try {
-      final originalString = utf8.decode(decryptedBytes);
-      return originalString;
-    } catch (e) {
-      throw ArgumentError('Failed to decode decrypted bytes to UTF-8 string.');
+    return utf8.decode(decryptedBytes);
+  }
+
+  /// Generates two small prime numbers. This is just for basic security.
+  static (int, int) generateTwoPrimes() {
+    final primes = _primeBasis.toList(growable: true);
+
+    var increment = 2;
+
+    final initialCount = Random().nextInt(5000) + 500;
+    while (primes.length < initialCount) {
+      final candidate = primes.last + increment;
+
+      if (primes.any((p) => candidate % p == 0)) {
+        increment += 2;
+      } else {
+        primes.add(candidate);
+        increment = 2;
+      }
     }
+
+    final firstPrime = primes.last;
+    final count = primes.length;
+    final additional = Random().nextInt(5000) + 500;
+    while (primes.length < count + additional) {
+      final candidate = primes.last + increment;
+
+      if (primes.any((p) => candidate % p == 0)) {
+        increment += 2;
+      } else {
+        primes.add(candidate);
+        increment = 2;
+      }
+    }
+
+    final secondPrime = primes.last;
+    if (Random().nextDouble() < 0.5) {
+      return (secondPrime, firstPrime);
+    }
+
+    return (firstPrime, secondPrime);
   }
 
   /// Encrypts a string using ChaCha20-Poly1305 authenticated encryption.
@@ -227,7 +279,9 @@ class CryptographyService {
     if (ciphertextLength < 0) {
       // Should ideally be caught by minPayloadLength check.
       throw ArgumentError(
-          'Invalid encrypted data format: inconsistent lengths leading to negative ciphertext length.');
+        'Invalid encrypted data format: inconsistent lengths '
+        'leading to negative ciphertext length.',
+      );
     }
     final ciphertext = Uint8List(ciphertextLength)
       ..setAll(0, combinedInput.sublist(nonceLength, combinedInput.length - tagLength));
@@ -251,7 +305,9 @@ class CryptographyService {
     // to prevent timing attacks.
     if (!_ChaCha20Poly1305._constantTimeEquals(calculatedTag, receivedTag)) {
       throw ArgumentError(
-          'Authentication failed: Data may have been tampered with or key is incorrect.');
+        'Authentication failed: Data may have been '
+        'tampered with or key is incorrect.',
+      );
     }
 
     // If authentication passed, decrypt the ciphertext using ChaCha20.
@@ -261,50 +317,12 @@ class CryptographyService {
     return utf8.decode(plaintextBytes);
   }
 
-  /// Generates two small prime numbers. This is just for basic security.
-  static (int, int) generateTwoPrimes() {
-    final primes = <int>[
-      ...[2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41],
-      ...[43, 47, 53, 59, 61, 67, 71, 73, 79, 83, 89, 97],
-      ...[101, 103, 107, 109, 113, 127, 131, 137, 139, 149],
-      ...[151, 157, 163, 167, 173, 179, 181, 191, 193, 197],
-    ];
-
-    var increment = 2;
-
-    final initialCount = Random().nextInt(5000) + 500;
-    while (primes.length < initialCount) {
-      final candidate = primes.last + increment;
-
-      if (primes.any((p) => candidate % p == 0)) {
-        increment += 2;
-      } else {
-        primes.add(candidate);
-        increment = 2;
-      }
-    }
-
-    final firstPrime = primes.last;
-    final count = primes.length;
-    final additional = Random().nextInt(5000) + 500;
-    while (primes.length < count + additional) {
-      final candidate = primes.last + increment;
-
-      if (primes.any((p) => candidate % p == 0)) {
-        increment += 2;
-      } else {
-        primes.add(candidate);
-        increment = 2;
-      }
-    }
-
-    final secondPrime = primes.last;
-    if (Random().nextDouble() < 0.5) {
-      return (secondPrime, firstPrime);
-    }
-
-    return (firstPrime, secondPrime);
-  }
+  static const _primeBasis = [
+    ...[2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41],
+    ...[43, 47, 53, 59, 61, 67, 71, 73, 79, 83, 89, 97],
+    ...[101, 103, 107, 109, 113, 127, 131, 137, 139, 149],
+    ...[151, 157, 163, 167, 173, 179, 181, 191, 193, 197],
+  ];
 }
 
 extension CryptographyServiceExtension on String {
@@ -316,12 +334,12 @@ extension CryptographyServiceExtension on String {
     return CryptographyService.decryptSymmetric(this, encryptionKey);
   }
 
-  String encryptAsymmetric(BigInt n, BigInt e) {
-    return CryptographyService.encryptAsymmetric(this, n, e);
+  String encryptAsymmetric(AsymmetricKey encryptionKey) {
+    return CryptographyService.encryptAsymmetric(this, encryptionKey);
   }
 
-  String decryptAsymmetric(BigInt n, BigInt d) {
-    return CryptographyService.decryptAsymmetric(this, n, d);
+  String decryptAsymmetric(AsymmetricKey encryptionKey) {
+    return CryptographyService.decryptAsymmetric(this, encryptionKey);
   }
 }
 
@@ -644,7 +662,7 @@ class _ChaCha20Poly1305 {
   }
 }
 
-extension on String {
+extension StringWrapExtension on String {
   String get wrap {
     final buffer = StringBuffer();
     for (var i = 0; i < length; i++) {
@@ -654,5 +672,29 @@ extension on String {
       buffer.write(this[i]);
     }
     return buffer.toString();
+  }
+
+  String get indent {
+    final lines = split('\n');
+    final indentedLines = lines.map((line) => '  $line').join('\n');
+
+    return indentedLines;
+  }
+
+  String get dedent {
+    final lines = trimLeft().split('\n');
+    final commonDedent = lines
+        .skip(1)
+        .where((l) => l.trim().isNotEmpty)
+        .map((l) => l.length as num)
+        .fold(double.infinity, min);
+
+    if (commonDedent.isInfinite) {
+      return this;
+    }
+
+    return lines //
+        .map((l) => l.trim().isEmpty ? l : l.substring(commonDedent.toInt()))
+        .join('\n');
   }
 }

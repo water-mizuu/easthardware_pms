@@ -1,8 +1,8 @@
 import 'dart:async';
 import 'dart:isolate';
 
+import 'package:easthardware_pms/backend/utils/random_int_from_date.dart';
 import 'package:easthardware_pms/backend/utils/stream.dart';
-import 'package:uuid/uuid.dart';
 
 import 'parallelism.dart';
 
@@ -25,7 +25,7 @@ extension type const MessageChannel._((ListenedReceivePort, NamedSendPort) pair)
   /// Invokes a method on a specified channel with the given arguments.
   /// Returns a future which completes with the result of the invocation.
   Future<T> invokeNamed<T>(String name, String method, [List<Object?>? arguments]) {
-    final uuid = const Uuid().v4();
+    final uuid = randomIntFromDate().toString();
     final payload = [method, arguments];
 
     /// We send an invocation request, alongside the completer name and the payload.
@@ -51,7 +51,6 @@ extension type const MessageChannel._((ListenedReceivePort, NamedSendPort) pair)
     void Function()? onDone,
   }) {
     unawaited(() async {
-      /// @LANDING2MAIN:message
       while (!receivePort.isClosed) {
         final message = await receivePort.next(name);
 
@@ -62,13 +61,14 @@ extension type const MessageChannel._((ListenedReceivePort, NamedSendPort) pair)
     }());
   }
 
+  /// Listens to messages on the specific channel, allowing the user to
+  ///   yield a stream of objects based on the received messages.
   Stream<T> listenStream<T>(
     Stream<T> Function(Object? message) onMessage, {
     required String from,
     void Function()? onDone,
   }) {
     return stream<T>(() async* {
-      /// @LANDING2MAIN:message
       while (!receivePort.isClosed) {
         final message = await receivePort.next(from);
 
@@ -109,24 +109,3 @@ extension type const DisposableMessageChannel._(MessageChannel channel) implemen
     }
   }
 }
-
-// extension type const StrictMessageChannel._(MessageChannel channel) implements MessageChannel {
-//   const StrictMessageChannel(MessageChannel channel) : this._(channel);
-
-//   ListenedReceivePort get receivePort => channel.receivePort;
-//   NamedSendPort get sendPort => channel.sendPort;
-
-//   bool get isClosed => channel.isClosed;
-//   bool get isOpen => channel.isOpen;
-
-//   Future<T> invokeNamed<T>(String name, String method, [List<Object?>? arguments]) =>
-//       channel.invokeNamed(name, method, arguments);
-
-//   Future<T> invoke<T>(String method, [List<Object?>? arguments]) =>
-//       channel.invoke(method, arguments);
-
-//   Future<(String, T)> receiveNamed<T>(String name) => channel.receiveNamed(name);
-
-//   Future<T> receive<T>(String name) => channel.receive(name);
-//   void send(String name, Object message) => channel.send(name, message);
-// }

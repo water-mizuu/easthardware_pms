@@ -8,7 +8,7 @@ import 'package:easthardware_pms/backend/classes/handshake_connection.dart';
 import 'package:easthardware_pms/backend/classes/secure_connection.dart';
 import 'package:easthardware_pms/backend/classes/secure_response.dart';
 import 'package:easthardware_pms/backend/extension_types/secure_keys.dart';
-import 'package:easthardware_pms/microservices/key_microservice.dart';
+import 'package:easthardware_pms/backend/microservices/key_microservice.dart' as keys_ms;
 import 'package:easthardware_pms/backend/utils/isolate_indicator.dart';
 import 'package:easthardware_pms/backend/utils/random_int_from_date.dart';
 import 'package:easthardware_pms/domain/services/cryptography_service.dart';
@@ -106,8 +106,15 @@ Future<void> spawnLandingIsolate((RootIsolateToken, NamedSendPort, int port) pay
     sendPort.send(name, 0);
   }
 
+  /// Listen for messages from the main isolate through
+  ///   the 'invocation' messages.
+  ///
   /// @MAIN2LANDING:invocation
   _mainChannel.listenFrom("invocation", (message) async {
+    if (kDebugMode) {
+      printBoxed(message, "MAIN2LANDING:invocation");
+    }
+
     if (message case [final String returnName, final Object args]) {
       switch (args) {
         case ["stop", ...]:
@@ -200,19 +207,11 @@ Future<HttpServer> _initiateLandingServer(int port) async {
 ///   This is used by the server to encrypt messages sent to the client,
 ///   and by the client to encrypt messages sent to the server.
 Future<void> _generateKeys() async {
-  final (public, private) = await _mainChannel.invokeNamed<AsymmetricKeys>("main", "requestKeys");
+  final (public, private) =
+      await _mainChannel.invokeNamed<keys_ms.AsymmetricKeys>("main", "requestKeys");
 
   _publicKey = public;
   _privateKey = private;
-
-  if (kDebugMode) {
-    printBoxed(
-      "Generated keys:\n"
-          "  Public Key: ${_publicKey.$1}, ${_publicKey.$2}\n"
-          "  Private Key: ${_privateKey.$1}, ${_privateKey.$2}",
-      "Key Generation",
-    );
-  }
 }
 
 /// Registers the routes related to the handshake process.
@@ -278,7 +277,9 @@ void _registerHandshakeRoutes(Router router) {
     final queryParameters = request.url.queryParameters;
     // Validate the provided handshake key and ensure it's for step 0.
     final (maybeKey, isValid) = handshakeKey(rawKey, 0);
-    if (!isValid) return Response.badRequest(body: "Invalid or expired handshake key for step 0.");
+    if (!isValid) {
+      return Response.badRequest(body: "Invalid or expired handshake key for step 0.");
+    }
 
     // Retrieve the client's random number from the query parameters.
     final clientRandomRaw = queryParameters["client-random"];
@@ -315,7 +316,9 @@ void _registerHandshakeRoutes(Router router) {
     final queryParameters = request.url.queryParameters;
     // Validate the provided handshake key and ensure it's for step 1.
     final (maybeKey, isValid) = handshakeKey(rawKey, 1);
-    if (!isValid) return Response.badRequest(body: "Invalid or expired handshake key for step 1.");
+    if (!isValid) {
+      return Response.badRequest(body: "Invalid or expired handshake key for step 1.");
+    }
 
     final key = maybeKey!;
     // Retrieve the encrypted pre-master secret from the query parameters.
@@ -326,7 +329,7 @@ void _registerHandshakeRoutes(Router router) {
 
     // Decrypt the pre-master secret using the server's private key.
     final (n, d) = _privateKey; // Unpack private key components (modulus, private exponent).
-    final decodedPreMasterSecret = encryptedPreMaster.decryptAsymmetric(n, d);
+    final decodedPreMasterSecret = encryptedPreMaster.decryptAsymmetric(_privateKey);
     final preMasterSecret = BigInt.parse(decodedPreMasterSecret);
 
     final connection = _ongoingHandshakeConnections[key];
@@ -410,9 +413,8 @@ void _registerHandshakeRoutes(Router router) {
       return Response.badRequest(body: "Failed to read request body: $error");
     }
 
-    final (n, d) = _privateKey; // Unpack private key components (modulus, private exponent).
     final encryptedKey = rawKey!.trim();
-    final decryptedKey = encryptedKey.decryptAsymmetric(n, d);
+    final decryptedKey = encryptedKey.decryptAsymmetric(_privateKey);
     final key = int.tryParse(decryptedKey);
     // Validate that the key is an integer and corresponds to an existing secure connection.
     if (key == null || !_secureConnections.containsKey(key)) {

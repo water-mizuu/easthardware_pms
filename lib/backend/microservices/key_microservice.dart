@@ -21,14 +21,7 @@ const childIsolate = Object();
 @mainIsolate
 bool _hasSetup = false;
 
-@childIsolate
-late final AsymmetricKey _publicKey;
-
-@childIsolate
-late final AsymmetricKey _privateKey;
-
 @mainIsolate
-@childIsolate
 late final MessageChannel _channel;
 
 Future<void> setupKeyMicroService() async {
@@ -78,6 +71,12 @@ Future<AsymmetricKeys> get keys async {
   return await _channel.invoke<AsymmetricKeys>("requestKeys");
 }
 
+@childIsolate
+late final AsymmetricKey _publicKey;
+
+@childIsolate
+late final AsymmetricKey _privateKey;
+
 /// Spawns an isolate to handle database operations and WebSocket connections.
 ///   This isolate will handle incoming messages and perform database operations
 ///   as needed.
@@ -91,27 +90,33 @@ Future<void> _spawnKeyMicroserviceIsolate((RootIsolateToken, NamedSendPort) payl
   BackgroundIsolateBinaryMessenger.ensureInitialized(token);
 
   // Create the receive port and send it to the main isolate.
-  _channel = DisposableMessageChannel(sendPort);
-  sendPort.send("setup", _channel.receivePort.sendPort);
+  final localChannel = DisposableMessageChannel(sendPort);
+  sendPort.send("setup", localChannel.receivePort.sendPort);
   sendPort.send("setup", 0);
 
   _generateKeys();
 
-  /// @MAIN2LANDING:invocation
-  _channel.listenFrom("invocation", (message) async {
+  /// @MAIN2MS_KEYS:invocation
+  localChannel.listenFrom("invocation", (message) async {
+    if (kDebugMode) {
+      printBoxed(message, "MAIN2MS_KEYS:invocation");
+    }
+
     if (message case [final String returnName, final Object args]) {
       switch (args) {
         case ["stop", ...]:
-          (_channel as DisposableMessageChannel).close();
+          localChannel.close();
           break;
         case ['requestKeys', _]:
           sendPort.send(returnName, (_publicKey, _privateKey));
           break;
       }
-    } else {
-      if (kDebugMode) {
-        print("Received unexpected message: $message");
-      }
+
+      return;
+    }
+
+    if (kDebugMode) {
+      print("Received unexpected message: $message");
     }
   });
 }
@@ -122,19 +127,15 @@ Future<void> _spawnKeyMicroserviceIsolate((RootIsolateToken, NamedSendPort) payl
 void _generateKeys() {
   assertChildIsolate();
 
-  final (p, q) = CryptographyService.generateTwoPrimes();
-  final n = p * q;
-  final phiN = (p - 1) * (q - 1);
-  final e = CryptographyService.generatePrimeLessThanRootOf(phiN);
-  final d = CryptographyService.generateModularInverse(e, phiN);
+  final (publicKey, privateKey) = CryptographyService.generateKeyPair();
 
-  _publicKey = (BigInt.from(n), BigInt.from(e));
-  _privateKey = (BigInt.from(n), BigInt.from(d));
+  _publicKey = publicKey;
+  _privateKey = privateKey;
 
   if (kDebugMode) {
     printBoxed(
       "Public Key: $_publicKey\nPrivate Key: $_privateKey",
-      "Generated Keys -- Microservice",
+      "Generated Keys Microservice",
     );
   }
 }

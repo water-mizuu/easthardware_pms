@@ -7,6 +7,7 @@ import 'package:easthardware_pms/backend/classes/secure_connection.dart';
 import 'package:easthardware_pms/backend/extensions/to_message_channel.dart';
 import 'package:easthardware_pms/backend/server_database.dart';
 import 'package:easthardware_pms/backend/utils/isolate_indicator.dart';
+import 'package:easthardware_pms/utils/boxed.dart';
 import 'package:easthardware_pms/utils/message_channel.dart';
 import 'package:easthardware_pms/utils/parallelism.dart';
 import 'package:easthardware_pms/utils/try_future.dart';
@@ -88,9 +89,13 @@ Future<void> spawnWebSocketIsolate((RootIsolateToken, NamedSendPort) payload) as
 
   /// @MAIN2WS:invocation
   mainChannel.listenFrom("invocation", (message) {
+    if (kDebugMode) {
+      printBoxed(message, "MAIN2WS:invocation");
+    }
+
     if (message case [final String returnName, final Object args]) {
       switch (args) {
-        case ["stop", ...]:
+        case ["stop", _]:
           closeIsolate(returnName);
           break;
         case ["db", [final String method, final List<Object?> arguments]]:
@@ -140,12 +145,7 @@ Future<HttpServer> _shelfWebSocketInitiate(int port) async {
 
     /// Now, we ask the other isolate for an existing connection.
     final (connection, error) = await _requestConnection(sessionKey).tryCatch();
-    if (error != null) {
-      if (kDebugMode) {
-        print("Error requesting connection: $error");
-      }
-      return Response.internalServerError(body: "Error requesting connection");
-    }
+    if (error != null) return Response.internalServerError(body: "Error requesting connection");
 
     return webSocketHandler((c, [sp]) {
       _handleConnectionQueue.addJob((_) => _handleConnection(connection!, c));
@@ -179,8 +179,12 @@ Future<void> _handleConnection(
     // Send a status code of 0 to indicate success.
     ..sendPort.send("status", 0);
 
-  /// @MAIN2WS:invocation
+  /// @CLIENT2WS:invocation
   messageChannel.listenFrom("invocation", (object) {
+    if (kDebugMode) {
+      printBoxed(object, "CLIENT2WS:invocation");
+    }
+
     final [name as String, message] = object as List<Object?>;
 
     switch (message) {

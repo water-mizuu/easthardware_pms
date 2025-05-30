@@ -57,10 +57,6 @@ extension MessageChannelExtension on WebSocketChannel {
         }
 
         final [name as String, args] = message as List<Object?>;
-        if (args case [final String id, ["ping", _]]) {
-          messageChannel.sendPort.send(id, "pong");
-        }
-
         sendPort.send(name, args);
       },
     );
@@ -91,12 +87,12 @@ extension MessageChannelExtension on WebSocketChannel {
     ///   and sends them to the webSocket channel.
     final internalReceivePort = ReceivePort()
       ..map(jsonEncode).listen((message) {
-        final encrypted = CryptographyService.encryptSymmetric(message, encryptionKey);
+        final encrypted = message.encryptSymmetric(encryptionKey);
         if (kDebugMode) {
-          final messageString = encrypted.toString();
-          final shortcut = messageString.substring(0, min(50, messageString.length));
-
-          printBoxed("Sending encrypted message: $shortcut...", "WebSocketChannel");
+          printBoxed(
+            "WebSocketChannel sent encrypted:\n${encrypted.wrap}",
+            "WebSocketChannel",
+          );
         }
 
         // We send the message as a string to the WebSocketChannel.
@@ -118,7 +114,7 @@ extension MessageChannelExtension on WebSocketChannel {
 
     stream
         .whereType<String>()
-        .map((v) => CryptographyService.decryptSymmetric(v, encryptionKey))
+        .map((v) => v.decryptSymmetric(encryptionKey))
         .map((v) => jsonDecode(v))
         .listen(
       (message) {
@@ -130,9 +126,6 @@ extension MessageChannelExtension on WebSocketChannel {
         }
 
         final [name as String, args] = message as List<Object?>;
-        if (args case [final String id, ["ping", _]]) {
-          messageChannel.sendPort.send(id, "pong");
-        }
 
         sendPort.send(name, args);
       },

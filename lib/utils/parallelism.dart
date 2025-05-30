@@ -43,7 +43,7 @@ extension type ListenedReceivePort._(ReceivePort _port) {
 
   static final Expando<Map<String, Completer<Object?>>> _completers = Expando();
   static final Expando<Map<String, Queue<Object?>>> _queues = Expando();
-  static final Expando<bool> _isCloseds = Expando();
+  static final Expando<bool> _isClosedAttributes = Expando();
 
   Map<String, Completer<Object?>> get _completer => _completers[_port]!;
   set _completer(Map<String, Completer<Object?>> completer) => _completers[_port] = completer;
@@ -51,8 +51,8 @@ extension type ListenedReceivePort._(ReceivePort _port) {
   Map<String, Queue<Object?>> get _queue => _queues[_port]!;
   set _queue(Map<String, Queue<Object?>> queue) => _queues[_port] = queue;
 
-  bool get _isClosed => _isCloseds[_port]!;
-  set _isClosed(bool isClosed) => _isCloseds[_port] = isClosed;
+  bool get _isClosed => _isClosedAttributes[_port]!;
+  set _isClosed(bool isClosed) => _isClosedAttributes[_port] = isClosed;
 
   Future<T> next<T>(String name) async {
     if (_queue[name]?.isNotEmpty == true) {
@@ -85,7 +85,7 @@ extension type ListenedReceivePort._(ReceivePort _port) {
   void close() {
     _hosts[_port] = null;
     _completers[_port] = null;
-    _isCloseds[_port] = true;
+    _isClosedAttributes[_port] = true;
     _port.close();
   }
 
