@@ -137,7 +137,7 @@ class ServerBloc extends Bloc<ServerEvent, ServerState> {
   ) async {
     emit(state.copyWith(status: ServerStatus.promptingUser));
 
-    switch (await ServerModeSelectionDialog.show(rootNavigatorKey.currentContext!)) {
+    switch (await ServerModeSelectionDialog.show(rootWidgetKey.currentContext!)) {
       case _ when isClosed:
         return;
       case null:
@@ -162,7 +162,7 @@ class ServerBloc extends Bloc<ServerEvent, ServerState> {
       databaseArgs: null,
       databaseHelper: null,
     ));
-    final context = rootNavigatorKey.currentContext!;
+    final context = rootWidgetKey.currentContext!;
 
     await ClientConnectionDialog.show(
       context: context,
@@ -242,7 +242,7 @@ class ServerBloc extends Bloc<ServerEvent, ServerState> {
       if (isClosed) return;
 
       await ServerConfigurationDialog.show(
-        context: rootNavigatorKey.currentContext!,
+        context: rootWidgetKey.currentContext!,
         onStartServer: (port) => connection_service.startServers(port),
         onCancel: () => add(const ServerPromptingUserFromNull()),
         onSuccess: (landing, webSocket, stream) {
@@ -324,11 +324,11 @@ class ServerBloc extends Bloc<ServerEvent, ServerState> {
     if (event.popupToUser) {
       final didUserCancelCompleter = Completer<bool>();
       ClientConnectionSuccessDialog.show(
-        context: rootNavigatorKey.currentContext!,
+        context: rootWidgetKey.currentContext!,
         onCancel: () async {
           bottomTextNotifier.value = "Cancelled connection. Loading client data...";
           didUserCancelCompleter.complete(true);
-          Navigator.of(rootNavigatorKey.currentContext!).pop();
+          Navigator.of(rootWidgetKey.currentContext!).pop();
           final args = state.databaseArgs as ClientDatabaseArgs;
           await args.close?.call();
           if (isClosed) return;
@@ -337,7 +337,7 @@ class ServerBloc extends Bloc<ServerEvent, ServerState> {
         },
         onConfirm: () {
           // Dialog will be dismissed automatically
-          Navigator.of(rootNavigatorKey.currentContext!).pop();
+          Navigator.of(rootWidgetKey.currentContext!).pop();
           didUserCancelCompleter.complete(false);
         },
       );
@@ -368,13 +368,13 @@ class ServerBloc extends Bloc<ServerEvent, ServerState> {
     if (event.popupToUser) {
       final didUserCancelCompleter = Completer<bool>();
       ServerStartedSuccessDialog.show(
-        context: rootNavigatorKey.currentContext!,
+        context: rootWidgetKey.currentContext!,
         serverIp: event.args.ip,
         port: event.args.port,
         onGoBack: () async {
           bottomTextNotifier.value = "Cancelled server. Loading server data...";
           didUserCancelCompleter.complete(true);
-          Navigator.of(rootNavigatorKey.currentContext!).pop();
+          Navigator.of(rootWidgetKey.currentContext!).pop();
           if (isClosed) return;
 
           final args = event.args;
@@ -385,7 +385,7 @@ class ServerBloc extends Bloc<ServerEvent, ServerState> {
           add(const ServerPromptingServerInformation());
         },
         onConfirm: () {
-          Navigator.of(rootNavigatorKey.currentContext!).pop();
+          Navigator.of(rootWidgetKey.currentContext!).pop();
           didUserCancelCompleter.complete(false);
         },
       );

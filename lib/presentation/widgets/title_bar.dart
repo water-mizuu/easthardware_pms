@@ -37,7 +37,7 @@ class _TitleBarState extends State<TitleBar> with WindowListener {
     await WindowManagerPlus.current.minimize();
   }
 
-  Future<void> _maximizeOrUnmaximize() async {
+  Future<void> _maximizeOrUnmaximize([TapDownDetails? _]) async {
     if (isMaximized) {
       await WindowManagerPlus.current.unmaximize();
     } else {
@@ -83,16 +83,19 @@ class _TitleBarState extends State<TitleBar> with WindowListener {
   Widget build(BuildContext context) {
     return InheritedProvider<_TitleBarState>.value(
       value: this,
-      child: Stack(
-        children: [
-          Positioned.fill(child: widget.child),
-          Positioned(
-            top: 0.0,
-            left: 0.0,
-            right: 0.0,
-            child: _titleBar(),
-          )
-        ],
+      child: Directionality(
+        textDirection: TextDirection.ltr,
+        child: Stack(
+          children: [
+            Positioned.fill(child: widget.child),
+            Positioned(
+              top: 0.0,
+              left: 0.0,
+              right: 0.0,
+              child: _titleBar(),
+            )
+          ],
+        ),
       ),
     );
   }
@@ -114,10 +117,10 @@ class _TitleBarState extends State<TitleBar> with WindowListener {
           Expanded(
             child: GestureDetector(
               behavior: HitTestBehavior.translucent,
+              onDoubleTap: _maximizeOrUnmaximize,
               onPanStart: (_) async {
                 await WindowManagerPlus.current.startDragging();
               },
-              onDoubleTap: _maximizeOrUnmaximize,
             ),
           ),
           if (Platform.isWindows) ...[

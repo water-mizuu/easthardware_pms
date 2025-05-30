@@ -7,6 +7,7 @@ import 'package:easthardware_pms/presentation/bloc/security/user_log_list/user_l
 import 'package:easthardware_pms/presentation/bloc/server/server_bloc.dart';
 import 'package:easthardware_pms/presentation/router/app_router.dart';
 import 'package:easthardware_pms/presentation/widgets/bottom_text.dart';
+import 'package:easthardware_pms/presentation/widgets/title_bar.dart';
 import 'package:fluent_ui/fluent_ui.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:provider/provider.dart';
@@ -93,10 +94,12 @@ class _AppState extends State<App> with WidgetsBindingObserver {
       providers: providers,
       child: MultiBlocListener(
         listeners: blocListeners,
-        child: FluentApp.router(
-          debugShowCheckedModeBanner: false,
-          routerConfig: router,
-          themeMode: ThemeMode.light,
+        child: TitleBar(
+          child: FluentApp.router(
+            debugShowCheckedModeBanner: false,
+            routerConfig: router,
+            themeMode: ThemeMode.light,
+          ),
         ),
       ),
     );

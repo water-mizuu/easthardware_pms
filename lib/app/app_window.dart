@@ -41,7 +41,7 @@ class _AppWindowState extends State<AppWindow> with WindowListener {
     final isPreventClose = await WindowManagerPlus.current.isPreventClose();
     if (!isPreventClose || !mounted) return;
 
-    await ApplicationCloseDialog.show(rootNavigatorKey.currentContext!);
+    await ApplicationCloseDialog.show(rootWidgetKey.currentContext!);
   }
 
   @override

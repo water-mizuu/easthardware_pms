@@ -15,26 +15,27 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 final rootNavigatorKey = GlobalKey<NavigatorState>();
+final rootWidgetKey = GlobalKey<NavigatorState>();
 final router = GoRouter(
   initialLocation: AppRoutes.login,
   navigatorKey: rootNavigatorKey,
   routes: [
     ShellRoute(
-      builder: (_, __, child) => TitleBar(child: BottomText(child: child)),
+      builder: (_, __, child) => KeyedSubtree(key: rootWidgetKey, child: child),
       routes: [
-        GoRoute(
-          path: AppRoutes.login,
-          builder: (context, state) => const LoginPage(),
+        ShellRoute(
+          builder: (_, __, child) => BottomText(child: child),
+          routes: [
+            GoRoute(
+              path: AppRoutes.login,
+              builder: (context, state) => const LoginPage(),
+            ),
+            GoRoute(
+              path: AppRoutes.resetPassword,
+              builder: (context, state) => const Text("Reset Password"),
+            )
+          ],
         ),
-        GoRoute(
-          path: AppRoutes.resetPassword,
-          builder: (context, state) => const Text("Reset Password"),
-        )
-      ],
-    ),
-    ShellRoute(
-      builder: (context, state, child) => TitleBar(child: child),
-      routes: [
         StatefulShellRoute(
           builder: (context, state, shell) => shell,
           navigatorContainerBuilder: (context, shell, children) =>
@@ -96,6 +97,6 @@ final router = GoRouter(
           ],
         ),
       ],
-    ),
+    )
   ],
 );
