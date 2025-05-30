@@ -10,13 +10,47 @@ import 'package:flutter/material.dart' show DataCell, DataRow;
 import 'package:intl/intl.dart';
 
 class DataRowMapper {
-  static DataRow mapProductToRow(Product product, void Function() action) {
+  static DataRow mapProductToRow(
+    Product product, {
+    required void Function() editAction,
+  }) {
+    const maxWidths = [
+      480.0, // Name
+      120.0, // Category
+      null, // Price
+      null, // Cost
+      null, // Quantity
+      null, // Actions
+    ];
+
     if (product.isBelowCriticalLevel!) {
       return WarningDataRow([
-        DataCell(Text(product.name)),
-        DataCell(Text(product.categoryName!)),
-        DataCell(Text(product.salePrice.toString())),
-        DataCell(Text(product.orderCost.toString())),
+        DataCell(
+          ConstrainedBox(
+            constraints: BoxConstraints(maxWidth: maxWidths[0] ?? double.infinity),
+            child: Text(product.name),
+          ),
+        ),
+        DataCell(
+          ConstrainedBox(
+            constraints: BoxConstraints(maxWidth: maxWidths[1] ?? double.infinity),
+            child: Text(product.categoryName!),
+          ),
+        ),
+        DataCell(
+          ConstrainedBox(
+            constraints: BoxConstraints(maxWidth: maxWidths[2] ?? double.infinity),
+            child: Text(product.salePrice.toString()),
+          ),
+        ),
+        DataCell(
+          ConstrainedBox(
+            constraints: BoxConstraints(maxWidth: maxWidths[3] ?? double.infinity),
+            child: Text(
+              product.orderCost.toString(),
+            ),
+          ),
+        ),
         DataCell(Row(
           children: [
             Text('${product.quantity.toString()} ${product.mainUnit}'),
@@ -24,37 +58,127 @@ class DataRowMapper {
             Icon(FluentIcons.alert_solid, color: Colors.red.lightest)
           ],
         )),
-        DataCell(HyperlinkButton(onPressed: action, child: const Text('Edit')))
+        DataCell(HyperlinkButton(onPressed: editAction, child: const Text('Edit')))
       ]);
     }
     if (product.isFastMovingStock!) {
       return SuccessDataRow([
-        DataCell(Text(product.name)),
-        DataCell(Text(product.categoryName!)),
-        DataCell(Text(product.salePrice.toString())),
-        DataCell(Text(product.orderCost.toString())),
-        DataCell(Text('${product.quantity.toString()} ${product.mainUnit}')),
-        DataCell(HyperlinkButton(onPressed: action, child: const Text('Edit')))
+        DataCell(
+          ConstrainedBox(
+            constraints: BoxConstraints(maxWidth: maxWidths[0] ?? double.infinity),
+            child: Text(product.name),
+          ),
+        ),
+        DataCell(
+          ConstrainedBox(
+            constraints: BoxConstraints(maxWidth: maxWidths[1] ?? double.infinity),
+            child: Text(product.categoryName!),
+          ),
+        ),
+        DataCell(
+          ConstrainedBox(
+            constraints: BoxConstraints(maxWidth: maxWidths[2] ?? double.infinity),
+            child: Text(product.salePrice.toString()),
+          ),
+        ),
+        DataCell(
+          ConstrainedBox(
+            constraints: BoxConstraints(maxWidth: maxWidths[3] ?? double.infinity),
+            child: Text(product.orderCost.toString()),
+          ),
+        ),
+        DataCell(
+          ConstrainedBox(
+            constraints: BoxConstraints(maxWidth: maxWidths[4] ?? double.infinity),
+            child: Text('${product.quantity.toString()} ${product.mainUnit}'),
+          ),
+        ),
+        DataCell(
+          ConstrainedBox(
+            constraints: BoxConstraints(maxWidth: maxWidths[5] ?? double.infinity),
+            child: HyperlinkButton(onPressed: editAction, child: const Text('Edit')),
+          ),
+        )
       ]);
     }
     if (product.isDeadStock!) {
       return InfoDataRow([
-        DataCell(Text(product.name)),
-        DataCell(Text(product.categoryName!)),
-        DataCell(Text(product.salePrice.toString())),
-        DataCell(Text(product.orderCost.toString())),
-        DataCell(Text('${product.quantity.toString()} ${product.mainUnit}')),
-        DataCell(HyperlinkButton(onPressed: action, child: const Text('Edit')))
+        DataCell(
+          ConstrainedBox(
+            constraints: BoxConstraints(maxWidth: maxWidths[0] ?? double.infinity),
+            child: Text(product.name),
+          ),
+        ),
+        DataCell(
+          ConstrainedBox(
+            constraints: BoxConstraints(maxWidth: maxWidths[1] ?? double.infinity),
+            child: Text(product.categoryName!),
+          ),
+        ),
+        DataCell(
+          ConstrainedBox(
+            constraints: BoxConstraints(maxWidth: maxWidths[2] ?? double.infinity),
+            child: Text(product.salePrice.toString()),
+          ),
+        ),
+        DataCell(
+          ConstrainedBox(
+            constraints: BoxConstraints(maxWidth: maxWidths[3] ?? double.infinity),
+            child: Text(product.orderCost.toString()),
+          ),
+        ),
+        DataCell(
+          ConstrainedBox(
+            constraints: BoxConstraints(maxWidth: maxWidths[4] ?? double.infinity),
+            child: Text('${product.quantity.toString()} ${product.mainUnit}'),
+          ),
+        ),
+        DataCell(
+          ConstrainedBox(
+            constraints: BoxConstraints(maxWidth: maxWidths[5] ?? double.infinity),
+            child: HyperlinkButton(onPressed: editAction, child: const Text('Edit')),
+          ),
+        )
       ]);
     }
 
     return DataRow(cells: [
-      DataCell(Text(product.name)),
-      DataCell(Text(product.categoryName!)),
-      DataCell(Text(product.salePrice.toString())),
-      DataCell(Text(product.orderCost.toString())),
-      DataCell(Text('${product.quantity.toString()} ${product.mainUnit}')),
-      DataCell(HyperlinkButton(onPressed: action, child: const Text('Edit')))
+      DataCell(
+        ConstrainedBox(
+          constraints: BoxConstraints(maxWidth: maxWidths[0] ?? double.infinity),
+          child: Text(product.name),
+        ),
+      ),
+      DataCell(
+        ConstrainedBox(
+          constraints: BoxConstraints(maxWidth: maxWidths[1] ?? double.infinity),
+          child: Text(product.categoryName!),
+        ),
+      ),
+      DataCell(
+        ConstrainedBox(
+          constraints: BoxConstraints(maxWidth: maxWidths[2] ?? double.infinity),
+          child: Text(product.salePrice.toString()),
+        ),
+      ),
+      DataCell(
+        ConstrainedBox(
+          constraints: BoxConstraints(maxWidth: maxWidths[3] ?? double.infinity),
+          child: Text(product.orderCost.toString()),
+        ),
+      ),
+      DataCell(
+        ConstrainedBox(
+          constraints: BoxConstraints(maxWidth: maxWidths[4] ?? double.infinity),
+          child: Text('${product.quantity.toString()} ${product.mainUnit}'),
+        ),
+      ),
+      DataCell(
+        ConstrainedBox(
+          constraints: BoxConstraints(maxWidth: maxWidths[5] ?? double.infinity),
+          child: HyperlinkButton(onPressed: editAction, child: const Text('Edit')),
+        ),
+      )
     ]);
   }
 

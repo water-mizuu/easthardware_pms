@@ -1,4 +1,3 @@
-import 'package:async_queue/async_queue.dart';
 import 'package:easthardware_pms/app/dependency_injector.dart';
 import 'package:easthardware_pms/data/database/database_helper.dart';
 import 'package:easthardware_pms/presentation/bloc/authentication/'
@@ -21,7 +20,6 @@ class App extends StatefulWidget {
 }
 
 class _AppState extends State<App> with WidgetsBindingObserver {
-  late final AsyncQueue asyncQueue = AsyncQueue.autoStart();
   late final ValueNotifier<String> bottomText = ValueNotifier<String>("");
 
   late final ServerBloc serverBloc;
@@ -64,9 +62,7 @@ class _AppState extends State<App> with WidgetsBindingObserver {
   void initState() {
     super.initState();
 
-    di = DependencyInjector();
-    di.initialize();
-
+    di = DependencyInjector()..initialize();
     serverBloc = ServerBloc(bottomText)..add(const ServerInit());
   }
 
@@ -98,7 +94,7 @@ class _AppState extends State<App> with WidgetsBindingObserver {
           child: FluentApp.router(
             debugShowCheckedModeBanner: false,
             routerConfig: router,
-            themeMode: ThemeMode.light,
+            themeMode: ThemeMode.dark,
           ),
         ),
       ),

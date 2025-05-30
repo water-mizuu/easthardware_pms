@@ -3,6 +3,7 @@ import 'dart:io' show Platform;
 import 'package:easthardware_pms/presentation/bloc/navigation/navigation_bloc.dart';
 import 'package:easthardware_pms/presentation/widgets/brand/navrail_header.dart';
 import 'package:easthardware_pms/presentation/widgets/helper/route_index_mapper.dart';
+import 'package:easthardware_pms/presentation/widgets/layout_mode_provider.dart';
 import 'package:easthardware_pms/presentation/widgets/title_bar.dart';
 import 'package:fluent_ui/fluent_ui.dart';
 import 'package:flutter/foundation.dart';
@@ -30,7 +31,7 @@ class AdminNavigationScaffold extends StatelessWidget {
         var widget = LayoutBuilder(
           builder: (context, constraints) {
             final mode = switch (constraints.maxWidth) {
-              >= 1000 => PaneDisplayMode.open,
+              >= 1200 => PaneDisplayMode.open,
               >= 600 => PaneDisplayMode.compact,
               _ => PaneDisplayMode.minimal,
             };
@@ -41,6 +42,7 @@ class AdminNavigationScaffold extends StatelessWidget {
               ),
               builder: (context, _) {
                 final direction = Directionality.of(context);
+
                 return NavigationView(
                   key: ValueKey(mode),
                   clipBehavior: Clip.hardEdge,
@@ -53,14 +55,16 @@ class AdminNavigationScaffold extends StatelessWidget {
                     ).resolve(direction),
                   ),
                   paneBodyBuilder: (item, body) {
-                    const padding = EdgeInsets.only(top: windowsTitleBarHeight);
-                    var child = children[shell.currentIndex];
+                    var child = LayoutModeProvider(child: children[shell.currentIndex]) as Widget;
 
                     /// We only impose a padding on the child if the title bar is present
                     ///   and we are not on macOS.
                     if (Platform.isWindows) {
+                      const padding = EdgeInsets.only(top: windowsTitleBarHeight);
+
                       child = Padding(padding: padding, child: child);
                     }
+
                     return child;
                   },
                   pane: NavigationPane(

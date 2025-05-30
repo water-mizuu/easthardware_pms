@@ -7,6 +7,7 @@ import 'package:easthardware_pms/presentation/widgets/data_table_place_holder.da
 import 'package:easthardware_pms/presentation/widgets/helper/data_row_mapper.dart';
 import 'package:easthardware_pms/presentation/widgets/helper/route_index_mapper.dart';
 import 'package:easthardware_pms/presentation/widgets/kpi_card.dart';
+import 'package:easthardware_pms/presentation/widgets/layout_mode_provider.dart';
 import 'package:easthardware_pms/presentation/widgets/spacing.dart';
 import 'package:easthardware_pms/presentation/widgets/text.dart';
 import 'package:fluent_ui/fluent_ui.dart';
@@ -15,35 +16,34 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:scroll_animator/scroll_animator.dart';
 
-enum LayoutMode { wide, constrained, compact }
-
 class InventoryPanePage extends StatelessWidget {
   const InventoryPanePage({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: AppPadding.panePadding,
-      child: LayoutBuilder(builder: (context, constraints) {
-        final width = constraints.maxWidth;
-        final layoutMode = width > 850
-            ? LayoutMode.wide
-            : width > 0.85
-                ? LayoutMode.constrained
-                : LayoutMode.compact;
-
-        return Provider.value(
-          value: layoutMode,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              const PageHeader(),
-              const InventorySummary(),
-              const ProductListSection(),
-            ].withSpacing(() => Spacing.v16),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        const Padding(
+          padding: AppPadding.panePadding,
+          child: PageHeader(),
+        ),
+        Spacing.v4,
+        Expanded(
+          child: SingleChildScrollView(
+            child: Padding(
+              padding: EdgeInsets.symmetric(horizontal: AppPadding.panePadding.horizontal / 2),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: const [
+                  InventorySummary(),
+                  ProductListSection(),
+                ].withSpacing(() => Spacing.v16),
+              ),
+            ),
           ),
-        );
-      }),
+        ),
+      ],
     );
   }
 }
@@ -57,22 +57,18 @@ class PageHeader extends StatelessWidget {
       children: [
         const HeadingText('Products'),
         const Spacer(flex: 1),
-        Row(
-          children: [
-            TextButton('Manage Categories', onPressed: () {
-              const route = AppRoutes.categoriesPage;
-              context
-                  .read<NavigationBloc>()
-                  .add(NavigationIndexChanged(index: RouteIndexMapper.getIndexFromRoute(route)!));
-            }),
-            TextButtonFilled('New Product', onPressed: () {
-              const route = AppRoutes.createProductPage;
-              context
-                  .read<NavigationBloc>()
-                  .add(NavigationIndexChanged(index: RouteIndexMapper.getIndexFromRoute(route)!));
-            })
-          ].withSpacing(() => Spacing.h16),
-        ),
+        TextButton('Manage Categories', onPressed: () {
+          const route = AppRoutes.categoriesPage;
+          context
+              .read<NavigationBloc>()
+              .add(NavigationIndexChanged(index: RouteIndexMapper.getIndexFromRoute(route)!));
+        }),
+        TextButtonFilled('New Product', onPressed: () {
+          const route = AppRoutes.createProductPage;
+          context
+              .read<NavigationBloc>()
+              .add(NavigationIndexChanged(index: RouteIndexMapper.getIndexFromRoute(route)!));
+        }),
       ].withSpacing(() => Spacing.h16),
     );
   }
@@ -94,8 +90,7 @@ class InventorySummary extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         const SubheadingText('Inventory Summary'),
-        Builder(builder: (context) {
-          final layoutMode = context.watch<LayoutMode>();
+        LayoutMode.builder(builder: (context, layoutMode) {
           switch (layoutMode) {
             case LayoutMode.wide:
               return IntrinsicHeight(
@@ -116,7 +111,7 @@ class InventorySummary extends StatelessWidget {
                       children: [
                         ActiveCountCard(value: activeCount.toString()),
                         LowStockCountCard(value: lowStockCount.toString()),
-                      ].withSpacing(() => Spacing.h16),
+                      ].withSpacing(() => Spacing.h8),
                     ),
                   ),
                   IntrinsicHeight(
@@ -124,7 +119,7 @@ class InventorySummary extends StatelessWidget {
                       children: [
                         HangingCountCard(value: deadCount.toString()),
                         FastMovingCountCard(value: fastMovingCount.toString()),
-                      ].withSpacing(() => Spacing.h16),
+                      ].withSpacing(() => Spacing.h8),
                     ),
                   ),
                 ].withSpacing(() => Spacing.v8),
@@ -179,9 +174,7 @@ class FastMovingCountCard extends KPICard {
 }
 
 class SearchRow extends StatelessWidget {
-  const SearchRow({
-    super.key,
-  });
+  const SearchRow({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -245,25 +238,23 @@ class ProductListSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Expanded(
-      flex: 4,
-      child: Column(
-        mainAxisSize: MainAxisSize.max,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          const SubheadingText('List of Products'),
-          const SearchRow(),
-          const ProductsDataTable(),
-        ].withSpacing(() => Spacing.v8),
-      ),
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        const SubheadingText('List of Products'),
+        const SearchRow(),
+        const ProductsDataTable(),
+
+        /// Blank space to allow space for scrolling past the table.
+        Spacing.v12,
+      ].withSpacing(() => Spacing.v8),
     );
   }
 }
 
 class ProductsDataTable extends StatefulWidget {
-  const ProductsDataTable({
-    super.key,
-  });
+  const ProductsDataTable({super.key});
 
   @override
   State<ProductsDataTable> createState() => _ProductsDataTableState();
@@ -276,7 +267,9 @@ class _ProductsDataTableState extends State<ProductsDataTable> {
   void initState() {
     super.initState();
 
-    _scrollController = AnimatedScrollController(animationFactory: const ChromiumEaseInOut());
+    _scrollController = AnimatedScrollController(
+      animationFactory: const ChromiumEaseInOut(),
+    );
   }
 
   @override
@@ -286,50 +279,58 @@ class _ProductsDataTableState extends State<ProductsDataTable> {
     super.dispose();
   }
 
-  @override
-  Widget build(BuildContext context) {
+  Widget buildTable(BuildContext context) {
     final state = context.watch<ProductListBloc>().state;
     if (state.status == DataStatus.loading) {
-      return const Expanded(
-        child: Center(
-          child: ProgressRing(),
-        ),
+      return const Center(
+        child: ProgressRing(),
       );
     }
 
-    // We only want to show products that are not archived
     final allProducts = state.allProducts.where((p) => p.archiveStatus == 0).toList();
     if (allProducts.isEmpty) {
       return const DataTablePlaceHolder(FluentIcons.product_list, 'Products');
     }
 
-    return Expanded(
-      child: DecoratedBox(
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(4),
-        ),
-        child: SingleChildScrollView(
-          controller: _scrollController,
-          child: DataTable(
-            showCheckboxColumn: true,
-            columns: const [
-              DataColumn(label: Text('Name')),
-              DataColumn(label: Text('Category')),
-              DataColumn(label: Text('Price')),
-              DataColumn(label: Text('Cost')),
-              DataColumn(label: Text('Quantity')),
-              DataColumn(label: Text('Actions')),
-            ],
-            rows: [
-              for (final product in allProducts)
-                DataRowMapper.mapProductToRow(product, () {
+    const names = [
+      'Name',
+      'Category',
+      'Price',
+      'Cost',
+      'Quantity',
+      'Actions',
+    ];
+
+    return Container(
+      constraints: const BoxConstraints(minHeight: 200),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(4),
+      ),
+      child: SingleChildScrollView(
+        controller: _scrollController,
+        scrollDirection: Axis.horizontal,
+        child: DataTable(
+          showCheckboxColumn: true,
+          columns: [
+            for (final data in names) DataColumn(label: Text(data)),
+          ],
+          rows: [
+            for (final product in allProducts)
+              DataRowMapper.mapProductToRow(
+                product,
+                editAction: () {
                   context.push(AppRoutes.editProductPage, extra: product);
-                }),
-            ],
-          ),
+                },
+              ),
+          ],
         ),
       ),
     );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Flexible(child: buildTable(context));
   }
 }

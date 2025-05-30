@@ -20,7 +20,7 @@ void main(List<String> args) async {
     final (_) = await WindowManagerPlus.ensureInitialized(id).tryCatch();
     const options = WindowOptions(
       size: minimumSize,
-      minimumSize: minimumSize,
+      // minimumSize: minimumSize,
       center: true,
       skipTaskbar: false,
     );

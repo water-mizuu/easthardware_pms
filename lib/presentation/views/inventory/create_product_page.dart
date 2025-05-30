@@ -12,6 +12,7 @@ import 'package:easthardware_pms/presentation/bloc/security/user_log_list/user_l
 import 'package:easthardware_pms/presentation/router/app_routes.dart';
 import 'package:easthardware_pms/presentation/widgets/buttons/text_button.dart';
 import 'package:easthardware_pms/presentation/widgets/helper/route_index_mapper.dart';
+import 'package:easthardware_pms/presentation/widgets/layout_mode_provider.dart';
 import 'package:easthardware_pms/presentation/widgets/spacing.dart';
 import 'package:easthardware_pms/presentation/widgets/text.dart';
 import 'package:fluent_ui/fluent_ui.dart';
@@ -29,6 +30,7 @@ class CreateProductPage extends StatefulWidget {
 
 class _CreateProductPageState extends State<CreateProductPage> {
   late final ProductFormBloc productFormBloc;
+  late final AnimatedScrollController scrollController;
 
   List<SingleChildWidget> get providers {
     return [
@@ -107,11 +109,15 @@ class _CreateProductPageState extends State<CreateProductPage> {
     super.initState();
 
     productFormBloc = ProductFormBloc();
+    scrollController = AnimatedScrollController(
+      animationFactory: const ChromiumEaseInOut(),
+    );
   }
 
   @override
   void dispose() {
     productFormBloc.close();
+    scrollController.dispose();
 
     super.dispose();
   }
@@ -129,26 +135,66 @@ class _CreateProductPageState extends State<CreateProductPage> {
 
   Widget buildWidget(BuildContext context) {
     return FocusScope(
-      child: Padding(
-        padding: AppPadding.panePadding,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            const PageHeader(),
-            Expanded(
-              child: Form(
-                key: productFormBloc.formKey,
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    const LeftColumn(),
-                    const RightColumn(),
-                  ].withSpacing(() => Spacing.h16),
-                ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Padding(
+            padding: EdgeInsets.only(
+              top: AppPadding.panePadding.top,
+              left: AppPadding.panePadding.left,
+              right: AppPadding.panePadding.right,
+            ),
+            child: const PageHeader(),
+          ),
+          Expanded(
+            child: Form(
+              key: productFormBloc.formKey,
+              child: LayoutMode.builder(
+                builder: (context, layoutMode) {
+                  switch (layoutMode) {
+                    case LayoutMode.wide:
+                      return Padding(
+                        padding: EdgeInsets.only(
+                          left: AppPadding.panePadding.left,
+                          right: AppPadding.panePadding.right,
+                          bottom: AppPadding.panePadding.bottom,
+                        ),
+                        child: const Row(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            Expanded(child: LeftColumn()),
+                            Spacing.h16,
+                            Expanded(child: RightColumn()),
+                          ],
+                        ),
+                      );
+                    case LayoutMode.constrained:
+                    case LayoutMode.compact:
+                      return SingleChildScrollView(
+                        controller: scrollController,
+                        child: Padding(
+                          padding: EdgeInsets.only(
+                            left: AppPadding.panePadding.left,
+                            right: AppPadding.panePadding.right,
+                            bottom: AppPadding.panePadding.bottom,
+                          ),
+                          child: const Column(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              LeftColumn(),
+                              Spacing.v16,
+                              RightColumn(),
+                            ],
+                          ),
+                        ),
+                      );
+                  }
+                },
               ),
             ),
-          ].withSpacing(() => Spacing.v16),
-        ),
+          ),
+        ].withSpacing(() => Spacing.v16),
       ),
     );
   }
@@ -159,13 +205,13 @@ class LeftColumn extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Expanded(
-      child: FocusTraversalGroup(
-        child: Column(
-          children: [
-            const Expanded(child: BasicInformationSection()),
-          ].withSpacing(() => Spacing.v16),
-        ),
+    return FocusTraversalGroup(
+      child: const Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          BasicInformationSection(),
+        ],
       ),
     );
   }
@@ -176,17 +222,15 @@ class RightColumn extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Expanded(
-      child: FocusTraversalGroup(
-        child: const Column(
-          children: [
-            SaleInformationSection(),
-            Spacing.v16,
-            OrderInformationSection(),
-            Spacing.v16,
-            SecondaryUnitsSection(),
-          ],
-        ),
+    return FocusTraversalGroup(
+      child: const Column(
+        children: [
+          SaleInformationSection(),
+          Spacing.v16,
+          OrderInformationSection(),
+          Spacing.v16,
+          SecondaryUnitsSection(),
+        ],
       ),
     );
   }
@@ -201,6 +245,7 @@ class SaleInformationSection extends StatelessWidget with ProductFormValidator {
       padding: AppPadding.a16,
       color: Colors.white,
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           const SubheadingText('Sale Information'),
@@ -228,6 +273,7 @@ class OrderInformationSection extends StatelessWidget with ProductFormValidator 
       padding: AppPadding.a16,
       color: Colors.white,
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           const SubheadingText('Order Information'),
@@ -246,90 +292,75 @@ class OrderInformationSection extends StatelessWidget with ProductFormValidator 
   }
 }
 
-class BasicInformationSection extends StatefulWidget {
+class BasicInformationSection extends StatelessWidget with ProductFormValidator {
   const BasicInformationSection({super.key});
-
-  @override
-  State<BasicInformationSection> createState() => _BasicInformationSectionState();
-}
-
-class _BasicInformationSectionState extends State<BasicInformationSection>
-    with ProductFormValidator {
-  late final AnimatedScrollController _scrollController =
-      AnimatedScrollController(animationFactory: const ChromiumEaseInOut());
 
   @override
   Widget build(BuildContext context) {
     return Container(
       padding: AppPadding.a16,
       color: Colors.white,
-      child: SingleChildScrollView(
-        scrollDirection: Axis.vertical,
-        controller: _scrollController,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            const SubheadingText('Basic Information'),
-            Spacing.v16,
-            const BodyText('Product Name'),
-            Spacing.v4,
-            TextFormBox(
-              autofocus: true,
-              validator: validateProductName,
-              onChanged: (value) {
-                context.read<ProductFormBloc>().add(NameFieldChangedEvent(value));
-              },
-            ),
-            Spacing.v8,
-            const BodyText('Stock Keeping Unit (SKU)'),
-            Spacing.v4,
-            TextFormBox(
-              placeholder: context.read<ProductFormBloc>().state.sku,
-              onChanged: (value) {
-                context.read<ProductFormBloc>().add(SkuFieldChangedEvent(value));
-              },
-            ),
-            Spacing.v8,
-            const BodyText('Category'),
-            Spacing.v4,
-            BlocBuilder<CategoryListBloc, CategoryListState>(
-              builder: (context, state) {
-                return AutoSuggestBox.form(
-                  validator: validateProductCategory,
-                  items: state.categories
-                      .map(
-                        (category) => AutoSuggestBoxItem(value: category, label: category.name),
-                      )
-                      .toList(),
-                  onChanged: (value, reason) {
-                    context.read<ProductFormBloc>().add(CategoryFieldChangedEvent(value));
-                  },
-                  onSelected: (value) {
-                    context.read<ProductFormBloc>().add(CategoryIdChangedEvent(value.value!.id!));
-                  },
-                );
-              },
-            ),
-            Spacing.v8,
-            const BodyText('Description'),
-            Spacing.v4,
-            TextBox(
-              minLines: 2,
-              maxLines: 2,
-              onChanged: (value) {
-                context.read<ProductFormBloc>().add(DescriptionFieldChangedEvent(value));
-              },
-            ),
-            Spacing.v8,
-            const QuantityUnitFields(),
-            Spacing.v8,
-            const BodyText('Critical Level'),
-            Spacing.v4,
-            const CriticalLevelField(),
-            Spacing.v8,
-            const DeadFastStockFields(),
-          ],
-        ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          const SubheadingText('Basic Information'),
+          Spacing.v16,
+          const BodyText('Product Name'),
+          Spacing.v4,
+          TextFormBox(
+            autofocus: true,
+            validator: validateProductName,
+            onChanged: (value) {
+              context.read<ProductFormBloc>().add(NameFieldChangedEvent(value));
+            },
+          ),
+          Spacing.v8,
+          const BodyText('Stock Keeping Unit (SKU)'),
+          Spacing.v4,
+          TextFormBox(
+            placeholder: context.read<ProductFormBloc>().state.sku,
+            onChanged: (value) {
+              context.read<ProductFormBloc>().add(SkuFieldChangedEvent(value));
+            },
+          ),
+          Spacing.v8,
+          const BodyText('Category'),
+          Spacing.v4,
+          BlocBuilder<CategoryListBloc, CategoryListState>(
+            builder: (context, state) {
+              return AutoSuggestBox.form(
+                validator: validateProductCategory,
+                items: state.categories
+                    .map((category) => AutoSuggestBoxItem(value: category, label: category.name))
+                    .toList(),
+                onChanged: (value, reason) {
+                  context.read<ProductFormBloc>().add(CategoryFieldChangedEvent(value));
+                },
+                onSelected: (value) {
+                  context.read<ProductFormBloc>().add(CategoryIdChangedEvent(value.value!.id!));
+                },
+              );
+            },
+          ),
+          Spacing.v8,
+          const BodyText('Description'),
+          Spacing.v4,
+          TextBox(
+            minLines: 2,
+            maxLines: 2,
+            onChanged: (value) {
+              context.read<ProductFormBloc>().add(DescriptionFieldChangedEvent(value));
+            },
+          ),
+          Spacing.v8,
+          const QuantityUnitFields(),
+          Spacing.v8,
+          const BodyText('Critical Level'),
+          Spacing.v4,
+          const CriticalLevelField(),
+          Spacing.v8,
+          const DeadFastStockFields(),
+        ],
       ),
     );
   }
@@ -395,37 +426,37 @@ class SecondaryUnitsSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Expanded(
-      child: Container(
-        padding: AppPadding.a16,
-        color: Colors.white,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            const Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                SubheadingText('Secondary Units'),
-                AddNewUnitButton(),
-              ],
-            ),
-            Spacing.v12,
-            BlocBuilder<ProductFormBloc, ProductFormState>(
-              builder: (context, state) {
-                final units = state.secondaryUnits;
-                return Flexible(
-                  child: ListView.separated(
-                    separatorBuilder: (_, __) => Spacing.v8,
-                    itemCount: units.length,
-                    itemBuilder: (BuildContext context, int index) {
-                      return SecondaryUnitField(index: index);
-                    },
-                  ),
-                );
-              },
-            ),
-          ].withSpacing(() => Spacing.v4),
-        ),
+    return Container(
+      padding: AppPadding.a16,
+      color: Colors.white,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          const Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              SubheadingText('Secondary Units'),
+              AddNewUnitButton(),
+            ],
+          ),
+          Spacing.v12,
+          BlocBuilder<ProductFormBloc, ProductFormState>(
+            builder: (context, state) {
+              final units = state.secondaryUnits;
+              return Flexible(
+                child: ListView.separated(
+                  shrinkWrap: true,
+                  separatorBuilder: (_, __) => Spacing.v8,
+                  itemCount: units.length,
+                  itemBuilder: (BuildContext context, int index) {
+                    return SecondaryUnitField(index: index);
+                  },
+                ),
+              );
+            },
+          ),
+        ].withSpacing(() => Spacing.v4),
       ),
     );
   }

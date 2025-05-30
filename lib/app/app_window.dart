@@ -20,7 +20,12 @@ class _AppWindowState extends State<AppWindow> with WindowListener {
     super.initState();
 
     WindowManagerPlus.current.addListener(this);
-    unawaited(_init());
+    unawaited(() async {
+      await WindowManagerPlus.current.setPreventClose(true);
+      if (!mounted) return;
+
+      setState(() {});
+    }());
   }
 
   @override
@@ -47,11 +52,5 @@ class _AppWindowState extends State<AppWindow> with WindowListener {
   @override
   Widget build(BuildContext context) {
     return const App();
-  }
-
-  Future<void> _init() async {
-    await WindowManagerPlus.current.setPreventClose(true);
-
-    setState(() {});
   }
 }
