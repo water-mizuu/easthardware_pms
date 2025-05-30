@@ -1,6 +1,7 @@
 import 'package:easthardware_pms/presentation/bloc/server/server_bloc.dart';
 import 'package:easthardware_pms/presentation/widgets/spacing.dart';
 import 'package:easthardware_pms/utils/message_channel.dart';
+import 'package:easthardware_pms/utils/show_single_dialog.dart';
 import 'package:easthardware_pms/utils/try_future.dart';
 import 'package:fluent_ui/fluent_ui.dart';
 import 'package:flutter/foundation.dart';
@@ -34,14 +35,14 @@ class ClientConnectionDialog extends StatefulWidget {
     ) onConnectToServer,
     required void Function(MessageChannel, ClientDatabaseArgs) onConfirm,
   }) {
-    return showDialog(
-      context: context,
-      dismissWithEsc: false,
-      builder: (context) => ClientConnectionDialog(
+    return showSingleDialog(
+      context,
+      (context) => ClientConnectionDialog(
         onCancel: onCancel,
         onConnectToServer: onConnectToServer,
         onConfirm: onConfirm,
       ),
+      dismissWithEsc: false,
     );
   }
 }

@@ -113,12 +113,11 @@ class _TitleBarState extends State<TitleBar> with WindowListener {
         children: [
           Expanded(
             child: GestureDetector(
-              behavior: HitTestBehavior.deferToChild,
+              behavior: HitTestBehavior.translucent,
               onPanStart: (_) async {
                 await WindowManagerPlus.current.startDragging();
               },
               onDoubleTap: _maximizeOrUnmaximize,
-              child: const ColoredBox(color: Colors.transparent),
             ),
           ),
           if (Platform.isWindows) ...[

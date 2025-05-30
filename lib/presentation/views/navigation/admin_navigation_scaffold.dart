@@ -1,6 +1,7 @@
 import 'dart:io' show Platform;
 
 import 'package:easthardware_pms/presentation/bloc/navigation/navigation_bloc.dart';
+import 'package:easthardware_pms/presentation/widgets/bottom_text.dart';
 import 'package:easthardware_pms/presentation/widgets/brand/navrail_header.dart';
 import 'package:easthardware_pms/presentation/widgets/helper/route_index_mapper.dart';
 import 'package:easthardware_pms/presentation/widgets/title_bar.dart';
@@ -33,7 +34,7 @@ class AdminNavigationScaffold extends StatelessWidget {
 
             /// We only impose a padding on the child if the title bar is present
             ///   and we are not on macOS.
-            if (TitleBar.of(context) && !Platform.isMacOS) {
+            if (!Platform.isMacOS) {
               child = Padding(padding: padding, child: child);
             }
 
@@ -42,7 +43,7 @@ class AdminNavigationScaffold extends StatelessWidget {
           pane: NavigationPane(
             header: const LogoRow(),
             selected: state.selectedIndex,
-            displayMode: PaneDisplayMode.auto,
+            displayMode: PaneDisplayMode.compact,
             onItemPressed: (index) {
               if ([1, 12].contains(index)) {
                 index++; // Example: skip separator, handle expander index
@@ -94,6 +95,8 @@ class AdminNavigationScaffold extends StatelessWidget {
           );
         }
 
+        widget = BottomText(child: widget);
+
         return widget;
       },
     );
@@ -108,14 +111,14 @@ class AdminNavigationScaffold extends StatelessWidget {
     if (items != null && items.isNotEmpty) {
       return PaneItemExpander(
         icon: Icon(icon),
-        title: Text(title),
+        title: OverflowBox(child: Text(title)),
         items: items,
         body: const SizedBox.shrink(),
       );
     } else {
       return PaneItem(
         icon: Icon(icon),
-        title: Text(title),
+        title: OverflowBox(child: Text(title)),
         body: const SizedBox.shrink(),
         onTap: onTap,
       );

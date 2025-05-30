@@ -10,6 +10,7 @@ import 'package:easthardware_pms/presentation/widgets/helper/data_row_mapper.dar
 import 'package:easthardware_pms/presentation/widgets/helper/route_index_mapper.dart';
 import 'package:easthardware_pms/presentation/widgets/spacing.dart';
 import 'package:easthardware_pms/presentation/widgets/text.dart';
+import 'package:easthardware_pms/utils/show_single_dialog.dart';
 import 'package:fluent_ui/fluent_ui.dart';
 import 'package:flutter/material.dart' show DataColumn, DataTable;
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -126,69 +127,70 @@ class PageActions extends StatelessWidget {
 }
 
 Future<void> showContentDialog(BuildContext context, [Category? category]) async {
-  await showDialog(
-      context: context,
-      builder: (context) {
-        final bloc = context.read<CategoryListBloc>();
-        final existingNames = bloc.state.categories.map((category) => category.name).toList();
-        final isAdding = category == null;
-        return BlocProvider(
-          create: (context) => CategoryFormCubit(),
-          child: Builder(builder: (context) {
-            final formKey = context.read<CategoryFormCubit>().formKey;
-            return BlocListener<CategoryFormCubit, CategoryFormState>(
-              listener: (context, state) {
-                switch (state.status) {
-                  case FormStatus.submitting:
-                    if (isAdding) {
-                      bloc.add(AddCategoryEvent(Category(name: state.name!)));
-                    } else {
-                      bloc.add(UpdateCategoryEvent(category.copyWith(name: state.name!)));
-                    }
-                    context.read<CategoryFormCubit>().onSubmit();
-                    break;
-                  case FormStatus.submitted:
-                    if (context.mounted) {
-                      context.pop();
-                      context.read<CategoryFormCubit>().onFormReset();
-                    }
-                  default:
-                    break;
-                }
-              },
-              child: ContentDialog(
-                title: SubheadingText(isAdding ? 'Create a new Category' : 'Edit ${category.name}'),
-                content: Form(
-                  key: formKey,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const BodyText('Name'),
-                      TextFormBox(
-                        validator: (value) {
-                          if (value == null || value.trim().isEmpty) {
-                            return 'Name cannot be empty';
-                          }
-                          if (existingNames.contains(value.trim()) && isAdding) {
-                            return 'Category already exist';
-                          }
-                          return null;
-                        },
-                        initialValue: isAdding ? '' : category.name,
-                        onChanged: context.read<CategoryFormCubit>().onFormNameChanged,
-                      ),
-                    ].withSpacing(() => Spacing.v12),
-                  ),
+  await showSingleDialog(
+    context,
+    (context) {
+      final bloc = context.read<CategoryListBloc>();
+      final existingNames = bloc.state.categories.map((category) => category.name).toList();
+      final isAdding = category == null;
+      return BlocProvider(
+        create: (context) => CategoryFormCubit(),
+        child: Builder(builder: (context) {
+          final formKey = context.read<CategoryFormCubit>().formKey;
+          return BlocListener<CategoryFormCubit, CategoryFormState>(
+            listener: (context, state) {
+              switch (state.status) {
+                case FormStatus.submitting:
+                  if (isAdding) {
+                    bloc.add(AddCategoryEvent(Category(name: state.name!)));
+                  } else {
+                    bloc.add(UpdateCategoryEvent(category.copyWith(name: state.name!)));
+                  }
+                  context.read<CategoryFormCubit>().onSubmit();
+                  break;
+                case FormStatus.submitted:
+                  if (context.mounted) {
+                    context.pop();
+                    context.read<CategoryFormCubit>().onFormReset();
+                  }
+                default:
+                  break;
+              }
+            },
+            child: ContentDialog(
+              title: SubheadingText(isAdding ? 'Create a new Category' : 'Edit ${category.name}'),
+              content: Form(
+                key: formKey,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const BodyText('Name'),
+                    TextFormBox(
+                      validator: (value) {
+                        if (value == null || value.trim().isEmpty) {
+                          return 'Name cannot be empty';
+                        }
+                        if (existingNames.contains(value.trim()) && isAdding) {
+                          return 'Category already exist';
+                        }
+                        return null;
+                      },
+                      initialValue: isAdding ? '' : category.name,
+                      onChanged: context.read<CategoryFormCubit>().onFormNameChanged,
+                    ),
+                  ].withSpacing(() => Spacing.v12),
                 ),
-                actions: [
-                  TextButton('Cancel', onPressed: context.pop),
-                  TextButtonFilled('Save Category',
-                      onPressed: context.read<CategoryFormCubit>().onButtonPressed)
-                ],
               ),
-            );
-          }),
-        );
-      });
+              actions: [
+                TextButton('Cancel', onPressed: context.pop),
+                TextButtonFilled('Save Category',
+                    onPressed: context.read<CategoryFormCubit>().onButtonPressed)
+              ],
+            ),
+          );
+        }),
+      );
+    },
+  );
 }

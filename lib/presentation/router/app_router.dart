@@ -20,7 +20,7 @@ final router = GoRouter(
   navigatorKey: rootNavigatorKey,
   routes: [
     ShellRoute(
-      builder: (context, state, child) => TitleBar(child: BottomText(child: child)),
+      builder: (_, __, child) => TitleBar(child: BottomText(child: child)),
       routes: [
         GoRoute(
           path: AppRoutes.login,
@@ -29,7 +29,12 @@ final router = GoRouter(
         GoRoute(
           path: AppRoutes.resetPassword,
           builder: (context, state) => const Text("Reset Password"),
-        ),
+        )
+      ],
+    ),
+    ShellRoute(
+      builder: (context, state, child) => TitleBar(child: child),
+      routes: [
         StatefulShellRoute(
           builder: (context, state, shell) => shell,
           navigatorContainerBuilder: (context, shell, children) =>

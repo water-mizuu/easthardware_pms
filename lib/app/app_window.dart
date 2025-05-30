@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:easthardware_pms/app/app.dart';
 import 'package:easthardware_pms/presentation/router/app_router.dart';
+import 'package:easthardware_pms/presentation/widgets/dialog/application_close_dialog.dart';
 import 'package:fluent_ui/fluent_ui.dart';
 import 'package:window_manager_plus/window_manager_plus.dart';
 
@@ -38,39 +39,9 @@ class _AppWindowState extends State<AppWindow> with WindowListener {
   @override
   Future<void> onWindowClose([int? windowId]) async {
     final isPreventClose = await WindowManagerPlus.current.isPreventClose();
-    if (!mounted) return;
+    if (!isPreventClose || !mounted) return;
 
-    if (isPreventClose) {
-      await showDialog<void>(
-        context: rootNavigatorKey.currentContext!,
-        builder: (context) {
-          return ContentDialog(
-            title: const Text('Close Application'),
-            content: const Text('Are you sure you want to close this window?'),
-            actions: [
-              Button(
-                style: ButtonStyle(
-                  backgroundColor: WidgetStatePropertyAll(Colors.blue),
-                  foregroundColor: const WidgetStatePropertyAll(Colors.white),
-                ),
-                autofocus: true,
-                child: const Text('No'),
-                onPressed: () {
-                  Navigator.of(context).pop();
-                },
-              ),
-              Button(
-                onPressed: () async {
-                  Navigator.of(context).pop();
-                  await WindowManagerPlus.current.destroy();
-                },
-                child: const Text('Yes'),
-              ),
-            ],
-          );
-        },
-      );
-    }
+    await ApplicationCloseDialog.show(rootNavigatorKey.currentContext!);
   }
 
   @override

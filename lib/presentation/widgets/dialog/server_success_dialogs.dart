@@ -1,9 +1,9 @@
 import 'package:easthardware_pms/presentation/widgets/spacing.dart';
+import 'package:easthardware_pms/utils/show_single_dialog.dart';
 import 'package:fluent_ui/fluent_ui.dart';
 
 /// Dialog shown when client connection is established
 class ClientConnectionSuccessDialog extends StatelessWidget {
-
   const ClientConnectionSuccessDialog({
     super.key,
     required this.onCancel,
@@ -55,20 +55,19 @@ class ClientConnectionSuccessDialog extends StatelessWidget {
     required VoidCallback onCancel,
     required VoidCallback onConfirm,
   }) {
-    return showDialog(
-      context: context,
-      dismissWithEsc: false,
-      builder: (context) => ClientConnectionSuccessDialog(
+    return showSingleDialog(
+      context,
+      (context) => ClientConnectionSuccessDialog(
         onCancel: onCancel,
         onConfirm: onConfirm,
       ),
+      dismissWithEsc: false,
     );
   }
 }
 
 /// Dialog shown when server is started successfully
 class ServerStartedSuccessDialog extends StatelessWidget {
-
   const ServerStartedSuccessDialog({
     super.key,
     required this.serverIp,
@@ -147,15 +146,15 @@ class ServerStartedSuccessDialog extends StatelessWidget {
     required VoidCallback onGoBack,
     required VoidCallback onConfirm,
   }) {
-    return showDialog(
-      context: context,
-      dismissWithEsc: false,
-      builder: (context) => ServerStartedSuccessDialog(
+    return showSingleDialog(
+      context,
+      (context) => ServerStartedSuccessDialog(
         serverIp: serverIp,
         port: port,
         onGoBack: onGoBack,
         onConfirm: onConfirm,
       ),
+      dismissWithEsc: false,
     );
   }
 }

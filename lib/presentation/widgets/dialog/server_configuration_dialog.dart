@@ -1,5 +1,6 @@
 import 'package:easthardware_pms/domain/backend/extension_types/shelf_server.dart';
 import 'package:easthardware_pms/presentation/bloc/server/server_bloc.dart';
+import 'package:easthardware_pms/utils/show_single_dialog.dart';
 import 'package:fluent_ui/fluent_ui.dart';
 import 'package:flutter/foundation.dart';
 
@@ -27,14 +28,14 @@ class ServerConfigurationDialog extends StatefulWidget {
     required VoidCallback onCancel,
     required OnSuccess onSuccess,
   }) {
-    return showDialog(
-      context: context,
-      dismissWithEsc: false,
-      builder: (context) => ServerConfigurationDialog(
+    return showSingleDialog(
+      context,
+      (context) => ServerConfigurationDialog(
         onStartServer: onStartServer,
         onCancel: onCancel,
         onSuccess: onSuccess,
       ),
+      dismissWithEsc: false,
     );
   }
 }

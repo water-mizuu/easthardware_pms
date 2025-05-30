@@ -1,10 +1,10 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:easthardware_pms/domain/backend/enum/database_mode.dart';
-import 'package:easthardware_pms/domain/backend/extension_types/shelf_server.dart';
 import 'package:easthardware_pms/data/database/database_helper.dart';
 import 'package:easthardware_pms/data/database/database_server_proxy.dart';
+import 'package:easthardware_pms/domain/backend/enum/database_mode.dart';
+import 'package:easthardware_pms/domain/backend/extension_types/shelf_server.dart';
 import 'package:easthardware_pms/presentation/bloc/server/services/server_connection_service.dart'
     as connection_service;
 import 'package:easthardware_pms/presentation/bloc/server/services/server_preferences_service.dart'

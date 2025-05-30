@@ -2,8 +2,6 @@ import 'package:easthardware_pms/data/database/database_helper.dart';
 import 'package:easthardware_pms/data/repository/authentication_repository.dart';
 import 'package:easthardware_pms/domain/models/user.dart';
 
-enum AuthenticationStatus { unknown, authenticated, unauthenticated }
-
 abstract interface class AuthenticationRepository {
   factory AuthenticationRepository(DatabaseHelper? databaseHelper) {
     return AuthenticationRepositoryImpl(databaseHelper);
