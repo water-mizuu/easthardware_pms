@@ -1,11 +1,11 @@
 import 'dart:io';
 
-import 'package:easthardware_pms/backend/extension_types/shelf_server.dart';
-import 'package:easthardware_pms/backend/server_host.dart';
+import 'package:easthardware_pms/domain/backend/extension_types/shelf_server.dart';
+import 'package:easthardware_pms/domain/backend/server_host.dart';
 import 'package:easthardware_pms/presentation/bloc/server/server_bloc.dart';
 import 'package:network_info_plus/network_info_plus.dart';
 
-export 'package:easthardware_pms/backend/server_connect.dart' show connectToWebSocketServer;
+export 'package:easthardware_pms/domain/backend/server_connect.dart' show connectToWebSocketServer;
 
 /// Starts the servers used in the application.
 ///   The first server is the landing Shelf server, which is exposed

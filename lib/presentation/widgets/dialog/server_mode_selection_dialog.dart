@@ -1,4 +1,4 @@
-import 'package:easthardware_pms/backend/enum/database_mode.dart';
+import 'package:easthardware_pms/domain/backend/enum/database_mode.dart';
 import 'package:fluent_ui/fluent_ui.dart';
 
 /// Dialog for selecting between server and client mode

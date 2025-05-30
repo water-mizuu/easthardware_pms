@@ -9,9 +9,9 @@ library;
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:easthardware_pms/backend/extension_types/secure_keys.dart';
-import 'package:easthardware_pms/backend/microservices/key_microservice.dart';
-import 'package:easthardware_pms/backend/utils/random_int_from_date.dart';
+import 'package:easthardware_pms/domain/backend/extension_types/secure_keys.dart';
+import 'package:easthardware_pms/domain/backend/microservices/key_microservice.dart';
+import 'package:easthardware_pms/domain/backend/utils/random_int_from_date.dart';
 import 'package:easthardware_pms/domain/services/cryptography_service.dart';
 import 'package:easthardware_pms/utils/boxed.dart';
 import 'package:flutter/foundation.dart';

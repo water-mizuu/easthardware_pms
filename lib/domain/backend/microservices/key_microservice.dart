@@ -4,7 +4,7 @@ library;
 import 'dart:async';
 import 'dart:isolate';
 
-import 'package:easthardware_pms/backend/utils/isolate_indicator.dart';
+import 'package:easthardware_pms/domain/backend/utils/isolate_indicator.dart';
 import 'package:easthardware_pms/domain/services/cryptography_service.dart';
 import 'package:easthardware_pms/utils/boxed.dart';
 import 'package:easthardware_pms/utils/message_channel.dart';

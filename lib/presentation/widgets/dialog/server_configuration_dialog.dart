@@ -1,4 +1,4 @@
-import 'package:easthardware_pms/backend/extension_types/shelf_server.dart';
+import 'package:easthardware_pms/domain/backend/extension_types/shelf_server.dart';
 import 'package:easthardware_pms/presentation/bloc/server/server_bloc.dart';
 import 'package:fluent_ui/fluent_ui.dart';
 import 'package:flutter/foundation.dart';

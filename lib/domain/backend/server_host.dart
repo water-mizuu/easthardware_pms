@@ -6,10 +6,10 @@ import 'dart:async';
 import 'dart:isolate';
 
 import 'package:async/async.dart';
-import 'package:easthardware_pms/backend/microservices/key_microservice.dart' as keys_ms;
-import 'package:easthardware_pms/backend/server_host/landing_isolate.dart';
-import 'package:easthardware_pms/backend/server_host/web_socket_isolate.dart';
-import 'package:easthardware_pms/backend/utils/isolate_indicator.dart';
+import 'package:easthardware_pms/domain/backend/microservices/key_microservice.dart' as keys_ms;
+import 'package:easthardware_pms/domain/backend/server_host/landing_isolate.dart';
+import 'package:easthardware_pms/domain/backend/server_host/web_socket_isolate.dart';
+import 'package:easthardware_pms/domain/backend/utils/isolate_indicator.dart';
 import 'package:easthardware_pms/presentation/bloc/server/server_bloc.dart';
 import 'package:easthardware_pms/utils/boxed.dart';
 import 'package:easthardware_pms/utils/message_channel.dart';

@@ -1,8 +1,8 @@
 import 'dart:async';
 import 'dart:isolate';
 
-import 'package:easthardware_pms/backend/utils/random_int_from_date.dart';
-import 'package:easthardware_pms/backend/utils/stream.dart';
+import 'package:easthardware_pms/domain/backend/utils/random_int_from_date.dart';
+import 'package:easthardware_pms/domain/backend/utils/stream.dart';
 
 import 'parallelism.dart';
 

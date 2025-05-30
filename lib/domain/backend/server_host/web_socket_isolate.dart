@@ -3,10 +3,10 @@ import 'dart:io';
 import 'dart:isolate';
 
 import 'package:async_queue/async_queue.dart';
-import 'package:easthardware_pms/backend/classes/secure_connection.dart';
-import 'package:easthardware_pms/backend/extensions/to_message_channel.dart';
-import 'package:easthardware_pms/backend/server_database.dart';
-import 'package:easthardware_pms/backend/utils/isolate_indicator.dart';
+import 'package:easthardware_pms/domain/backend/classes/secure_connection.dart';
+import 'package:easthardware_pms/domain/backend/extensions/to_message_channel.dart';
+import 'package:easthardware_pms/domain/backend/server_database.dart';
+import 'package:easthardware_pms/domain/backend/utils/isolate_indicator.dart';
 import 'package:easthardware_pms/utils/boxed.dart';
 import 'package:easthardware_pms/utils/message_channel.dart';
 import 'package:easthardware_pms/utils/parallelism.dart';

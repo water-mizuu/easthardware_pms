@@ -1,4 +1,4 @@
-import 'package:easthardware_pms/backend/extension_types/secure_keys.dart';
+import 'package:easthardware_pms/domain/backend/extension_types/secure_keys.dart';
 
 /// A handshake connection is a temporary connection that is used to establish
 ///   a secure connection between the client and the server.

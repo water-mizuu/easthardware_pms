@@ -1,4 +1,4 @@
-import 'package:easthardware_pms/backend/enum/database_mode.dart';
+import 'package:easthardware_pms/domain/backend/enum/database_mode.dart';
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 

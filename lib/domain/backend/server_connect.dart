@@ -1,9 +1,9 @@
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:easthardware_pms/backend/extension_types/secure_keys.dart';
-import 'package:easthardware_pms/backend/extensions/to_message_channel.dart';
-import 'package:easthardware_pms/backend/secure_http.dart';
+import 'package:easthardware_pms/domain/backend/extension_types/secure_keys.dart';
+import 'package:easthardware_pms/domain/backend/extensions/to_message_channel.dart';
+import 'package:easthardware_pms/domain/backend/secure_http.dart';
 import 'package:easthardware_pms/presentation/bloc/server/server_bloc.dart';
 import 'package:easthardware_pms/utils/boxed.dart';
 import 'package:easthardware_pms/utils/message_channel.dart';

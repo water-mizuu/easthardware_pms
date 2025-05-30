@@ -2,8 +2,8 @@ import 'dart:convert';
 import 'dart:math';
 
 import 'package:crypto/crypto.dart';
-import 'package:easthardware_pms/backend/extension_types/secure_keys.dart';
-import 'package:easthardware_pms/backend/microservices/key_microservice.dart';
+import 'package:easthardware_pms/domain/backend/extension_types/secure_keys.dart';
+import 'package:easthardware_pms/domain/backend/microservices/key_microservice.dart';
 import 'package:flutter/foundation.dart';
 
 class CryptographyService {

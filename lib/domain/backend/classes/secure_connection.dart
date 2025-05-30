@@ -1,4 +1,4 @@
-import 'package:easthardware_pms/backend/extension_types/secure_keys.dart';
+import 'package:easthardware_pms/domain/backend/extension_types/secure_keys.dart';
 
 /// These are individual encryption tokens. Once a user has been authenticated,
 ///   the secure connection is established for end to end encryption.
