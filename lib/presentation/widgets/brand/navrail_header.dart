@@ -8,7 +8,7 @@ class LogoRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(8, 24, 8, 12),
+      padding: const EdgeInsets.fromLTRB(8, 14, 8, 12),
       child: Row(
         children: <Widget>[
           Image.asset(

@@ -130,6 +130,7 @@ Future<ShelfServer> hostLandingServer(int port) async {
 
   Future<void> dispose() async {
     final status = await channel.invoke("stop");
+
     switch (status) {
       case 0:
         if (kDebugMode) {

@@ -38,7 +38,7 @@ final router = GoRouter(
         StatefulShellRoute(
           builder: (context, state, shell) => shell,
           navigatorContainerBuilder: (context, shell, children) =>
-              AdminNavigationScaffold(shell, children),
+              BottomText(child: AdminNavigationScaffold(shell, children)),
           branches: [
             // Admin Dashboard Shell
             StatefulShellBranch(

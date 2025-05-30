@@ -8,11 +8,11 @@ Future<void> showSingleDialog(
   bool barrierDismissible = false,
   bool dismissWithEsc = true,
 }) async {
-  // if (_isDialogShowing) {
-  //   if (Navigator.canPop(context)) {
-  //     Navigator.of(context).pop();
-  //   }
-  // }
+  if (_isDialogShowing) {
+    if (Navigator.canPop(context)) {
+      Navigator.of(context).pop();
+    }
+  }
 
   _isDialogShowing = true;
   await showDialog<void>(

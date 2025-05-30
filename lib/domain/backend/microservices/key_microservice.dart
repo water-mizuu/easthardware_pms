@@ -104,7 +104,7 @@ Future<void> _spawnKeyMicroserviceIsolate((RootIsolateToken, NamedSendPort) payl
 
     if (message case [final String returnName, final Object args]) {
       switch (args) {
-        case ["stop", ...]:
+        case ["stop", _]:
           localChannel.close();
           break;
         case ['requestKeys', _]:

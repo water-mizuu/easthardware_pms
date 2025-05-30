@@ -1,7 +1,6 @@
 import 'dart:io' show Platform;
 
 import 'package:easthardware_pms/presentation/bloc/navigation/navigation_bloc.dart';
-import 'package:easthardware_pms/presentation/widgets/bottom_text.dart';
 import 'package:easthardware_pms/presentation/widgets/brand/navrail_header.dart';
 import 'package:easthardware_pms/presentation/widgets/helper/route_index_mapper.dart';
 import 'package:easthardware_pms/presentation/widgets/title_bar.dart';
@@ -9,6 +8,8 @@ import 'package:fluent_ui/fluent_ui.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
+import 'package:scroll_animator/scroll_animator.dart';
 
 class AdminNavigationScaffold extends StatelessWidget {
   const AdminNavigationScaffold(this.shell, this.children, {super.key});
@@ -26,67 +27,63 @@ class AdminNavigationScaffold extends StatelessWidget {
         }
       },
       builder: (context, state) {
-        var widget = NavigationView(
-          clipBehavior: Clip.hardEdge,
-          paneBodyBuilder: (item, body) {
-            const padding = EdgeInsets.only(top: windowsTitleBarHeight);
-            var child = children[shell.currentIndex];
+        var widget = LayoutBuilder(
+          builder: (context, constraints) {
+            final mode = switch (constraints.maxWidth) {
+              >= 1000 => PaneDisplayMode.open,
+              >= 600 => PaneDisplayMode.compact,
+              _ => PaneDisplayMode.minimal,
+            };
 
-            /// We only impose a padding on the child if the title bar is present
-            ///   and we are not on macOS.
-            if (!Platform.isMacOS) {
-              child = Padding(padding: padding, child: child);
-            }
+            return InheritedProvider(
+              create: (_) => AnimatedScrollController(
+                animationFactory: const ChromiumEaseInOut(),
+              ),
+              builder: (context, _) {
+                final direction = Directionality.of(context);
+                return NavigationView(
+                  key: ValueKey(mode),
+                  clipBehavior: Clip.hardEdge,
+                  contentShape: RoundedRectangleBorder(
+                    side: BorderSide(
+                      color: FluentTheme.of(context).resources.cardStrokeColorDefault,
+                    ),
+                    borderRadius: const BorderRadiusDirectional.only(
+                      topStart: Radius.circular(8.0),
+                    ).resolve(direction),
+                  ),
+                  paneBodyBuilder: (item, body) {
+                    const padding = EdgeInsets.only(top: windowsTitleBarHeight);
+                    var child = children[shell.currentIndex];
 
-            return child;
+                    /// We only impose a padding on the child if the title bar is present
+                    ///   and we are not on macOS.
+                    if (Platform.isWindows) {
+                      child = Padding(padding: padding, child: child);
+                    }
+                    return child;
+                  },
+                  pane: NavigationPane(
+                    header: const LogoRow(),
+                    scrollController: context.read<AnimatedScrollController>(),
+                    selected: state.selectedIndex,
+                    displayMode: mode,
+                    onItemPressed: (index) {
+                      if ([1, 12].contains(index)) {
+                        index++;
+                      }
+                      if (index == 16) return;
+                      context.read<NavigationBloc>().add(NavigationIndexChanged(index: index));
+                    },
+                    items: _navigationItems,
+                  ),
+                );
+              },
+            );
           },
-          pane: NavigationPane(
-            header: const LogoRow(),
-            selected: state.selectedIndex,
-            displayMode: PaneDisplayMode.compact,
-            onItemPressed: (index) {
-              if ([1, 12].contains(index)) {
-                index++; // Example: skip separator, handle expander index
-              }
-              if (index == 16) return; // Example: specific index to ignore
-              context.read<NavigationBloc>().add(NavigationIndexChanged(index: index));
-            },
-            items: [
-              _createNavItem(
-                icon: FluentIcons.dynamic_list,
-                title: "Dashboard",
-              ),
-              PaneItemSeparator(),
-              _createNavItem(
-                icon: FluentIcons.product,
-                title: "Inventory",
-                items: _getInventorySubItems(),
-              ),
-              _createNavItem(
-                icon: FluentIcons.text_document,
-                title: 'Billing',
-                items: _getBillingSubItems(),
-              ),
-              _createNavItem(
-                icon: FluentIcons.bill,
-                title: 'Orders',
-                items: _getOrderSubItems(),
-              ),
-              _createNavItem(
-                icon: FluentIcons.bar_chart_vertical_fill,
-                title: 'Reports',
-              ),
-              _createNavItem(
-                icon: FluentIcons.local_admin,
-                title: 'Security',
-                items: _getSecuritySubItems(),
-              )
-              //
-            ],
-          ),
         ) as Widget;
 
-        /// If the platform is macOS, we need to account for the title bar on the left.
+        /// If the platform is macOS, we need to account for the menu buttons
         if (Platform.isMacOS) {
           widget = Container(
             color: FluentTheme.of(context).micaBackgroundColor,
@@ -95,37 +92,45 @@ class AdminNavigationScaffold extends StatelessWidget {
           );
         }
 
-        widget = BottomText(child: widget);
-
         return widget;
       },
     );
   }
 
-  NavigationPaneItem _createNavItem({
-    required IconData icon,
-    required String title,
-    List<NavigationPaneItem>? items,
-    VoidCallback? onTap,
-  }) {
-    if (items != null && items.isNotEmpty) {
-      return PaneItemExpander(
-        icon: Icon(icon),
-        title: OverflowBox(child: Text(title)),
-        items: items,
-        body: const SizedBox.shrink(),
-      );
-    } else {
-      return PaneItem(
-        icon: Icon(icon),
-        title: OverflowBox(child: Text(title)),
-        body: const SizedBox.shrink(),
-        onTap: onTap,
-      );
-    }
-  }
+  static final List<NavigationPaneItem> _navigationItems = [
+    _createNavItem(
+      icon: FluentIcons.dynamic_list,
+      title: "Dashboard",
+    ),
+    PaneItemSeparator(),
+    _createNavItem(
+      icon: FluentIcons.product,
+      title: "Inventory",
+      items: _getInventorySubItems(),
+    ),
+    _createNavItem(
+      icon: FluentIcons.text_document,
+      title: 'Billing',
+      items: _getBillingSubItems(),
+    ),
+    _createNavItem(
+      icon: FluentIcons.bill,
+      title: 'Orders',
+      items: _getOrderSubItems(),
+    ),
+    _createNavItem(
+      icon: FluentIcons.bar_chart_vertical_fill,
+      title: 'Reports',
+    ),
+    _createNavItem(
+      icon: FluentIcons.local_admin,
+      title: 'Security',
+      items: _getSecuritySubItems(),
+    )
+    //
+  ];
 
-  List<NavigationPaneItem> _getInventorySubItems() {
+  static List<NavigationPaneItem> _getInventorySubItems() {
     return [
       _createNavItem(icon: FluentIcons.product_list, title: "List of Products"),
       _createNavItem(icon: FluentIcons.product_release, title: "Register Product"),
@@ -133,21 +138,21 @@ class AdminNavigationScaffold extends StatelessWidget {
     ];
   }
 
-  List<NavigationPaneItem> _getBillingSubItems() {
+  static List<NavigationPaneItem> _getBillingSubItems() {
     return [
       _createNavItem(icon: FluentIcons.text_document, title: "Invoice List"),
       _createNavItem(icon: FluentIcons.text_document_edit, title: "Payments"),
     ];
   }
 
-  List<NavigationPaneItem> _getOrderSubItems() {
+  static List<NavigationPaneItem> _getOrderSubItems() {
     return [
       _createNavItem(icon: FluentIcons.bill, title: 'Orders List'),
       _createNavItem(icon: FluentIcons.reservation_orders, title: 'Manage Expense Type'),
     ];
   }
 
-  List<NavigationPaneItem> _getSecuritySubItems() {
+  static List<NavigationPaneItem> _getSecuritySubItems() {
     return [
       _createNavItem(icon: FluentIcons.contact_list, title: 'List of Users'),
       _createNavItem(icon: FluentIcons.add_friend, title: 'Register User'),
@@ -162,5 +167,28 @@ class AdminNavigationScaffold extends StatelessWidget {
         },
       ),
     ];
+  }
+
+  static NavigationPaneItem _createNavItem({
+    required IconData icon,
+    required String title,
+    List<NavigationPaneItem>? items,
+    VoidCallback? onTap,
+  }) {
+    if (items != null && items.isNotEmpty) {
+      return PaneItemExpander(
+        icon: Icon(icon),
+        title: Text(title),
+        items: items,
+        body: const SizedBox.shrink(),
+      );
+    } else {
+      return PaneItem(
+        icon: Icon(icon),
+        title: Text(title),
+        body: const SizedBox.shrink(),
+        onTap: onTap,
+      );
+    }
   }
 }
