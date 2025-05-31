@@ -1,7 +1,6 @@
 part of 'product_form_bloc.dart';
 
 class ProductFormState extends Equatable {
-
   ProductFormState({
     this.name = '',
     String? sku,
@@ -22,8 +21,8 @@ class ProductFormState extends Equatable {
     this.productId,
     this.archiveStatus,
     this.formStatus = FormStatus.initial,
-  })  : sku = const Uuid().v4().toString(),
-        secondaryUnits = secondaryUnits ?? [FormUnit(name: '', factor: '')],
+  })  : sku = sku ?? const Uuid().v4().toString(),
+        secondaryUnits = secondaryUnits ?? [FormUnit(name: '', mainQuantity: '', unitQuantity: '')],
         creationDate = creationDate ?? DateTime.now(),
         deadStockThreshold = deadStockThreshold ?? DEFAULT_DEAD_STOCK_THRESHOLD.toString(),
         fastMovingThreshold = fastMovingThreshold ?? DEFAULT_FAST_MOVING_STOCK_THRESHOLD.toString();
@@ -42,8 +41,9 @@ class ProductFormState extends Equatable {
       criticalLevel: product.criticalLevel.toString(),
       deadStockThreshold: product.deadStockThreshold.toString(),
       fastMovingThreshold: product.fastMovingStockThreshold.toString(),
-      secondaryUnits:
-          units.isEmpty ? [FormUnit(name: '', factor: '')] : units.map(FormUnit.fromUnit).toList(),
+      secondaryUnits: units.isEmpty
+          ? [FormUnit(name: '', mainQuantity: '', unitQuantity: '')]
+          : units.map(FormUnit.fromUnit).toList(),
       creationDate: DateTime.parse(product.creationDate),
       creatorId: product.creatorId,
       archiveStatus: product.archiveStatus,

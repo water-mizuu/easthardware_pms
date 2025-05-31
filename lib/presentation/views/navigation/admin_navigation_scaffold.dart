@@ -37,32 +37,22 @@ class AdminNavigationScaffold extends StatelessWidget {
             };
 
             return InheritedProvider(
-              create: (_) => AnimatedScrollController(
-                animationFactory: const ChromiumEaseInOut(),
-              ),
+              create: (_) => AnimatedScrollController(animationFactory: const ChromiumEaseInOut()),
+              dispose: (_, controller) => controller.dispose(),
               builder: (context, _) {
-                final direction = Directionality.of(context);
-
                 return NavigationView(
                   key: ValueKey(mode),
                   clipBehavior: Clip.hardEdge,
-                  contentShape: RoundedRectangleBorder(
-                    side: BorderSide(
-                      color: FluentTheme.of(context).resources.cardStrokeColorDefault,
-                    ),
-                    borderRadius: const BorderRadiusDirectional.only(
-                      topStart: Radius.circular(8.0),
-                    ).resolve(direction),
-                  ),
                   paneBodyBuilder: (item, body) {
                     var child = LayoutModeProvider(child: children[shell.currentIndex]) as Widget;
 
                     /// We only impose a padding on the child if the title bar is present
-                    ///   and we are not on macOS.
+                    ///   and we are in windows.
                     if (Platform.isWindows) {
-                      const padding = EdgeInsets.only(top: windowsTitleBarHeight);
-
-                      child = Padding(padding: padding, child: child);
+                      child = Padding(
+                        padding: const EdgeInsets.only(top: windowsTitleBarHeight),
+                        child: child,
+                      );
                     }
 
                     return child;

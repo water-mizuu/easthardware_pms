@@ -5,6 +5,7 @@ import 'package:easthardware_pms/domain/models/unit.dart';
 import 'package:easthardware_pms/domain/repository/unit_repository.dart';
 
 class UnitRepositoryImpl implements UnitRepository {
+  @Deprecated("Do not use this constructor directly.")
   UnitRepositoryImpl(DatabaseHelper? databaseHelper) : _unitsDao = UnitsDao(databaseHelper);
 
   final UnitsDao _unitsDao;
@@ -62,7 +63,7 @@ class UnitRepositoryImpl implements UnitRepository {
     if (unit.name.isEmpty) {
       throw ArgumentException('Unit name cannot be empty');
     }
-    if (unit.factor <= 0) {
+    if (unit.mainQuantity * unit.unitQuantity <= 0) {
       throw ArgumentException('Conversion factor must be greater than zero');
     }
   }

@@ -6,8 +6,10 @@ import 'package:easthardware_pms/domain/enums/enums.dart';
 import 'package:easthardware_pms/domain/models/product.dart';
 import 'package:easthardware_pms/domain/models/unit.dart';
 import 'package:easthardware_pms/presentation/models/form_unit.dart';
+import 'package:easthardware_pms/utils/boxed.dart';
 import 'package:easthardware_pms/utils/undefined.dart';
 import 'package:equatable/equatable.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:uuid/uuid.dart';
 
@@ -18,7 +20,11 @@ class ProductFormBloc extends Bloc<ProductFormEvent, ProductFormState> {
   ProductFormBloc({
     Product? product,
     List<Unit>? units,
-  })  : formKey = GlobalKey<FormState>(),
+  })  : assert(
+          (product == null) == (units == null),
+          "Either none of them should be provided, or both of them.",
+        ),
+        formKey = GlobalKey<FormState>(),
         super(
           product == null || units == null
               ? ProductFormState()
@@ -47,6 +53,14 @@ class ProductFormBloc extends Bloc<ProductFormEvent, ProductFormState> {
     on<ProductLoadedEvent>(_onProductLoaded);
   }
   final GlobalKey<FormState> formKey;
+
+  @override
+  void onEvent(ProductFormEvent event) {
+    if (kDebugMode) {
+      printBoxed(event, 'ProductFormBloc');
+    }
+    super.onEvent(event);
+  }
 
   void _onNameChanged(NameFieldChangedEvent event, Emitter<ProductFormState> emit) {
     final name = event.name;
@@ -84,7 +98,7 @@ class ProductFormBloc extends Bloc<ProductFormEvent, ProductFormState> {
   }
 
   void _onQuantityChanged(QuantityFieldChangedEvent event, Emitter<ProductFormState> emit) {
-    final quantity = event.quantity;
+    final quantity = event.quantity.trim();
     // Implementing requested feature for default critical level
     // Is quantity is numeric
     // If true, and criticalLevel is not empty, calculate default critical level
@@ -100,6 +114,7 @@ class ProductFormBloc extends Bloc<ProductFormEvent, ProductFormState> {
     if (!state.isCriticalLevelEdited) {
       // If critical level is not edited, calculate default critical level
       // If critical level is empty, calculate default critical level
+
       final quantityValue = double.parse(quantity);
       final criticalLevel = quantityValue * 0.3;
       emit(state.copyWith(quantity: quantity, criticalLevel: criticalLevel.toString()));
@@ -124,18 +139,23 @@ class ProductFormBloc extends Bloc<ProductFormEvent, ProductFormState> {
   }
 
   void _onSecondaryUnitFactorChanged(
-      SecondaryUnitFieldFactorChangedEvent event, Emitter<ProductFormState> emit) {
-    final factor = event.factor;
-    final index = event.index;
+    SecondaryUnitFieldFactorChangedEvent event,
+    Emitter<ProductFormState> emit,
+  ) {
+    final SecondaryUnitFieldFactorChangedEvent(:mainQuantity, :unitQuantity, :index) = event;
     final alternativeUnits = List<FormUnit>.from(state.secondaryUnits);
 
-    alternativeUnits[index] = alternativeUnits[index].copyWith(factor: factor);
+    alternativeUnits[index] = alternativeUnits[index].copyWith(
+      mainQuantity: mainQuantity,
+      unitQuantity: unitQuantity,
+    );
+
     return emit(state.copyWith(secondaryUnits: alternativeUnits));
   }
 
   void _onSecondaryUnitAdded(SecondaryUnitFieldAddedEvent event, Emitter<ProductFormState> emit) {
     final alternativeUnits = List<FormUnit>.from(state.secondaryUnits);
-    alternativeUnits.add(FormUnit(name: '', factor: ''));
+    alternativeUnits.add(FormUnit(name: '', mainQuantity: '', unitQuantity: ''));
     emit(state.copyWith(secondaryUnits: alternativeUnits));
   }
 
@@ -171,7 +191,9 @@ class ProductFormBloc extends Bloc<ProductFormEvent, ProductFormState> {
   }
 
   Future<void> _onButtonPressed(
-      FormButtonPressedEvent event, Emitter<ProductFormState> emit) async {
+    FormButtonPressedEvent event,
+    Emitter<ProductFormState> emit,
+  ) async {
     emit(state.copyWith(formStatus: FormStatus.validating));
     await Future.delayed(Duration.zero);
     try {

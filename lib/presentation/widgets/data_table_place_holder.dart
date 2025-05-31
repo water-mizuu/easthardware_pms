@@ -12,8 +12,7 @@ class DataTablePlaceHolder extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Expanded(
-        child: Center(
+    return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
@@ -25,6 +24,6 @@ class DataTablePlaceHolder extends StatelessWidget {
           ),
         ],
       ),
-    ));
+    );
   }
 }

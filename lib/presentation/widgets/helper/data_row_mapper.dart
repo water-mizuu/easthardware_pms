@@ -23,7 +23,7 @@ class DataRowMapper {
       null, // Actions
     ];
 
-    if (product.isBelowCriticalLevel!) {
+    if (product.isBelowCriticalLevel == true) {
       return WarningDataRow([
         DataCell(
           ConstrainedBox(
@@ -61,7 +61,7 @@ class DataRowMapper {
         DataCell(HyperlinkButton(onPressed: editAction, child: const Text('Edit')))
       ]);
     }
-    if (product.isFastMovingStock!) {
+    if (product.isFastMovingStock == true) {
       return SuccessDataRow([
         DataCell(
           ConstrainedBox(
@@ -101,7 +101,7 @@ class DataRowMapper {
         )
       ]);
     }
-    if (product.isDeadStock!) {
+    if (product.isDeadStock == true) {
       return InfoDataRow([
         DataCell(
           ConstrainedBox(

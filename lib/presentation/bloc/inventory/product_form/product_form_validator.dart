@@ -76,25 +76,41 @@ mixin ProductFormValidator {
   }
 
   String? validateSecondaryUnitName({required String? name, required List<String> existingNames}) {
+    if (name == null || name.isEmpty) {
+      return "Alternate unit name cannot be empty.";
+    }
+
     if (existingNames.contains(name)) {
       return "Alternate unit name already exists.";
     }
     return null;
   }
 
-  String? validateSecondaryUnitFactor({
-    required String? name,
-    required String? factor,
+  String? validateMainUnitCount({
+    required String? count,
   }) {
-    if (name != null && name.trim().isNotEmpty) {
-      if (factor == null || factor.trim().isEmpty) {
-        return "Alternate factor cannot be empty.";
-      }
-      final conversionFactor = double.tryParse(factor);
-      if (conversionFactor == null || conversionFactor <= 0) {
-        return "Alternate factor must be a positive number.";
-      }
+    if (count == null || count.trim().isEmpty) {
+      return "Main equivalent cannot be empty.";
     }
+    final conversionFactor = double.tryParse(count);
+    if (conversionFactor == null || conversionFactor <= 0) {
+      return "Main equivalent must be a positive number.";
+    }
+
+    return null;
+  }
+
+  String? validateSecondaryUnitCount({
+    required String? count,
+  }) {
+    if (count == null || count.trim().isEmpty) {
+      return "Secondary unit cannot be empty.";
+    }
+    final conversionFactor = int.tryParse(count);
+    if (conversionFactor == null || conversionFactor <= 0) {
+      return "Secondary unit must be a positive number.";
+    }
+
     return null;
   }
 

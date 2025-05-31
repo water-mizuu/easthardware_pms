@@ -2,7 +2,6 @@ import 'package:easthardware_pms/data/database/database_helper.dart';
 import 'package:easthardware_pms/data/repository/category_repository.dart';
 import 'package:easthardware_pms/data/repository/product_repository.dart';
 import 'package:easthardware_pms/data/repository/security_question_repository.dart';
-import 'package:easthardware_pms/data/repository/unit_repository.dart';
 import 'package:easthardware_pms/data/repository/user_log_repository.dart';
 import 'package:easthardware_pms/data/repository/user_repository.dart';
 import 'package:easthardware_pms/domain/repository/authentication_repository.dart';
@@ -52,7 +51,7 @@ class DependencyInjector {
 
     _productRepository = ProductRepositoryImpl(databaseHelper);
     _categoryRepository = CategoryRepositoryImpl(databaseHelper);
-    _unitRepository = UnitRepositoryImpl(databaseHelper);
+    _unitRepository = UnitRepository(databaseHelper);
     _userLogRepository = UserLogRepositoryImpl(databaseHelper);
     _userRepository = UserRepositoryImpl(databaseHelper);
     _securityQuestionRepository = SecurityQuestionRepositoryImpl(databaseHelper);

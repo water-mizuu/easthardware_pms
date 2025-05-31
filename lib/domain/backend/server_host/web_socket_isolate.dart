@@ -87,10 +87,19 @@ Future<void> spawnWebSocketIsolate((RootIsolateToken, NamedSendPort) payload) as
     sendPort.send(name, 0);
   }
 
+  var lastInvocation = DateTime.now();
+
   /// @MAIN2WS:invocation
   mainChannel.listenFrom("invocation", (message) {
     if (kDebugMode) {
-      printBoxed(message, "MAIN2WS:invocation");
+      final current = DateTime.now();
+      final timeSinceLastInvocation = current.difference(lastInvocation);
+      lastInvocation = current;
+
+      printBoxed(
+        message,
+        "MAIN2WS:invocation (${timeSinceLastInvocation.inMicroseconds}μs since last invocation)",
+      );
     }
 
     if (message case [final String returnName, final Object args]) {
@@ -223,10 +232,10 @@ Future<void> _handleConnection(
 
 /// This sends out a notification to all connected clients about a database change.
 /// This also sends the notification to the server as necessary.
-Future<void> _notifyEveryoneAboutDatabaseChange({
+void _notifyEveryoneAboutDatabaseChange({
   required WebSocketChannel? from,
   required bool isServerUpdated,
-}) async {
+}) {
   assertChildIsolate();
   if (isServerUpdated) {
     mainChannel.sendPort.send("main", ["didUpdate", DateTime.now().millisecondsSinceEpoch]);

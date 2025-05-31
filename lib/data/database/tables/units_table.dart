@@ -6,7 +6,8 @@ class UnitsTable {
   static const String UNITS_ID = 'id';
   static const String UNITS_NAME = 'name';
   static const String UNITS_PRODUCT_ID = 'product_id';
-  static const String UNITS_CONVERSION_FACTOR = 'conversion_factor';
+  static const String UNITS_MAIN_QUANTITY = 'main_quantity';
+  static const String UNITS_UNIT_QUANTITY = 'unit_quantity';
 
   static Future<void> createTable(Database database) async {
     await database.execute('''
@@ -14,7 +15,8 @@ class UnitsTable {
     $UNITS_ID INTEGER PRIMARY KEY AUTOINCREMENT,
     $UNITS_NAME TEXT NOT NULL,
     $UNITS_PRODUCT_ID INTEGER NOT NULL,
-    $UNITS_CONVERSION_FACTOR REAL NOT NULL,
+    $UNITS_MAIN_QUANTITY INTEGER NOT NULL,
+    $UNITS_UNIT_QUANTITY INTEGER NOT NULL,
     FOREIGN KEY($UNITS_PRODUCT_ID) REFERENCES ${ProductsTable.PRODUCTS_TABLE_NAME}(${ProductsTable.PRODUCTS_ID})
     )
     ''');

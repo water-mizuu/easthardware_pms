@@ -10,6 +10,13 @@ class LayoutModeProvider extends StatelessWidget {
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
+        assert(
+          constraints.maxWidth.isFinite,
+          "LayoutModeProvider requires finite width constraints. "
+          "This is usually caused by using it inside a widget that does not impose "
+          "finite width constraints, such as a ListView or a Column without a fixed height.",
+        );
+
         final width = constraints.maxWidth;
         final layoutMode = width > 850
             ? LayoutMode.wide
