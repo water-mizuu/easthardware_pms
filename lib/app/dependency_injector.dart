@@ -136,14 +136,6 @@ class DependencyInjector {
   void markNeedsRefresh() {
     if (kDebugMode) {
       print("Dependency Injector: Marking needs refresh");
-      print([
-        _userListBloc,
-        _productListBloc,
-        _categoryListBloc,
-        _unitListBloc,
-        _userLogListBloc,
-        _securityQuestionListBloc
-      ]);
     }
 
     _userListBloc?.add(LoadAllUsersEvent());

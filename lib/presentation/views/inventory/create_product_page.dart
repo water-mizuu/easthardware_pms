@@ -80,8 +80,9 @@ class CreateProductPage extends StatelessWidget {
                 context.read<ProductFormBloc>().add(FormResetEvent());
 
                 /// Navigate to the inventory page after successful submission.
-                final index = RouteIndexMapper.getIndexFromRoute(AppRoutes.inventoryPage);
-                context.read<NavigationBloc>().add(NavigationIndexChanged(index: index!));
+                final index =
+                    RouteIndexMapper.of(context).getIndexFromRoute(AppRoutes.inventoryPage);
+                context.read<NavigationBloc>().goIndex(index!);
                 break;
               default:
                 break;
@@ -91,15 +92,11 @@ class CreateProductPage extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Padding(
-                padding: EdgeInsets.only(
-                  top: AppPadding.panePadding.top,
-                  left: AppPadding.panePadding.left,
-                  right: AppPadding.panePadding.right,
-                ),
+                padding: AppPadding.panePadding.copyWith(bottom: 0.0),
                 child: const PageHeader(),
               ),
               const Expanded(child: ProductInformationFormContent()),
-            ],
+            ].withSpacing(() => Spacing.v16),
           ),
         );
       },
@@ -116,11 +113,9 @@ class PageHeader extends StatelessWidget {
       children: [
         IconButton(
           icon: const Icon(FluentIcons.back),
-          onPressed: () => context.read<NavigationBloc>().add(
-                NavigationIndexChanged(
-                  index: RouteIndexMapper.getIndexFromRoute(AppRoutes.inventoryPage)!,
-                ),
-              ),
+          onPressed: () => context
+              .read<NavigationBloc>()
+              .goIndex(RouteIndexMapper.of(context).getIndexFromRoute(AppRoutes.inventoryPage)!),
         ),
         const DisplayText('Add Product'),
         const Spacer(flex: 1),

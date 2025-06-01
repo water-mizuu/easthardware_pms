@@ -99,9 +99,8 @@ class PageHeader extends StatelessWidget {
       children: [
         IconButton(
           icon: const Icon(FluentIcons.back),
-          onPressed: () => context.read<NavigationBloc>().add(
-                NavigationIndexChanged(
-                    index: RouteIndexMapper.getIndexFromRoute(AppRoutes.inventoryPage)!),
+          onPressed: () => context.read<NavigationBloc>().goIndex(
+                RouteIndexMapper.of(context).getIndexFromRoute(AppRoutes.inventoryPage)!,
               ),
         ),
         const HeadingText('Manage Categories'),

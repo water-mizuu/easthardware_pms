@@ -62,8 +62,8 @@ class PageActions extends StatelessWidget {
         TextButtonFilled('Add User', onPressed: () {
           const route = AppRoutes.createUserPage;
           context
-              .read<NavigationBloc>()
-              .add(NavigationIndexChanged(index: RouteIndexMapper.getIndexFromRoute(route)!));
+              .read<NavigationBloc>() //
+              .goIndex(RouteIndexMapper.of(context).getIndexFromRoute(route)!);
         }),
       ].withSpacing(() => Spacing.h16),
     );

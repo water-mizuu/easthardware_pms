@@ -1,8 +1,9 @@
 import 'package:easthardware_pms/domain/models/unit.dart';
 import 'package:easthardware_pms/utils/undefined.dart';
+import 'package:equatable/equatable.dart';
 
-class FormUnit {
-  FormUnit({
+class FormUnit with EquatableMixin {
+  const FormUnit({
     required this.name,
     required this.unitQuantity,
     required this.mainQuantity,
@@ -52,4 +53,7 @@ class FormUnit {
       unitQuantity: unitQuantity,
     );
   }
+
+  @override
+  List<Object?> get props => [name, unitQuantity, mainQuantity];
 }

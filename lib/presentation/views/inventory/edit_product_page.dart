@@ -104,9 +104,8 @@ class EditProductPage extends StatelessWidget {
               Future.delayed(Duration.zero, () {
                 if (context.mounted) {
                   context.read<ProductFormBloc>().add(FormResetEvent());
-                  context.read<NavigationBloc>().add(
-                        NavigationIndexChanged(
-                            index: RouteIndexMapper.getIndexFromRoute(AppRoutes.inventoryPage)!),
+                  context.read<NavigationBloc>().goIndex(
+                        RouteIndexMapper.of(context).getIndexFromRoute(AppRoutes.inventoryPage)!,
                       );
                 }
               });
@@ -131,7 +130,7 @@ class EditProductPage extends StatelessWidget {
               child: const PageHeader(),
             ),
             const Expanded(child: ProductInformationFormContent()),
-          ],
+          ].withSpacing(() => Spacing.v16),
         ),
       ),
     );
@@ -147,10 +146,8 @@ class PageHeader extends StatelessWidget {
       children: [
         IconButton(
           icon: const Icon(FluentIcons.back),
-          onPressed: () => context.read<NavigationBloc>().add(
-                NavigationIndexChanged(
-                  index: RouteIndexMapper.getIndexFromRoute(AppRoutes.inventoryPage)!,
-                ),
+          onPressed: () => context.read<NavigationBloc>().goIndex(
+                RouteIndexMapper.of(context).getIndexFromRoute(AppRoutes.inventoryPage)!,
               ),
         ),
         const DisplayText('Edit Product'),

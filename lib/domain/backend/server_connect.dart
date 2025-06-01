@@ -82,31 +82,28 @@ Future<(WebSocketChannel, MessageChannel, Stream<ServerEvent>)> connectToWebSock
   if (!isSuccessful) throw Error();
 
   /// @LANDING2MAIN:client
-  final websocketStream = serverChannel.listenStream(
-    from: "client",
-    (message) async* {
-      if (kDebugMode) {
-        printBoxed(message, "LANDING2MAIN:client");
-      }
+  final websocketStream = serverChannel.listenStream(from: "client", (message) async* {
+    if (kDebugMode) {
+      printBoxed(message, "LANDING2MAIN:client");
+    }
 
-      switch (message) {
-        case ["didUpdate", final int msSinceEpoch]:
-          // Notify the UI that the server has been updated.
-          final dateTime = DateTime.fromMillisecondsSinceEpoch(msSinceEpoch);
-          if (kDebugMode) {
-            print("Server updated at: $dateTime");
-          }
+    switch (message) {
+      case ["didUpdate", final int msSinceEpoch]:
+        // Notify the UI that the server has been updated.
+        final dateTime = DateTime.fromMillisecondsSinceEpoch(msSinceEpoch);
+        if (kDebugMode) {
+          print("Server updated at: $dateTime");
+        }
 
-          yield ServerDatabaseUpdated(lastUpdated: dateTime);
-          break;
-        case _:
-          if (kDebugMode) {
-            print("Received unexpected message: $message");
-          }
-          break;
-      }
-    },
-  );
+        yield ServerDatabaseUpdated(lastUpdated: dateTime);
+        break;
+      case _:
+        if (kDebugMode) {
+          print("Received unexpected message: $message");
+        }
+        break;
+    }
+  });
 
   return (webSocketChannel, serverChannel, websocketStream);
 }

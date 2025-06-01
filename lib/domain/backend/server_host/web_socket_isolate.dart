@@ -7,6 +7,7 @@ import 'package:easthardware_pms/domain/backend/classes/secure_connection.dart';
 import 'package:easthardware_pms/domain/backend/extensions/to_message_channel.dart';
 import 'package:easthardware_pms/domain/backend/server_database.dart';
 import 'package:easthardware_pms/domain/backend/utils/isolate_indicator.dart';
+import 'package:easthardware_pms/domain/services/cryptography_service.dart';
 import 'package:easthardware_pms/utils/boxed.dart';
 import 'package:easthardware_pms/utils/message_channel.dart';
 import 'package:easthardware_pms/utils/parallelism.dart';
@@ -22,7 +23,6 @@ import 'package:web_socket_channel/web_socket_channel.dart';
 late MessageChannel mainChannel;
 late List<(WebSocketChannel, MessageChannel)> _clientChannels;
 late AsyncQueue _handleConnectionQueue;
-late AsyncQueue _dbMethodQueue;
 
 /// Spawns an isolate to handle database operations and WebSocket connections.
 ///   This isolate will handle incoming messages and perform database operations
@@ -38,7 +38,6 @@ Future<void> spawnWebSocketIsolate((RootIsolateToken, NamedSendPort) payload) as
 
   _clientChannels = <(WebSocketChannel, MessageChannel)>[];
   _handleConnectionQueue = AsyncQueue.autoStart();
-  _dbMethodQueue = AsyncQueue.autoStart();
 
   // Create the receive port and send it to the main isolate.
   final receivePort = ReceivePort().hostListener();
@@ -75,7 +74,6 @@ Future<void> spawnWebSocketIsolate((RootIsolateToken, NamedSendPort) payload) as
 
     // Clear the async queues
     _handleConnectionQueue.clear();
-    _dbMethodQueue.clear();
 
     // Close this isolate's receive port.
     receivePort.close();
@@ -90,7 +88,7 @@ Future<void> spawnWebSocketIsolate((RootIsolateToken, NamedSendPort) payload) as
   var lastInvocation = DateTime.now();
 
   /// @MAIN2WS:invocation
-  mainChannel.listenFrom("invocation", (message) {
+  mainChannel.listenFrom("invocation", (message) async {
     if (kDebugMode) {
       final current = DateTime.now();
       final timeSinceLastInvocation = current.difference(lastInvocation);
@@ -108,21 +106,27 @@ Future<void> spawnWebSocketIsolate((RootIsolateToken, NamedSendPort) payload) as
           closeIsolate(returnName);
           break;
         case ["db", [final String method, final List<Object?> arguments]]:
-          _dbMethodQueue.addJob((_) async {
-            // Handle each db method call.
-            final output = await serverHandleDatabaseMethod(method, arguments);
-            if (kDebugMode) {
-              print("Database method $method called with arguments: $arguments");
-            }
+          // Handle each db method call.
+          final start = DateTime.now();
+          final output = await serverHandleDatabaseMethod(method, arguments);
+          final duration = DateTime.now().difference(start);
 
-            final DatabaseMethodResult(:result, :hasChanged) = output;
+          if (kDebugMode) {
+            printBoxed(
+              "Method: '$method'\n"
+                  "Turnaround Time: ${duration.inMicroseconds}μs\n"
+                  "Arguments:\n${arguments.toString().wrap.indent}",
+              "Database Method Call",
+            );
+          }
 
-            // Send the result back to the client.
-            sendPort.send(returnName, result);
-            if (hasChanged) {
-              _notifyEveryoneAboutDatabaseChange(from: null, isServerUpdated: false);
-            }
-          });
+          final (result, hasChanged) = output.record;
+
+          // Send the result back to the client.
+          sendPort.send(returnName, result);
+          if (hasChanged) {
+            _notifyEveryoneAboutDatabaseChange(from: null, isServerUpdated: false);
+          }
           break;
       }
     } else {
@@ -180,16 +184,14 @@ Future<void> _handleConnection(
   assertChildIsolate();
 
   late final MessageChannel messageChannel;
-  messageChannel = webSocketChannel.toEncryptedMessageChannel(
+  messageChannel = webSocketChannel //
+      .toEncryptedMessageChannel(
     connection.encryptionKey,
     () => _clientChannels.remove((webSocketChannel, messageChannel)),
-  )
-
-    // Send a status code of 0 to indicate success.
-    ..sendPort.send("status", 0);
+  )..sendPort.send("status", 0);
 
   /// @CLIENT2WS:invocation
-  messageChannel.listenFrom("invocation", (object) {
+  messageChannel.listenFrom("invocation", (object) async {
     if (kDebugMode) {
       printBoxed(object, "CLIENT2WS:invocation");
     }
@@ -198,22 +200,27 @@ Future<void> _handleConnection(
 
     switch (message) {
       case ["db", [final String method, final List<Object?> arguments]]:
-        _dbMethodQueue.addJob((_) async {
-          // Handle each db method call.
-          final output = await serverHandleDatabaseMethod(method, arguments);
-          if (kDebugMode) {
-            print("Database method $method called with arguments: $arguments");
-          }
+        // Handle each db method call.
+        final start = DateTime.now();
+        final output = await serverHandleDatabaseMethod(method, arguments);
+        final duration = DateTime.now().difference(start);
+        if (kDebugMode) {
+          printBoxed(
+            "Method: '$method'\n"
+                "Turnaround Time: ${duration.inMicroseconds}μs\n"
+                "Arguments:\n${arguments.toString().wrap.indent}",
+            "Database Method Call",
+          );
+        }
 
-          final DatabaseMethodResult(:result, :hasChanged) = output;
+        final (result, hasChanged) = output.record;
 
-          // Send the result back to the client.
-          messageChannel.sendPort.send(name, result);
+        // Send the result back to the client.
+        messageChannel.sendPort.send(name, result);
 
-          if (hasChanged) {
-            _notifyEveryoneAboutDatabaseChange(from: webSocketChannel, isServerUpdated: true);
-          }
-        });
+        if (hasChanged) {
+          _notifyEveryoneAboutDatabaseChange(from: webSocketChannel, isServerUpdated: true);
+        }
         break;
       case _:
         if (kDebugMode) {

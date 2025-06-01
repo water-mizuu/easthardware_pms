@@ -16,8 +16,31 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:scroll_animator/scroll_animator.dart';
 
-class InventoryPanePage extends StatelessWidget {
+class InventoryPanePage extends StatefulWidget {
   const InventoryPanePage({super.key});
+
+  @override
+  State<InventoryPanePage> createState() => _InventoryPanePageState();
+}
+
+class _InventoryPanePageState extends State<InventoryPanePage> {
+  late final AnimatedScrollController _scrollController;
+
+  @override
+  void initState() {
+    super.initState();
+
+    _scrollController = AnimatedScrollController(
+      animationFactory: const ChromiumEaseInOut(),
+    );
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -31,6 +54,7 @@ class InventoryPanePage extends StatelessWidget {
         Spacing.v4,
         Expanded(
           child: SingleChildScrollView(
+            controller: _scrollController,
             child: Padding(
               padding: EdgeInsets.symmetric(horizontal: AppPadding.panePadding.horizontal / 2),
               child: Column(
@@ -61,13 +85,13 @@ class PageHeader extends StatelessWidget {
           const route = AppRoutes.categoriesPage;
           context
               .read<NavigationBloc>()
-              .add(NavigationIndexChanged(index: RouteIndexMapper.getIndexFromRoute(route)!));
+              .goIndex(RouteIndexMapper.of(context).getIndexFromRoute(route)!);
         }),
         TextButtonFilled('New Product', onPressed: () {
           const route = AppRoutes.createProductPage;
           context
               .read<NavigationBloc>()
-              .add(NavigationIndexChanged(index: RouteIndexMapper.getIndexFromRoute(route)!));
+              .goIndex(RouteIndexMapper.of(context).getIndexFromRoute(route)!);
         }),
       ].withSpacing(() => Spacing.h16),
     );
@@ -261,6 +285,8 @@ class ProductsDataTable extends StatefulWidget {
 }
 
 class _ProductsDataTableState extends State<ProductsDataTable> {
+  static const names = ['Name', 'Category', 'Price', 'Cost', 'Quantity', 'Actions'];
+
   late final AnimatedScrollController _scrollController;
 
   @override
@@ -282,24 +308,13 @@ class _ProductsDataTableState extends State<ProductsDataTable> {
   Widget buildTable(BuildContext context) {
     final state = context.watch<ProductListBloc>().state;
     if (state.status == DataStatus.loading) {
-      return const Center(
-        child: ProgressRing(),
-      );
+      return const Center(child: ProgressRing());
     }
 
     final allProducts = state.allProducts.where((p) => p.archiveStatus == 0).toList();
     if (allProducts.isEmpty) {
       return const DataTablePlaceHolder(FluentIcons.product_list, 'Products');
     }
-
-    const names = [
-      'Name',
-      'Category',
-      'Price',
-      'Cost',
-      'Quantity',
-      'Actions',
-    ];
 
     return Container(
       constraints: const BoxConstraints(minHeight: 200),
@@ -320,7 +335,8 @@ class _ProductsDataTableState extends State<ProductsDataTable> {
               DataRowMapper.mapProductToRow(
                 product,
                 editAction: () {
-                  context.push(AppRoutes.editProductPage, extra: product);
+                  context.push(AppRoutes.editProductPage.path, extra: product);
+                  context.read<NavigationBloc>().goOutsideOfNavigation();
                 },
               ),
           ],

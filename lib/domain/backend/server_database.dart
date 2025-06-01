@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:async_queue/async_queue.dart';
 import 'package:easthardware_pms/data/database/tables/categories_table.dart';
 import 'package:easthardware_pms/data/database/tables/expense_types_table.dart';
 import 'package:easthardware_pms/data/database/tables/invoice_products_table.dart';
@@ -14,52 +15,56 @@ import 'package:easthardware_pms/data/database/tables/units_table.dart';
 import 'package:easthardware_pms/data/database/tables/user_logs_table.dart';
 import 'package:easthardware_pms/data/database/tables/users_table.dart';
 import 'package:easthardware_pms/data/database/views/product_flags_view.dart';
+import 'package:easthardware_pms/domain/backend/utils/isolate_indicator.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/services.dart';
 import 'package:path/path.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
+final AsyncQueue _dbMethodQueue = AsyncQueue.autoStart();
+
 /// Handles JSON encoded database method calls.
+/// Each job is executed sequentially in calling order, backed by an [AsyncQueue].
 Future<DatabaseMethodResult> serverHandleDatabaseMethod(
   String method,
   List<Object?> arguments,
 ) async {
   // Create a database instance or use an existing one
-  assert(RootIsolateToken.instance == null);
-  final isolateDatabase = await _getDatabase();
+  assertChildIsolate();
+  final completer = Completer<DatabaseMethodResult>.sync();
+  _dbMethodQueue.addJob((_) async {
+    final isolateDatabase = await _getDatabase();
 
-  switch (method) {
-    case 'delete':
-      if (arguments
-          case [
+    DatabaseMethodResult? jobResult;
+    switch ((method, arguments)) {
+      case (
+          'delete',
+          [
             final String table,
-            {'where': final String? where, 'whereArgs': final List<Object?>? whereArgs},
-          ]) {
+            {'where': final String? where, 'whereArgs': final List<Object?>? whereArgs}
+          ]
+        ):
         final result = await isolateDatabase.delete(table, where: where, whereArgs: whereArgs);
         final hasChanged = result > 0;
+        jobResult = DatabaseMethodResult(result: result, hasChanged: hasChanged);
+        break;
 
-        return DatabaseMethodResult(result: result, hasChanged: hasChanged);
-      }
-      break;
-
-    case 'execute':
-      if (arguments case [final String sql, final List<Object?>? sqlArgs]) {
+      case ('execute', [final String sql, final List<Object?>? sqlArgs]):
         await isolateDatabase.execute(sql, sqlArgs);
         // Execute doesn't return a count, but we assume it modified the database
-        return DatabaseMethodResult(result: null, hasChanged: true);
-      }
-      break;
+        jobResult = const DatabaseMethodResult(result: null, hasChanged: true);
+        break;
 
-    case 'insert':
-      if (arguments
-          case [
+      case (
+          'insert',
+          [
             final String table,
             final Map<String, Object?> values,
             {
               'nullColumnHack': final String? nullColumnHack,
               'conflictAlgorithm': final int? conflictAlgorithm
             }
-          ]) {
+          ]
+        ):
         final result = await isolateDatabase.insert(
           table,
           values,
@@ -69,14 +74,12 @@ Future<DatabaseMethodResult> serverHandleDatabaseMethod(
               : null,
         );
         final hasChanged = result > 0;
+        jobResult = DatabaseMethodResult(result: result, hasChanged: hasChanged);
+        break;
 
-        return DatabaseMethodResult(result: result, hasChanged: hasChanged);
-      }
-      break;
-
-    case 'query':
-      if (arguments
-          case [
+      case (
+          'query',
+          [
             final String table,
             {
               'distinct': final bool? distinct,
@@ -89,7 +92,8 @@ Future<DatabaseMethodResult> serverHandleDatabaseMethod(
               'limit': final int? limit,
               'offset': final int? offset,
             }
-          ]) {
+          ]
+        ):
         final result = await isolateDatabase.query(
           table,
           distinct: distinct,
@@ -103,13 +107,12 @@ Future<DatabaseMethodResult> serverHandleDatabaseMethod(
           offset: offset,
         );
         // Query operations don't modify the database
-        return DatabaseMethodResult(result: result, hasChanged: false);
-      }
-      break;
+        jobResult = DatabaseMethodResult(result: result, hasChanged: false);
+        break;
 
-    case 'queryCursor':
-      if (arguments
-          case [
+      case (
+          'queryCursor',
+          [
             final String table,
             {
               'distinct': final bool? distinct,
@@ -123,7 +126,8 @@ Future<DatabaseMethodResult> serverHandleDatabaseMethod(
               'offset': final int? offset,
               'bufferSize': final int? bufferSize,
             }
-          ]) {
+          ]
+        ):
         final result = await isolateDatabase.queryCursor(
           table,
           distinct: distinct,
@@ -138,74 +142,51 @@ Future<DatabaseMethodResult> serverHandleDatabaseMethod(
           bufferSize: bufferSize,
         );
         // Query operations don't modify the database
-        return DatabaseMethodResult(result: result, hasChanged: false);
-      }
-      break;
+        jobResult = DatabaseMethodResult(result: result, hasChanged: false);
+        break;
 
-    case 'rawDelete':
-      if (arguments case [final String sql, final List<Object?>? args]) {
+      case ('rawDelete', [final String sql, final List<Object?>? args]):
         final result = await isolateDatabase.rawDelete(sql, args);
         final hasChanged = result > 0;
-        return DatabaseMethodResult(result: result, hasChanged: hasChanged);
-      } else if (arguments case [final String sql]) {
-        final result = await isolateDatabase.rawDelete(sql);
-        final hasChanged = result > 0;
-        return DatabaseMethodResult(result: result, hasChanged: hasChanged);
-      }
-      break;
+        jobResult = DatabaseMethodResult(result: result, hasChanged: hasChanged);
+        break;
 
-    case 'rawInsert':
-      if (arguments case [final String sql, final List<Object?>? args]) {
+      case ('rawInsert', [final String sql, final List<Object?>? args]):
         final result = await isolateDatabase.rawInsert(sql, args);
         final hasChanged = result > 0;
-        return DatabaseMethodResult(result: result, hasChanged: hasChanged);
-      } else if (arguments case [final String sql]) {
-        final result = await isolateDatabase.rawInsert(sql);
-        final hasChanged = result > 0;
-        return DatabaseMethodResult(result: result, hasChanged: hasChanged);
-      }
-      break;
+        jobResult = DatabaseMethodResult(result: result, hasChanged: hasChanged);
+        break;
 
-    case 'rawQuery':
-      if (arguments case [final String sql, final List<Object?>? args]) {
+      case ('rawQuery', [final String sql, final List<Object?>? args]):
         final result = await isolateDatabase.rawQuery(sql, args);
         // Query operations don't modify the database
-        return DatabaseMethodResult(result: result, hasChanged: false);
-      } else if (arguments case [final String sql]) {
-        final result = await isolateDatabase.rawQuery(sql);
-        // Query operations don't modify the database
-        return DatabaseMethodResult(result: result, hasChanged: false);
-      }
-      break;
+        jobResult = DatabaseMethodResult(result: result, hasChanged: false);
+        break;
 
-    case 'rawQueryCursor':
-      if (arguments
-          case [
-            final String sql,
-            final List<Object?>? args,
-            {'bufferSize': final int? bufferSize}
-          ]) {
+      case (
+          'rawQueryCursor',
+          [final String sql, final List<Object?>? args, {'bufferSize': final int? bufferSize}]
+        ):
         final result = await isolateDatabase.rawQueryCursor(sql, args, bufferSize: bufferSize);
         // Query operations don't modify the database
-        return DatabaseMethodResult(result: result, hasChanged: false);
-      }
-      break;
+        jobResult = DatabaseMethodResult(result: result, hasChanged: false);
+        break;
 
-    case 'rawUpdate':
-      if (arguments case [final String sql, final List<Object?>? args]) {
+      case ('rawUpdate', [final String sql, final List<Object?>? args]):
         final result = await isolateDatabase.rawUpdate(sql, args);
         final hasChanged = result > 0;
-        return DatabaseMethodResult(result: result, hasChanged: hasChanged);
-      } else if (arguments case [final String sql]) {
+        jobResult = DatabaseMethodResult(result: result, hasChanged: hasChanged);
+        break;
+
+      case ('rawUpdate', [final String sql]):
         final result = await isolateDatabase.rawUpdate(sql);
         final hasChanged = result > 0;
-        return DatabaseMethodResult(result: result, hasChanged: hasChanged);
-      }
-      break;
+        jobResult = DatabaseMethodResult(result: result, hasChanged: hasChanged);
+        break;
 
-    case 'update':
-      if (arguments
-          case [
+      case (
+          'update',
+          [
             final String table,
             final Map<String, Object?> values,
             {
@@ -213,7 +194,8 @@ Future<DatabaseMethodResult> serverHandleDatabaseMethod(
               'whereArgs': final List<Object?>? whereArgs,
               'conflictAlgorithm': final int? conflictAlgorithm,
             }
-          ]) {
+          ]
+        ):
         final result = await isolateDatabase.update(
           table,
           values,
@@ -224,22 +206,21 @@ Future<DatabaseMethodResult> serverHandleDatabaseMethod(
               : null,
         );
         final hasChanged = result > 0;
+        jobResult = DatabaseMethodResult(result: result, hasChanged: hasChanged);
+        break;
 
-        return DatabaseMethodResult(result: result, hasChanged: hasChanged);
-      }
-      break;
-
-    case 'batch.commit':
-      if (arguments
-          case [
+      case (
+          'batch.commit',
+          [
             final List<Object> operations,
             {
               'exclusive': final bool? exclusive,
               'noResult': final bool? noResult,
               'continueOnError': final bool? continueOnError,
             }
-          ]) {
-        return _executeBatch(
+          ]
+        ):
+        jobResult = await _executeBatch(
           isolateDatabase,
           operations,
           exclusive,
@@ -247,16 +228,16 @@ Future<DatabaseMethodResult> serverHandleDatabaseMethod(
           continueOnError,
           isCommit: true,
         );
-      }
-      break;
+        break;
 
-    case 'batch.apply':
-      if (arguments
-          case [
+      case (
+          'batch.apply',
+          [
             final List<Object> operations,
             {'noResult': final bool? noResult, 'continueOnError': final bool? continueOnError}
-          ]) {
-        return _executeBatch(
+          ]
+        ):
+        jobResult = await _executeBatch(
           isolateDatabase,
           operations,
           null, // exclusive not used for apply
@@ -264,11 +245,22 @@ Future<DatabaseMethodResult> serverHandleDatabaseMethod(
           continueOnError,
           isCommit: false,
         );
-      }
-      break;
-  }
+        break;
+    }
 
-  throw UnsupportedError('Unsupported database method: $method or invalid arguments: $arguments');
+    if (jobResult != null) {
+      completer.complete(jobResult);
+    } else {
+      completer.completeError(
+        UnsupportedError(
+          'Unsupported database method: $method or ' //
+          'invalid arguments: $arguments',
+        ),
+      );
+    }
+  });
+
+  return completer.future;
 }
 
 // Database instance cache
@@ -277,7 +269,7 @@ Database? _databaseInstance;
 /// The creation of the database instance is here.
 ///   It is created after a server isolate is spawned.
 Future<Database> _getDatabase() async {
-  assert(RootIsolateToken.instance == null, "This should be called on another isolate.");
+  assertChildIsolate();
   if (_databaseInstance == null) {
     // Initialize the database - this would typically be your actual database initialization
     // For example:
@@ -289,7 +281,7 @@ Future<Database> _getDatabase() async {
     final path = join(await getDatabasesPath(), 'database.db');
     _databaseInstance = await openDatabase(
       path,
-      version: 2,
+      version: 1,
       onCreate: (db, version) {
         CategoriesTable.createTable(db);
         ExpenseTypesTable.createTable(db);
@@ -382,7 +374,7 @@ Future<DatabaseMethodResult> _executeBatch(
   bool? continueOnError, {
   required bool isCommit,
 }) async {
-  assert(RootIsolateToken.instance == null);
+  assertChildIsolate();
   final batch = db.batch();
 
   var hasModifyingOperations = false;
@@ -541,13 +533,12 @@ Future<DatabaseMethodResult> _executeBatch(
   return DatabaseMethodResult(result: result, hasChanged: hasModifyingOperations);
 }
 
-class DatabaseMethodResult {
-  DatabaseMethodResult({required this.result, required this.hasChanged});
-  final dynamic result;
-  final bool hasChanged;
+extension type const DatabaseMethodResult._((Object? result, bool hasChanged) record) {
+  const DatabaseMethodResult({
+    required Object? result,
+    required bool hasChanged,
+  }) : this._((result, hasChanged));
 
-  @override
-  String toString() {
-    return 'DatabaseMethodResult(result: $result, hasChanged: $hasChanged)';
-  }
+  Object? get result => record.$1;
+  bool get hasChanged => record.$2;
 }

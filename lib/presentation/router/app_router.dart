@@ -15,18 +15,18 @@ import 'package:go_router/go_router.dart';
 
 final rootWidgetKey = GlobalKey<NavigatorState>();
 final router = GoRouter(
-  initialLocation: AppRoutes.login,
+  initialLocation: AppRoutes.login.path,
   navigatorKey: rootWidgetKey,
   routes: [
     ShellRoute(
       builder: (_, __, child) => BottomText(child: child),
       routes: [
         GoRoute(
-          path: AppRoutes.login,
+          path: AppRoutes.login.path,
           builder: (context, state) => const LoginPage(),
         ),
         GoRoute(
-          path: AppRoutes.resetPassword,
+          path: AppRoutes.resetPassword.path,
           builder: (context, state) => const Text("Reset Password"),
         )
       ],
@@ -38,10 +38,10 @@ final router = GoRouter(
       branches: [
         // Admin Dashboard Shell
         StatefulShellBranch(
-          initialLocation: AppRoutes.admin,
+          initialLocation: AppRoutes.admin.path,
           routes: [
             GoRoute(
-              path: AppRoutes.admin,
+              path: AppRoutes.admin.path,
               builder: (context, state) => const Text("Dashboard"),
             )
           ],
@@ -49,42 +49,42 @@ final router = GoRouter(
 
         // Inventory Page Shell
         StatefulShellBranch(
-          initialLocation: AppRoutes.inventoryPage,
+          initialLocation: AppRoutes.inventoryPage.path,
           routes: [
             GoRoute(
-              path: AppRoutes.inventoryPage,
+              path: AppRoutes.inventoryPage.path,
               builder: (context, state) => (const InventoryPanePage()),
             ),
             GoRoute(
-              path: AppRoutes.createProductPage,
+              path: AppRoutes.createProductPage.path,
 
               /// The [MaterialPage] is used for the transition animation.
               /// Should be removed if decided not to use the transition.
               builder: (context, state) => (const CreateProductPage()),
             ),
             GoRoute(
-              path: AppRoutes.editProductPage,
+              path: AppRoutes.editProductPage.path,
               builder: (context, state) => (EditProductPage(product: state.extra as Product)),
             ),
             GoRoute(
-              path: AppRoutes.categoriesPage,
+              path: AppRoutes.categoriesPage.path,
               builder: (context, state) => (const ManageCategoriesPage()),
             ),
           ],
         ),
         StatefulShellBranch(
-          initialLocation: AppRoutes.usersPage,
+          initialLocation: AppRoutes.usersPage.path,
           routes: [
             GoRoute(
-              path: AppRoutes.usersPage,
+              path: AppRoutes.usersPage.path,
               builder: (context, state) => const UsersPanePage(),
             ),
             GoRoute(
-              path: AppRoutes.createUserPage,
+              path: AppRoutes.createUserPage.path,
               builder: (context, state) => const CreateUserPage(),
             ),
             GoRoute(
-              path: AppRoutes.userLogsPage,
+              path: AppRoutes.userLogsPage.path,
               builder: (context, state) => const UserLogPane(),
             )
           ],

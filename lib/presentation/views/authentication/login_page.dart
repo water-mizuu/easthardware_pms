@@ -40,16 +40,16 @@ class _LoginPageState extends State<LoginPage> {
               print(status);
             }
             if (authState.loginAttempts > 3) {
-              context.go(AppRoutes.resetPassword);
+              context.go(AppRoutes.resetPassword.path);
             }
           }
 
           if (status == AuthenticationStatus.success) {
             if (user?.accessLevel == AccessLevel.administrator) {
-              context.read<NavigationBloc>().add(const NavigationIndexChanged(index: 0));
-              context.go(AppRoutes.admin);
+              context.read<NavigationBloc>().goIndex(0);
+              context.go(AppRoutes.admin.path);
             } else if (user?.accessLevel == AccessLevel.staff) {
-              context.go(AppRoutes.admin);
+              context.go(AppRoutes.admin.path);
             }
             context.read<UserLogListBloc>().add(AddLoginEvent(user!));
           }

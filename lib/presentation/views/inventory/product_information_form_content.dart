@@ -5,9 +5,7 @@ import 'package:easthardware_pms/presentation/models/form_unit.dart';
 import 'package:easthardware_pms/presentation/widgets/layout_mode_provider.dart';
 import 'package:easthardware_pms/presentation/widgets/spacing.dart';
 import 'package:easthardware_pms/presentation/widgets/text.dart';
-import 'package:easthardware_pms/utils/boxed.dart';
 import 'package:fluent_ui/fluent_ui.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:provider/provider.dart';
 import 'package:scroll_animator/scroll_animator.dart';
@@ -490,115 +488,102 @@ class SecondaryUnitField extends StatelessWidget with ProductFormValidator {
   @override
   Widget build(BuildContext context) {
     final startingUnit = context.read<ProductFormBloc>().state.secondaryUnits[index];
-    if (kDebugMode) {
-      printBoxed((
-        startingUnit.runtimeType,
-        startingUnit.unitQuantity,
-        startingUnit.name,
-        "per",
-        startingUnit.mainQuantity
-      ), "Secondary Unit at index $index");
-    }
 
-    return InheritedProvider(
-      create: (_) => GlobalKey(),
-      builder: (context, _) => Row(
-        key: context.read<GlobalKey>(),
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Expanded(
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  child: TextFormBox(
-                    initialValue: startingUnit.unitQuantity.toString(),
-                    validator: (v) => validateSecondaryUnitCount(count: v),
-                    placeholder: "Quantity",
-                    onChanged: (value) {
-                      final state = context.read<ProductFormBloc>().state;
-                      final secondaryUnit = state.secondaryUnits[index];
-                      final FormUnit(:mainQuantity) = secondaryUnit;
-                      final event = SecondaryUnitFieldFactorChangedEvent(
-                        index,
-                        mainQuantity: mainQuantity,
-                        unitQuantity: value,
-                      );
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Expanded(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: TextFormBox(
+                  initialValue: startingUnit.unitQuantity.toString(),
+                  validator: (v) => validateSecondaryUnitCount(count: v),
+                  placeholder: "Quantity",
+                  onChanged: (value) {
+                    final state = context.read<ProductFormBloc>().state;
+                    final secondaryUnit = state.secondaryUnits[index];
+                    final FormUnit(:mainQuantity) = secondaryUnit;
+                    final event = SecondaryUnitFieldFactorChangedEvent(
+                      index,
+                      mainQuantity: mainQuantity,
+                      unitQuantity: value,
+                    );
 
-                      context.read<ProductFormBloc>().add(event);
-                    },
-                  ),
+                    context.read<ProductFormBloc>().add(event);
+                  },
                 ),
-                Expanded(
-                  child: TextFormBox(
-                    initialValue: startingUnit.name,
-                    validator: (name) {
-                      final state = context.read<ProductFormBloc>().state;
-                      final existingNames = [
-                        ...state.secondaryUnits.map((u) => u.name),
-                        state.mainUnit
-                      ]..removeAt(index);
+              ),
+              Expanded(
+                child: TextFormBox(
+                  initialValue: startingUnit.name,
+                  validator: (name) {
+                    final state = context.read<ProductFormBloc>().state;
+                    final existingNames = [
+                      ...state.secondaryUnits.map((u) => u.name),
+                      state.mainUnit
+                    ]..removeAt(index);
 
-                      return validateSecondaryUnitName(name: name, existingNames: existingNames);
-                    },
-                    onChanged: (value) {
-                      final event = SecondaryUnitFieldNameChangedEvent(index, name: value);
+                    return validateSecondaryUnitName(name: name, existingNames: existingNames);
+                  },
+                  onChanged: (value) {
+                    final event = SecondaryUnitFieldNameChangedEvent(index, name: value);
 
-                      context.read<ProductFormBloc>().add(event);
-                    },
-                    placeholder: "Name (Singular)",
-                  ),
+                    context.read<ProductFormBloc>().add(event);
+                  },
+                  placeholder: "Name (Singular)",
                 ),
-              ].withSpacing(() => Spacing.h8),
-            ),
+              ),
+            ].withSpacing(() => Spacing.h8),
           ),
-          const Padding(padding: EdgeInsets.only(top: 8.0), child: Text("per")),
-          Expanded(
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  child: TextFormBox(
-                    initialValue: startingUnit.mainQuantity.toString(),
-                    validator: (v) => validateMainUnitCount(count: v),
-                    placeholder: "Quantity",
-                    onChanged: (value) {
-                      final state = context.read<ProductFormBloc>().state;
-                      final secondaryUnit = state.secondaryUnits[index];
-                      final FormUnit(:unitQuantity) = secondaryUnit;
-                      final event = SecondaryUnitFieldFactorChangedEvent(
-                        index,
-                        mainQuantity: value,
-                        unitQuantity: unitQuantity,
-                      );
+        ),
+        const Padding(padding: EdgeInsets.only(top: 8.0), child: Text("per")),
+        Expanded(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: TextFormBox(
+                  initialValue: startingUnit.mainQuantity.toString(),
+                  validator: (v) => validateMainUnitCount(count: v),
+                  placeholder: "Quantity",
+                  onChanged: (value) {
+                    final state = context.read<ProductFormBloc>().state;
+                    final secondaryUnit = state.secondaryUnits[index];
+                    final FormUnit(:unitQuantity) = secondaryUnit;
+                    final event = SecondaryUnitFieldFactorChangedEvent(
+                      index,
+                      mainQuantity: value,
+                      unitQuantity: unitQuantity,
+                    );
 
-                      context.read<ProductFormBloc>().add(event);
-                    },
-                  ),
+                    context.read<ProductFormBloc>().add(event);
+                  },
                 ),
-                Expanded(
-                  child: BlocBuilder<ProductFormBloc, ProductFormState>(
-                    buildWhen: (p, c) => p.mainUnit != c.mainUnit,
-                    builder: (context, state) {
-                      return TextFormBox(
-                        enabled: false,
-                        controller: TextEditingController(text: state.mainUnit),
-                        placeholder: "Main Unit Name",
-                      );
-                    },
-                  ),
+              ),
+              Expanded(
+                child: BlocBuilder<ProductFormBloc, ProductFormState>(
+                  buildWhen: (p, c) => p.mainUnit != c.mainUnit,
+                  builder: (context, state) {
+                    return TextFormBox(
+                      enabled: false,
+                      controller: TextEditingController(text: state.mainUnit),
+                      placeholder: "Main Unit Name",
+                    );
+                  },
                 ),
-              ].withSpacing(() => Spacing.h8),
-            ),
+              ),
+            ].withSpacing(() => Spacing.h8),
           ),
-          IconButton(
-            icon: const Icon(FluentIcons.cancel),
-            onPressed: () => context
-                .read<ProductFormBloc>() //
-                .add(SecondaryUnitFieldDeletedEvent(index)),
-          ),
-        ].withSpacing(() => Spacing.h16),
-      ),
+        ),
+        IconButton(
+          icon: const Icon(FluentIcons.cancel),
+          onPressed: () => context
+              .read<ProductFormBloc>() //
+              .add(SecondaryUnitFieldDeletedEvent(index)),
+        ),
+      ].withSpacing(() => Spacing.h16),
     );
   }
 }

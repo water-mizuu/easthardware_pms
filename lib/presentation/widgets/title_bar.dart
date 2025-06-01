@@ -8,6 +8,13 @@ import 'package:window_manager_plus/window_manager_plus.dart';
 const macOSTitleBarHeight = 28.0;
 const windowsTitleBarHeight = 32.0;
 
+class KeyedValue<T> {
+  const KeyedValue(this.key, this.value);
+
+  final String key;
+  final T value;
+}
+
 class TitleBar extends StatefulWidget {
   const TitleBar({
     super.key,
@@ -20,6 +27,7 @@ class TitleBar extends StatefulWidget {
   State<TitleBar> createState() => _TitleBarState();
 
   static bool of(BuildContext context) {
+    Provider.of<_TitleBarState>(context);
     try {
       context.read<_TitleBarState>();
 
@@ -88,12 +96,7 @@ class _TitleBarState extends State<TitleBar> with WindowListener {
         child: Stack(
           children: [
             Positioned.fill(child: widget.child),
-            Positioned(
-              top: 0.0,
-              left: 0.0,
-              right: 0.0,
-              child: _titleBar(),
-            )
+            Positioned(top: 0.0, left: 0.0, right: 0.0, child: _titleBar())
           ],
         ),
       ),

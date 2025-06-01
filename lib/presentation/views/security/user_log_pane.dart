@@ -41,11 +41,9 @@ class PageHeader extends StatelessWidget {
         IconButton(
           icon: const Icon(FluentIcons.back),
           onPressed: () {
-            final event = NavigationIndexChanged(
-              index: RouteIndexMapper.getIndexFromRoute(AppRoutes.usersPage)!,
-            );
-
-            context.read<NavigationBloc>().add(event);
+            context
+                .read<NavigationBloc>()
+                .goIndex(RouteIndexMapper.of(context).getIndexFromRoute(AppRoutes.usersPage)!);
           },
         ),
         const HeadingText('User Logs'),

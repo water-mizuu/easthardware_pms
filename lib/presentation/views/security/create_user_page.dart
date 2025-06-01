@@ -73,9 +73,8 @@ class _CreateUserPageState extends State<CreateUserPage> {
                 }
               });
               // Show success message and navigate back
-              context.read<NavigationBloc>().add(
-                    NavigationIndexChanged(
-                        index: RouteIndexMapper.getIndexFromRoute(AppRoutes.usersPage)!),
+              context.read<NavigationBloc>().goIndex(
+                    RouteIndexMapper.of(context).getIndexFromRoute(AppRoutes.usersPage)!,
                   );
               break;
             case FormStatus.error:
@@ -149,10 +148,8 @@ class PageHeader extends StatelessWidget {
           onPressed: () {
             context
                 .read<NavigationBloc>() //
-                .add(
-                  NavigationIndexChanged(
-                    index: RouteIndexMapper.getIndexFromRoute(AppRoutes.usersPage)!,
-                  ),
+                .goIndex(
+                  context.read<RouteIndexMapper>().getIndexFromRoute(AppRoutes.usersPage)!,
                 );
           },
         ),

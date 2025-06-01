@@ -1,24 +1,28 @@
 class AppRoutes {
-  static const String root = '/';
-  static const String login = '/login';
-  static const String resetPassword = '/reset_password';
+  static const AppRoute root = AppRoute('/');
+  static const AppRoute login = AppRoute('/login');
+  static const AppRoute resetPassword = AppRoute('/reset_password');
 
   // Major Page Routes
-  static const String admin = '/admin';
-  static const String staffDashboard = '/staff';
-  static const String inventoryPage = '/inventory';
-  static const String billingPage = '/billing';
-  static const String orderPage = '/order';
-  static const String reportsPage = '/reports';
-  static const String settingsPage = '/settings';
+  static const AppRoute admin = AppRoute('/admin');
+  static const AppRoute staffDashboard = AppRoute('/staff');
+  static const AppRoute inventoryPage = AppRoute('/inventory');
+  static const AppRoute billingPage = AppRoute('/billing');
+  static const AppRoute orderPage = AppRoute('/order');
+  static const AppRoute reportsPage = AppRoute('/reports');
+  static const AppRoute settingsPage = AppRoute('/settings');
 
   // Inventory Sub Pages
-  static const String categoriesPage = '/categories';
-  static const String createProductPage = '/create/product';
-  static const String editProductPage = '/edit';
+  static const AppRoute categoriesPage = AppRoute('/categories');
+  static const AppRoute createProductPage = AppRoute('/create/product');
+  static const AppRoute editProductPage = AppRoute('/edit');
 
   // Security Sub Pages
-  static const String usersPage = '/users';
-  static const String createUserPage = '/create/user';
-  static const String userLogsPage = '/logs';
+  static const AppRoute usersPage = AppRoute('/users');
+  static const AppRoute createUserPage = AppRoute('/create/user');
+  static const AppRoute userLogsPage = AppRoute('/logs');
 }
+
+/// A zero-cost compile-time wrapper for a string path.
+///   This is used to define and use routes in a type-safe manner.
+extension type const AppRoute(String path) {}

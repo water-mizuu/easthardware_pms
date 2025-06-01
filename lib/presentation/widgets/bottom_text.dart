@@ -1,15 +1,15 @@
+import 'package:easthardware_pms/presentation/bloc/navigation/navigation_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/server/server_bloc.dart';
 import 'package:easthardware_pms/presentation/router/app_routes.dart';
+import 'package:easthardware_pms/presentation/widgets/helper/route_index_mapper.dart';
 import 'package:fluent_ui/fluent_ui.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart' show Icons;
-import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
 /// This serves as a key to access the bottom text notifier from anywhere in the app.
 ///   This only wraps a [ValueNotifier<String>] to provide a simple way to access it.
 class BottomTextNotifier {
-
   const BottomTextNotifier(this.notifier);
   final ValueNotifier<String> notifier;
 }
@@ -49,7 +49,9 @@ class BottomText extends StatelessWidget {
                   Button(
                     child: const Text("Reset Connection"),
                     onPressed: () {
-                      context.go(AppRoutes.login);
+                      context.read<NavigationBloc>().goIndex(
+                            RouteIndexMapper.of(context).getIndexFromRoute(AppRoutes.login)!,
+                          );
                       context.read<ServerBloc>().add(const ServerReset());
                     },
                   ),

@@ -5,10 +5,14 @@ import 'package:equatable/equatable.dart';
 part 'navigation_event.dart';
 part 'navigation_state.dart';
 
-class NavigationBloc extends Bloc<NavigationEvent, NavigationState> {
-  NavigationBloc() : super(const NavigationState(selectedIndex: 0, currentRouteName: '/')) {
-    on<NavigationIndexChanged>((event, emit) {
-      emit(state.copyWith(selectedIndex: event.index));
-    });
+class NavigationBloc extends Cubit<NavigationState> {
+  NavigationBloc() : super(const NavigationState(selectedIndex: 0));
+
+  void goIndex(int index) {
+    emit(state.copyWith(selectedIndex: index));
+  }
+
+  void goOutsideOfNavigation() {
+    emit(state.copyWith(selectedIndex: null));
   }
 }

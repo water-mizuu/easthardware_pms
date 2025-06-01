@@ -1,32 +1,67 @@
-import 'package:easthardware_pms/presentation/bloc/navigation/navigation_bloc.dart';
 import 'package:easthardware_pms/presentation/router/app_routes.dart';
+import 'package:easthardware_pms/presentation/views/navigation/admin_navigation_scaffold.dart';
+import 'package:fluent_ui/fluent_ui.dart';
+import 'package:flutter/foundation.dart';
+import 'package:provider/provider.dart';
 
+/// This class maps routes to their respective indices according to the navigation pane items.
+///   It is used to determine the index of a route in the navigation pane and vice versa.
 class RouteIndexMapper {
-  static String? getRouteFromIndex(NavigationState state) {
-    return switch (state.selectedIndex) {
-      0 => AppRoutes.admin,
-      1 => AppRoutes.inventoryPage,
-      2 => AppRoutes.inventoryPage,
-      3 => AppRoutes.createProductPage,
-      4 => AppRoutes.categoriesPage,
-      12 => AppRoutes.usersPage,
-      13 => AppRoutes.usersPage,
-      14 => AppRoutes.createUserPage,
-      15 => AppRoutes.userLogsPage,
-      _ => null,
-    };
+  const RouteIndexMapper._(this._routeToIndex, this._indexToRoute);
+
+  final Map<AppRoute, int> _routeToIndex;
+  final Map<int, AppRoute> _indexToRoute;
+
+  static Widget provide({
+    required List<NavigationPaneItem> items,
+    required Widget Function(BuildContext) builder,
+  }) {
+    return Provider(
+      create: (_) {
+        final expandedItems = items.expandItems().toList();
+        final routeToIndex = <AppRoute, int>{};
+        final indexToRoute = <int, AppRoute>{};
+        for (var i = 0; i < expandedItems.length; i++) {
+          if (expandedItems[i].infoBadge case Transform(child: RouteText(:final data))) {
+            if (kDebugMode) {
+              print('Mapping route: $data to index: $i');
+            }
+
+            final route = data as AppRoute;
+            routeToIndex[route] = i;
+            indexToRoute[i] = route;
+          }
+        }
+
+        return RouteIndexMapper._(routeToIndex, indexToRoute);
+      },
+      builder: (context, child) => builder(context),
+    );
   }
 
-  static int? getIndexFromRoute(String route) {
-    return switch (route) {
-      AppRoutes.admin => 0,
-      AppRoutes.inventoryPage => 2,
-      AppRoutes.createProductPage => 3,
-      AppRoutes.categoriesPage => 4,
-      AppRoutes.usersPage => 13,
-      AppRoutes.createUserPage => 14,
-      AppRoutes.userLogsPage => 15,
-      _ => null
-    };
+  static RouteIndexMapper of(BuildContext context) {
+    return context.read<RouteIndexMapper>();
+  }
+
+  AppRoute? getRouteFromIndex(int index) {
+    return _indexToRoute[index];
+  }
+
+  int? getIndexFromRoute(AppRoute route) {
+    return _routeToIndex[route];
+  }
+}
+
+extension on Iterable<NavigationPaneItem> {
+  /// Flattens the list of NavigationPaneItems, expanding any PaneItemExpander items.
+  Iterable<PaneItem> expandItems() {
+    AppRoutes;
+    return expand(
+      (item) => item is PaneItemExpander //
+          ? [item, ...item.items.expandItems()]
+          : item is PaneItem
+              ? [item]
+              : [],
+    );
   }
 }
