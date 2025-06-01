@@ -97,8 +97,9 @@ class _AdminNavigationViewState extends State<AdminNavigationView> {
           listener: (context, state) {
             final index = state.selectedIndex;
             if (index == null) return;
-
-            final route = RouteIndexMapper.of(context).getRouteFromIndex(index);
+            final route = context //
+                .read<RouteIndexMapper>()
+                .getRouteFromIndex(index);
             if (route != null) {
               context.push(route.path);
             }

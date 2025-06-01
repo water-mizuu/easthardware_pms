@@ -74,7 +74,7 @@ class _CreateUserPageState extends State<CreateUserPage> {
               });
               // Show success message and navigate back
               context.read<NavigationBloc>().goIndex(
-                    RouteIndexMapper.of(context).getIndexFromRoute(AppRoutes.usersPage)!,
+                    context.read<RouteIndexMapper>().getIndexFromRoute(AppRoutes.usersPage)!,
                   );
               break;
             case FormStatus.error:

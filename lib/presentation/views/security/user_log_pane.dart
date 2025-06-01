@@ -43,7 +43,7 @@ class PageHeader extends StatelessWidget {
           onPressed: () {
             context
                 .read<NavigationBloc>()
-                .goIndex(RouteIndexMapper.of(context).getIndexFromRoute(AppRoutes.usersPage)!);
+                .goIndex(context.read<RouteIndexMapper>().getIndexFromRoute(AppRoutes.usersPage)!);
           },
         ),
         const HeadingText('User Logs'),

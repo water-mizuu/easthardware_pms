@@ -81,7 +81,7 @@ class CreateProductPage extends StatelessWidget {
 
                 /// Navigate to the inventory page after successful submission.
                 final index =
-                    RouteIndexMapper.of(context).getIndexFromRoute(AppRoutes.inventoryPage);
+                    context.read<RouteIndexMapper>().getIndexFromRoute(AppRoutes.inventoryPage);
                 context.read<NavigationBloc>().goIndex(index!);
                 break;
               default:
@@ -113,9 +113,8 @@ class PageHeader extends StatelessWidget {
       children: [
         IconButton(
           icon: const Icon(FluentIcons.back),
-          onPressed: () => context
-              .read<NavigationBloc>()
-              .goIndex(RouteIndexMapper.of(context).getIndexFromRoute(AppRoutes.inventoryPage)!),
+          onPressed: () => context.read<NavigationBloc>().goIndex(
+              context.read<RouteIndexMapper>().getIndexFromRoute(AppRoutes.inventoryPage)!),
         ),
         const DisplayText('Add Product'),
         const Spacer(flex: 1),

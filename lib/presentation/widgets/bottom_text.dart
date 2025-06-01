@@ -50,7 +50,9 @@ class BottomText extends StatelessWidget {
                     child: const Text("Reset Connection"),
                     onPressed: () {
                       context.read<NavigationBloc>().goIndex(
-                            RouteIndexMapper.of(context).getIndexFromRoute(AppRoutes.login)!,
+                            context //
+                                .read<RouteIndexMapper>()
+                                .getIndexFromRoute(AppRoutes.login)!,
                           );
                       context.read<ServerBloc>().add(const ServerReset());
                     },

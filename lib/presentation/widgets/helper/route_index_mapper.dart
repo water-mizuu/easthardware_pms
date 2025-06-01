@@ -39,9 +39,9 @@ class RouteIndexMapper {
     );
   }
 
-  static RouteIndexMapper of(BuildContext context) {
-    return context.read<RouteIndexMapper>();
-  }
+  // static RouteIndexMapper of(BuildContext context) {
+  //   return context.read<RouteIndexMapper>();
+  // }
 
   AppRoute? getRouteFromIndex(int index) {
     return _indexToRoute[index];

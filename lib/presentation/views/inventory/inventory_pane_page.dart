@@ -85,13 +85,13 @@ class PageHeader extends StatelessWidget {
           const route = AppRoutes.categoriesPage;
           context
               .read<NavigationBloc>()
-              .goIndex(RouteIndexMapper.of(context).getIndexFromRoute(route)!);
+              .goIndex(context.read<RouteIndexMapper>().getIndexFromRoute(route)!);
         }),
         TextButtonFilled('New Product', onPressed: () {
           const route = AppRoutes.createProductPage;
           context
               .read<NavigationBloc>()
-              .goIndex(RouteIndexMapper.of(context).getIndexFromRoute(route)!);
+              .goIndex(context.read<RouteIndexMapper>().getIndexFromRoute(route)!);
         }),
       ].withSpacing(() => Spacing.h16),
     );

@@ -63,7 +63,7 @@ class PageActions extends StatelessWidget {
           const route = AppRoutes.createUserPage;
           context
               .read<NavigationBloc>() //
-              .goIndex(RouteIndexMapper.of(context).getIndexFromRoute(route)!);
+              .goIndex(context.read<RouteIndexMapper>().getIndexFromRoute(route)!);
         }),
       ].withSpacing(() => Spacing.h16),
     );

@@ -105,7 +105,9 @@ class EditProductPage extends StatelessWidget {
                 if (context.mounted) {
                   context.read<ProductFormBloc>().add(FormResetEvent());
                   context.read<NavigationBloc>().goIndex(
-                        RouteIndexMapper.of(context).getIndexFromRoute(AppRoutes.inventoryPage)!,
+                        context
+                            .read<RouteIndexMapper>()
+                            .getIndexFromRoute(AppRoutes.inventoryPage)!,
                       );
                 }
               });
@@ -147,7 +149,7 @@ class PageHeader extends StatelessWidget {
         IconButton(
           icon: const Icon(FluentIcons.back),
           onPressed: () => context.read<NavigationBloc>().goIndex(
-                RouteIndexMapper.of(context).getIndexFromRoute(AppRoutes.inventoryPage)!,
+                context.read<RouteIndexMapper>().getIndexFromRoute(AppRoutes.inventoryPage)!,
               ),
         ),
         const DisplayText('Edit Product'),
