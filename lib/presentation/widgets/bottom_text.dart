@@ -1,7 +1,6 @@
-import 'package:easthardware_pms/presentation/bloc/navigation/navigation_bloc.dart';
+import 'package:easthardware_pms/presentation/bloc/navigation/navigation_cubit.dart';
 import 'package:easthardware_pms/presentation/bloc/server/server_bloc.dart';
 import 'package:easthardware_pms/presentation/router/app_routes.dart';
-import 'package:easthardware_pms/presentation/widgets/helper/route_index_mapper.dart';
 import 'package:fluent_ui/fluent_ui.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart' show Icons;
@@ -49,11 +48,7 @@ class BottomText extends StatelessWidget {
                   Button(
                     child: const Text("Reset Connection"),
                     onPressed: () {
-                      context.read<NavigationBloc>().goIndex(
-                            context //
-                                .read<RouteIndexMapper>()
-                                .getIndexFromRoute(AppRoutes.login)!,
-                          );
+                      context.navigate(AppRoutes.login);
                       context.read<ServerBloc>().add(const ServerReset());
                     },
                   ),

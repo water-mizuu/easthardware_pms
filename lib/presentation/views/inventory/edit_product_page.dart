@@ -9,12 +9,11 @@ import 'package:easthardware_pms/presentation/bloc/inventory/category_list/categ
 import 'package:easthardware_pms/presentation/bloc/inventory/product_form/product_form_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/inventory/product_list/product_list_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/inventory/unit_list/unit_list_bloc.dart';
-import 'package:easthardware_pms/presentation/bloc/navigation/navigation_bloc.dart';
+import 'package:easthardware_pms/presentation/bloc/navigation/navigation_cubit.dart';
 import 'package:easthardware_pms/presentation/bloc/security/user_log_list/user_log_list_bloc.dart';
 import 'package:easthardware_pms/presentation/router/app_routes.dart';
 import 'package:easthardware_pms/presentation/views/inventory/product_information_form_content.dart';
 import 'package:easthardware_pms/presentation/widgets/buttons/text_button.dart';
-import 'package:easthardware_pms/presentation/widgets/helper/route_index_mapper.dart';
 import 'package:easthardware_pms/presentation/widgets/spacing.dart';
 import 'package:easthardware_pms/presentation/widgets/text.dart';
 import 'package:easthardware_pms/utils/boxed.dart';
@@ -104,11 +103,7 @@ class EditProductPage extends StatelessWidget {
               Future.delayed(Duration.zero, () {
                 if (context.mounted) {
                   context.read<ProductFormBloc>().add(FormResetEvent());
-                  context.read<NavigationBloc>().goIndex(
-                        context
-                            .read<RouteIndexMapper>()
-                            .getIndexFromRoute(AppRoutes.inventoryPage)!,
-                      );
+                  context.navigate(AppRoutes.inventoryPage);
                 }
               });
             case FormStatus.error:
@@ -148,9 +143,7 @@ class PageHeader extends StatelessWidget {
       children: [
         IconButton(
           icon: const Icon(FluentIcons.back),
-          onPressed: () => context.read<NavigationBloc>().goIndex(
-                context.read<RouteIndexMapper>().getIndexFromRoute(AppRoutes.inventoryPage)!,
-              ),
+          onPressed: () => context.navigate(AppRoutes.inventoryPage),
         ),
         const DisplayText('Edit Product'),
         const Spacer(flex: 1),

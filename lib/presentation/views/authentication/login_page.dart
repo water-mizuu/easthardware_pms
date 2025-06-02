@@ -1,14 +1,13 @@
 import 'package:easthardware_pms/domain/enums/enums.dart';
 import 'package:easthardware_pms/presentation/bloc/authentication/authentication/authentication_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/authentication/login_form/login_form_bloc.dart';
-import 'package:easthardware_pms/presentation/bloc/navigation/navigation_bloc.dart';
+import 'package:easthardware_pms/presentation/bloc/navigation/navigation_cubit.dart';
 import 'package:easthardware_pms/presentation/bloc/security/user_log_list/user_log_list_bloc.dart';
 import 'package:easthardware_pms/presentation/router/app_routes.dart';
 import 'package:easthardware_pms/presentation/views/authentication/login_form.dart';
 import 'package:fluent_ui/fluent_ui.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:provider/single_child_widget.dart';
 
@@ -40,16 +39,15 @@ class _LoginPageState extends State<LoginPage> {
               print(status);
             }
             if (authState.loginAttempts > 3) {
-              context.go(AppRoutes.resetPassword.path);
+              context.navigate(AppRoutes.resetPassword);
             }
           }
 
           if (status == AuthenticationStatus.success) {
             if (user?.accessLevel == AccessLevel.administrator) {
-              context.read<NavigationBloc>().goIndex(0);
-              context.go(AppRoutes.admin.path);
+              context.navigate(AppRoutes.admin);
             } else if (user?.accessLevel == AccessLevel.staff) {
-              context.go(AppRoutes.admin.path);
+              context.navigate(AppRoutes.admin);
             }
             context.read<UserLogListBloc>().add(AddLoginEvent(user!));
           }

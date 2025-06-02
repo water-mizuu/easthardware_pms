@@ -2,7 +2,7 @@ import 'package:easthardware_pms/domain/constants/constants.dart';
 import 'package:easthardware_pms/domain/enums/enums.dart';
 import 'package:easthardware_pms/presentation/bloc/authentication/authentication/'
     'authentication_bloc.dart';
-import 'package:easthardware_pms/presentation/bloc/navigation/navigation_bloc.dart';
+import 'package:easthardware_pms/presentation/bloc/navigation/navigation_cubit.dart';
 import 'package:easthardware_pms/presentation/bloc/security/security_questions/security_question_list_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/security/user_form/user_form_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/security/user_form/user_form_validator.dart';
@@ -10,7 +10,6 @@ import 'package:easthardware_pms/presentation/bloc/security/user_list/user_list_
 import 'package:easthardware_pms/presentation/bloc/security/user_log_list/user_log_list_bloc.dart';
 import 'package:easthardware_pms/presentation/router/app_routes.dart';
 import 'package:easthardware_pms/presentation/widgets/buttons/text_button.dart';
-import 'package:easthardware_pms/presentation/widgets/helper/route_index_mapper.dart';
 import 'package:easthardware_pms/presentation/widgets/spacing.dart';
 import 'package:easthardware_pms/presentation/widgets/text.dart';
 import 'package:fluent_ui/fluent_ui.dart';
@@ -73,9 +72,7 @@ class _CreateUserPageState extends State<CreateUserPage> {
                 }
               });
               // Show success message and navigate back
-              context.read<NavigationBloc>().goIndex(
-                    context.read<RouteIndexMapper>().getIndexFromRoute(AppRoutes.usersPage)!,
-                  );
+              context.navigate(AppRoutes.usersPage);
               break;
             case FormStatus.error:
               // Show error message
@@ -146,11 +143,7 @@ class PageHeader extends StatelessWidget {
         IconButton(
           icon: const Icon(FluentIcons.back),
           onPressed: () {
-            context
-                .read<NavigationBloc>() //
-                .goIndex(
-                  context.read<RouteIndexMapper>().getIndexFromRoute(AppRoutes.usersPage)!,
-                );
+            context.navigate(AppRoutes.usersPage);
           },
         ),
         const DisplayText('Create User'),

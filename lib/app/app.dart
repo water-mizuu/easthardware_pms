@@ -2,6 +2,7 @@ import 'package:easthardware_pms/app/dependency_injector.dart';
 import 'package:easthardware_pms/data/database/database_helper.dart';
 import 'package:easthardware_pms/presentation/bloc/authentication/'
     'authentication/authentication_bloc.dart';
+import 'package:easthardware_pms/presentation/bloc/navigation/navigation_cubit.dart';
 import 'package:easthardware_pms/presentation/bloc/security/user_log_list/user_log_list_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/server/server_bloc.dart';
 import 'package:easthardware_pms/presentation/router/app_router.dart';
@@ -53,6 +54,13 @@ class _AppState extends State<App> with WidgetsBindingObserver {
         listenWhen: (p, c) => p.lastUpdated != c.lastUpdated,
         listener: (context, state) {
           di.markNeedsRefresh();
+        },
+      ),
+
+      /// Update the router whenever the navigation state changes.
+      BlocListener<NavigationCubit, NavigationState>(
+        listener: (context, state) {
+          router.go(state.route.path, extra: state.extra);
         },
       ),
     ];

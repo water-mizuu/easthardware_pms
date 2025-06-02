@@ -155,7 +155,7 @@ class ProductFormBloc extends Bloc<ProductFormEvent, ProductFormState> {
 
   void _onSecondaryUnitAdded(SecondaryUnitFieldAddedEvent event, Emitter<ProductFormState> emit) {
     final alternativeUnits = List<FormUnit>.from(state.secondaryUnits);
-    alternativeUnits.add(FormUnit(name: '', mainQuantity: '', unitQuantity: ''));
+    alternativeUnits.add(const FormUnit(name: '', mainQuantity: '', unitQuantity: ''));
     emit(state.copyWith(secondaryUnits: alternativeUnits));
   }
 

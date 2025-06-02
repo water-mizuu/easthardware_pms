@@ -16,7 +16,7 @@ import 'package:easthardware_pms/presentation/bloc/authentication/authentication
 import 'package:easthardware_pms/presentation/bloc/inventory/category_list/category_list_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/inventory/product_list/product_list_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/inventory/unit_list/unit_list_bloc.dart';
-import 'package:easthardware_pms/presentation/bloc/navigation/navigation_bloc.dart';
+import 'package:easthardware_pms/presentation/bloc/navigation/navigation_cubit.dart';
 import 'package:easthardware_pms/presentation/bloc/security/security_questions/security_question_list_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/security/user_list/user_list_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/security/user_log_list/user_log_list_bloc.dart';
@@ -73,7 +73,7 @@ class DependencyInjector {
         key: key(),
       ),
       BlocProvider(
-        create: (context) => NavigationBloc(),
+        create: (context) => NavigationCubit(),
         key: key(),
       ),
       BlocProvider(

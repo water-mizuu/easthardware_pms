@@ -13,9 +13,11 @@ import 'package:easthardware_pms/presentation/widgets/bottom_text.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+const initialLocation = AppRoutes.login;
+
 final rootWidgetKey = GlobalKey<NavigatorState>();
 final router = GoRouter(
-  initialLocation: AppRoutes.login.path,
+  initialLocation: initialLocation as String,
   navigatorKey: rootWidgetKey,
   routes: [
     ShellRoute(

@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 import 'dart:isolate';
 
@@ -7,7 +8,6 @@ import 'package:easthardware_pms/domain/backend/classes/secure_connection.dart';
 import 'package:easthardware_pms/domain/backend/extensions/to_message_channel.dart';
 import 'package:easthardware_pms/domain/backend/server_database.dart';
 import 'package:easthardware_pms/domain/backend/utils/isolate_indicator.dart';
-import 'package:easthardware_pms/domain/services/cryptography_service.dart';
 import 'package:easthardware_pms/utils/boxed.dart';
 import 'package:easthardware_pms/utils/message_channel.dart';
 import 'package:easthardware_pms/utils/parallelism.dart';
@@ -115,7 +115,7 @@ Future<void> spawnWebSocketIsolate((RootIsolateToken, NamedSendPort) payload) as
             printBoxed(
               "Method: '$method'\n"
                   "Turnaround Time: ${duration.inMicroseconds}μs\n"
-                  "Arguments:\n${arguments.toString().wrap.indent}",
+                  "Arguments:\n${const JsonEncoder.withIndent("  ").convert(arguments)}",
               "Database Method Call",
             );
           }
@@ -208,7 +208,7 @@ Future<void> _handleConnection(
           printBoxed(
             "Method: '$method'\n"
                 "Turnaround Time: ${duration.inMicroseconds}μs\n"
-                "Arguments:\n${arguments.toString().wrap.indent}",
+                "Arguments:\n${const JsonEncoder.withIndent("  ").convert(arguments)}",
             "Database Method Call",
           );
         }

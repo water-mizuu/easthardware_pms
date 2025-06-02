@@ -1,32 +1,20 @@
-part of 'navigation_bloc.dart';
+part of 'navigation_cubit.dart';
 
-class NavigationState with EquatableMixin {
-  const NavigationState({
-    required this.selectedIndex,
-    // required this.currentRouteName,
-  });
+final class NavigationState {
+  const NavigationState({required this.route, this.extra});
 
-  final int? selectedIndex;
-  // final String currentRouteName;
+  final AppRoute route;
+  final Object? extra;
 
-  NavigationState Function({
-    int? selectedIndex,
-    // String currentRouteName,
-  }) get copyWith {
+  NavigationState Function({AppRoute route, Object? extra}) get copyWith {
     return ({
-      Object? selectedIndex = undefined,
-      // Object? currentRouteName = undefined,
+      Object? route = undefined,
+      Object? extra = undefined,
     }) {
       return NavigationState(
-        selectedIndex: selectedIndex.or(this.selectedIndex),
-        // currentRouteName: currentRouteName.or(this.currentRouteName),
+        route: route.or(this.route),
+        extra: extra.or(this.extra),
       );
     };
   }
-
-  @override
-  List<Object?> get props => [
-        selectedIndex,
-        // currentRouteName,
-      ];
 }

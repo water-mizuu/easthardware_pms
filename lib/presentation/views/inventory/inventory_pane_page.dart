@@ -1,18 +1,16 @@
 import 'package:easthardware_pms/domain/enums/enums.dart';
 import 'package:easthardware_pms/presentation/bloc/inventory/product_list/product_list_bloc.dart';
-import 'package:easthardware_pms/presentation/bloc/navigation/navigation_bloc.dart';
+import 'package:easthardware_pms/presentation/bloc/navigation/navigation_cubit.dart';
 import 'package:easthardware_pms/presentation/router/app_routes.dart';
 import 'package:easthardware_pms/presentation/widgets/buttons/text_button.dart';
 import 'package:easthardware_pms/presentation/widgets/data_table_place_holder.dart';
 import 'package:easthardware_pms/presentation/widgets/helper/data_row_mapper.dart';
-import 'package:easthardware_pms/presentation/widgets/helper/route_index_mapper.dart';
 import 'package:easthardware_pms/presentation/widgets/kpi_card.dart';
 import 'package:easthardware_pms/presentation/widgets/layout_mode_provider.dart';
 import 'package:easthardware_pms/presentation/widgets/spacing.dart';
 import 'package:easthardware_pms/presentation/widgets/text.dart';
 import 'package:fluent_ui/fluent_ui.dart';
 import 'package:flutter/material.dart' show DataColumn, DataTable;
-import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:scroll_animator/scroll_animator.dart';
 
@@ -82,16 +80,10 @@ class PageHeader extends StatelessWidget {
         const HeadingText('Products'),
         const Spacer(flex: 1),
         TextButton('Manage Categories', onPressed: () {
-          const route = AppRoutes.categoriesPage;
-          context
-              .read<NavigationBloc>()
-              .goIndex(context.read<RouteIndexMapper>().getIndexFromRoute(route)!);
+          context.navigate(AppRoutes.categoriesPage);
         }),
         TextButtonFilled('New Product', onPressed: () {
-          const route = AppRoutes.createProductPage;
-          context
-              .read<NavigationBloc>()
-              .goIndex(context.read<RouteIndexMapper>().getIndexFromRoute(route)!);
+          context.navigate(AppRoutes.createProductPage);
         }),
       ].withSpacing(() => Spacing.h16),
     );
@@ -335,8 +327,7 @@ class _ProductsDataTableState extends State<ProductsDataTable> {
               DataRowMapper.mapProductToRow(
                 product,
                 editAction: () {
-                  context.push(AppRoutes.editProductPage.path, extra: product);
-                  context.read<NavigationBloc>().goOutsideOfNavigation();
+                  context.navigateWithExtra(AppRoutes.editProductPage, product);
                 },
               ),
           ],

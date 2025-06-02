@@ -1,11 +1,10 @@
 import 'package:easthardware_pms/domain/enums/enums.dart';
-import 'package:easthardware_pms/presentation/bloc/navigation/navigation_bloc.dart';
+import 'package:easthardware_pms/presentation/bloc/navigation/navigation_cubit.dart';
 import 'package:easthardware_pms/presentation/bloc/security/user_list/user_list_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/security/user_log_list/user_log_list_bloc.dart';
 import 'package:easthardware_pms/presentation/router/app_routes.dart';
 import 'package:easthardware_pms/presentation/widgets/data_table_place_holder.dart';
 import 'package:easthardware_pms/presentation/widgets/helper/data_row_mapper.dart';
-import 'package:easthardware_pms/presentation/widgets/helper/route_index_mapper.dart';
 import 'package:easthardware_pms/presentation/widgets/spacing.dart';
 import 'package:easthardware_pms/presentation/widgets/text.dart';
 import 'package:fluent_ui/fluent_ui.dart';
@@ -41,9 +40,7 @@ class PageHeader extends StatelessWidget {
         IconButton(
           icon: const Icon(FluentIcons.back),
           onPressed: () {
-            context
-                .read<NavigationBloc>()
-                .goIndex(context.read<RouteIndexMapper>().getIndexFromRoute(AppRoutes.usersPage)!);
+            context.navigate(AppRoutes.usersPage);
           },
         ),
         const HeadingText('User Logs'),
