@@ -133,10 +133,13 @@ class _AdminNavigationViewState extends State<AdminNavigationView> {
           selected: _selectedIndex,
           displayMode: widget.mode,
           onItemPressed: (index) {
-            if ([1, 12].contains(index)) {
-              index++;
-            }
-            if (index == 16) return;
+            /// Redirects such as this should be specified in the
+            ///   [_navigationItems] list.
+
+            // if ([1, 12].contains(index)) {
+            //   index++;
+            // }
+            // if (index == 16) return;
 
             final probablyRoute = _routeIndexMapper.getRouteFromIndex(index);
             if (probablyRoute case final AppRoute<void> route) {
@@ -158,128 +161,111 @@ class _AdminNavigationViewState extends State<AdminNavigationView> {
   }
 
   static final List<NavigationPaneItem> _navigationItems = [
-    _createNavItem(
+    _navItem(
       icon: FluentIcons.dynamic_list,
       title: "Dashboard",
       route: AppRoutes.staffDashboard,
     ),
     PaneItemSeparator(),
-    _createNavItem(
+    _navItem(
       icon: FluentIcons.product,
       title: "Inventory",
-      items: _getInventorySubItems(),
       route: AppRoutes.inventoryPage,
+      items: [
+        _navItem(
+          icon: FluentIcons.product_list,
+          title: "List of Products",
+          route: AppRoutes.inventoryPage,
+        ),
+        _navItem(
+          icon: FluentIcons.product_release,
+          title: "Register Product",
+          route: AppRoutes.createProductPage,
+        ),
+        _navItem(
+          icon: FluentIcons.product_catalog,
+          title: "Manage Categories",
+          route: AppRoutes.categoriesPage,
+        ),
+      ],
     ),
-    _createNavItem(
+    _navItem(
       icon: FluentIcons.text_document,
       title: 'Billing',
-      items: _getBillingSubItems(),
-      route: AppRoutes.billingPage,
+      // route: AppRoutes.billingPage,
+      items: [
+        _navItem(
+          icon: FluentIcons.text_document,
+          title: "Invoice List",
+          // route: AppRoutes.billingPage,
+        ),
+        _navItem(
+          icon: FluentIcons.text_document_edit,
+          title: "Payments",
+          // route: AppRoutes.billingPage,
+        ),
+      ],
     ),
-    _createNavItem(
+    _navItem(
       icon: FluentIcons.bill,
       title: 'Orders',
-      items: _getOrderSubItems(),
-      route: AppRoutes.orderPage,
+      // route: AppRoutes.orderPage,
+      items: [
+        _navItem(
+          icon: FluentIcons.bill,
+          title: 'Orders List',
+          // route: AppRoutes.orderPage,
+        ),
+        _navItem(
+          icon: FluentIcons.reservation_orders,
+          title: 'Manage Expense Type',
+          // route: AppRoutes.orderPage,
+        ),
+      ],
     ),
-    _createNavItem(
+    _navItem(
       icon: FluentIcons.bar_chart_vertical_fill,
       title: 'Reports',
-      route: AppRoutes.reportsPage,
+      // route: AppRoutes.reportsPage,
     ),
-    _createNavItem(
+    _navItem(
       icon: FluentIcons.local_admin,
       title: 'Security',
-      items: _getSecuritySubItems(),
       route: AppRoutes.admin,
-    )
-    //
+      items: [
+        _navItem(
+          icon: FluentIcons.contact_list,
+          title: 'List of Users',
+          route: AppRoutes.usersPage,
+        ),
+        _navItem(
+          icon: FluentIcons.add_friend,
+          title: 'Register User',
+          route: AppRoutes.createUserPage,
+        ),
+        _navItem(
+          icon: FluentIcons.user_window,
+          title: 'User Logs',
+          route: AppRoutes.userLogsPage,
+        ),
+        _navItem(
+          icon: FluentIcons.leave,
+          title: 'Log Out',
+          route: AppRoutes.login,
+          onTap: () {
+            if (kDebugMode) {
+              print('Log out');
+            }
+          },
+        )
+      ],
+    ),
   ];
 
-  static List<NavigationPaneItem> _getInventorySubItems() {
-    return [
-      _createNavItem(
-        icon: FluentIcons.product_list,
-        title: "List of Products",
-        route: AppRoutes.inventoryPage,
-      ),
-      _createNavItem(
-        icon: FluentIcons.product_release,
-        title: "Register Product",
-        route: AppRoutes.createProductPage,
-      ),
-      _createNavItem(
-        icon: FluentIcons.product_catalog,
-        title: "Manage Categories",
-        route: AppRoutes.categoriesPage,
-      ),
-    ];
-  }
-
-  static List<NavigationPaneItem> _getBillingSubItems() {
-    return [
-      _createNavItem(
-        icon: FluentIcons.text_document,
-        title: "Invoice List",
-        route: AppRoutes.billingPage,
-      ),
-      _createNavItem(
-        icon: FluentIcons.text_document_edit,
-        title: "Payments",
-        route: AppRoutes.billingPage,
-      ),
-    ];
-  }
-
-  static List<NavigationPaneItem> _getOrderSubItems() {
-    return [
-      _createNavItem(
-        icon: FluentIcons.bill,
-        title: 'Orders List',
-        route: AppRoutes.orderPage,
-      ),
-      _createNavItem(
-        icon: FluentIcons.reservation_orders,
-        title: 'Manage Expense Type',
-        route: AppRoutes.orderPage,
-      ),
-    ];
-  }
-
-  static List<NavigationPaneItem> _getSecuritySubItems() {
-    return [
-      _createNavItem(
-        icon: FluentIcons.contact_list,
-        title: 'List of Users',
-        route: AppRoutes.usersPage,
-      ),
-      _createNavItem(
-        icon: FluentIcons.add_friend,
-        title: 'Register User',
-        route: AppRoutes.createUserPage,
-      ),
-      _createNavItem(
-        icon: FluentIcons.user_window,
-        title: 'User Logs',
-        route: AppRoutes.userLogsPage,
-      ),
-      _createNavItem(
-        icon: FluentIcons.leave,
-        title: 'Log Out',
-        route: AppRoutes.login,
-        onTap: () {
-          if (kDebugMode) {
-            print('Log out');
-          }
-        },
-      ),
-    ];
-  }
-
-  static NavigationPaneItem _createNavItem({
+  static NavigationPaneItem _navItem({
     required IconData icon,
     required String title,
-    required AppRoute route,
+    AppRoute? route,
     List<NavigationPaneItem>? items,
     VoidCallback? onTap,
   }) {
@@ -291,7 +277,7 @@ class _AdminNavigationViewState extends State<AdminNavigationView> {
 
         /// A little hack to allow the [RouteIndexMapper] to access the route linked
         ///   to this item.
-        infoBadge: Transform.scale(scale: 0.0, child: RouteText(route)),
+        infoBadge: route == null ? null : Transform.scale(scale: 0.0, child: RouteText(route)),
         body: const SizedBox.shrink(),
       );
     } else {
@@ -301,7 +287,7 @@ class _AdminNavigationViewState extends State<AdminNavigationView> {
 
         /// A little hack to allow the [RouteIndexMapper] to access the route linked
         ///   to this item.
-        infoBadge: Transform.scale(scale: 0.0, child: RouteText(route)),
+        infoBadge: route == null ? null : Transform.scale(scale: 0.0, child: RouteText(route)),
         body: const SizedBox.shrink(),
         onTap: onTap,
       );

@@ -61,26 +61,22 @@ class NewPasswordInputSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<NewPasswordFormBloc, NewPasswordFormState>(
-      builder: (context, state) {
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            const Text('New Password'),
-            const SizedBox(height: 8),
-            TextBox(
-              placeholder: 'Enter new password',
-              obscureText: true,
-              onChanged: (value) {
-                context
-                    .read<NewPasswordFormBloc>()
-                    .add(NewPasswordChanged(value.trim()));
-              },
-            ),
-            const SizedBox(height: 16),
-          ],
-        );
-      },
+    final (_) = context.watch<NewPasswordFormBloc>().state;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        const Text('New Password'),
+        const SizedBox(height: 8),
+        TextBox(
+          placeholder: 'Enter new password',
+          obscureText: true,
+          onChanged: (value) {
+            context.read<NewPasswordFormBloc>().add(NewPasswordChanged(value.trim()));
+          },
+        ),
+        const SizedBox(height: 16),
+      ],
     );
   }
 }
@@ -101,9 +97,7 @@ class ConfirmPasswordInputSection extends StatelessWidget {
               placeholder: 'Confirm password',
               obscureText: true,
               onChanged: (value) {
-                context
-                    .read<NewPasswordFormBloc>()
-                    .add(ConfirmPasswordChanged(value.trim()));
+                context.read<NewPasswordFormBloc>().add(ConfirmPasswordChanged(value.trim()));
               },
             ),
             const SizedBox(height: 16),
@@ -124,8 +118,7 @@ class SubmitSection extends StatelessWidget {
         if (state.status == FormStatus.success) {
           // Navigate to login or another screen
           // context.navigate(AppRoutes.login);
-        } else if (state.status == FormStatus.error &&
-            state.errorMessage.isNotEmpty) {
+        } else if (state.status == FormStatus.error && state.errorMessage.isNotEmpty) {
           // Handle error - show a dialog or snackbar
         }
       },
@@ -139,9 +132,7 @@ class SubmitSection extends StatelessWidget {
                     ? null
                     : () {
                         primaryFocus?.unfocus();
-                        context
-                            .read<NewPasswordFormBloc>()
-                            .add(const NewPasswordFormSubmitted());
+                        context.read<NewPasswordFormBloc>().add(const NewPasswordFormSubmitted());
                       },
                 child: Padding(
                   padding: AppPadding.a4,

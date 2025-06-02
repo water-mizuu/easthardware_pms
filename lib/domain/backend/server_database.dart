@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:async_queue/async_queue.dart';
@@ -16,6 +17,8 @@ import 'package:easthardware_pms/data/database/tables/user_logs_table.dart';
 import 'package:easthardware_pms/data/database/tables/users_table.dart';
 import 'package:easthardware_pms/data/database/views/product_flags_view.dart';
 import 'package:easthardware_pms/domain/backend/utils/isolate_indicator.dart';
+import 'package:easthardware_pms/domain/services/cryptography_service.dart';
+import 'package:easthardware_pms/utils/boxed.dart';
 import 'package:flutter/foundation.dart';
 import 'package:path/path.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
@@ -30,9 +33,11 @@ Future<DatabaseMethodResult> serverHandleDatabaseMethod(
 ) async {
   // Create a database instance or use an existing one
   assertChildIsolate();
+  final start = DateTime.now();
   final completer = Completer<DatabaseMethodResult>.sync();
   _dbMethodQueue.addJob((_) async {
     final isolateDatabase = await _getDatabase();
+    final waitingDuration = DateTime.now().difference(start);
 
     DatabaseMethodResult? jobResult;
     switch ((method, arguments)) {
@@ -265,6 +270,17 @@ Future<DatabaseMethodResult> serverHandleDatabaseMethod(
           isCommit: false,
         );
         break;
+    }
+
+    final turnAroundDuration = DateTime.now().difference(start);
+    if (kDebugMode) {
+      printBoxed(
+        "Method: '$method'\n"
+            "Waiting Time: ${waitingDuration.inMicroseconds}μs\n"
+            "Turnaround Time: ${turnAroundDuration.inMicroseconds}μs\n"
+            "Arguments:\n${jsonEncode(arguments).wrap.indent}",
+        "Database Method Call",
+      );
     }
 
     if (jobResult != null) {

@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:convert';
 import 'dart:io';
 import 'dart:isolate';
 
@@ -107,19 +106,7 @@ Future<void> spawnWebSocketIsolate((RootIsolateToken, NamedSendPort) payload) as
           break;
         case ["db", [final String method, final List<Object?> arguments]]:
           // Handle each db method call.
-          final start = DateTime.now();
           final output = await serverHandleDatabaseMethod(method, arguments);
-          final duration = DateTime.now().difference(start);
-
-          if (kDebugMode) {
-            printBoxed(
-              "Method: '$method'\n"
-                  "Turnaround Time: ${duration.inMicroseconds}μs\n"
-                  "Arguments:\n${const JsonEncoder.withIndent("  ").convert(arguments)}",
-              "Database Method Call",
-            );
-          }
-
           final (result, hasChanged) = output.record;
 
           // Send the result back to the client.
@@ -201,17 +188,7 @@ Future<void> _handleConnection(
     switch (message) {
       case ["db", [final String method, final List<Object?> arguments]]:
         // Handle each db method call.
-        final start = DateTime.now();
         final output = await serverHandleDatabaseMethod(method, arguments);
-        final duration = DateTime.now().difference(start);
-        if (kDebugMode) {
-          printBoxed(
-            "Method: '$method'\n"
-                "Turnaround Time: ${duration.inMicroseconds}μs\n"
-                "Arguments:\n${const JsonEncoder.withIndent("  ").convert(arguments)}",
-            "Database Method Call",
-          );
-        }
 
         final (result, hasChanged) = output.record;
 

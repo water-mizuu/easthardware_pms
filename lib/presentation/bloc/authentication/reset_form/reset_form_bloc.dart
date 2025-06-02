@@ -1,4 +1,5 @@
 import 'package:bloc/bloc.dart';
+import 'package:dart_bloc_concurrency/dart_bloc_concurrency.dart';
 import 'package:easthardware_pms/domain/models/security_question.dart';
 import 'package:easthardware_pms/domain/repository/security_question_repository.dart';
 import 'package:easthardware_pms/domain/repository/user_repository.dart';
@@ -12,7 +13,7 @@ class ResetFormBloc extends Bloc<ResetFormEvent, ResetFormState> {
     required this.userRepository,
     required this.securityQuestionRepository,
   }) : super(const ResetFormState()) {
-    on<UsernameChanged>(_onUsernameChanged);
+    on<UsernameChanged>(_onUsernameChanged, transformer: debounce(const Duration(seconds: 1)));
     on<SecurityQuestionSelected>(_onSecurityQuestionSelected);
     on<AnswerChanged>(_onAnswerChanged);
     on<FormSubmitted>(_onFormSubmitted);
@@ -21,8 +22,7 @@ class ResetFormBloc extends Bloc<ResetFormEvent, ResetFormState> {
   final UserRepository userRepository;
   final SecurityQuestionRepository securityQuestionRepository;
 
-  Future<void> _onUsernameChanged(
-      UsernameChanged event, Emitter<ResetFormState> emit) async {
+  Future<void> _onUsernameChanged(UsernameChanged event, Emitter<ResetFormState> emit) async {
     emit(state.copyWith(
       username: event.username,
       status: FormStatus.loading,
@@ -36,11 +36,9 @@ class ResetFormBloc extends Bloc<ResetFormEvent, ResetFormState> {
     }
 
     try {
-      final user =
-          await userRepository.getUserByUsername(event.username.trim());
+      final user = await userRepository.getUserByUsername(event.username.trim());
       if (user != null) {
-        final questions = await securityQuestionRepository
-            .getSecurityQuestionsByUserId(user.id!);
+        final questions = await securityQuestionRepository.getSecurityQuestionsByUserId(user.id!);
         emit(state.copyWith(
           questions: questions,
           status: FormStatus.loaded,
@@ -62,8 +60,7 @@ class ResetFormBloc extends Bloc<ResetFormEvent, ResetFormState> {
     }
   }
 
-  void _onSecurityQuestionSelected(
-      SecurityQuestionSelected event, Emitter<ResetFormState> emit) {
+  void _onSecurityQuestionSelected(SecurityQuestionSelected event, Emitter<ResetFormState> emit) {
     emit(state.copyWith(selectedQuestion: event.question));
   }
 
@@ -71,8 +68,7 @@ class ResetFormBloc extends Bloc<ResetFormEvent, ResetFormState> {
     emit(state.copyWith(answer: event.answer));
   }
 
-  Future<void> _onFormSubmitted(
-      FormSubmitted event, Emitter<ResetFormState> emit) async {
+  Future<void> _onFormSubmitted(FormSubmitted event, Emitter<ResetFormState> emit) async {
     if (!state.isValid) {
       emit(state.copyWith(
         status: FormStatus.error,

@@ -30,6 +30,10 @@ class _LoginPageState extends State<LoginPage> {
   List<BlocListener> get listeners {
     return [
       BlocListener<AuthenticationBloc, AuthenticationState>(
+        listenWhen: (previous, current) =>
+            previous.status != current.status ||
+            previous.user != current.user ||
+            previous.loginAttempts != current.loginAttempts,
         listener: (context, authState) {
           final status = authState.status;
           final user = authState.user;
@@ -41,9 +45,7 @@ class _LoginPageState extends State<LoginPage> {
             if (authState.loginAttempts > 3) {
               context.navigate(AppRoutes.resetPassword);
             }
-          }
-
-          if (status == AuthenticationStatus.success) {
+          } else if (status == AuthenticationStatus.success) {
             if (user?.accessLevel == AccessLevel.administrator) {
               context.navigate(AppRoutes.admin);
             } else if (user?.accessLevel == AccessLevel.staff) {
@@ -51,13 +53,14 @@ class _LoginPageState extends State<LoginPage> {
             }
             context.read<UserLogListBloc>().add(AddLoginEvent(user!));
           }
+
           loginFormBloc.add(LoginFormReturned());
         },
       ),
       BlocListener<AuthenticationBloc, AuthenticationState>(
         listener: (context, state) {
           if (state.status == AuthenticationStatus.success) {
-            context.read<LoginFormBloc>().add(LoginFormResetEvent());
+            loginFormBloc.add(LoginFormResetEvent());
           }
         },
       ),

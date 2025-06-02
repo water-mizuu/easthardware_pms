@@ -1,9 +1,10 @@
 import 'package:easthardware_pms/utils/show_single_dialog.dart';
 import 'package:fluent_ui/fluent_ui.dart';
-import 'package:window_manager_plus/window_manager_plus.dart';
 
 class ApplicationCloseDialog extends StatelessWidget {
-  const ApplicationCloseDialog({super.key});
+  const ApplicationCloseDialog({super.key, required this.onSuccess});
+
+  final void Function() onSuccess;
 
   @override
   Widget build(BuildContext context) {
@@ -26,7 +27,7 @@ class ApplicationCloseDialog extends StatelessWidget {
           onPressed: () async {
             Navigator.of(context).pop();
 
-            await WindowManagerPlus.current.destroy();
+            onSuccess();
           },
           child: const Text('Yes'),
         ),
@@ -34,7 +35,10 @@ class ApplicationCloseDialog extends StatelessWidget {
     );
   }
 
-  static Future<void> show(BuildContext context) async {
-    await showSingleDialog(context, (context) => const ApplicationCloseDialog());
+  static Future<void> show(BuildContext context, {required VoidCallback onSuccess}) async {
+    await showSingleDialog(
+      context,
+      (context) => ApplicationCloseDialog(onSuccess: onSuccess),
+    );
   }
 }
