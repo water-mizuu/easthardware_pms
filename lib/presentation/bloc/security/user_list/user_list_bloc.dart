@@ -18,7 +18,8 @@ class UserListBloc extends Bloc<UserListEvent, UserListState> {
   }
   final UserRepository _repository;
 
-  Future<void> _onLoadUsers(LoadAllUsersEvent event, Emitter<UserListState> emit) async {
+  Future<void> _onLoadUsers(
+      LoadAllUsersEvent event, Emitter<UserListState> emit) async {
     try {
       emit(state.copyWith(users: await _repository.getAllUsers()));
     } catch (e) {
@@ -29,10 +30,18 @@ class UserListBloc extends Bloc<UserListEvent, UserListState> {
     }
   }
 
-  Future<void> _onAddUser(AddUserEvent event, Emitter<UserListState> emit) async {
+  Future<void> _onAddUser(
+      AddUserEvent event, Emitter<UserListState> emit) async {
+    assert(event.user.id != null,
+        "For debugging purposes, user ID should not be null.");
     emit(state.copyWith(status: DataStatus.loading));
     try {
       final insertedUser = await _repository.insertUser(event.user);
+      assert(
+        event.user.id == insertedUser.id,
+        "User ID should match after insertion. "
+        "If not, this is a bug in the application assumptions.",
+      );
 
       final users = List<User>.from(state.users)..add(insertedUser);
       emit(state.copyWith(users: users, status: DataStatus.success));
@@ -44,13 +53,15 @@ class UserListBloc extends Bloc<UserListEvent, UserListState> {
     }
   }
 
-  Future<void> _onUpdateUser(UpdateUserEvent event, Emitter<UserListState> emit) async {
+  Future<void> _onUpdateUser(
+      UpdateUserEvent event, Emitter<UserListState> emit) async {
     emit(state.copyWith(status: DataStatus.loading));
     try {
       final updatedUser = await _repository.updateUser(event.user);
 
       final updatedUsers = List<User>.from(state.users);
-      final index = updatedUsers.indexWhere((user) => user.id == updatedUser.id);
+      final index =
+          updatedUsers.indexWhere((user) => user.id == updatedUser.id);
       if (index != -1) {
         updatedUsers[index] = updatedUser;
       }
@@ -64,7 +75,8 @@ class UserListBloc extends Bloc<UserListEvent, UserListState> {
     }
   }
 
-  Future<void> _onDeleteUser(DeleteUserEvent event, Emitter<UserListState> emit) async {
+  Future<void> _onDeleteUser(
+      DeleteUserEvent event, Emitter<UserListState> emit) async {
     emit(state.copyWith(status: DataStatus.loading));
     try {
       await _repository.deleteUser(event.user);

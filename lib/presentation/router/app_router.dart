@@ -1,6 +1,8 @@
 import 'package:easthardware_pms/domain/models/product.dart';
 import 'package:easthardware_pms/presentation/router/app_routes.dart';
 import 'package:easthardware_pms/presentation/views/authentication/login_page.dart';
+import 'package:easthardware_pms/presentation/views/authentication/new_password_page.dart';
+import 'package:easthardware_pms/presentation/views/authentication/reset_password_page.dart';
 import 'package:easthardware_pms/presentation/views/inventory/create_product_page.dart';
 import 'package:easthardware_pms/presentation/views/inventory/edit_product_page.dart';
 import 'package:easthardware_pms/presentation/views/inventory/inventory_pane_page.dart';
@@ -29,7 +31,11 @@ final router = GoRouter(
         ),
         GoRoute(
           path: AppRoutes.resetPassword.path,
-          builder: (context, state) => const Text("Reset Password"),
+          builder: (context, state) => (const ResetPasswordPage()),
+        ),
+        GoRoute(
+          path: AppRoutes.newPassword.path,
+          builder: (context, state) => (const NewPasswordPage()),
         )
       ],
     ),
@@ -66,7 +72,8 @@ final router = GoRouter(
             ),
             GoRoute(
               path: AppRoutes.editProductPage.path,
-              builder: (context, state) => (EditProductPage(product: state.extra as Product)),
+              builder: (context, state) =>
+                  (EditProductPage(product: state.extra as Product)),
             ),
             GoRoute(
               path: AppRoutes.categoriesPage.path,

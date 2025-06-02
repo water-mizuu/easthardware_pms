@@ -14,4 +14,5 @@ abstract class UserRepository {
   Future<User> insertUser(User user);
   Future<User> updateUser(User user);
   Future<void> deleteUser(User user);
+  Future<void> updatePassword(String username, String newPassword);
 }

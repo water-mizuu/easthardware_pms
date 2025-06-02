@@ -23,6 +23,8 @@ enum FormStatus {
   submitting,
   submitted,
   error,
+  loading,
+  success,
 }
 
 enum ProductFormStatus {

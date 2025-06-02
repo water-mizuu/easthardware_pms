@@ -15,6 +15,8 @@ abstract interface class UsersDao {
   Future<User> insertUser(User user);
   Future<User> updateUser(User user);
   Future<void> deleteUser(User user);
+  Future<void> updatePassword(
+      String username, String newPasswordHash, String salt);
 }
 
 final class UsersDaoImpl extends DaoBase implements UsersDao {
@@ -99,5 +101,21 @@ final class UsersDaoImpl extends DaoBase implements UsersDao {
     final user = res.isNotEmpty ? User.fromMap(res.first) : null;
 
     return user;
+  }
+
+  @override
+  Future<void> updatePassword(
+      String username, String newPasswordHash, String salt) async {
+    final database = databaseHelper.database;
+
+    await database.update(
+      UsersTable.USERS_TABLE_NAME,
+      {
+        UsersTable.USERS_PASSWORD_HASH: newPasswordHash,
+        UsersTable.USERS_SALT: salt,
+      },
+      where: "${UsersTable.USERS_USERNAME} = ?",
+      whereArgs: [username],
+    );
   }
 }

@@ -13,7 +13,8 @@ class NavigationCubit extends Cubit<NavigationState> {
 
   void navigateTo(AppRoute route, {Object? extra}) {
     if (kDebugMode) {
-      printBoxed("Navigating to: $route with extra: $extra", "NavigationCubit.navigateTo");
+      printBoxed("Navigating to: $route with extra: $extra",
+          "NavigationCubit.navigateTo");
     }
     emit(NavigationState(route: route, extra: extra));
   }
@@ -34,14 +35,16 @@ extension SafeNavigationExtension on BuildContext {
 
   /// Navigates to a route which requires an extra parameter.
   ///   The [extra] parameter should match the type signature of the route.
-  void navigateWithExtra<E extends Object, R extends AppRoute<E>>(R route, E extra) {
+  void navigateWithExtra<E extends Object, R extends AppRoute<E>>(
+      R route, E extra) {
     final cubit = read<NavigationCubit>();
 
     if (cubit.state.route != route || cubit.state.extra != extra) {
       cubit.navigateTo(route, extra: extra);
     } else {
       if (kDebugMode) {
-        printBoxed("Already on the route with the same extra: $extra", "context.navigateWithExtra");
+        printBoxed("Already on the route with the same extra: $extra",
+            "context.navigateWithExtra");
       }
     }
   }

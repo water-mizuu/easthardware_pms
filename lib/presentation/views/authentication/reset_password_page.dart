@@ -1,0 +1,238 @@
+import 'package:easthardware_pms/presentation/bloc/authentication/reset_form/reset_form_bloc.dart';
+import 'package:easthardware_pms/presentation/bloc/authentication/new_password_form/new_password_form_bloc.dart'
+    as NewPasswordForm;
+import 'package:easthardware_pms/presentation/bloc/navigation/navigation_cubit.dart';
+import 'package:easthardware_pms/presentation/router/app_routes.dart';
+import 'package:easthardware_pms/presentation/widgets/spacing.dart';
+import 'package:fluent_ui/fluent_ui.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+
+class ResetPasswordPage extends StatelessWidget {
+  const ResetPasswordPage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return ScaffoldPage.withPadding(
+      padding: AppPadding.a16,
+      content: const Center(
+        child: SizedBox(
+          width: 600,
+          height: 500,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              FormHeader(),
+              UsernameInputSection(),
+              SecurityQuestionSection(),
+              AnswerInputSection(),
+              SubmitSection(),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class FormHeader extends StatelessWidget {
+  const FormHeader({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Text(
+          "Reset Password",
+          style: FluentTheme.of(context).typography.title,
+          textAlign: TextAlign.start,
+        ),
+        const SizedBox(height: 8),
+        Text(
+          "Verify your identity to reset your password",
+          style: FluentTheme.of(context)
+              .typography
+              .body
+              ?.copyWith(color: Colors.grey[170]),
+          textAlign: TextAlign.start,
+        ),
+        const SizedBox(height: 16),
+      ],
+    );
+  }
+}
+
+class UsernameInputSection extends StatelessWidget {
+  const UsernameInputSection({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<ResetFormBloc, ResetFormState>(
+      builder: (context, state) {
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            const Text('Username'),
+            const SizedBox(height: 8),
+            TextBox(
+              placeholder: 'Enter your username',
+              onChanged: (value) {
+                context
+                    .read<ResetFormBloc>()
+                    .add(UsernameChanged(value.trim()));
+              },
+            ),
+            const SizedBox(height: 16),
+          ],
+        );
+      },
+    );
+  }
+}
+
+class SecurityQuestionSection extends StatelessWidget {
+  const SecurityQuestionSection({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<ResetFormBloc, ResetFormState>(
+      builder: (context, state) {
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            const Text('Security Question'),
+            const SizedBox(height: 8),
+            if (state.status == FormStatus.loading && state.username.isNotEmpty)
+              const SizedBox(
+                height: 32,
+                child: Row(
+                  children: [
+                    SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: ProgressRing(),
+                    ),
+                    SizedBox(width: 8),
+                    Text('Loading questions...'),
+                  ],
+                ),
+              )
+            else
+              ComboBox<String>(
+                placeholder: Text(
+                  state.questions.isEmpty
+                      ? "Enter username first"
+                      : "Select a question",
+                  style: TextStyle(
+                    color: state.questions.isEmpty ? Colors.grey[120] : null,
+                  ),
+                ),
+                value: state.selectedQuestion.isEmpty
+                    ? null
+                    : state.selectedQuestion,
+                items: state.questions
+                    .map(
+                      (q) => ComboBoxItem<String>(
+                        value: q.question,
+                        child: Text(q.question),
+                      ),
+                    )
+                    .toList(),
+                onChanged: state.questions.isNotEmpty
+                    ? (value) {
+                        if (value != null) {
+                          context
+                              .read<ResetFormBloc>()
+                              .add(SecurityQuestionSelected(value));
+                        }
+                      }
+                    : null,
+                isExpanded: true,
+              ),
+            const SizedBox(height: 16),
+          ],
+        );
+      },
+    );
+  }
+}
+
+class AnswerInputSection extends StatelessWidget {
+  const AnswerInputSection({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<ResetFormBloc, ResetFormState>(
+      builder: (context, state) {
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            const Text('Answer'),
+            const SizedBox(height: 8),
+            TextBox(
+              placeholder: 'Enter your answer',
+              onChanged: (value) {
+                context.read<ResetFormBloc>().add(AnswerChanged(value.trim()));
+              },
+            ),
+            const SizedBox(height: 16),
+          ],
+        );
+      },
+    );
+  }
+}
+
+class SubmitSection extends StatelessWidget {
+  const SubmitSection({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocListener<ResetFormBloc, ResetFormState>(
+      listener: (context, state) {
+        if (state.status == FormStatus.success) {
+          context
+              .read<NewPasswordForm.NewPasswordFormBloc>()
+              .setUsername(state.username);
+          context.navigate(AppRoutes.newPassword);
+        } else if (state.status == FormStatus.error &&
+            state.errorMessage.isNotEmpty) {}
+      },
+      child: BlocBuilder<ResetFormBloc, ResetFormState>(
+        builder: (context, state) {
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              FilledButton(
+                onPressed: state.status == FormStatus.loading || !state.isValid
+                    ? null
+                    : () {
+                        primaryFocus?.unfocus();
+                        context
+                            .read<ResetFormBloc>()
+                            .add(const FormSubmitted());
+                      },
+                child: Padding(
+                  padding: AppPadding.a4,
+                  child: state.status == FormStatus.loading
+                      ? const SizedBox(
+                          height: 16,
+                          width: 16,
+                          child: ProgressRing(),
+                        )
+                      : Text(
+                          "Submit",
+                          style: FluentTheme.of(context)
+                              .typography
+                              .bodyLarge!
+                              .copyWith(color: const Color(0xFFFFFFFF)),
+                        ),
+                ),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+}

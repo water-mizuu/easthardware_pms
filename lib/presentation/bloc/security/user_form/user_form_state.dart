@@ -1,7 +1,6 @@
 part of 'user_form_bloc.dart';
 
 class UserFormState extends Equatable {
-
   const UserFormState({
     this.userId,
     this.firstName = '',
@@ -125,7 +124,8 @@ class UserFormState extends Equatable {
         uid: uid.or(this.uid),
         salt: salt.or(this.salt),
         passwordHash: passwordHash.or(this.passwordHash),
-        accessLevelErrorMessage: accessLevelErrorMessage.or(this.accessLevelErrorMessage),
+        accessLevelErrorMessage:
+            accessLevelErrorMessage.or(this.accessLevelErrorMessage),
       );
     };
   }
@@ -136,7 +136,8 @@ class UserFormState extends Equatable {
       firstName: firstName,
       lastName: lastName,
       username: username,
-      accessLevel: AccessLevel.values.firstWhere((element) => element.name == accessLevel),
+      accessLevel: AccessLevel.values
+          .firstWhere((element) => element.name == accessLevel),
       passwordHash: passwordHash!,
       salt: salt!,
       status: archiveStatus!,

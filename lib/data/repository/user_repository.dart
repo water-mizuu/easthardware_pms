@@ -1,11 +1,16 @@
+import 'dart:convert';
+import 'dart:typed_data';
+
 import 'package:easthardware_pms/data/database/dao/users_dao.dart';
 import 'package:easthardware_pms/data/database/database_helper.dart';
 import 'package:easthardware_pms/domain/errors/exceptions.dart';
 import 'package:easthardware_pms/domain/models/user.dart';
 import 'package:easthardware_pms/domain/repository/user_repository.dart';
+import 'package:easthardware_pms/domain/services/cryptography_service.dart';
 
 class UserRepositoryImpl implements UserRepository {
-  UserRepositoryImpl(DatabaseHelper? databaseHelper) : _usersDao = UsersDao(databaseHelper);
+  UserRepositoryImpl(DatabaseHelper? databaseHelper)
+      : _usersDao = UsersDao(databaseHelper);
 
   final UsersDao _usersDao;
 
@@ -86,6 +91,33 @@ class UserRepositoryImpl implements UserRepository {
     }
     if (user.lastName.trim().isEmpty) {
       throw ValidationException('Last name cannot be empty');
+    }
+  }
+
+  @override
+  Future<void> updatePassword(String username, String newPassword) async {
+    if (username.isEmpty) {
+      throw ValidationException('Username cannot be empty');
+    }
+
+    try {
+      final user = await _usersDao.getUserByUsername(username);
+      if (user == null) {
+        throw ValidationException('User not found');
+      }
+
+      final newSalt = CryptographyService.generateSalt();
+      final saltBase64 = base64Encode(newSalt);
+
+      final newHash = CryptographyService.generateHash(newPassword, newSalt);
+
+      await _usersDao.updatePassword(
+        username,
+        newHash.toString(),
+        saltBase64,
+      );
+    } catch (e) {
+      throw DatabaseException('Failed to update password: $e');
     }
   }
 }
