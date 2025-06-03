@@ -96,7 +96,7 @@ class _LoginPageState extends State<LoginPage> {
 
   Widget buildWidget(BuildContext context) {
     return ColoredBox(
-      color: Colors.grey[10],
+      color: FluentTheme.of(context).micaBackgroundColor,
       child: const Column(
         mainAxisAlignment: MainAxisAlignment.center,
         mainAxisSize: MainAxisSize.max,

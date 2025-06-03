@@ -7,8 +7,8 @@ abstract class ResetFormEvent extends Equatable {
   List<Object> get props => [];
 }
 
-class UsernameChanged extends ResetFormEvent {
-  const UsernameChanged(this.username);
+class ResetFormUsernameChanged extends ResetFormEvent {
+  const ResetFormUsernameChanged(this.username);
 
   final String username;
 
@@ -16,8 +16,8 @@ class UsernameChanged extends ResetFormEvent {
   List<Object> get props => [username];
 }
 
-class SecurityQuestionSelected extends ResetFormEvent {
-  const SecurityQuestionSelected(this.question);
+class ResetFormSecurityQuestionSelected extends ResetFormEvent {
+  const ResetFormSecurityQuestionSelected(this.question);
 
   final String question;
 
@@ -25,8 +25,8 @@ class SecurityQuestionSelected extends ResetFormEvent {
   List<Object> get props => [question];
 }
 
-class AnswerChanged extends ResetFormEvent {
-  const AnswerChanged(this.answer);
+class ResetFormAnswerChanged extends ResetFormEvent {
+  const ResetFormAnswerChanged(this.answer);
 
   final String answer;
 
@@ -34,6 +34,6 @@ class AnswerChanged extends ResetFormEvent {
   List<Object> get props => [answer];
 }
 
-class FormSubmitted extends ResetFormEvent {
-  const FormSubmitted();
+class ResetFormSubmitted extends ResetFormEvent {
+  const ResetFormSubmitted();
 }

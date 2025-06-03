@@ -8,9 +8,9 @@ class NewPasswordPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ScaffoldPage.withPadding(
-      padding: AppPadding.a16,
-      content: const Center(
+    return ColoredBox(
+      color: FluentTheme.of(context).micaBackgroundColor,
+      child: const Center(
         child: SizedBox(
           width: 400,
           height: 300,

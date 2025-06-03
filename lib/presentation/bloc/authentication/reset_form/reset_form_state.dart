@@ -19,26 +19,34 @@ class ResetFormState extends Equatable {
   final FormStatus status;
   final String errorMessage;
 
-  ResetFormState copyWith({
-    String? username,
-    String? selectedQuestion,
-    String? answer,
-    List<SecurityQuestion>? questions,
-    FormStatus? status,
-    String? errorMessage,
-  }) {
-    return ResetFormState(
-      username: username ?? this.username,
-      selectedQuestion: selectedQuestion ?? this.selectedQuestion,
-      answer: answer ?? this.answer,
-      questions: questions ?? this.questions,
-      status: status ?? this.status,
-      errorMessage: errorMessage ?? this.errorMessage,
-    );
+  ResetFormState Function({
+    String username,
+    String selectedQuestion,
+    String answer,
+    List<SecurityQuestion> questions,
+    FormStatus status,
+    String errorMessage,
+  }) get copyWith {
+    return ({
+      Object? username = undefined,
+      Object? selectedQuestion = undefined,
+      Object? answer = undefined,
+      Object? questions = undefined,
+      Object? status = undefined,
+      Object? errorMessage = undefined,
+    }) {
+      return ResetFormState(
+        username: username.or(this.username),
+        selectedQuestion: selectedQuestion.or(this.selectedQuestion),
+        answer: answer.or(this.answer),
+        questions: questions.or(this.questions),
+        status: status.or(this.status),
+        errorMessage: errorMessage.or(this.errorMessage),
+      );
+    };
   }
 
-  bool get isValid =>
-      username.isNotEmpty && selectedQuestion.isNotEmpty && answer.isNotEmpty;
+  bool get isValid => username.isNotEmpty && selectedQuestion.isNotEmpty && answer.isNotEmpty;
 
   @override
   List<Object> get props => [

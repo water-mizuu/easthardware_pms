@@ -11,7 +11,7 @@ import 'package:easthardware_pms/presentation/widgets/layout/spacing.dart';
 import 'package:easthardware_pms/presentation/widgets/text.dart';
 import 'package:fluent_ui/fluent_ui.dart';
 import 'package:flutter/material.dart' show DataColumn, DataTable;
-import 'package:provider/provider.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:scroll_animator/scroll_animator.dart';
 
 class InventoryPanePage extends StatefulWidget {
@@ -285,9 +285,7 @@ class _ProductsDataTableState extends State<ProductsDataTable> {
   void initState() {
     super.initState();
 
-    _scrollController = AnimatedScrollController(
-      animationFactory: const ChromiumEaseInOut(),
-    );
+    _scrollController = AnimatedScrollController(animationFactory: const ChromiumEaseInOut());
   }
 
   @override
@@ -297,47 +295,54 @@ class _ProductsDataTableState extends State<ProductsDataTable> {
     super.dispose();
   }
 
-  Widget buildTable(BuildContext context) {
-    final state = context.watch<ProductListBloc>().state;
-    if (state.status == DataStatus.loading) {
-      return const Center(child: ProgressRing());
-    }
-
-    final allProducts = state.allProducts.where((p) => p.archiveStatus == 0).toList();
-    if (allProducts.isEmpty) {
-      return const DataTablePlaceHolder(FluentIcons.product_list, 'Products');
-    }
-
-    return Container(
+  Widget buildView(BuildContext context) {
+    return ConstrainedBox(
       constraints: const BoxConstraints(minHeight: 200),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(4),
-      ),
-      child: SingleChildScrollView(
-        controller: _scrollController,
-        scrollDirection: Axis.horizontal,
-        child: DataTable(
-          showCheckboxColumn: true,
-          columns: [
-            for (final data in names) DataColumn(label: Text(data)),
-          ],
-          rows: [
-            for (final product in allProducts)
-              DataRowMapper.mapProductToRow(
-                product,
-                editAction: () {
-                  context.navigateWithExtra(AppRoutes.editProductPage, product);
-                },
+      child: BlocBuilder<ProductListBloc, ProductListState>(
+        builder: (context, state) {
+          if (state.status == DataStatus.loading) {
+            return const Center(child: ProgressRing());
+          }
+
+          final allProducts = state.allProducts.where((p) => p.archiveStatus == 0).toList();
+          if (allProducts.isEmpty) {
+            return const DataTablePlaceHolder(FluentIcons.product_list, 'Products');
+          }
+
+          return Container(
+            constraints: const BoxConstraints(minHeight: 200),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(4),
+            ),
+            child: SingleChildScrollView(
+              controller: _scrollController,
+              scrollDirection: Axis.horizontal,
+              child: DataTable(
+                showCheckboxColumn: true,
+                columns: [
+                  for (final data in names) //
+                    DataColumn(label: Text(data)),
+                ],
+                rows: [
+                  for (final product in allProducts)
+                    DataRowMapper.mapProductToRow(
+                      product,
+                      editAction: () {
+                        context.navigateWithExtra(AppRoutes.editProductPage, product);
+                      },
+                    ),
+                ],
               ),
-          ],
-        ),
+            ),
+          );
+        },
       ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    return Flexible(child: buildTable(context));
+    return Flexible(child: buildView(context));
   }
 }

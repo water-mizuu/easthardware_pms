@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:typed_data';
 
 import 'package:easthardware_pms/data/database/dao/users_dao.dart';
 import 'package:easthardware_pms/data/database/database_helper.dart';
@@ -9,7 +8,7 @@ import 'package:easthardware_pms/domain/repository/user_repository.dart';
 import 'package:easthardware_pms/domain/services/cryptography_service.dart';
 
 class UserRepositoryImpl implements UserRepository {
-  UserRepositoryImpl(DatabaseHelper? databaseHelper)
+  UserRepositoryImpl(DatabaseHelper? databaseHelper) //
       : _usersDao = UsersDao(databaseHelper);
 
   final UsersDao _usersDao;

@@ -3,6 +3,7 @@ import 'package:dart_bloc_concurrency/dart_bloc_concurrency.dart';
 import 'package:easthardware_pms/domain/models/security_question.dart';
 import 'package:easthardware_pms/domain/repository/security_question_repository.dart';
 import 'package:easthardware_pms/domain/repository/user_repository.dart';
+import 'package:easthardware_pms/utils/undefined.dart';
 import 'package:equatable/equatable.dart';
 
 part 'reset_form_event.dart';
@@ -13,44 +14,63 @@ class ResetFormBloc extends Bloc<ResetFormEvent, ResetFormState> {
     required this.userRepository,
     required this.securityQuestionRepository,
   }) : super(const ResetFormState()) {
-    on<UsernameChanged>(_onUsernameChanged, transformer: debounce(const Duration(seconds: 1)));
-    on<SecurityQuestionSelected>(_onSecurityQuestionSelected);
-    on<AnswerChanged>(_onAnswerChanged);
-    on<FormSubmitted>(_onFormSubmitted);
+    on<ResetFormUsernameChanged>(_onUsernameChanged,
+        transformer: debounce(const Duration(seconds: 1)));
+    on<ResetFormSecurityQuestionSelected>(_onSecurityQuestionSelected);
+    on<ResetFormAnswerChanged>(_onAnswerChanged);
+    on<ResetFormSubmitted>(_onFormSubmitted);
   }
 
   final UserRepository userRepository;
   final SecurityQuestionRepository securityQuestionRepository;
 
-  Future<void> _onUsernameChanged(UsernameChanged event, Emitter<ResetFormState> emit) async {
+  Future<void> _onUsernameChanged(
+    ResetFormUsernameChanged event,
+    Emitter<ResetFormState> emit,
+  ) async {
+    final username = event.username.trim();
+
     emit(state.copyWith(
-      username: event.username,
+      username: username,
       status: FormStatus.loading,
       questions: [],
       selectedQuestion: '',
     ));
 
-    if (event.username.trim().isEmpty) {
+    if (username.isEmpty) {
       emit(state.copyWith(status: FormStatus.initial));
       return;
     }
 
+    if (username == "admin") {
+      emit(state.copyWith(
+        status: FormStatus.error,
+        errorMessage: 'Admin user cannot reset password',
+        questions: [],
+        selectedQuestion: '',
+      ));
+      return;
+    }
+
     try {
-      final user = await userRepository.getUserByUsername(event.username.trim());
-      if (user != null) {
-        final questions = await securityQuestionRepository.getSecurityQuestionsByUserId(user.id!);
+      final user = await userRepository.getUserByUsername(username);
+      if (user == null) {
         emit(state.copyWith(
-          questions: questions,
-          status: FormStatus.loaded,
-          errorMessage: '',
-        ));
-      } else {
-        emit(state.copyWith(
-          questions: [],
           status: FormStatus.error,
           errorMessage: 'User not found',
+          questions: [],
+          selectedQuestion: '',
         ));
+        return;
       }
+
+      final questions = await securityQuestionRepository.getSecurityQuestionsByUserId(user.id!);
+      emit(state.copyWith(
+        questions: questions,
+        status: FormStatus.loaded,
+        errorMessage: '',
+      ));
+      //
     } catch (e) {
       emit(state.copyWith(
         questions: [],
@@ -60,15 +80,18 @@ class ResetFormBloc extends Bloc<ResetFormEvent, ResetFormState> {
     }
   }
 
-  void _onSecurityQuestionSelected(SecurityQuestionSelected event, Emitter<ResetFormState> emit) {
+  void _onSecurityQuestionSelected(
+    ResetFormSecurityQuestionSelected event,
+    Emitter<ResetFormState> emit,
+  ) {
     emit(state.copyWith(selectedQuestion: event.question));
   }
 
-  void _onAnswerChanged(AnswerChanged event, Emitter<ResetFormState> emit) {
+  void _onAnswerChanged(ResetFormAnswerChanged event, Emitter<ResetFormState> emit) {
     emit(state.copyWith(answer: event.answer));
   }
 
-  Future<void> _onFormSubmitted(FormSubmitted event, Emitter<ResetFormState> emit) async {
+  Future<void> _onFormSubmitted(ResetFormSubmitted event, Emitter<ResetFormState> emit) async {
     if (!state.isValid) {
       emit(state.copyWith(
         status: FormStatus.error,

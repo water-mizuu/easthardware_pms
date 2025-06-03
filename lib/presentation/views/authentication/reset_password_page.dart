@@ -1,6 +1,7 @@
-import 'package:easthardware_pms/presentation/bloc/authentication/reset_form/reset_form_bloc.dart';
-import 'package:easthardware_pms/presentation/bloc/authentication/new_password_form/new_password_form_bloc.dart'
-    as NewPasswordForm;
+import 'package:easthardware_pms/presentation/bloc/authentication/'
+    'new_password_form/new_password_form_bloc.dart' as new_password_form;
+import 'package:easthardware_pms/presentation/bloc/authentication/'
+    'reset_form/reset_form_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/navigation/navigation_cubit.dart';
 import 'package:easthardware_pms/presentation/router/app_routes.dart';
 import 'package:easthardware_pms/presentation/widgets/layout/spacing.dart';
@@ -12,21 +13,30 @@ class ResetPasswordPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ScaffoldPage.withPadding(
-      padding: AppPadding.a16,
-      content: const Center(
-        child: SizedBox(
-          width: 600,
-          height: 500,
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              FormHeader(),
-              UsernameInputSection(),
-              SecurityQuestionSection(),
-              AnswerInputSection(),
-              SubmitSection(),
-            ],
+    return ColoredBox(
+      color: FluentTheme.of(context).micaBackgroundColor,
+      child: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 600, maxHeight: 500),
+          child: const Padding(
+            padding: EdgeInsets.all(16.0),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                FormHeader(),
+                Spacing.h12,
+                Column(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    UsernameInputSection(),
+                    SecurityQuestionSection(),
+                    AnswerInputSection(),
+                    SubmitSection(),
+                  ],
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -64,23 +74,21 @@ class UsernameInputSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<ResetFormBloc, ResetFormState>(
-      builder: (context, state) {
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            const Text('Username'),
-            const SizedBox(height: 8),
-            TextBox(
-              placeholder: 'Enter your username',
-              onChanged: (value) {
-                context.read<ResetFormBloc>().add(UsernameChanged(value.trim()));
-              },
-            ),
-            const SizedBox(height: 16),
-          ],
-        );
-      },
+    final (_) = context.read<ResetFormBloc>().state;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        const Text('Username'),
+        const SizedBox(height: 8),
+        TextBox(
+          placeholder: 'Enter your username',
+          onChanged: (value) {
+            context.read<ResetFormBloc>().add(ResetFormUsernameChanged(value.trim()));
+          },
+        ),
+        const SizedBox(height: 16),
+      ],
     );
   }
 }
@@ -90,58 +98,46 @@ class SecurityQuestionSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<ResetFormBloc, ResetFormState>(
-      builder: (context, state) {
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            const Text('Security Question'),
-            const SizedBox(height: 8),
-            if (state.status == FormStatus.loading && state.username.isNotEmpty)
-              const SizedBox(
-                height: 32,
-                child: Row(
-                  children: [
-                    SizedBox(
-                      width: 16,
-                      height: 16,
-                      child: ProgressRing(),
-                    ),
-                    SizedBox(width: 8),
-                    Text('Loading questions...'),
-                  ],
+    final state = context.watch<ResetFormBloc>().state;
+    //
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        const Text('Security Question'),
+        const SizedBox(height: 8),
+        if (state.status == FormStatus.loading && state.username.isNotEmpty)
+          const Row(
+            children: [
+              SizedBox(width: 16, height: 16, child: ProgressRing()),
+              Spacing.h8,
+              Text('Loading questions...'),
+            ],
+          )
+        else
+          ComboBox<String>(
+            placeholder: Text(
+              state.questions.isEmpty ? "Enter username first" : "Select a question",
+              style: TextStyle(color: Colors.grey[120]),
+            ),
+            value: state.selectedQuestion.isEmpty ? null : state.selectedQuestion,
+            items: [
+              for (final q in state.questions)
+                ComboBoxItem<String>(
+                  value: q.question,
+                  child: Text(q.question),
                 ),
-              )
-            else
-              ComboBox<String>(
-                placeholder: Text(
-                  state.questions.isEmpty ? "Enter username first" : "Select a question",
-                  style: TextStyle(
-                    color: state.questions.isEmpty ? Colors.grey[120] : null,
-                  ),
-                ),
-                value: state.selectedQuestion.isEmpty ? null : state.selectedQuestion,
-                items: state.questions
-                    .map(
-                      (q) => ComboBoxItem<String>(
-                        value: q.question,
-                        child: Text(q.question),
-                      ),
-                    )
-                    .toList(),
-                onChanged: state.questions.isNotEmpty
-                    ? (value) {
-                        if (value != null) {
-                          context.read<ResetFormBloc>().add(SecurityQuestionSelected(value));
-                        }
-                      }
-                    : null,
-                isExpanded: true,
-              ),
-            const SizedBox(height: 16),
-          ],
-        );
-      },
+            ],
+            onChanged: state.questions.isNotEmpty
+                ? (value) {
+                    if (value != null) {
+                      context.read<ResetFormBloc>().add(ResetFormSecurityQuestionSelected(value));
+                    }
+                  }
+                : null,
+            isExpanded: true,
+          ),
+        const SizedBox(height: 16),
+      ],
     );
   }
 }
@@ -161,7 +157,7 @@ class AnswerInputSection extends StatelessWidget {
             TextBox(
               placeholder: 'Enter your answer',
               onChanged: (value) {
-                context.read<ResetFormBloc>().add(AnswerChanged(value.trim()));
+                context.read<ResetFormBloc>().add(ResetFormAnswerChanged(value.trim()));
               },
             ),
             const SizedBox(height: 16),
@@ -180,7 +176,7 @@ class SubmitSection extends StatelessWidget {
     return BlocListener<ResetFormBloc, ResetFormState>(
       listener: (context, state) {
         if (state.status == FormStatus.success) {
-          context.read<NewPasswordForm.NewPasswordFormBloc>().setUsername(state.username);
+          context.read<new_password_form.NewPasswordFormBloc>().setUsername(state.username);
           context.navigate(AppRoutes.newPassword);
         } else if (state.status == FormStatus.error && state.errorMessage.isNotEmpty) {}
       },
@@ -194,7 +190,7 @@ class SubmitSection extends StatelessWidget {
                     ? null
                     : () {
                         primaryFocus?.unfocus();
-                        context.read<ResetFormBloc>().add(const FormSubmitted());
+                        context.read<ResetFormBloc>().add(const ResetFormSubmitted());
                       },
                 child: Padding(
                   padding: AppPadding.a4,
