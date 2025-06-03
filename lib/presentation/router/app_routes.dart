@@ -1,4 +1,5 @@
 import 'package:easthardware_pms/domain/models/product.dart';
+import 'package:easthardware_pms/utils/typed_routes.dart';
 
 class AppRoutes {
   static const root = AppRoute<Null>('/');
@@ -64,7 +65,3 @@ class AppRoutes {
   // static const createUserPage = AppRoute<Null>('/create/user');
   // static const userLogsPage = AppRoute<Null>('/logs');
 }
-
-/// A zero-cost compile-time wrapper for a string path.
-///   This is used to define and use routes in a type-safe manner.
-extension type const AppRoute<T>(String path) {}

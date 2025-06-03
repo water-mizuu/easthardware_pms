@@ -1,6 +1,5 @@
 import 'package:easthardware_pms/domain/enums/enums.dart';
 import 'package:easthardware_pms/presentation/bloc/inventory/product_list/product_list_bloc.dart';
-import 'package:easthardware_pms/presentation/bloc/navigation/navigation_cubit.dart';
 import 'package:easthardware_pms/presentation/router/app_routes.dart';
 import 'package:easthardware_pms/presentation/widgets/helper/data_row_mapper.dart';
 import 'package:easthardware_pms/presentation/widgets/layout/spacing.dart';
@@ -9,6 +8,7 @@ import 'package:easthardware_pms/presentation/widgets/text.dart';
 import 'package:easthardware_pms/presentation/widgets/ui/data_table_place_holder.dart';
 import 'package:easthardware_pms/presentation/widgets/ui/kpi_card.dart';
 import 'package:easthardware_pms/presentation/widgets/ui/text_button.dart';
+import 'package:easthardware_pms/utils/typed_routes.dart';
 import 'package:fluent_ui/fluent_ui.dart';
 import 'package:flutter/material.dart' show DataColumn, DataTable;
 import 'package:flutter_bloc/flutter_bloc.dart';

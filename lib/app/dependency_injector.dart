@@ -65,7 +65,6 @@ class DependencyInjector {
     DatabaseHelper? databaseHelper,
   }) async {
     _databaseHelper = databaseHelper;
-
     _authenticationRepository = AuthenticationRepository(databaseHelper);
 
     _productRepository = ProductRepositoryImpl(databaseHelper);

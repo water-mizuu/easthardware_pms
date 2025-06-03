@@ -2,7 +2,6 @@ import 'package:easthardware_pms/domain/constants/constants.dart';
 import 'package:easthardware_pms/domain/enums/enums.dart';
 import 'package:easthardware_pms/presentation/bloc/authentication/authentication/'
     'authentication_bloc.dart';
-import 'package:easthardware_pms/presentation/bloc/navigation/navigation_cubit.dart';
 import 'package:easthardware_pms/presentation/bloc/security/security_questions/security_question_list_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/security/user_form/user_form_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/security/user_form/user_form_validator.dart';
@@ -12,6 +11,7 @@ import 'package:easthardware_pms/presentation/router/app_routes.dart';
 import 'package:easthardware_pms/presentation/widgets/layout/spacing.dart';
 import 'package:easthardware_pms/presentation/widgets/text.dart';
 import 'package:easthardware_pms/presentation/widgets/ui/text_button.dart';
+import 'package:easthardware_pms/utils/typed_routes.dart';
 import 'package:fluent_ui/fluent_ui.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';

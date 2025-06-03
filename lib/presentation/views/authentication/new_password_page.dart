@@ -1,7 +1,7 @@
 import 'package:easthardware_pms/presentation/bloc/authentication/new_password_form/new_password_form_bloc.dart';
-import 'package:easthardware_pms/presentation/bloc/navigation/navigation_cubit.dart';
 import 'package:easthardware_pms/presentation/router/app_routes.dart';
 import 'package:easthardware_pms/presentation/widgets/layout/spacing.dart';
+import 'package:easthardware_pms/utils/typed_routes.dart';
 import 'package:fluent_ui/fluent_ui.dart';
 import 'package:flutter/material.dart' show Icons;
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -63,8 +63,7 @@ class NewPasswordInputSection extends StatefulWidget {
   const NewPasswordInputSection({super.key});
 
   @override
-  State<NewPasswordInputSection> createState() =>
-      _NewPasswordInputSectionState();
+  State<NewPasswordInputSection> createState() => _NewPasswordInputSectionState();
 }
 
 class _NewPasswordInputSectionState extends State<NewPasswordInputSection> {
@@ -93,9 +92,7 @@ class _NewPasswordInputSectionState extends State<NewPasswordInputSection> {
             },
           ),
           onChanged: (value) {
-            context
-                .read<NewPasswordFormBloc>()
-                .add(NewPasswordChanged(value.trim()));
+            context.read<NewPasswordFormBloc>().add(NewPasswordChanged(value.trim()));
           },
         ),
         const SizedBox(height: 16),
@@ -108,12 +105,10 @@ class ConfirmPasswordInputSection extends StatefulWidget {
   const ConfirmPasswordInputSection({super.key});
 
   @override
-  State<ConfirmPasswordInputSection> createState() =>
-      _ConfirmPasswordInputSectionState();
+  State<ConfirmPasswordInputSection> createState() => _ConfirmPasswordInputSectionState();
 }
 
-class _ConfirmPasswordInputSectionState
-    extends State<ConfirmPasswordInputSection> {
+class _ConfirmPasswordInputSectionState extends State<ConfirmPasswordInputSection> {
   var obscureText = true;
 
   @override
@@ -139,9 +134,7 @@ class _ConfirmPasswordInputSectionState
                 },
               ),
               onChanged: (value) {
-                context
-                    .read<NewPasswordFormBloc>()
-                    .add(ConfirmPasswordChanged(value.trim()));
+                context.read<NewPasswordFormBloc>().add(ConfirmPasswordChanged(value.trim()));
               },
             ),
             const SizedBox(height: 16),
@@ -161,8 +154,7 @@ class SubmitSection extends StatelessWidget {
       listener: (context, state) {
         if (state.status == FormStatus.success) {
           context.navigate(AppRoutes.login);
-        } else if (state.status == FormStatus.error &&
-            state.errorMessage.isNotEmpty) {
+        } else if (state.status == FormStatus.error && state.errorMessage.isNotEmpty) {
           // Handle error - show a dialog or snackbar
         }
       },
@@ -176,9 +168,7 @@ class SubmitSection extends StatelessWidget {
                     ? null
                     : () {
                         primaryFocus?.unfocus();
-                        context
-                            .read<NewPasswordFormBloc>()
-                            .add(const NewPasswordFormSubmitted());
+                        context.read<NewPasswordFormBloc>().add(const NewPasswordFormSubmitted());
                       },
                 child: Padding(
                   padding: AppPadding.a4,

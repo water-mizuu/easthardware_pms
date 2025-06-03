@@ -53,7 +53,7 @@ class ServerState with EquatableMixin {
   }
 
   @override
-  get props => [status, databaseArgs, databaseHelper, lastUpdated];
+  get props => [status, databaseArgs, databaseHelper, lastUpdated, bottomText];
 }
 
 sealed class DatabaseArgs {
