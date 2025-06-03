@@ -143,16 +143,19 @@ class _AdminNavigationViewState extends State<AdminNavigationView> {
             // if (index == 16) return;
 
             final probablyRoute = _routeIndexMapper.getRouteFromIndex(index);
-            if (probablyRoute case final AppRoute<void> route) {
-              context.navigate(route);
+            if (probablyRoute case null) {
+              if (kDebugMode) {
+                printBoxed(
+                  "Tried to navigate to a route which does not exist: $probablyRoute",
+                  "AdminNavigationView",
+                );
+              }
               return;
             }
 
-            if (kDebugMode) {
-              printBoxed(
-                "Tried to navigate to a route which requires a parameter: $probablyRoute",
-                "AdminNavigationView",
-              );
+            if (probablyRoute case final AppRoute<Null> route) {
+              context.navigate(route);
+              return;
             }
           },
           items: _navigationItems,

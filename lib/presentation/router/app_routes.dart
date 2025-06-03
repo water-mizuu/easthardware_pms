@@ -1,33 +1,33 @@
 import 'package:easthardware_pms/domain/models/product.dart';
 
 class AppRoutes {
-  static const root = AppRoute<void>('/');
-  static const login = AppRoute<void>('/login');
-  static const resetPassword = AppRoute<void>('/reset_password_authentication');
-  static const newPassword = AppRoute<String>('/new_password');
+  static const root = AppRoute<Null>('/');
+  static const login = AppRoute<Null>('/login');
+  static const resetPassword = AppRoute<String>('/reset_password_authentication');
+  static const newPassword = AppRoute<Null>('/new_password');
 
   // Major Page Routes
-  static const admin = AppRoute<void>('/admin');
-  static const staffDashboard = AppRoute<void>('/staff');
-  static const inventoryPage = AppRoute<void>('/inventory');
-  static const billingPage = AppRoute<void>('/billing');
-  static const orderPage = AppRoute<void>('/order');
-  static const reportsPage = AppRoute<void>('/reports');
-  static const settingsPage = AppRoute<void>('/settings');
+  static const admin = AppRoute<Null>('/admin');
+  static const staffDashboard = AppRoute<Null>('/staff');
+  static const inventoryPage = AppRoute<Null>('/inventory');
+  static const billingPage = AppRoute<Null>('/billing');
+  static const orderPage = AppRoute<Null>('/order');
+  static const reportsPage = AppRoute<Null>('/reports');
+  static const settingsPage = AppRoute<Null>('/settings');
 
   // Inventory Sub Pages
-  static const categoriesPage = AppRoute<void>('/categories');
-  static const createProductPage = AppRoute<void>('/create/product');
+  static const categoriesPage = AppRoute<Null>('/categories');
+  static const createProductPage = AppRoute<Null>('/create/product');
   static const editProductPage = AppRoute<Product>('/edit');
 
   // Billing SubPages
-  static const createInvoicePage = AppRoute<void>('/create/invoice');
+  static const createInvoicePage = AppRoute<Null>('/create/invoice');
   static const String payInvoicePage = 'pay/invoice';
 
   // Security Sub Pages
-  static const usersPage = AppRoute<void>('/users');
-  static const createUserPage = AppRoute<void>('/create/user');
-  static const userLogsPage = AppRoute<void>('/logs');
+  static const usersPage = AppRoute<Null>('/users');
+  static const createUserPage = AppRoute<Null>('/create/user');
+  static const userLogsPage = AppRoute<Null>('/logs');
 }
 
 /// A zero-cost compile-time wrapper for a string path.

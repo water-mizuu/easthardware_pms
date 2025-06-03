@@ -1,8 +1,6 @@
 import 'package:easthardware_pms/domain/enums/enums.dart';
 import 'package:easthardware_pms/presentation/bloc/authentication/authentication/authentication_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/authentication/login_form/login_form_bloc.dart';
-import 'package:easthardware_pms/presentation/bloc/authentication/reset_form/reset_form_bloc.dart'
-    as ResetPasswordPage;
 import 'package:easthardware_pms/presentation/bloc/navigation/navigation_cubit.dart';
 import 'package:easthardware_pms/presentation/bloc/security/user_log_list/user_log_list_bloc.dart';
 import 'package:easthardware_pms/presentation/router/app_routes.dart';
@@ -48,7 +46,7 @@ class _LoginPageState extends State<LoginPage> {
               print(status);
             }
             if (authState.loginAttempts > 3) {
-              context.navigate(AppRoutes.resetPassword);
+              context.navigateWithExtra(AppRoutes.resetPassword, loginFormBloc.state.username);
             }
           } else if (status == AuthenticationStatus.success) {
             if (user?.accessLevel == AccessLevel.administrator) {
@@ -78,9 +76,6 @@ class _LoginPageState extends State<LoginPage> {
             );
 
             context.read<AuthenticationBloc>().add(event);
-            context
-                .read<ResetPasswordPage.ResetFormBloc>()
-                .setUsername(state.username);
           }
         },
       ),

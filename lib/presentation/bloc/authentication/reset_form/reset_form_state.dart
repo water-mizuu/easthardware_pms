@@ -1,6 +1,6 @@
 part of 'reset_form_bloc.dart';
 
-enum FormStatus { initial, loading, loaded, success, error }
+enum ResetFormStatus { initial, loading, loaded, success, error }
 
 class ResetFormState extends Equatable {
   const ResetFormState({
@@ -8,7 +8,7 @@ class ResetFormState extends Equatable {
     this.selectedQuestion = '',
     this.answer = '',
     this.questions = const [],
-    this.status = FormStatus.initial,
+    this.status = ResetFormStatus.initial,
     this.errorMessage = '',
   });
 
@@ -16,7 +16,7 @@ class ResetFormState extends Equatable {
   final String selectedQuestion;
   final String answer;
   final List<SecurityQuestion> questions;
-  final FormStatus status;
+  final ResetFormStatus status;
   final String errorMessage;
 
   ResetFormState Function({
@@ -24,7 +24,7 @@ class ResetFormState extends Equatable {
     String selectedQuestion,
     String answer,
     List<SecurityQuestion> questions,
-    FormStatus status,
+    ResetFormStatus status,
     String errorMessage,
   }) get copyWith {
     return ({

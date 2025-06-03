@@ -10,17 +10,17 @@ class NavRailRouteIndexMapper {
     required List<NavigationPaneItem> items,
   }) {
     final expandedItems = items.expandItems().toList();
-    final routeToIndex = <AppRoute, int>{};
-    final indexToRoute = <int, AppRoute>{};
+    final routeToIndex = <AppRoute<Null>, int>{};
+    final indexToRoute = <int, AppRoute<Null>>{};
     for (var i = 0; i < expandedItems.length; i++) {
-      if (expandedItems[i].infoBadge case Transform(child: RouteText(:final data))) {
+      final badge = expandedItems[i].infoBadge;
+      if (badge case Transform(child: RouteText(:final AppRoute<Null> data))) {
         if (kDebugMode) {
           print('Mapping route: $data to index: $i');
         }
 
-        final route = data as AppRoute;
-        routeToIndex[route] = i;
-        indexToRoute[i] = route;
+        routeToIndex[data] = i;
+        indexToRoute[i] = data;
       }
     }
 
@@ -29,10 +29,10 @@ class NavRailRouteIndexMapper {
 
   const NavRailRouteIndexMapper._(this._routeToIndex, this._indexToRoute);
 
-  final Map<AppRoute, int> _routeToIndex;
-  final Map<int, AppRoute> _indexToRoute;
+  final Map<AppRoute<Null>, int> _routeToIndex;
+  final Map<int, AppRoute<Null>> _indexToRoute;
 
-  AppRoute? getRouteFromIndex(int index) {
+  AppRoute<Null>? getRouteFromIndex(int index) {
     return _indexToRoute[index];
   }
 

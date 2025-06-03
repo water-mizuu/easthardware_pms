@@ -20,7 +20,7 @@ class NavigationCubit extends Cubit<NavigationState> {
 }
 
 extension SafeNavigationExtension on BuildContext {
-  void navigate(AppRoute<void> route) {
+  void navigate(AppRoute<Null> route) {
     final cubit = read<NavigationCubit>();
 
     if (cubit.state.route != route) {

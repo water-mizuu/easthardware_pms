@@ -1,4 +1,3 @@
-import 'package:easthardware_pms/domain/models/product.dart';
 import 'package:easthardware_pms/domain/models/unit.dart';
 import 'package:easthardware_pms/presentation/bloc/billing/invoiceform/invoice_form_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/inventory/product_list/product_list_bloc.dart';

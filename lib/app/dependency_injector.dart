@@ -15,9 +15,9 @@ import 'package:easthardware_pms/domain/repository/user_log_repository.dart';
 import 'package:easthardware_pms/domain/repository/user_repository.dart';
 import 'package:easthardware_pms/presentation/bloc/authentication/authentication/'
     'authentication_bloc.dart';
-import 'package:easthardware_pms/presentation/bloc/billing/invoicelist/invoice_list_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/authentication/new_password_form/new_password_form_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/authentication/reset_form/reset_form_bloc.dart';
+import 'package:easthardware_pms/presentation/bloc/billing/invoicelist/invoice_list_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/inventory/category_list/category_list_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/inventory/product_list/product_list_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/inventory/unit_list/unit_list_bloc.dart';
@@ -116,7 +116,8 @@ class DependencyInjector {
         create: (context) {
           _unitListBloc?.close();
 
-          return _unitListBloc = UnitListBloc(_unitRepository)..add(LoadUnitsEvent());
+          return _unitListBloc = UnitListBloc(_unitRepository) //
+            ..add(LoadUnitsEvent());
         },
         key: key(),
       ),
@@ -124,8 +125,6 @@ class DependencyInjector {
         create: (context) {
           _userLogListBloc?.close();
 
-          return _userLogListBloc = UserLogListBloc(_userLogRepository)
-            ..add(const LoadUserLogsEvent());
           return _userLogListBloc = UserLogListBloc(_userLogRepository)
             ..add(const LoadUserLogsEvent());
         },

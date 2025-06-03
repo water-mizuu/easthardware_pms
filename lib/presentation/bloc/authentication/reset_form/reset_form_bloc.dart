@@ -1,5 +1,4 @@
 import 'package:bloc/bloc.dart';
-import 'package:dart_bloc_concurrency/dart_bloc_concurrency.dart';
 import 'package:easthardware_pms/domain/models/security_question.dart';
 import 'package:easthardware_pms/domain/repository/security_question_repository.dart';
 import 'package:easthardware_pms/domain/repository/user_repository.dart';
@@ -14,8 +13,7 @@ class ResetFormBloc extends Bloc<ResetFormEvent, ResetFormState> {
     required this.userRepository,
     required this.securityQuestionRepository,
   }) : super(const ResetFormState()) {
-    on<ResetFormUsernameChanged>(_onUsernameChanged,
-        transformer: debounce(const Duration(seconds: 1)));
+    on<ResetFormUsernameChanged>(_onUsernameChanged);
     on<ResetFormSecurityQuestionSelected>(_onSecurityQuestionSelected);
     on<ResetFormAnswerChanged>(_onAnswerChanged);
     on<ResetFormSubmitted>(_onFormSubmitted);
@@ -32,19 +30,19 @@ class ResetFormBloc extends Bloc<ResetFormEvent, ResetFormState> {
 
     emit(state.copyWith(
       username: username,
-      status: FormStatus.loading,
+      status: ResetFormStatus.loading,
       questions: [],
       selectedQuestion: '',
     ));
 
     if (username.isEmpty) {
-      emit(state.copyWith(status: FormStatus.initial));
+      emit(state.copyWith(status: ResetFormStatus.initial));
       return;
     }
 
     if (username == "admin") {
       emit(state.copyWith(
-        status: FormStatus.error,
+        status: ResetFormStatus.error,
         errorMessage: 'Admin user cannot reset password',
         questions: [],
         selectedQuestion: '',
@@ -53,29 +51,17 @@ class ResetFormBloc extends Bloc<ResetFormEvent, ResetFormState> {
     }
 
     try {
-      final user = await userRepository.getUserByUsername(username);
-      if (user == null) {
-        emit(state.copyWith(
-          status: FormStatus.error,
-          errorMessage: 'User not found',
-          questions: [],
-          selectedQuestion: '',
-        ));
-        return;
-      }
-
-      final questions = await securityQuestionRepository
-          .getSecurityQuestionsByUserId(user.id!);
+      final user = await userRepository.getUserByUsername(username).then((p) => p!);
+      final questions = await securityQuestionRepository.getSecurityQuestionsByUserId(user.id!);
       emit(state.copyWith(
         questions: questions,
-        status: FormStatus.loaded,
+        status: ResetFormStatus.loaded,
         errorMessage: '',
       ));
-      //
     } catch (e) {
       emit(state.copyWith(
         questions: [],
-        status: FormStatus.error,
+        status: ResetFormStatus.error,
         errorMessage: 'Failed to load security questions',
       ));
     }
@@ -88,22 +74,20 @@ class ResetFormBloc extends Bloc<ResetFormEvent, ResetFormState> {
     emit(state.copyWith(selectedQuestion: event.question));
   }
 
-  void _onAnswerChanged(
-      ResetFormAnswerChanged event, Emitter<ResetFormState> emit) {
+  void _onAnswerChanged(ResetFormAnswerChanged event, Emitter<ResetFormState> emit) {
     emit(state.copyWith(answer: event.answer));
   }
 
-  Future<void> _onFormSubmitted(
-      ResetFormSubmitted event, Emitter<ResetFormState> emit) async {
+  Future<void> _onFormSubmitted(ResetFormSubmitted event, Emitter<ResetFormState> emit) async {
     if (!state.isValid) {
       emit(state.copyWith(
-        status: FormStatus.error,
+        status: ResetFormStatus.error,
         errorMessage: 'Please fill in all fields',
       ));
       return;
     }
 
-    emit(state.copyWith(status: FormStatus.loading));
+    emit(state.copyWith(status: ResetFormStatus.loading));
 
     try {
       // Find the security question that matches the selected question
@@ -115,18 +99,18 @@ class ResetFormBloc extends Bloc<ResetFormEvent, ResetFormState> {
       if (selectedSecurityQuestion.answer.toLowerCase().trim() ==
           state.answer.toLowerCase().trim()) {
         emit(state.copyWith(
-          status: FormStatus.success,
+          status: ResetFormStatus.success,
           errorMessage: '',
         ));
       } else {
         emit(state.copyWith(
-          status: FormStatus.error,
+          status: ResetFormStatus.error,
           errorMessage: 'Incorrect answer to security question',
         ));
       }
     } catch (e) {
       emit(state.copyWith(
-        status: FormStatus.error,
+        status: ResetFormStatus.error,
         errorMessage: 'Verification failed. Please try again.',
       ));
     }

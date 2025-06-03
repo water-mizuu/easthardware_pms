@@ -9,8 +9,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 part 'authentication_event.dart';
 part 'authentication_state.dart';
 
-class AuthenticationBloc
-    extends Bloc<AuthenticationEvent, AuthenticationState> {
+class AuthenticationBloc extends Bloc<AuthenticationEvent, AuthenticationState> {
   AuthenticationBloc(this._repository) : super(AuthenticationState()) {
     on<AuthenticationLoginEvent>(_onLogin);
     on<AuthenticationLogoutEvent>((event, emit) {});
@@ -32,10 +31,12 @@ class AuthenticationBloc
     await Future.delayed(Duration.zero);
 
     try {
-      final user = await _repository.logIn(
-          username: event.username, password: event.password);
+      final user = await _repository.logIn(username: event.username, password: event.password);
       emit(state.copyWith(status: AuthenticationStatus.success, user: user));
-    } on AuthenticationException catch (e) {
+    }
+
+    /// [AuthenticationException] is thrown when the password is invalid.
+    on AuthenticationException catch (e) {
       if (kDebugMode) {
         print(e);
       }
@@ -46,7 +47,10 @@ class AuthenticationBloc
           loginAttempts: state.loginAttempts + 1,
         ),
       );
-    } on DatabaseException catch (e) {
+    }
+
+    /// [DatabaseException] is thrown when the user is not found in the database.
+    on DatabaseException catch (e) {
       if (kDebugMode) {
         print(e);
       }
@@ -54,6 +58,7 @@ class AuthenticationBloc
       return emit(
         state.copyWith(
           status: AuthenticationStatus.failure,
+          loginAttempts: 0,
         ),
       );
     }

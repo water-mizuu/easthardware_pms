@@ -38,7 +38,7 @@ enum LayoutMode {
   constrained,
   compact;
 
-  static Widget builder({required Widget Function(BuildContext context, LayoutMode mode) builder}) {
+  static Widget builder(Widget Function(BuildContext context, LayoutMode mode) builder) {
     return Builder(builder: (context) {
       final layoutMode = context.watch<LayoutMode>();
 

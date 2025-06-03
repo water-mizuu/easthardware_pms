@@ -87,13 +87,13 @@ extension MessageChannelExtension on WebSocketChannel {
     ///   and sends them to the webSocket channel.
     final internalReceivePort = ReceivePort()
       ..map(jsonEncode).listen((message) {
-        final encrypted = message.encryptSymmetric(encryptionKey);
         if (kDebugMode) {
           printBoxed(
-            "WebSocketChannel sent encrypted:\n${encrypted.wrap}",
+            "WebSocketChannel sent encrypted:\n${message.wrap}",
             "WebSocketChannel",
           );
         }
+        final encrypted = message.encryptSymmetric(encryptionKey);
 
         // We send the message as a string to the WebSocketChannel.
         sink.add(encrypted);
@@ -119,10 +119,10 @@ extension MessageChannelExtension on WebSocketChannel {
         .listen(
       (message) {
         if (kDebugMode) {
-          final messageString = message.toString();
-          final shortcut = messageString.substring(0, min(30, messageString.length));
-
-          print("[WebSocketChannel] Received decrypted message: $shortcut...");
+          printBoxed(
+            "WebSocketChannel received decrypted:\n${message.toString().wrap}",
+            "WebSocketChannel",
+          );
         }
 
         final [name as String, args] = message as List<Object?>;

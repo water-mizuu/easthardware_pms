@@ -2,8 +2,8 @@ import 'package:easthardware_pms/presentation/bloc/inventory/category_list/categ
 import 'package:easthardware_pms/presentation/bloc/inventory/product_form/product_form_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/inventory/product_form/product_form_validator.dart';
 import 'package:easthardware_pms/presentation/models/form_unit.dart';
-import 'package:easthardware_pms/presentation/widgets/layout_mode_provider.dart';
 import 'package:easthardware_pms/presentation/widgets/layout/spacing.dart';
+import 'package:easthardware_pms/presentation/widgets/layout_mode_provider.dart';
 import 'package:easthardware_pms/presentation/widgets/text.dart';
 import 'package:fluent_ui/fluent_ui.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -27,7 +27,7 @@ class ProductInformationFormContent extends StatelessWidget {
       builder: (context, _) => Form(
         key: context.read<ProductFormBloc>().formKey,
         child: LayoutMode.builder(
-          builder: (context, layoutMode) => switch (layoutMode) {
+          (context, layoutMode) => switch (layoutMode) {
             LayoutMode.wide => SingleChildScrollView(
                 controller: context.read<AnimatedScrollController>(),
                 child: Padding(

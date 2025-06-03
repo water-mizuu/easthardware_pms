@@ -166,12 +166,13 @@ Future<HttpServer> _initiateLandingServer(int port) async {
     final pointedConnection = _secureConnections[persistentKey]!;
     if (kDebugMode) {
       printBoxed(
-          "pointedConnection: ${(
-            encryptionKey: pointedConnection.encryptionKey,
-            secureKey: pointedConnection.secureKey,
-            isPersistent: pointedConnection.isPersistent
-          )}",
-          "Secure Connection");
+        "pointedConnection: ${(
+          encryptionKey: pointedConnection.encryptionKey,
+          secureKey: pointedConnection.secureKey,
+          isPersistent: pointedConnection.isPersistent
+        )}",
+        "Secure Connection",
+      );
     }
     if (!pointedConnection.isPersistent) {
       return SecureResponse.forbidden(
@@ -245,6 +246,12 @@ void _registerHandshakeRoutes(Router router) {
     // If all checks pass, the key is valid.
     return (parsedKey, true);
   }
+
+  router.get("/new-handshake-request", (Request request) {
+    request.hijack((streamChannel) {
+      // Handle the hijacked stream channel.
+    });
+  });
 
   /// All handshakes start with a request to this endpoint.
   /// It generates a unique key for the handshake and stores it with a time limit.

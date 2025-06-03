@@ -2,13 +2,13 @@ import 'package:easthardware_pms/domain/enums/enums.dart';
 import 'package:easthardware_pms/presentation/bloc/inventory/product_list/product_list_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/navigation/navigation_cubit.dart';
 import 'package:easthardware_pms/presentation/router/app_routes.dart';
-import 'package:easthardware_pms/presentation/widgets/ui/text_button.dart';
-import 'package:easthardware_pms/presentation/widgets/ui/data_table_place_holder.dart';
 import 'package:easthardware_pms/presentation/widgets/helper/data_row_mapper.dart';
-import 'package:easthardware_pms/presentation/widgets/ui/kpi_card.dart';
-import 'package:easthardware_pms/presentation/widgets/layout_mode_provider.dart';
 import 'package:easthardware_pms/presentation/widgets/layout/spacing.dart';
+import 'package:easthardware_pms/presentation/widgets/layout_mode_provider.dart';
 import 'package:easthardware_pms/presentation/widgets/text.dart';
+import 'package:easthardware_pms/presentation/widgets/ui/data_table_place_holder.dart';
+import 'package:easthardware_pms/presentation/widgets/ui/kpi_card.dart';
+import 'package:easthardware_pms/presentation/widgets/ui/text_button.dart';
 import 'package:fluent_ui/fluent_ui.dart';
 import 'package:flutter/material.dart' show DataColumn, DataTable;
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -54,7 +54,9 @@ class _InventoryPanePageState extends State<InventoryPanePage> {
           child: SingleChildScrollView(
             controller: _scrollController,
             child: Padding(
-              padding: EdgeInsets.symmetric(horizontal: AppPadding.panePadding.horizontal / 2),
+              padding: EdgeInsets.symmetric(
+                horizontal: AppPadding.panePadding.horizontal / 2,
+              ),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: const [
@@ -106,7 +108,7 @@ class InventorySummary extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         const SubheadingText('Inventory Summary'),
-        LayoutMode.builder(builder: (context, layoutMode) {
+        LayoutMode.builder((context, layoutMode) {
           switch (layoutMode) {
             case LayoutMode.wide:
               return IntrinsicHeight(
@@ -159,34 +161,22 @@ class InventorySummary extends StatelessWidget {
 
 class ActiveCountCard extends KPICard {
   const ActiveCountCard({super.key, required super.value, super.isExpanded})
-      : super(
-          'Active Products',
-          icon: const Icon(FluentIcons.product),
-        );
+      : super('Active Products', icon: const Icon(FluentIcons.product));
 }
 
 class LowStockCountCard extends KPICard {
   const LowStockCountCard({super.key, required super.value, super.isExpanded})
-      : super(
-          'Low Stock Products',
-          icon: const Icon(FluentIcons.product_warning),
-        );
+      : super('Low Stock Products', icon: const Icon(FluentIcons.product_warning));
 }
 
 class HangingCountCard extends KPICard {
   const HangingCountCard({super.key, required super.value, super.isExpanded})
-      : super(
-          'Hanging Products',
-          icon: const Icon(FluentIcons.market_down),
-        );
+      : super('Hanging Products', icon: const Icon(FluentIcons.market_down));
 }
 
 class FastMovingCountCard extends KPICard {
   const FastMovingCountCard({super.key, required super.value, super.isExpanded})
-      : super(
-          'Fast Moving Products',
-          icon: const Icon(FluentIcons.market),
-        );
+      : super('Fast Moving Products', icon: const Icon(FluentIcons.market));
 }
 
 class SearchRow extends StatelessWidget {
@@ -260,7 +250,7 @@ class ProductListSection extends StatelessWidget {
       children: [
         const SubheadingText('List of Products'),
         const SearchRow(),
-        const ProductsDataTable(),
+        const Flexible(child: ProductsDataTable()),
 
         /// Blank space to allow space for scrolling past the table.
         Spacing.v12,
@@ -295,7 +285,8 @@ class _ProductsDataTableState extends State<ProductsDataTable> {
     super.dispose();
   }
 
-  Widget buildView(BuildContext context) {
+  @override
+  Widget build(BuildContext context) {
     return ConstrainedBox(
       constraints: const BoxConstraints(minHeight: 200),
       child: BlocBuilder<ProductListBloc, ProductListState>(
@@ -339,10 +330,5 @@ class _ProductsDataTableState extends State<ProductsDataTable> {
         },
       ),
     );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Flexible(child: buildView(context));
   }
 }
