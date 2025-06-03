@@ -30,7 +30,7 @@ part 'server_state.dart';
 ///   It is responsible for managing the server connection and
 ///   prompting the user for server/client information.
 class ServerBloc extends Bloc<ServerEvent, ServerState> {
-  ServerBloc(this.bottomTextNotifier) : super(const ServerState(status: ServerStatus.initial)) {
+  ServerBloc() : super(const ServerState(status: ServerStatus.initial)) {
     /// Logic paths:
     ///   read the persisting data.
     ///   if no data is found, prompt the user for server/client information.
@@ -56,7 +56,6 @@ class ServerBloc extends Bloc<ServerEvent, ServerState> {
 
     on<ServerDatabaseUpdated>(_onDatabaseUpdated);
   }
-  final ValueNotifier<String?> bottomTextNotifier;
 
   @override
   void onEvent(ServerEvent event) {
@@ -96,18 +95,18 @@ class ServerBloc extends Bloc<ServerEvent, ServerState> {
     }
 
     /// Reset the state to initial.
-    emit(const ServerState(status: ServerStatus.initial).copyWith(status: ServerStatus.loading));
-    bottomTextNotifier.value = "Loading server data...";
+    emit(const ServerState(status: ServerStatus.initial)
+        .copyWith(status: ServerStatus.loading, bottomText: "Loading server data..."));
 
     /// Load the server data from the root key.
     switch (await server_preferences.getSavedDatabaseMode()) {
       case null:
-        bottomTextNotifier.value = "Found no saved data.";
+        emit(state.copyWith(bottomText: "No saved data found. Prompting user..."));
         add(const ServerPromptingUserFromNull());
 
         return;
       case DatabaseMode.client:
-        bottomTextNotifier.value = "Found existing client data.";
+        emit(state.copyWith(bottomText: "Found existing client data."));
 
         final address = await server_preferences.getSavedServerAddress();
         if (address == null) {
@@ -121,7 +120,7 @@ class ServerBloc extends Bloc<ServerEvent, ServerState> {
         }
       case DatabaseMode.server:
         final port = await server_preferences.getSavedServerPort();
-        bottomTextNotifier.value = "Found existing server data. $port";
+        emit(state.copyWith(bottomText: "Found existing server data. $port"));
 
         if (port == null) {
           add(const ServerPromptingServerInformation());
@@ -143,12 +142,16 @@ class ServerBloc extends Bloc<ServerEvent, ServerState> {
       case null:
         add(const ServerPromptingUserFromNull());
       case DatabaseMode.client:
-        bottomTextNotifier.value = "Client mode selected.";
-        emit(state.copyWith(status: ServerStatus.promptingClientInformation));
+        emit(state.copyWith(
+          status: ServerStatus.promptingClientInformation,
+          bottomText: "Prompting for client information...",
+        ));
         add(const ServerPromptingClientInformation());
       case DatabaseMode.server:
-        bottomTextNotifier.value = "Server mode selected.";
-        emit(state.copyWith(status: ServerStatus.promptingServerInformation));
+        emit(state.copyWith(
+          status: ServerStatus.promptingServerInformation,
+          bottomText: "Server mode selected.",
+        ));
         add(const ServerPromptingServerInformation());
     }
   }
@@ -319,14 +322,17 @@ class ServerBloc extends Bloc<ServerEvent, ServerState> {
     Emitter<ServerState> emit,
   ) async {
     final address = '${event.args.parentIp}:${event.args.port}';
-    bottomTextNotifier.value = "Connected to: $address";
+    emit(state.copyWith(
+      bottomText: "Connected to: $address",
+    ));
 
     if (event.popupToUser) {
       final didUserCancelCompleter = Completer<bool>();
       ClientConnectionSuccessDialog.show(
         context: rootWidgetKey.currentContext!,
         onCancel: () async {
-          bottomTextNotifier.value = "Cancelled connection. Loading client data...";
+          if (isClosed) return;
+          emit(state.copyWith(bottomText: "Cancelled connection. Loading client data..."));
           didUserCancelCompleter.complete(true);
           Navigator.of(rootWidgetKey.currentContext!).pop();
           final args = state.databaseArgs as ClientDatabaseArgs;
@@ -363,7 +369,7 @@ class ServerBloc extends Bloc<ServerEvent, ServerState> {
   /// This runs whenever a server is started.
   Future<void> _onServerStarted(ServerServerStarted event, Emitter<ServerState> emit) async {
     final address = '${event.args.ip}:${event.args.port}';
-    bottomTextNotifier.value = "Hosting at: $address";
+    emit(state.copyWith(bottomText: "Hosting at: $address"));
 
     if (event.popupToUser) {
       final didUserCancelCompleter = Completer<bool>();
@@ -372,7 +378,7 @@ class ServerBloc extends Bloc<ServerEvent, ServerState> {
         serverIp: event.args.ip,
         port: event.args.port,
         onGoBack: () async {
-          bottomTextNotifier.value = "Cancelled server. Loading server data...";
+          emit(state.copyWith(bottomText: "Cancelled server. Loading server data..."));
           didUserCancelCompleter.complete(true);
           Navigator.of(rootWidgetKey.currentContext!).pop();
           if (isClosed) return;
@@ -428,15 +434,21 @@ class ServerBloc extends Bloc<ServerEvent, ServerState> {
     ServerDatabaseUpdated event,
     Emitter<ServerState> emit,
   ) async {
-    emit(state.copyWith(lastUpdated: event.lastUpdated));
-    bottomTextNotifier.value = "Server updated at: ${event.lastUpdated.toLocal()}";
+    emit(state.copyWith(
+      lastUpdated: event.lastUpdated,
+      bottomText: "Server updated at: ${event.lastUpdated.toLocal()}",
+    ));
 
     Future.delayed(const Duration(seconds: 2), () {
       if (isClosed) return;
       if (state.databaseArgs case ServerDatabaseArgs(:final ip, :final port)) {
-        bottomTextNotifier.value = "Hosting at: $ip:$port";
+        emit(state.copyWith(
+          bottomText: "Hosting at: $ip:$port",
+        ));
       } else if (state.databaseArgs case ClientDatabaseArgs(:final parentIp, :final port)) {
-        bottomTextNotifier.value = "Connected to: $parentIp:$port";
+        emit(state.copyWith(
+          bottomText: "Connected to: $parentIp:$port",
+        ));
       }
     });
   }

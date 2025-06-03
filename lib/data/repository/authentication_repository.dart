@@ -27,8 +27,7 @@ class AuthenticationRepositoryImpl implements AuthenticationRepository {
   /// @throws [AuthenticationException] if the username or password is invalid
   ///
   @override
-  Future<User> logIn(
-      {required String username, required String password}) async {
+  Future<User> logIn({required String username, required String password}) async {
     // _validateInput(username, password);
     // Check if the user exists in the database
     final user = await _userRepository.getUserByUsername(username);
@@ -37,8 +36,7 @@ class AuthenticationRepositoryImpl implements AuthenticationRepository {
       throw DatabaseException('Invalid username or password');
     }
     // Hash the input password
-    final hashedPassword =
-        CryptographyService.generateHash(password, user.salt);
+    final hashedPassword = CryptographyService.generateHash(password, user.salt);
     // Compare the hashed password with the stored password
     if (user.passwordHash.toString() != hashedPassword.toString()) {
       throw AuthenticationException('Invalid username or password');

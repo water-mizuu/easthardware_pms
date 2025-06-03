@@ -103,7 +103,7 @@ class EditProductPage extends StatelessWidget {
               Future.delayed(Duration.zero, () {
                 if (context.mounted) {
                   context.read<ProductFormBloc>().add(FormResetEvent());
-                  context.navigate(AppRoutes.inventoryPage);
+                  context.navigate(AppRoutes.admin.inventory);
                 }
               });
             case FormStatus.error:
@@ -143,7 +143,7 @@ class PageHeader extends StatelessWidget {
       children: [
         IconButton(
           icon: const Icon(FluentIcons.back),
-          onPressed: () => context.navigate(AppRoutes.inventoryPage),
+          onPressed: () => context.navigate(AppRoutes.admin.inventory),
         ),
         const DisplayText('Edit Product'),
         const Spacer(flex: 1),

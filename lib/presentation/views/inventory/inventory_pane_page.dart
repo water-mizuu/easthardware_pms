@@ -82,10 +82,10 @@ class PageHeader extends StatelessWidget {
         const HeadingText('Products'),
         const Spacer(flex: 1),
         TextButton('Manage Categories', onPressed: () {
-          context.navigate(AppRoutes.categoriesPage);
+          context.navigate(AppRoutes.admin.inventory);
         }),
         TextButtonFilled('New Product', onPressed: () {
-          context.navigate(AppRoutes.createProductPage);
+          context.navigate(AppRoutes.admin.createProduct);
         }),
       ].withSpacing(() => Spacing.h16),
     );
@@ -320,7 +320,7 @@ class _ProductsDataTableState extends State<ProductsDataTable> {
                     DataRowMapper.mapProductToRow(
                       product,
                       editAction: () {
-                        context.navigateWithExtra(AppRoutes.editProductPage, product);
+                        context.navigateWithExtra(AppRoutes.admin.editProduct, product);
                       },
                     ),
                 ],

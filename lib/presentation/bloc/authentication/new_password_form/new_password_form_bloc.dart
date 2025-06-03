@@ -1,6 +1,7 @@
 import 'package:bloc/bloc.dart';
 import 'package:easthardware_pms/domain/repository/user_repository.dart';
 import 'package:equatable/equatable.dart';
+import 'package:flutter/foundation.dart';
 
 part 'new_password_form_event.dart';
 part 'new_password_form_state.dart';
@@ -57,7 +58,9 @@ class NewPasswordFormBloc extends Bloc<NewPasswordFormEvent, NewPasswordFormStat
 
     emit(state.copyWith(status: FormStatus.loading));
 
-    print('Submitting new password for $_username: ${state.newPassword}');
+    if (kDebugMode) {
+      print('Submitting new password for $_username: ${state.newPassword}');
+    }
 
     try {
       // Fix: use _username instead of username
@@ -65,7 +68,9 @@ class NewPasswordFormBloc extends Bloc<NewPasswordFormEvent, NewPasswordFormStat
 
       emit(state.copyWith(status: FormStatus.success, errorMessage: ''));
     } catch (_) {
-      print('Error updating password: rawr');
+      if (kDebugMode) {
+        print('Error updating password: rawr');
+      }
       emit(state.copyWith(
         status: FormStatus.error,
         errorMessage: 'Failed to update password. Try again.',

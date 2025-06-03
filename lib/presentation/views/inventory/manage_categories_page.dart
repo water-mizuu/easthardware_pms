@@ -98,7 +98,7 @@ class PageHeader extends StatelessWidget {
       children: [
         IconButton(
           icon: const Icon(FluentIcons.back),
-          onPressed: () => context.navigate(AppRoutes.inventoryPage),
+          onPressed: () => context.navigate(AppRoutes.admin.inventory),
         ),
         const HeadingText('Manage Categories'),
       ].withSpacing(() => Spacing.h16),

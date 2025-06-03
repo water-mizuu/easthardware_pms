@@ -19,30 +19,35 @@ class ServerState with EquatableMixin {
     this.databaseArgs,
     this.databaseHelper,
     this.lastUpdated,
+    this.bottomText,
   });
 
   final ServerStatus status;
   final DatabaseArgs? databaseArgs;
   final DatabaseHelper? databaseHelper;
   final DateTime? lastUpdated;
+  final String? bottomText;
 
   ServerState Function({
     ServerStatus status,
     DatabaseArgs? databaseArgs,
     DatabaseHelper? databaseHelper,
     DateTime? lastUpdated,
+    String bottomText,
   }) get copyWith {
     return ({
       Object? status = undefined,
       Object? databaseArgs = undefined,
       Object? databaseHelper = undefined,
       Object? lastUpdated = undefined,
+      Object? bottomText = undefined,
     }) {
       return ServerState(
         status: status.or(this.status),
         databaseArgs: databaseArgs.or(this.databaseArgs),
         databaseHelper: databaseHelper.or(this.databaseHelper),
         lastUpdated: lastUpdated.or(this.lastUpdated),
+        bottomText: bottomText.or(this.bottomText),
       );
     };
   }

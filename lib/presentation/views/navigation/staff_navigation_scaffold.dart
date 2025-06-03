@@ -1,21 +1,19 @@
 import 'dart:io' show Platform;
 
-import 'package:easthardware_pms/presentation/bloc/authentication/authentication/authentication_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/navigation/navigation_cubit.dart';
 import 'package:easthardware_pms/presentation/router/app_routes.dart';
 import 'package:easthardware_pms/presentation/widgets/brand/navrail_header.dart';
 import 'package:easthardware_pms/presentation/widgets/helper/nav_rail_route_index_mapper.dart';
 import 'package:easthardware_pms/presentation/widgets/layout_mode_provider.dart';
 import 'package:easthardware_pms/presentation/widgets/title_bar.dart';
-import 'package:easthardware_pms/utils/boxed.dart';
 import 'package:fluent_ui/fluent_ui.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:scroll_animator/scroll_animator.dart';
 
-class AdminNavigationScaffold extends StatelessWidget {
-  const AdminNavigationScaffold(this.shell, this.children, {super.key});
+class StaffNavigationScaffold extends StatelessWidget {
+  const StaffNavigationScaffold(this.shell, this.children, {super.key});
 
   final StatefulNavigationShell shell;
   final List<Widget> children;
@@ -136,30 +134,13 @@ class _AdminNavigationViewState extends State<AdminNavigationView> {
           onItemPressed: (index) {
             /// Redirects such as this should be specified in the
             ///   [_navigationItems] list.
-
-            // if ([1, 12].contains(index)) {
-            //   index++;
-            // }
-            // if (index == 16) return;
-
             final probablyRoute = _routeIndexMapper.getRouteFromIndex(index);
-            if (probablyRoute case null) {
-              if (kDebugMode) {
-                printBoxed(
-                  "Tried to navigate to a route which does not exist: $probablyRoute",
-                  "AdminNavigationView",
-                );
-              }
-              return;
-            }
-
             if (probablyRoute case final AppRoute<Null> route) {
               context.navigate(route);
               return;
             }
           },
           items: _navigationItems(context),
-          footerItems: _footerItems(context),
         ),
       ),
     );
@@ -170,45 +151,28 @@ class _AdminNavigationViewState extends State<AdminNavigationView> {
       _navItem(
         icon: FluentIcons.dynamic_list,
         title: "Dashboard",
-        route: AppRoutes.admin.dashboard,
+        route: AppRoutes.staff.dashboard,
       ),
       PaneItemSeparator(),
       _navItem(
         icon: FluentIcons.product,
         title: "Inventory",
-        route: AppRoutes.admin.inventory,
-        items: [
-          _navItem(
-            icon: FluentIcons.product_list,
-            title: "List of Products",
-            route: AppRoutes.admin.inventory,
-          ),
-          _navItem(
-            icon: FluentIcons.product_release,
-            title: "Register Product",
-            route: AppRoutes.admin.createProduct,
-          ),
-          _navItem(
-            icon: FluentIcons.product_catalog,
-            title: "Manage Categories",
-            route: AppRoutes.admin.categories,
-          ),
-        ],
+        route: AppRoutes.staff.inventory,
       ),
       _navItem(
         icon: FluentIcons.text_document,
         title: 'Billing',
-        route: AppRoutes.admin.billing,
+        // route: AppRoutes.billingPage,
         items: [
           _navItem(
             icon: FluentIcons.text_document,
             title: "Invoice List",
-            route: AppRoutes.admin.billing,
+            route: AppRoutes.staff.createInvoice,
           ),
           _navItem(
             icon: FluentIcons.text_document_edit,
-            title: "Create Invoice",
-            route: AppRoutes.admin.createInvoice,
+            title: "Pay Invoice",
+            route: AppRoutes.staff.payInvoice,
           ),
         ],
       ),
@@ -233,40 +197,6 @@ class _AdminNavigationViewState extends State<AdminNavigationView> {
         icon: FluentIcons.bar_chart_vertical_fill,
         title: 'Reports',
         // route: AppRoutes.reportsPage,
-      ),
-      _navItem(
-        icon: FluentIcons.local_admin,
-        title: 'Security',
-        // route: AppRoutes.admin.userLogs,
-        items: [
-          _navItem(
-            icon: FluentIcons.contact_list,
-            title: 'List of Users',
-            route: AppRoutes.admin.users,
-          ),
-          _navItem(
-            icon: FluentIcons.add_friend,
-            title: 'Register User',
-            route: AppRoutes.admin.createUser,
-          ),
-          _navItem(
-            icon: FluentIcons.user_window,
-            title: 'User Logs',
-            route: AppRoutes.admin.userLogs,
-          ),
-        ],
-      ),
-    ];
-  }
-
-  static List<NavigationPaneItem> _footerItems(BuildContext context) {
-    return [
-      _navItem(
-        icon: FluentIcons.leave,
-        title: 'Log Out',
-        onTap: () {
-          context.read<AuthenticationBloc>().add(const AuthenticationLogoutEvent());
-        },
       ),
     ];
   }
