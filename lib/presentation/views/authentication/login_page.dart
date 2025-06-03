@@ -46,7 +46,8 @@ class _LoginPageState extends State<LoginPage> {
               print(status);
             }
             if (authState.loginAttempts > 3) {
-              context.navigateWithExtra(AppRoutes.resetPassword, loginFormBloc.state.username);
+              context.navigateWithExtra(
+                  AppRoutes.resetPassword, loginFormBloc.state.username);
             }
           } else if (status == AuthenticationStatus.success) {
             if (user?.accessLevel == AccessLevel.administrator) {

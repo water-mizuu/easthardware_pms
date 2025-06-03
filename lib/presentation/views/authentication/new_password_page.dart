@@ -82,11 +82,6 @@ class _NewPasswordInputSectionState extends State<NewPasswordInputSection> {
         TextBox(
           placeholder: 'Enter new password',
           obscureText: obscureText,
-          onChanged: (value) {
-            context
-                .read<NewPasswordFormBloc>()
-                .add(NewPasswordChanged(value.trim()));
-          },
           suffix: IconButton(
             icon: Icon(
               obscureText ? Icons.visibility : Icons.visibility_off,
@@ -97,6 +92,11 @@ class _NewPasswordInputSectionState extends State<NewPasswordInputSection> {
               });
             },
           ),
+          onChanged: (value) {
+            context
+                .read<NewPasswordFormBloc>()
+                .add(NewPasswordChanged(value.trim()));
+          },
         ),
         const SizedBox(height: 16),
       ],
@@ -104,8 +104,17 @@ class _NewPasswordInputSectionState extends State<NewPasswordInputSection> {
   }
 }
 
-class ConfirmPasswordInputSection extends StatelessWidget {
+class ConfirmPasswordInputSection extends StatefulWidget {
   const ConfirmPasswordInputSection({super.key});
+
+  @override
+  State<ConfirmPasswordInputSection> createState() =>
+      _ConfirmPasswordInputSectionState();
+}
+
+class _ConfirmPasswordInputSectionState
+    extends State<ConfirmPasswordInputSection> {
+  var obscureText = true;
 
   @override
   Widget build(BuildContext context) {
@@ -118,7 +127,17 @@ class ConfirmPasswordInputSection extends StatelessWidget {
             const SizedBox(height: 8),
             TextBox(
               placeholder: 'Confirm password',
-              obscureText: true,
+              obscureText: obscureText,
+              suffix: IconButton(
+                icon: Icon(
+                  obscureText ? Icons.visibility : Icons.visibility_off,
+                ),
+                onPressed: () {
+                  setState(() {
+                    obscureText = !obscureText;
+                  });
+                },
+              ),
               onChanged: (value) {
                 context
                     .read<NewPasswordFormBloc>()
