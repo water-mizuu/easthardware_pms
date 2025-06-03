@@ -73,7 +73,8 @@ class _AdminNavigationViewState extends State<AdminNavigationView> {
     super.initState();
 
     _routeIndexMapper = NavRailRouteIndexMapper(items: _navigationItems);
-    _scrollController = AnimatedScrollController(animationFactory: const ChromiumEaseInOut());
+    _scrollController =
+        AnimatedScrollController(animationFactory: const ChromiumEaseInOut());
     _selectedIndex = 0;
   }
 
@@ -277,7 +278,9 @@ class _AdminNavigationViewState extends State<AdminNavigationView> {
 
         /// A little hack to allow the [RouteIndexMapper] to access the route linked
         ///   to this item.
-        infoBadge: route == null ? null : Transform.scale(scale: 0.0, child: RouteText(route)),
+        infoBadge: route == null
+            ? null
+            : Transform.scale(scale: 0.0, child: RouteText(route)),
         body: const SizedBox.shrink(),
       );
     } else {
@@ -287,7 +290,9 @@ class _AdminNavigationViewState extends State<AdminNavigationView> {
 
         /// A little hack to allow the [RouteIndexMapper] to access the route linked
         ///   to this item.
-        infoBadge: route == null ? null : Transform.scale(scale: 0.0, child: RouteText(route)),
+        infoBadge: route == null
+            ? null
+            : Transform.scale(scale: 0.0, child: RouteText(route)),
         body: const SizedBox.shrink(),
         onTap: onTap,
       );

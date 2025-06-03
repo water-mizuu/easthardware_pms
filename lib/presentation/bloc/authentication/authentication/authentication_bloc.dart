@@ -9,7 +9,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 part 'authentication_event.dart';
 part 'authentication_state.dart';
 
-class AuthenticationBloc extends Bloc<AuthenticationEvent, AuthenticationState> {
+class AuthenticationBloc
+    extends Bloc<AuthenticationEvent, AuthenticationState> {
   AuthenticationBloc(this._repository) : super(AuthenticationState()) {
     on<AuthenticationLoginEvent>(_onLogin);
     on<AuthenticationLogoutEvent>((event, emit) {});
@@ -31,7 +32,8 @@ class AuthenticationBloc extends Bloc<AuthenticationEvent, AuthenticationState> 
     await Future.delayed(Duration.zero);
 
     try {
-      final user = await _repository.logIn(username: event.username, password: event.password);
+      final user = await _repository.logIn(
+          username: event.username, password: event.password);
       emit(state.copyWith(status: AuthenticationStatus.success, user: user));
     } on AuthenticationException catch (e) {
       if (kDebugMode) {
@@ -42,6 +44,16 @@ class AuthenticationBloc extends Bloc<AuthenticationEvent, AuthenticationState> 
         state.copyWith(
           status: AuthenticationStatus.failure,
           loginAttempts: state.loginAttempts + 1,
+        ),
+      );
+    } on DatabaseException catch (e) {
+      if (kDebugMode) {
+        print(e);
+      }
+
+      return emit(
+        state.copyWith(
+          status: AuthenticationStatus.failure,
         ),
       );
     }

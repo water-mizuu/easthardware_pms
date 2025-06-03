@@ -1,6 +1,8 @@
 import 'package:easthardware_pms/domain/enums/enums.dart';
 import 'package:easthardware_pms/presentation/bloc/authentication/authentication/authentication_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/authentication/login_form/login_form_bloc.dart';
+import 'package:easthardware_pms/presentation/bloc/authentication/reset_form/reset_form_bloc.dart'
+    as ResetPasswordPage;
 import 'package:easthardware_pms/presentation/bloc/navigation/navigation_cubit.dart';
 import 'package:easthardware_pms/presentation/bloc/security/user_log_list/user_log_list_bloc.dart';
 import 'package:easthardware_pms/presentation/router/app_routes.dart';
@@ -30,7 +32,10 @@ class _LoginPageState extends State<LoginPage> {
   List<BlocListener> get listeners {
     return [
       BlocListener<AuthenticationBloc, AuthenticationState>(
-        listenWhen: (previous, current) =>
+        listenWhen: (
+          previous,
+          current,
+        ) =>
             previous.status != current.status ||
             previous.user != current.user ||
             previous.loginAttempts != current.loginAttempts,
@@ -53,7 +58,6 @@ class _LoginPageState extends State<LoginPage> {
             }
             context.read<UserLogListBloc>().add(AddLoginEvent(user!));
           }
-
           loginFormBloc.add(LoginFormReturned());
         },
       ),
@@ -74,6 +78,9 @@ class _LoginPageState extends State<LoginPage> {
             );
 
             context.read<AuthenticationBloc>().add(event);
+            context
+                .read<ResetPasswordPage.ResetFormBloc>()
+                .setUsername(state.username);
           }
         },
       ),

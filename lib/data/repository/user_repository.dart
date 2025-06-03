@@ -106,14 +106,12 @@ class UserRepositoryImpl implements UserRepository {
       }
 
       final newSalt = CryptographyService.generateSalt();
-      final saltBase64 = base64Encode(newSalt);
-
       final newHash = CryptographyService.generateHash(newPassword, newSalt);
 
       await _usersDao.updatePassword(
         username,
-        newHash.toString(),
-        saltBase64,
+        newHash,
+        newSalt,
       );
     } catch (e) {
       throw DatabaseException('Failed to update password: $e');

@@ -1,3 +1,6 @@
+import 'dart:convert';
+import 'dart:typed_data';
+
 import 'package:easthardware_pms/data/database/dao/dao_base.dart';
 import 'package:easthardware_pms/data/database/database_helper.dart';
 import 'package:easthardware_pms/data/database/tables/users_table.dart';
@@ -16,7 +19,7 @@ abstract interface class UsersDao {
   Future<User> updateUser(User user);
   Future<void> deleteUser(User user);
   Future<void> updatePassword(
-      String username, String newPasswordHash, String salt);
+      String username, Uint8List newPasswordHash, Uint8List salt);
 }
 
 final class UsersDaoImpl extends DaoBase implements UsersDao {
@@ -105,14 +108,14 @@ final class UsersDaoImpl extends DaoBase implements UsersDao {
 
   @override
   Future<void> updatePassword(
-      String username, String newPasswordHash, String salt) async {
+      String username, Uint8List newPasswordHash, Uint8List salt) async {
     final database = databaseHelper.database;
 
     await database.update(
       UsersTable.USERS_TABLE_NAME,
       {
-        UsersTable.USERS_PASSWORD_HASH: newPasswordHash,
-        UsersTable.USERS_SALT: salt,
+        UsersTable.USERS_PASSWORD_HASH: base64Encode(newPasswordHash),
+        UsersTable.USERS_SALT: base64Encode(salt),
       },
       where: "${UsersTable.USERS_USERNAME} = ?",
       whereArgs: [username],

@@ -64,7 +64,8 @@ class ResetFormBloc extends Bloc<ResetFormEvent, ResetFormState> {
         return;
       }
 
-      final questions = await securityQuestionRepository.getSecurityQuestionsByUserId(user.id!);
+      final questions = await securityQuestionRepository
+          .getSecurityQuestionsByUserId(user.id!);
       emit(state.copyWith(
         questions: questions,
         status: FormStatus.loaded,
@@ -87,11 +88,13 @@ class ResetFormBloc extends Bloc<ResetFormEvent, ResetFormState> {
     emit(state.copyWith(selectedQuestion: event.question));
   }
 
-  void _onAnswerChanged(ResetFormAnswerChanged event, Emitter<ResetFormState> emit) {
+  void _onAnswerChanged(
+      ResetFormAnswerChanged event, Emitter<ResetFormState> emit) {
     emit(state.copyWith(answer: event.answer));
   }
 
-  Future<void> _onFormSubmitted(ResetFormSubmitted event, Emitter<ResetFormState> emit) async {
+  Future<void> _onFormSubmitted(
+      ResetFormSubmitted event, Emitter<ResetFormState> emit) async {
     if (!state.isValid) {
       emit(state.copyWith(
         status: FormStatus.error,

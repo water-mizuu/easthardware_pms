@@ -31,7 +31,8 @@ class LoginFormBloc extends Bloc<LoginFormEvent, LoginFormState> {
   void _onButtonPressed(LoginFormButtonPressed event, Emitter emit) {
     emit(state.copyWith(status: FormStatus.validating));
 
-    if (formKey.currentState case final FormState formState when formState.validate()) {
+    if (formKey.currentState case final FormState formState
+        when formState.validate()) {
       emit(state.copyWith(status: FormStatus.submitting));
     } else {
       emit(state.copyWith(status: FormStatus.error));

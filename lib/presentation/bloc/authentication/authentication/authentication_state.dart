@@ -2,7 +2,13 @@ part of 'authentication_bloc.dart';
 
 enum AuthenticationStatus { unknown, loading, success, failure }
 
-enum FormElement { username, password, passwordVerification, securityQuestion, securityAnswer }
+enum FormElement {
+  username,
+  password,
+  passwordVerification,
+  securityQuestion,
+  securityAnswer
+}
 
 class ErrorMessage {
   const ErrorMessage({required this.message, required this.target});
