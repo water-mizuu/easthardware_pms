@@ -1,5 +1,5 @@
 import 'package:easthardware_pms/presentation/bloc/authentication/new_password_form/new_password_form_bloc.dart';
-import 'package:easthardware_pms/presentation/widgets/spacing.dart';
+import 'package:easthardware_pms/presentation/widgets/layout/spacing.dart';
 import 'package:fluent_ui/fluent_ui.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 

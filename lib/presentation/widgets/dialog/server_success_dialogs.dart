@@ -1,4 +1,4 @@
-import 'package:easthardware_pms/presentation/widgets/spacing.dart';
+import 'package:easthardware_pms/presentation/widgets/layout/spacing.dart';
 import 'package:easthardware_pms/utils/show_single_dialog.dart';
 import 'package:fluent_ui/fluent_ui.dart';
 

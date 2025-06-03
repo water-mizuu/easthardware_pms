@@ -9,9 +9,9 @@ import 'package:easthardware_pms/presentation/bloc/inventory/unit_list/unit_list
 import 'package:easthardware_pms/presentation/bloc/navigation/navigation_cubit.dart';
 import 'package:easthardware_pms/presentation/bloc/security/user_log_list/user_log_list_bloc.dart';
 import 'package:easthardware_pms/presentation/router/app_routes.dart';
+import 'package:easthardware_pms/presentation/widgets/ui/text_button.dart';
+import 'package:easthardware_pms/presentation/widgets/layout/spacing.dart';
 import 'package:easthardware_pms/presentation/views/inventory/product_information_form_content.dart';
-import 'package:easthardware_pms/presentation/widgets/buttons/text_button.dart';
-import 'package:easthardware_pms/presentation/widgets/spacing.dart';
 import 'package:easthardware_pms/presentation/widgets/text.dart';
 import 'package:fluent_ui/fluent_ui.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -112,7 +112,7 @@ class PageHeader extends StatelessWidget {
           icon: const Icon(FluentIcons.back),
           onPressed: () => context.navigate(AppRoutes.inventoryPage),
         ),
-        const DisplayText('Add Product'),
+        const DisplayText('Create Product'),
         const Spacer(flex: 1),
         TextButtonFilled(
           'Save Product',

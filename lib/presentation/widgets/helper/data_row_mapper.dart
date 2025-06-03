@@ -1,9 +1,16 @@
+import 'package:easthardware_pms/domain/enums/enums.dart';
 import 'package:easthardware_pms/domain/models/category.dart';
+import 'package:easthardware_pms/domain/models/invoice.dart';
 import 'package:easthardware_pms/domain/models/product.dart';
+import 'package:easthardware_pms/domain/models/unit.dart';
 import 'package:easthardware_pms/domain/models/user.dart';
 import 'package:easthardware_pms/domain/models/user_log.dart';
-import 'package:easthardware_pms/presentation/widgets/data_row.dart';
-import 'package:easthardware_pms/presentation/widgets/spacing.dart';
+import 'package:easthardware_pms/presentation/models/data_cell_functions.dart';
+import 'package:easthardware_pms/presentation/models/form_product.dart';
+import 'package:easthardware_pms/presentation/widgets/ui/badge.dart';
+import 'package:easthardware_pms/presentation/widgets/ui/compound_button.dart';
+import 'package:easthardware_pms/presentation/widgets/ui/data_row.dart';
+import 'package:easthardware_pms/presentation/widgets/layout/spacing.dart';
 import 'package:easthardware_pms/presentation/widgets/text.dart';
 import 'package:fluent_ui/fluent_ui.dart';
 import 'package:flutter/material.dart' show DataCell, DataRow;
@@ -206,6 +213,89 @@ class DataRowMapper {
       DataCell(Text(DateFormat.yMMMMd().format(log.eventTime))),
       DataCell(Text(DateFormat('hh:mm a').format(log.eventTime))),
       DataCell(Text(log.event)),
+    ]);
+  }
+
+  static DataRow mapInvoiceToRow(Invoice invoice, Function() action) {
+    final invoiceDate = DateFormat.yMMMMd().format(invoice.invoiceDate).toString();
+    final invoiceId = invoice.id!.toString();
+    final invoiceCustomer =
+        invoice.customerName.isNotEmpty ? invoice.customerName : "Unnamed Customer";
+    final invoiceTotal = invoice.amountDue.toString();
+
+    final amountPaid = invoice.amountPaid ?? 0;
+    final isPaid = invoice.amountDue - amountPaid == 0;
+    final Widget statusBadge = isPaid
+        ? Badge(
+            color: Colors.green.light,
+            child: Text("Paid", style: TextStyle(color: Colors.green)),
+          )
+        : Badge(
+            color: Colors.red.light,
+            child: Text("Unpaid", style: TextStyle(color: Colors.red)),
+          );
+    return DataRow(cells: [
+      DataCell(Text(invoiceDate)),
+      DataCell(Text(invoiceId)),
+      DataCell(Text(invoiceCustomer)),
+      DataCell(Text(invoiceTotal)),
+      DataCell(statusBadge),
+      DataCell(HyperlinkButton(onPressed: action, child: const Text('View'))),
+    ]);
+  }
+
+  static DataRow mapInvoiceProductToRow(
+    int index,
+    FormProduct product,
+    List<Product> products,
+    List<Unit> units,
+    InvoiceProductFunctions functions,
+  ) {
+    return DataRow(cells: [
+      // Number
+      DataCell(Text((index + 1).toString())),
+      DataCell(SizedBox(
+        height: 32,
+        width: 128,
+        child: AutoSuggestBox.form(
+            foregroundDecoration: const BoxDecoration(border: Border()),
+            onSelected: (value) {
+              if (value.value != null) {
+                functions.onProductSelected(value.value!);
+              }
+            },
+            items: products.map((product) {
+              return AutoSuggestBoxItem(
+                value: product,
+                label: product.name,
+              );
+            }).toList()),
+      )),
+      DataCell(TextFormBox(
+          onChanged: (value) => functions.onDescriptionChanged,
+          controller: TextEditingController(text: product.description))),
+      // Quantity
+      DataCell(CompoundButton(
+          onTextChanged: (value) => functions.onQuantityChanged,
+          onComboBoxSelected: (value) => functions.onUnitSelected,
+          items: units
+              .map((unit) => ComboBoxItem(
+                    value: unit,
+                    child: Text(unit.name),
+                  ))
+              .toList(),
+          text: product.quantity.toString())),
+      // Rate
+      DataCell(TextFormBox(
+        controller: TextEditingController(text: product.rate.toString()),
+      )),
+      // Discount
+      DataCell(ComboBox(
+          items: DiscountType.values.map((type) => ComboBoxItem(child: Text(type.name))).toList())),
+      // Amount
+      DataCell(TextFormBox()),
+      // Delete
+      DataCell(IconButton(icon: const Icon(FluentIcons.remove), onPressed: () {}))
     ]);
   }
 }

@@ -76,12 +76,15 @@ mixin ProductFormValidator {
   }
 
   String? validateSecondaryUnitName({required String? name, required List<String> existingNames}) {
+    if (existingNames.last == name) {
+      return "Secondary unit cannot be the same as the primary unit.";
+    }
     if (name == null || name.isEmpty) {
       return "Alternate unit name cannot be empty.";
     }
 
     if (existingNames.contains(name)) {
-      return "Alternate unit name already exists.";
+      return "Secondary unit already exists.";
     }
     return null;
   }

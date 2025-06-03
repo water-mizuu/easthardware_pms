@@ -9,8 +9,8 @@ import 'package:easthardware_pms/presentation/bloc/security/user_form/user_form_
 import 'package:easthardware_pms/presentation/bloc/security/user_list/user_list_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/security/user_log_list/user_log_list_bloc.dart';
 import 'package:easthardware_pms/presentation/router/app_routes.dart';
-import 'package:easthardware_pms/presentation/widgets/buttons/text_button.dart';
-import 'package:easthardware_pms/presentation/widgets/spacing.dart';
+import 'package:easthardware_pms/presentation/widgets/ui/text_button.dart';
+import 'package:easthardware_pms/presentation/widgets/layout/spacing.dart';
 import 'package:easthardware_pms/presentation/widgets/text.dart';
 import 'package:fluent_ui/fluent_ui.dart';
 import 'package:flutter/foundation.dart';
@@ -59,15 +59,11 @@ class _CreateUserPageState extends State<CreateUserPage> {
                   .toList();
 
               for (final question in securityQuestions) {
-                context
-                    .read<SecurityQuestionListBloc>()
-                    .add(AddSecurityQuestionEvent(question));
+                context.read<SecurityQuestionListBloc>().add(AddSecurityQuestionEvent(question));
               }
               final creator = context.read<AuthenticationBloc>().state.user;
               context.read<UserFormBloc>().add(FormSubmittedEvent());
-              context
-                  .read<UserLogListBloc>()
-                  .add(AddCreateEvent('User #$id', creator!));
+              context.read<UserLogListBloc>().add(AddCreateEvent('User #$id', creator!));
               break;
             case FormStatus.submitted:
               Future.delayed(Duration.zero, () {
@@ -233,9 +229,7 @@ class FirstNameLastNameFields extends StatelessWidget with UserFormValidator {
               validator: validateFirstName,
               placeholder: 'First Name',
               onChanged: (value) {
-                context
-                    .read<UserFormBloc>()
-                    .add(FirstNameFieldChangedEvent(value));
+                context.read<UserFormBloc>().add(FirstNameFieldChangedEvent(value));
               },
             ),
           ].withSpacing(() => Spacing.v8),
@@ -249,9 +243,7 @@ class FirstNameLastNameFields extends StatelessWidget with UserFormValidator {
               validator: validateLastName,
               placeholder: 'Last Name',
               onChanged: (value) {
-                context
-                    .read<UserFormBloc>()
-                    .add(LastNameFieldChangedEvent(value));
+                context.read<UserFormBloc>().add(LastNameFieldChangedEvent(value));
               },
             ),
           ].withSpacing(() => Spacing.v8),
@@ -329,9 +321,7 @@ class ConfirmPasswordField extends StatelessWidget with UserFormValidator {
           },
           placeholder: 'Confirm Password',
           onChanged: (value) {
-            context
-                .read<UserFormBloc>()
-                .add(ConfirmPasswordFieldChangedEvent(value));
+            context.read<UserFormBloc>().add(ConfirmPasswordFieldChangedEvent(value));
           },
         ),
       ].withSpacing(() => Spacing.v8),
@@ -356,9 +346,7 @@ class AccessLevelField extends StatelessWidget with UserFormValidator {
               value: state.accessLevel,
               isExpanded: true,
               onChanged: (value) {
-                context
-                    .read<UserFormBloc>()
-                    .add(AccessLevelFieldChangedEvent(value!));
+                context.read<UserFormBloc>().add(AccessLevelFieldChangedEvent(value!));
               },
               items: AccessLevel.values.map((level) {
                 return ComboBoxItem(
@@ -412,16 +400,14 @@ class SecurityQuestionFields extends StatelessWidget with UserFormValidator {
                             label: staticQuestion,
                             value: staticQuestion,
                             onSelected: () {
-                              context.read<UserFormBloc>().add(
-                                  QuestionFieldChangedEvent(
-                                      staticQuestion, index));
+                              context
+                                  .read<UserFormBloc>()
+                                  .add(QuestionFieldChangedEvent(staticQuestion, index));
                             },
                           )
                       ],
                       onChanged: (text, reason) {
-                        context
-                            .read<UserFormBloc>()
-                            .add(QuestionFieldChangedEvent(text, index));
+                        context.read<UserFormBloc>().add(QuestionFieldChangedEvent(text, index));
                       },
                     )
                   ],
@@ -433,12 +419,9 @@ class SecurityQuestionFields extends StatelessWidget with UserFormValidator {
                   children: [
                     const BodyText('Answer'),
                     TextFormBox(
-                      validator: (value) =>
-                          validateSecurityAnswer(value, index),
+                      validator: (value) => validateSecurityAnswer(value, index),
                       onChanged: (value) {
-                        context
-                            .read<UserFormBloc>()
-                            .add(AnswerFieldChangedEvent(value, index));
+                        context.read<UserFormBloc>().add(AnswerFieldChangedEvent(value, index));
                       },
                     ),
                   ].withSpacing(() => Spacing.v8),

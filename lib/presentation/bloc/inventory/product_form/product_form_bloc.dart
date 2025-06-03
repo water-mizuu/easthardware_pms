@@ -34,7 +34,7 @@ class ProductFormBloc extends Bloc<ProductFormEvent, ProductFormState> {
     on<SkuFieldChangedEvent>(_onSkuChanged);
     on<CategoryFieldChangedEvent>(_onCategoryChanged);
     on<CategoryIdChangedEvent>(_onCategoryIdChanged);
-    on<DescriptionFieldChangedEvent>(_onDescriptionChanged);
+    on<DescriptionChangedEvent>(_onDescriptionChanged);
     on<PriceFieldChangedEvent>(_onPriceChanged);
     on<CostFieldChangedEvent>(_onCostChanged);
     on<QuantityFieldChangedEvent>(_onQuantityChanged);
@@ -82,8 +82,8 @@ class ProductFormBloc extends Bloc<ProductFormEvent, ProductFormState> {
     return emit(state.copyWith(categoryId: categoryId));
   }
 
-  void _onDescriptionChanged(DescriptionFieldChangedEvent event, Emitter<ProductFormState> emit) {
-    final description = event.description;
+  void _onDescriptionChanged(DescriptionChangedEvent event, Emitter<ProductFormState> emit) {
+    final String description = event.description;
     return emit(state.copyWith(description: description));
   }
 

@@ -3,7 +3,7 @@ import 'package:easthardware_pms/presentation/bloc/authentication/new_password_f
     as NewPasswordForm;
 import 'package:easthardware_pms/presentation/bloc/navigation/navigation_cubit.dart';
 import 'package:easthardware_pms/presentation/router/app_routes.dart';
-import 'package:easthardware_pms/presentation/widgets/spacing.dart';
+import 'package:easthardware_pms/presentation/widgets/layout/spacing.dart';
 import 'package:fluent_ui/fluent_ui.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -50,10 +50,7 @@ class FormHeader extends StatelessWidget {
         const SizedBox(height: 8),
         Text(
           "Verify your identity to reset your password",
-          style: FluentTheme.of(context)
-              .typography
-              .body
-              ?.copyWith(color: Colors.grey[170]),
+          style: FluentTheme.of(context).typography.body?.copyWith(color: Colors.grey[170]),
           textAlign: TextAlign.start,
         ),
         const SizedBox(height: 16),
@@ -77,9 +74,7 @@ class UsernameInputSection extends StatelessWidget {
             TextBox(
               placeholder: 'Enter your username',
               onChanged: (value) {
-                context
-                    .read<ResetFormBloc>()
-                    .add(UsernameChanged(value.trim()));
+                context.read<ResetFormBloc>().add(UsernameChanged(value.trim()));
               },
             ),
             const SizedBox(height: 16),
@@ -120,16 +115,12 @@ class SecurityQuestionSection extends StatelessWidget {
             else
               ComboBox<String>(
                 placeholder: Text(
-                  state.questions.isEmpty
-                      ? "Enter username first"
-                      : "Select a question",
+                  state.questions.isEmpty ? "Enter username first" : "Select a question",
                   style: TextStyle(
                     color: state.questions.isEmpty ? Colors.grey[120] : null,
                   ),
                 ),
-                value: state.selectedQuestion.isEmpty
-                    ? null
-                    : state.selectedQuestion,
+                value: state.selectedQuestion.isEmpty ? null : state.selectedQuestion,
                 items: state.questions
                     .map(
                       (q) => ComboBoxItem<String>(
@@ -141,9 +132,7 @@ class SecurityQuestionSection extends StatelessWidget {
                 onChanged: state.questions.isNotEmpty
                     ? (value) {
                         if (value != null) {
-                          context
-                              .read<ResetFormBloc>()
-                              .add(SecurityQuestionSelected(value));
+                          context.read<ResetFormBloc>().add(SecurityQuestionSelected(value));
                         }
                       }
                     : null,
@@ -191,12 +180,9 @@ class SubmitSection extends StatelessWidget {
     return BlocListener<ResetFormBloc, ResetFormState>(
       listener: (context, state) {
         if (state.status == FormStatus.success) {
-          context
-              .read<NewPasswordForm.NewPasswordFormBloc>()
-              .setUsername(state.username);
+          context.read<NewPasswordForm.NewPasswordFormBloc>().setUsername(state.username);
           context.navigate(AppRoutes.newPassword);
-        } else if (state.status == FormStatus.error &&
-            state.errorMessage.isNotEmpty) {}
+        } else if (state.status == FormStatus.error && state.errorMessage.isNotEmpty) {}
       },
       child: BlocBuilder<ResetFormBloc, ResetFormState>(
         builder: (context, state) {
@@ -208,9 +194,7 @@ class SubmitSection extends StatelessWidget {
                     ? null
                     : () {
                         primaryFocus?.unfocus();
-                        context
-                            .read<ResetFormBloc>()
-                            .add(const FormSubmitted());
+                        context.read<ResetFormBloc>().add(const FormSubmitted());
                       },
                 child: Padding(
                   padding: AppPadding.a4,

@@ -16,6 +16,7 @@ class InvoicesTable {
   static const String INVOICES_UID = 'uid';
   static const String INVOICES_CUSTOMER_NAME = "customer_name";
   static const String INVOICES_DATE = "invoice_date";
+  static const String INVOICES_DUE_DATE = "due_date";
   static const String INVOICES_PAYMENT_METHOD = "payment_method";
   static const String INVOICES_REFERENCE_NUMBER = "reference_number";
   static const String INVOICES_MEMO = "memo";
@@ -34,6 +35,7 @@ class InvoicesTable {
       $INVOICES_UID TEXT NOT NULL,
       $INVOICES_CUSTOMER_NAME TEXT,
       $INVOICES_DATE TEXT NOT NULL,
+      $INVOICES_DUE_DATE TEXT NOT NULL,
       $INVOICES_PAYMENT_METHOD INTEGER NOT NULL,
       $INVOICES_REFERENCE_NUMBER TEXT,
       $INVOICES_MEMO TEXT,

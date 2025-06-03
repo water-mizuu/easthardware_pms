@@ -197,12 +197,12 @@ class _AdminNavigationViewState extends State<AdminNavigationView> {
         _navItem(
           icon: FluentIcons.text_document,
           title: "Invoice List",
-          // route: AppRoutes.billingPage,
+          route: AppRoutes.billingPage,
         ),
         _navItem(
           icon: FluentIcons.text_document_edit,
-          title: "Payments",
-          // route: AppRoutes.billingPage,
+          title: "Create Invoice",
+          route: AppRoutes.createInvoicePage,
         ),
       ],
     ),

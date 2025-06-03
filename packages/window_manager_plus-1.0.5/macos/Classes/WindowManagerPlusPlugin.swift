@@ -23,13 +23,13 @@ public class WindowManagerPlusPlugin: NSObject, FlutterPlugin {
 
         windowManager.staticChannel = FlutterMethodChannel(
             name: "window_manager_plus_static",
-            binaryMessenger: registrar.messenger,
+            binaryMessenger: registrar.messenger
         )
         windowManager.staticChannel!.setMethodCallHandler(staticHandle)
 
         windowManager.channel = FlutterMethodChannel(
             name: "window_manager_plus",
-            binaryMessenger: registrar.messenger,
+            binaryMessenger: registrar.messenger
         )
         windowManager.channel!.setMethodCallHandler(handle)
     }
@@ -44,7 +44,7 @@ public class WindowManagerPlusPlugin: NSObject, FlutterPlugin {
             windowManager.channel?.setMethodCallHandler(handleDefunct)
             windowManager.channel = FlutterMethodChannel(
                 name: "window_manager_plus_\(windowManager.id)",
-                binaryMessenger: registrar.messenger,
+                binaryMessenger: registrar.messenger
             )
             windowManager.channel!.setMethodCallHandler(handle)
 

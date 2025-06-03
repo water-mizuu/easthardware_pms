@@ -1,18 +1,19 @@
-import 'package:easthardware_pms/presentation/widgets/spacing.dart';
+import 'package:easthardware_pms/presentation/widgets/layout/spacing.dart';
 import 'package:fluent_ui/fluent_ui.dart';
 
 class DataTablePlaceHolder extends StatelessWidget {
+  final IconData icon;
+  final String items;
   const DataTablePlaceHolder(
     this.icon,
     this.items, {
     super.key,
   });
-  final IconData icon;
-  final String items;
 
   @override
   Widget build(BuildContext context) {
-    return Center(
+    return Expanded(
+        child: Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
@@ -24,6 +25,6 @@ class DataTablePlaceHolder extends StatelessWidget {
           ),
         ],
       ),
-    );
+    ));
   }
 }

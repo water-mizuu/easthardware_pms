@@ -26,9 +26,10 @@ class CategoryIdChangedEvent extends ProductFormEvent {
   final int categoryId;
 }
 
-class DescriptionFieldChangedEvent extends ProductFormEvent {
-  const DescriptionFieldChangedEvent(this.description);
+class DescriptionChangedEvent extends ProductFormEvent {
   final String description;
+
+  const DescriptionChangedEvent(this.description);
 }
 
 class PriceFieldChangedEvent extends ProductFormEvent {

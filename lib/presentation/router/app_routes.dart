@@ -20,6 +20,10 @@ class AppRoutes {
   static const createProductPage = AppRoute<void>('/create/product');
   static const editProductPage = AppRoute<Product>('/edit');
 
+  // Billing SubPages
+  static const createInvoicePage = AppRoute<void>('/create/invoice');
+  static const String payInvoicePage = 'pay/invoice';
+
   // Security Sub Pages
   static const usersPage = AppRoute<void>('/users');
   static const createUserPage = AppRoute<void>('/create/user');

@@ -3,7 +3,7 @@ import 'package:easthardware_pms/presentation/bloc/inventory/product_form/produc
 import 'package:easthardware_pms/presentation/bloc/inventory/product_form/product_form_validator.dart';
 import 'package:easthardware_pms/presentation/models/form_unit.dart';
 import 'package:easthardware_pms/presentation/widgets/layout_mode_provider.dart';
-import 'package:easthardware_pms/presentation/widgets/spacing.dart';
+import 'package:easthardware_pms/presentation/widgets/layout/spacing.dart';
 import 'package:easthardware_pms/presentation/widgets/text.dart';
 import 'package:fluent_ui/fluent_ui.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -301,7 +301,7 @@ class DescriptionField extends StatelessWidget {
           maxLines: 2,
           initialValue: context.read<ProductFormBloc>().state.description,
           onChanged: (value) {
-            context.read<ProductFormBloc>().add(DescriptionFieldChangedEvent(value));
+            context.read<ProductFormBloc>().add(DescriptionChangedEvent(value));
           },
         )
       ],

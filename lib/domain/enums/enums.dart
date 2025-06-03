@@ -27,14 +27,8 @@ enum FormStatus {
   success,
 }
 
-enum ProductFormStatus {
-  initial,
-  validating,
-  invalid,
-  valid,
-  submittingCategories,
-  submittingProduct,
-  submittingUnits,
-  submitted,
-  error,
+enum PaymentMethod {
+  cash,
+  credit,
+  gcash,
 }

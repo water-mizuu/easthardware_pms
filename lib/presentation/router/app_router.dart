@@ -1,6 +1,8 @@
 import 'package:easthardware_pms/domain/models/product.dart';
 import 'package:easthardware_pms/presentation/router/app_routes.dart';
 import 'package:easthardware_pms/presentation/views/authentication/login_page.dart';
+import 'package:easthardware_pms/presentation/views/billing/create_invoice_page.dart';
+import 'package:easthardware_pms/presentation/views/billing/invoice_pane_page.dart';
 import 'package:easthardware_pms/presentation/views/authentication/new_password_page.dart';
 import 'package:easthardware_pms/presentation/views/authentication/reset_password_page.dart';
 import 'package:easthardware_pms/presentation/views/inventory/create_product_page.dart';
@@ -18,28 +20,26 @@ import 'package:go_router/go_router.dart';
 const initialLocation = AppRoutes.login;
 
 final rootWidgetKey = GlobalKey<NavigatorState>();
-final router = GoRouter(
-  initialLocation: initialLocation as String,
-  navigatorKey: rootWidgetKey,
-  routes: [
-    ShellRoute(
-      builder: (_, __, child) => BottomText(child: child),
-      routes: [
-        GoRoute(
-          path: AppRoutes.login.path,
-          builder: (context, state) => const LoginPage(),
-        ),
-        GoRoute(
-          path: AppRoutes.resetPassword.path,
-          builder: (context, state) => (const ResetPasswordPage()),
-        ),
-        GoRoute(
-          path: AppRoutes.newPassword.path,
-          builder: (context, state) => (const NewPasswordPage()),
-        )
-      ],
-    ),
-    StatefulShellRoute(
+final router =
+    GoRouter(initialLocation: initialLocation as String, navigatorKey: rootWidgetKey, routes: [
+  ShellRoute(
+    builder: (_, __, child) => BottomText(child: child),
+    routes: [
+      GoRoute(
+        path: AppRoutes.login.path,
+        builder: (context, state) => const LoginPage(),
+      ),
+      GoRoute(
+        path: AppRoutes.resetPassword.path,
+        builder: (context, state) => (const ResetPasswordPage()),
+      ),
+      GoRoute(
+        path: AppRoutes.newPassword.path,
+        builder: (context, state) => (const NewPasswordPage()),
+      )
+    ],
+  ),
+  StatefulShellRoute(
       builder: (context, state, shell) => shell,
       navigatorContainerBuilder: (context, shell, children) =>
           BottomText(child: AdminNavigationScaffold(shell, children)),
@@ -72,12 +72,24 @@ final router = GoRouter(
             ),
             GoRoute(
               path: AppRoutes.editProductPage.path,
-              builder: (context, state) =>
-                  (EditProductPage(product: state.extra as Product)),
+              builder: (context, state) => (EditProductPage(product: state.extra as Product)),
             ),
             GoRoute(
               path: AppRoutes.categoriesPage.path,
               builder: (context, state) => (const ManageCategoriesPage()),
+            ),
+          ],
+        ),
+        // Billing Shell
+        StatefulShellBranch(
+          initialLocation: AppRoutes.billingPage.path,
+          routes: [
+            GoRoute(
+                path: AppRoutes.billingPage.path,
+                builder: (context, state) => const InvoicePanePage()),
+            GoRoute(
+              path: AppRoutes.createInvoicePage.path,
+              builder: (context, state) => const CreateInvoicePage(),
             ),
           ],
         ),
@@ -98,7 +110,5 @@ final router = GoRouter(
             )
           ],
         )
-      ],
-    ),
-  ],
-);
+      ])
+]);
