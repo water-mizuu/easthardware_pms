@@ -11,6 +11,7 @@ import 'package:easthardware_pms/utils/typed_routes.dart';
 import 'package:fluent_ui/fluent_ui.dart';
 import 'package:flutter/material.dart' show DataColumn, DataTable;
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:scroll_animator/scroll_animator.dart';
 
 class UserLogPane extends StatelessWidget {
   const UserLogPane({super.key});
@@ -80,64 +81,78 @@ class PageActions extends StatelessWidget {
   }
 }
 
-class UserLogDataTable extends StatelessWidget {
+class UserLogDataTable extends StatefulWidget {
   const UserLogDataTable({super.key});
 
   @override
+  State<UserLogDataTable> createState() => _UserLogDataTableState();
+}
+
+class _UserLogDataTableState extends State<UserLogDataTable> {
+  late final AnimatedScrollController _scrollController;
+
+  @override
+  void initState() {
+    super.initState();
+
+    _scrollController = AnimatedScrollController(animationFactory: const ChromiumEaseInOut());
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return BlocBuilder<UserListBloc, UserListState>(
-      builder: (context, state) {
-        final allUsers = state.users;
+    final allUsers = context.watch<UserListBloc>().state.users;
+    final memo = <int, User?>{};
 
-        final memo = <int, User?>{};
+    /// Finds a user by their ID, memoizing the result for performance.
+    /// If the user is not found in the memo, it searches through all users.
+    User? findUserById(int id) {
+      if (!memo.containsKey(id)) {
+        memo[id] = allUsers.where((user) => user.id == id).firstOrNull;
+      }
+      return memo[id]!;
+    }
 
-        /// Finds a user by their ID, memoizing the result for performance.
-        /// If the user is not found in the memo, it searches through all users.
-        User? findUserById(int id) {
-          if (!memo.containsKey(id)) {
-            memo[id] = allUsers.where((user) => user.id == id).firstOrNull;
-          }
-          return memo[id]!;
-        }
-
-        return BlocBuilder<UserLogListBloc, UserLogListState>(
-          builder: (context, state) {
-            switch (state.status) {
-              case DataStatus.loading:
-                return const Expanded(
-                    child: Center(
-                  child: ProgressRing(),
-                ));
-              default:
-                final allLogs = state.userLogs;
-                if (allLogs.isEmpty) {
-                  return const DataTablePlaceHolder(FluentIcons.activity_feed, 'Logs');
-                }
-                return Expanded(
-                  child: DecoratedBox(
-                    decoration: const BoxDecoration(color: Colors.white),
-                    child: SingleChildScrollView(
-                      child: DataTable(
-                        columns: const [
-                          DataColumn(label: Text('ID')),
-                          DataColumn(label: Text('User')),
-                          DataColumn(label: Text('Date')),
-                          DataColumn(label: Text('Time')),
-                          DataColumn(label: Text('Action')),
-                        ],
-                        rows: [
-                          for (final log in allLogs)
-                            if (findUserById(log.userId) case final user?)
-                              DataRowMapper.mapUserLogToRow(log, user),
-                        ],
-                      ),
-                    ),
-                  ),
-                );
-            }
-          },
+    final state = context.watch<UserLogListBloc>().state;
+    switch (state.status) {
+      case DataStatus.loading:
+        return const Expanded(
+          child: Center(
+            child: ProgressRing(),
+          ),
         );
-      },
-    );
+      default:
+        final allLogs = state.userLogs;
+        if (allLogs.isEmpty) {
+          return const DataTablePlaceHolder(FluentIcons.activity_feed, 'Logs');
+        }
+        return Expanded(
+          child: DecoratedBox(
+            decoration: const BoxDecoration(color: Colors.white),
+            child: SingleChildScrollView(
+              controller: _scrollController,
+              child: DataTable(
+                columns: const [
+                  DataColumn(label: Text('ID')),
+                  DataColumn(label: Text('User')),
+                  DataColumn(label: Text('Date')),
+                  DataColumn(label: Text('Time')),
+                  DataColumn(label: Text('Action')),
+                ],
+                rows: [
+                  for (final log in allLogs)
+                    if (findUserById(log.userId) case final user?)
+                      DataRowMapper.mapUserLogToRow(log, user),
+                ],
+              ),
+            ),
+          ),
+        );
+    }
   }
 }

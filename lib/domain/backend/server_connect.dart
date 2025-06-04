@@ -11,6 +11,8 @@ import 'package:easthardware_pms/utils/try_future.dart';
 import 'package:flutter/foundation.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 
+const _websocketHandshakeTimeout = Duration(seconds: 2);
+
 Future<(WebSocketChannel, MessageChannel, Stream<ServerEvent>)> connectToWebSocketServer(
   String host,
   int port, {
@@ -24,7 +26,9 @@ Future<(WebSocketChannel, MessageChannel, Stream<ServerEvent>)> connectToWebSock
   }
 
   final address = "$host:$port";
-  final (result, error) = await _webSocketHandshake(address).tryCatch();
+  final (result, error) = await _webSocketHandshake(address) //
+      .timeout(_websocketHandshakeTimeout)
+      .tryCatch();
   if (error != null) {
     if (kDebugMode) {
       print("Failed to connect to WebSocket server at $address: $error");

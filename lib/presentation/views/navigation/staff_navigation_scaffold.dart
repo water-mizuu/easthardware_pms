@@ -1,5 +1,6 @@
 import 'dart:io' show Platform;
 
+import 'package:easthardware_pms/presentation/bloc/authentication/authentication/authentication_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/navigation/navigation_cubit.dart';
 import 'package:easthardware_pms/presentation/router/app_routes.dart';
 import 'package:easthardware_pms/presentation/widgets/brand/navrail_header.dart';
@@ -131,6 +132,7 @@ class _AdminNavigationViewState extends State<AdminNavigationView> {
           header: const LogoRow(),
           scrollController: _scrollController,
           selected: _selectedIndex,
+          toggleable: false,
           displayMode: widget.mode,
           onItemPressed: (index) {
             /// Redirects such as this should be specified in the
@@ -142,9 +144,22 @@ class _AdminNavigationViewState extends State<AdminNavigationView> {
             }
           },
           items: _navigationItems(context),
+          footerItems: _footerItems(context),
         ),
       ),
     );
+  }
+
+  static List<NavigationPaneItem> _footerItems(BuildContext context) {
+    return [
+      _navItem(
+        icon: FluentIcons.leave,
+        title: 'Log Out',
+        onTap: () {
+          context.read<AuthenticationBloc>().add(const AuthenticationLogoutEvent());
+        },
+      ),
+    ];
   }
 
   static List<NavigationPaneItem> _navigationItems(BuildContext context) {

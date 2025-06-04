@@ -50,6 +50,10 @@ Future<void> spawnLandingIsolate((RootIsolateToken, NamedSendPort, int port) pay
   _handleConnectionQueue = AsyncQueue.autoStart();
   _requestQueue = AsyncQueue.autoStart();
 
+  // Initialize the handshake and secure connections maps.
+  _ongoingHandshakeConnections = {};
+  _secureConnections = {};
+
   // Create the receive port and send it to the main isolate.
   final receivePort = ReceivePort().hostListener();
   sendPort.send("setup", receivePort.sendPort);
@@ -85,8 +89,6 @@ Future<void> spawnLandingIsolate((RootIsolateToken, NamedSendPort, int port) pay
 
   /// After the server is set up, we can generate the keys.
   await _generateKeys();
-  _ongoingHandshakeConnections = {};
-  _secureConnections = {};
 
   /// This method handles closing the server and the objects created in this isolate.
   Future<void> closeIsolate(String name) async {
@@ -208,8 +210,10 @@ Future<HttpServer> _initiateLandingServer(int port) async {
 ///   This is used by the server to encrypt messages sent to the client,
 ///   and by the client to encrypt messages sent to the server.
 Future<void> _generateKeys() async {
-  final (public, private) =
-      await _mainChannel.invokeNamed<keys_ms.AsymmetricKeys>("main", "requestKeys");
+  final (public, private) = await _mainChannel.invokeNamed<keys_ms.AsymmetricKeys>(
+    "main",
+    "requestKeys",
+  );
 
   _publicKey = public;
   _privateKey = private;
@@ -246,12 +250,6 @@ void _registerHandshakeRoutes(Router router) {
     // If all checks pass, the key is valid.
     return (parsedKey, true);
   }
-
-  router.get("/new-handshake-request", (Request request) {
-    request.hijack((streamChannel) {
-      // Handle the hijacked stream channel.
-    });
-  });
 
   /// All handshakes start with a request to this endpoint.
   /// It generates a unique key for the handshake and stores it with a time limit.
@@ -299,6 +297,7 @@ void _registerHandshakeRoutes(Router router) {
 
     // Generate the server's random number.
     final serverRandom = BigInt.from(randomIntFromDate());
+
     // Prepare the response body with server identity, server random, and public key.
     final responseBody = {
       "identity": 1231, // Placeholder for server identity/version.

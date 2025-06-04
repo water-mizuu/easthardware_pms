@@ -323,12 +323,23 @@ class ServerBloc extends Bloc<ServerEvent, ServerState> {
     Emitter<ServerState> emit,
   ) async {
     final address = '${event.args.parentIp}:${event.args.port}';
+    emit(state.copyWith(bottomText: "Connected to: $address"));
+    await Future.delayed(Duration.zero);
+    if (isClosed) return;
+
+    /// If we confirmed, stream the events to this bloc.
+    event.args.stream?.listen(add);
+
+    /// Let the user know that we are connected.
     emit(state.copyWith(
-      bottomText: "Connected to: $address",
+      status: ServerStatus.running,
+      databaseArgs: event.args,
+      databaseHelper: ServerDatabaseHelper(Server(event.args.messageChannel!)),
     ));
 
     if (event.popupToUser) {
       final didUserCancelCompleter = Completer<bool>();
+
       ClientConnectionSuccessDialog.show(
         context: rootWidgetKey.currentContext!,
         onCancel: () async {
@@ -353,15 +364,6 @@ class ServerBloc extends Bloc<ServerEvent, ServerState> {
       if (isClosed || didUserCancel) return;
     }
 
-    /// If we confirmed, stream the events to this bloc.
-    event.args.stream?.listen(add);
-
-    /// Let the user know that we are connected.
-    emit(state.copyWith(
-      status: ServerStatus.running,
-      databaseArgs: event.args,
-      databaseHelper: ServerDatabaseHelper(Server(event.args.messageChannel!)),
-    ));
     if (event.saveToPreferences) {
       add(ServerSaveClientInformation(serverAddress: address));
     }
@@ -371,6 +373,19 @@ class ServerBloc extends Bloc<ServerEvent, ServerState> {
   Future<void> _onServerStarted(ServerServerStarted event, Emitter<ServerState> emit) async {
     final address = '${event.args.ip}:${event.args.port}';
     emit(state.copyWith(bottomText: "Hosting at: $address"));
+    await Future.delayed(Duration.zero);
+    if (isClosed) return;
+
+    /// If we confirmed, start listening for events.
+    event.args.stream.listen(add);
+
+    /// We let the user know that the server is running.
+    final channel = event.args.webSocketServer.channel;
+    emit(state.copyWith(
+      status: ServerStatus.running,
+      databaseArgs: event.args,
+      databaseHelper: ServerDatabaseHelper(Server(channel)),
+    ));
 
     if (event.popupToUser) {
       final didUserCancelCompleter = Completer<bool>();
@@ -400,17 +415,6 @@ class ServerBloc extends Bloc<ServerEvent, ServerState> {
       final didUserCancel = await didUserCancelCompleter.future;
       if (isClosed || didUserCancel) return;
     }
-
-    /// If we confirmed, start listening for events.
-    event.args.stream.listen(add);
-
-    /// We let the user know that the server is running.
-    final channel = event.args.webSocketServer.channel;
-    emit(state.copyWith(
-      status: ServerStatus.running,
-      databaseArgs: event.args,
-      databaseHelper: ServerDatabaseHelper(Server(channel)),
-    ));
 
     if (event.saveToPreferences) {
       add(ServerSaveServerInformation(port: event.args.port));

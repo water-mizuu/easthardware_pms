@@ -74,10 +74,8 @@ class _AdminNavigationViewState extends State<AdminNavigationView> {
   void initState() {
     super.initState();
 
-    _routeIndexMapper =
-        NavRailRouteIndexMapper(items: _navigationItems(context));
-    _scrollController =
-        AnimatedScrollController(animationFactory: const ChromiumEaseInOut());
+    _routeIndexMapper = NavRailRouteIndexMapper(items: _navigationItems(context));
+    _scrollController = AnimatedScrollController(animationFactory: const ChromiumEaseInOut());
     _selectedIndex = 0;
   }
 
@@ -135,16 +133,11 @@ class _AdminNavigationViewState extends State<AdminNavigationView> {
           header: const LogoRow(),
           scrollController: _scrollController,
           selected: _selectedIndex,
+          toggleable: false,
           displayMode: widget.mode,
           onItemPressed: (index) {
             /// Redirects such as this should be specified in the
             ///   [_navigationItems] list.
-
-            // if ([1, 12].contains(index)) {
-            //   index++;
-            // }
-            // if (index == 16) return;
-
             final probablyRoute = _routeIndexMapper.getRouteFromIndex(index);
             if (probablyRoute case null) {
               if (kDebugMode) {
@@ -268,9 +261,7 @@ class _AdminNavigationViewState extends State<AdminNavigationView> {
         icon: FluentIcons.leave,
         title: 'Log Out',
         onTap: () {
-          context
-              .read<AuthenticationBloc>()
-              .add(const AuthenticationLogoutEvent());
+          context.read<AuthenticationBloc>().add(const AuthenticationLogoutEvent());
         },
       ),
     ];
@@ -291,9 +282,7 @@ class _AdminNavigationViewState extends State<AdminNavigationView> {
 
         /// A little hack to allow the [RouteIndexMapper] to access the route linked
         ///   to this item.
-        infoBadge: route == null
-            ? null
-            : Transform.scale(scale: 0.0, child: RouteText(route)),
+        infoBadge: route == null ? null : Transform.scale(scale: 0.0, child: RouteText(route)),
         body: const SizedBox.shrink(),
       );
     } else {
@@ -303,9 +292,7 @@ class _AdminNavigationViewState extends State<AdminNavigationView> {
 
         /// A little hack to allow the [RouteIndexMapper] to access the route linked
         ///   to this item.
-        infoBadge: route == null
-            ? null
-            : Transform.scale(scale: 0.0, child: RouteText(route)),
+        infoBadge: route == null ? null : Transform.scale(scale: 0.0, child: RouteText(route)),
         body: const SizedBox.shrink(),
         onTap: onTap,
       );

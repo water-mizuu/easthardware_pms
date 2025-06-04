@@ -663,16 +663,24 @@ class _ChaCha20Poly1305 {
 }
 
 extension StringWrapExtension on String {
-  String get wrap {
-    final buffer = StringBuffer();
-    for (var i = 0; i < length; i++) {
-      if (i > 0 && i % 80 == 0) {
+  String _wrapLine(int limit) {
+    final trimmed = trimLeft();
+    final indent = length - trimmed.length;
+
+    final buffer = StringBuffer()..write(' ' * indent);
+    for (var i = 0; i < trimmed.length; i++) {
+      if (i > 0 && i % limit == 0) {
         buffer.writeln();
+        buffer.write(' ' * indent);
       }
-      buffer.write(this[i]);
+      buffer.write(trimmed[i]);
     }
     return buffer.toString();
   }
+
+  String get wrap => split('\n').map((l) => l._wrapLine(80)).join('\n');
+  String get wrap120 => split('\n').map((l) => l._wrapLine(120)).join('\n');
+  String get wrap160 => split('\n').map((l) => l._wrapLine(160)).join('\n');
 
   String get indent {
     final lines = split('\n');

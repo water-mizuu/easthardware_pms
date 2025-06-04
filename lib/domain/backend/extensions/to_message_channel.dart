@@ -86,10 +86,13 @@ extension MessageChannelExtension on WebSocketChannel {
     ///   into the webSocket channel. It encodes the messages to JSON string
     ///   and sends them to the webSocket channel.
     final internalReceivePort = ReceivePort()
-      ..map(jsonEncode).listen((message) {
+      ..map((v) => jsonEncode(v)).listen((message) {
         if (kDebugMode) {
+          const encoder = JsonEncoder.withIndent('  ');
+          final messageString = encoder.convert(message);
+
           printBoxed(
-            "WebSocketChannel sent encrypted:\n${message.wrap}",
+            "WebSocketChannel sent decrypted:\n${messageString.wrap160}",
             "WebSocketChannel",
           );
         }
@@ -119,8 +122,12 @@ extension MessageChannelExtension on WebSocketChannel {
         .listen(
       (message) {
         if (kDebugMode) {
+          /// Log the received message.
+          const encoder = JsonEncoder.withIndent('  ');
+          final messageString = encoder.convert(message);
+
           printBoxed(
-            "WebSocketChannel received decrypted:\n${message.toString().wrap}",
+            "WebSocketChannel received decrypted:\n${messageString.wrap160}",
             "WebSocketChannel",
           );
         }
