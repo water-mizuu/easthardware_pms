@@ -83,7 +83,7 @@ class ProductFormBloc extends Bloc<ProductFormEvent, ProductFormState> {
   }
 
   void _onDescriptionChanged(DescriptionChangedEvent event, Emitter<ProductFormState> emit) {
-    final String description = event.description;
+    final description = event.description;
     return emit(state.copyWith(description: description));
   }
 
@@ -187,7 +187,7 @@ class ProductFormBloc extends Bloc<ProductFormEvent, ProductFormState> {
 
   void _onProductStatusChanged(ProductStatusChangedEvent event, Emitter<ProductFormState> emit) {
     final status = event.status;
-    return emit(state.copyWith(archiveStatus: status));
+    return emit(state.copyWith(archivedStatus: status));
   }
 
   Future<void> _onButtonPressed(
@@ -204,7 +204,7 @@ class ProductFormBloc extends Bloc<ProductFormEvent, ProductFormState> {
           formStatus: FormStatus.submitting,
           creatorId: event.creatorId,
           productId: event.productId,
-          archiveStatus: state.archiveStatus ?? 0,
+          archivedStatus: state.archivedStatus ?? 0,
         ));
       } else {
         emit(state.copyWith(formStatus: FormStatus.invalid));
@@ -238,7 +238,7 @@ class ProductFormBloc extends Bloc<ProductFormEvent, ProductFormState> {
         criticalLevel: event.product.criticalLevel.toString(),
         deadStockThreshold: event.product.deadStockThreshold.toString(),
         fastMovingThreshold: event.product.fastMovingStockThreshold.toString(),
-        archiveStatus: event.product.archiveStatus,
+        archivedStatus: event.product.archivedStatus,
         formStatus: FormStatus.initial,
       ));
     } catch (e) {

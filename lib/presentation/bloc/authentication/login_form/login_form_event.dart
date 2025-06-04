@@ -17,3 +17,9 @@ class LoginFormButtonPressed extends LoginFormEvent {}
 class LoginFormReturned extends LoginFormEvent {}
 
 class LoginFormResetEvent extends LoginFormEvent {}
+
+class LoginFormSubmitFailed extends LoginFormEvent {
+  LoginFormSubmitFailed(this.errors);
+
+  final List<ErrorMessage> errors;
+}

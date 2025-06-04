@@ -6,10 +6,8 @@ import 'package:flutter/foundation.dart';
 part 'new_password_form_event.dart';
 part 'new_password_form_state.dart';
 
-class NewPasswordFormBloc
-    extends Bloc<NewPasswordFormEvent, NewPasswordFormState> {
-  NewPasswordFormBloc({required this.userRepository})
-      : super(const NewPasswordFormState()) {
+class NewPasswordFormBloc extends Bloc<NewPasswordFormEvent, NewPasswordFormState> {
+  NewPasswordFormBloc({required this.userRepository}) : super(const NewPasswordFormState()) {
     on<NewPasswordFormUsernameChanged>(_onUsernameChanged);
     on<NewPasswordChanged>(_onNewPasswordChanged);
     on<ConfirmPasswordChanged>(_onConfirmPasswordChanged);

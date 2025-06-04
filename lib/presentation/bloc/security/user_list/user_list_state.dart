@@ -11,10 +11,12 @@ class UserListState extends Equatable {
 
   UserListState Function({
     List<User>? users,
+    List<int>? loggedInUserIds,
     DataStatus? status,
   }) get copyWith {
     return ({
       Object? users = undefined,
+      Object? loggedInUserIds = undefined,
       Object? status = undefined,
     }) {
       return UserListState(

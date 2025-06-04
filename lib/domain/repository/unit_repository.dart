@@ -3,9 +3,8 @@ import 'package:easthardware_pms/data/repository/unit_repository.dart';
 import 'package:easthardware_pms/domain/models/unit.dart';
 
 abstract class UnitRepository {
-  factory UnitRepository(DatabaseHelper? databaseHelper) => //
-      // ignore: deprecated_member_use_from_same_package
-      UnitRepositoryImpl(databaseHelper);
+  // ignore: deprecated_member_use_from_same_package
+  factory UnitRepository(DatabaseHelper? databaseHelper) = UnitRepositoryImpl;
 
   Future<List<Unit>> getAllUnits();
   Future<Unit?> getUnitById(int id);

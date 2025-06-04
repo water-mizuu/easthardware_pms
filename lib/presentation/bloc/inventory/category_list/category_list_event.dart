@@ -7,9 +7,13 @@ sealed class CategoryListEvent extends Equatable {
   List<Object> get props => [];
 }
 
-class LoadCategoriesEvent extends CategoryListEvent {}
+class LoadCategoriesEvent extends CategoryListEvent {
+  const LoadCategoriesEvent();
+}
 
-class ReloadCategoriesEvent extends CategoryListEvent {}
+class ReloadCategoriesEvent extends CategoryListEvent {
+  const ReloadCategoriesEvent();
+}
 
 class AddCategoryEvent extends CategoryListEvent {
   const AddCategoryEvent(this.category);

@@ -8,11 +8,11 @@ import 'package:easthardware_pms/domain/models/user.dart';
 import 'package:easthardware_pms/domain/models/user_log.dart';
 import 'package:easthardware_pms/presentation/models/data_cell_functions.dart';
 import 'package:easthardware_pms/presentation/models/form_product.dart';
+import 'package:easthardware_pms/presentation/widgets/layout/spacing.dart';
+import 'package:easthardware_pms/presentation/widgets/text.dart';
 import 'package:easthardware_pms/presentation/widgets/ui/badge.dart';
 import 'package:easthardware_pms/presentation/widgets/ui/compound_button.dart';
 import 'package:easthardware_pms/presentation/widgets/ui/data_row.dart';
-import 'package:easthardware_pms/presentation/widgets/layout/spacing.dart';
-import 'package:easthardware_pms/presentation/widgets/text.dart';
 import 'package:fluent_ui/fluent_ui.dart';
 import 'package:flutter/material.dart' show DataCell, DataRow;
 import 'package:intl/intl.dart';
@@ -35,29 +35,25 @@ class DataRowMapper {
       return WarningDataRow([
         DataCell(
           ConstrainedBox(
-            constraints:
-                BoxConstraints(maxWidth: maxWidths[0] ?? double.infinity),
+            constraints: BoxConstraints(maxWidth: maxWidths[0] ?? double.infinity),
             child: Text(product.name),
           ),
         ),
         DataCell(
           ConstrainedBox(
-            constraints:
-                BoxConstraints(maxWidth: maxWidths[1] ?? double.infinity),
+            constraints: BoxConstraints(maxWidth: maxWidths[1] ?? double.infinity),
             child: Text(product.categoryName!),
           ),
         ),
         DataCell(
           ConstrainedBox(
-            constraints:
-                BoxConstraints(maxWidth: maxWidths[2] ?? double.infinity),
+            constraints: BoxConstraints(maxWidth: maxWidths[2] ?? double.infinity),
             child: Text(product.salePrice.toString()),
           ),
         ),
         DataCell(
           ConstrainedBox(
-            constraints:
-                BoxConstraints(maxWidth: maxWidths[3] ?? double.infinity),
+            constraints: BoxConstraints(maxWidth: maxWidths[3] ?? double.infinity),
             child: Text(
               product.orderCost.toString(),
             ),
@@ -70,53 +66,45 @@ class DataRowMapper {
             Icon(FluentIcons.alert_solid, color: Colors.red.lightest)
           ],
         )),
-        DataCell(
-            HyperlinkButton(onPressed: editAction, child: const Text('Edit')))
+        DataCell(HyperlinkButton(onPressed: editAction, child: const Text('Edit')))
       ]);
     }
     if (product.isFastMovingStock == true) {
       return SuccessDataRow([
         DataCell(
           ConstrainedBox(
-            constraints:
-                BoxConstraints(maxWidth: maxWidths[0] ?? double.infinity),
+            constraints: BoxConstraints(maxWidth: maxWidths[0] ?? double.infinity),
             child: Text(product.name),
           ),
         ),
         DataCell(
           ConstrainedBox(
-            constraints:
-                BoxConstraints(maxWidth: maxWidths[1] ?? double.infinity),
+            constraints: BoxConstraints(maxWidth: maxWidths[1] ?? double.infinity),
             child: Text(product.categoryName!),
           ),
         ),
         DataCell(
           ConstrainedBox(
-            constraints:
-                BoxConstraints(maxWidth: maxWidths[2] ?? double.infinity),
+            constraints: BoxConstraints(maxWidth: maxWidths[2] ?? double.infinity),
             child: Text(product.salePrice.toString()),
           ),
         ),
         DataCell(
           ConstrainedBox(
-            constraints:
-                BoxConstraints(maxWidth: maxWidths[3] ?? double.infinity),
+            constraints: BoxConstraints(maxWidth: maxWidths[3] ?? double.infinity),
             child: Text(product.orderCost.toString()),
           ),
         ),
         DataCell(
           ConstrainedBox(
-            constraints:
-                BoxConstraints(maxWidth: maxWidths[4] ?? double.infinity),
+            constraints: BoxConstraints(maxWidth: maxWidths[4] ?? double.infinity),
             child: Text('${product.quantity.toString()} ${product.mainUnit}'),
           ),
         ),
         DataCell(
           ConstrainedBox(
-            constraints:
-                BoxConstraints(maxWidth: maxWidths[5] ?? double.infinity),
-            child: HyperlinkButton(
-                onPressed: editAction, child: const Text('Edit')),
+            constraints: BoxConstraints(maxWidth: maxWidths[5] ?? double.infinity),
+            child: HyperlinkButton(onPressed: editAction, child: const Text('Edit')),
           ),
         )
       ]);
@@ -125,45 +113,38 @@ class DataRowMapper {
       return InfoDataRow([
         DataCell(
           ConstrainedBox(
-            constraints:
-                BoxConstraints(maxWidth: maxWidths[0] ?? double.infinity),
+            constraints: BoxConstraints(maxWidth: maxWidths[0] ?? double.infinity),
             child: Text(product.name),
           ),
         ),
         DataCell(
           ConstrainedBox(
-            constraints:
-                BoxConstraints(maxWidth: maxWidths[1] ?? double.infinity),
+            constraints: BoxConstraints(maxWidth: maxWidths[1] ?? double.infinity),
             child: Text(product.categoryName!),
           ),
         ),
         DataCell(
           ConstrainedBox(
-            constraints:
-                BoxConstraints(maxWidth: maxWidths[2] ?? double.infinity),
+            constraints: BoxConstraints(maxWidth: maxWidths[2] ?? double.infinity),
             child: Text(product.salePrice.toString()),
           ),
         ),
         DataCell(
           ConstrainedBox(
-            constraints:
-                BoxConstraints(maxWidth: maxWidths[3] ?? double.infinity),
+            constraints: BoxConstraints(maxWidth: maxWidths[3] ?? double.infinity),
             child: Text(product.orderCost.toString()),
           ),
         ),
         DataCell(
           ConstrainedBox(
-            constraints:
-                BoxConstraints(maxWidth: maxWidths[4] ?? double.infinity),
+            constraints: BoxConstraints(maxWidth: maxWidths[4] ?? double.infinity),
             child: Text('${product.quantity.toString()} ${product.mainUnit}'),
           ),
         ),
         DataCell(
           ConstrainedBox(
-            constraints:
-                BoxConstraints(maxWidth: maxWidths[5] ?? double.infinity),
-            child: HyperlinkButton(
-                onPressed: editAction, child: const Text('Edit')),
+            constraints: BoxConstraints(maxWidth: maxWidths[5] ?? double.infinity),
+            child: HyperlinkButton(onPressed: editAction, child: const Text('Edit')),
           ),
         )
       ]);
@@ -172,52 +153,44 @@ class DataRowMapper {
     return DataRow(cells: [
       DataCell(
         ConstrainedBox(
-          constraints:
-              BoxConstraints(maxWidth: maxWidths[0] ?? double.infinity),
+          constraints: BoxConstraints(maxWidth: maxWidths[0] ?? double.infinity),
           child: Text(product.name),
         ),
       ),
       DataCell(
         ConstrainedBox(
-          constraints:
-              BoxConstraints(maxWidth: maxWidths[1] ?? double.infinity),
+          constraints: BoxConstraints(maxWidth: maxWidths[1] ?? double.infinity),
           child: Text(product.categoryName!),
         ),
       ),
       DataCell(
         ConstrainedBox(
-          constraints:
-              BoxConstraints(maxWidth: maxWidths[2] ?? double.infinity),
+          constraints: BoxConstraints(maxWidth: maxWidths[2] ?? double.infinity),
           child: Text(product.salePrice.toString()),
         ),
       ),
       DataCell(
         ConstrainedBox(
-          constraints:
-              BoxConstraints(maxWidth: maxWidths[3] ?? double.infinity),
+          constraints: BoxConstraints(maxWidth: maxWidths[3] ?? double.infinity),
           child: Text(product.orderCost.toString()),
         ),
       ),
       DataCell(
         ConstrainedBox(
-          constraints:
-              BoxConstraints(maxWidth: maxWidths[4] ?? double.infinity),
+          constraints: BoxConstraints(maxWidth: maxWidths[4] ?? double.infinity),
           child: Text('${product.quantity.toString()} ${product.mainUnit}'),
         ),
       ),
       DataCell(
         ConstrainedBox(
-          constraints:
-              BoxConstraints(maxWidth: maxWidths[5] ?? double.infinity),
-          child:
-              HyperlinkButton(onPressed: editAction, child: const Text('Edit')),
+          constraints: BoxConstraints(maxWidth: maxWidths[5] ?? double.infinity),
+          child: HyperlinkButton(onPressed: editAction, child: const Text('Edit')),
         ),
       )
     ]);
   }
 
-  static DataRow mapCategoryToRow(
-      Category category, int productCount, Function() action) {
+  static DataRow mapCategoryToRow(Category category, int productCount, Function() action) {
     return DataRow(cells: [
       DataCell(Text(category.id!.toString())),
       DataCell(Text(category.name.toString())),
@@ -226,13 +199,35 @@ class DataRowMapper {
     ]);
   }
 
-  static DataRow mapUserToRow(User user, Function() action) {
-    return DataRow(cells: [
-      DataCell(Text('${user.firstName} ${user.lastName}')),
-      DataCell(Text(user.accessLevel.name.toTitleCase())),
-      DataCell(
-          Text(DateFormat.yMMMMd().format(DateTime.parse(user.creationDate)))),
-    ]);
+  static DataRow mapUserToRow(
+    User user,
+    bool isLoggedIn,
+  ) {
+    return DataRow(
+      cells: [
+        DataCell(Text('${user.firstName} ${user.lastName}')),
+        DataCell(Text(user.accessLevel.name.toTitleCase())),
+        DataCell(Text(DateFormat.yMMMMd().format(DateTime.parse(user.creationDate)))),
+        if (isLoggedIn)
+          DataCell(
+            Container(
+              padding: const EdgeInsets.all(8.0),
+              decoration: BoxDecoration(
+                border: Border.all(color: Colors.green.lightest),
+                borderRadius: BorderRadius.circular(4.0),
+              ),
+              child: Text(
+                'Logged In',
+                style: TextStyle(
+                  color: Colors.green.lightest,
+                ),
+              ),
+            ),
+          )
+        else
+          const DataCell(SizedBox.shrink())
+      ],
+    );
   }
 
   static DataRow mapUserLogToRow(UserLog log, User user) {
@@ -246,12 +241,10 @@ class DataRowMapper {
   }
 
   static DataRow mapInvoiceToRow(Invoice invoice, Function() action) {
-    final invoiceDate =
-        DateFormat.yMMMMd().format(invoice.invoiceDate).toString();
+    final invoiceDate = DateFormat.yMMMMd().format(invoice.invoiceDate).toString();
     final invoiceId = invoice.id!.toString();
-    final invoiceCustomer = invoice.customerName.isNotEmpty
-        ? invoice.customerName
-        : "Unnamed Customer";
+    final invoiceCustomer =
+        invoice.customerName.isNotEmpty ? invoice.customerName : "Unnamed Customer";
     final invoiceTotal = invoice.amountDue.toString();
 
     final amountPaid = invoice.amountPaid ?? 0;
@@ -322,22 +315,18 @@ class DataRowMapper {
       )),
       // Discount
       DataCell(ComboBox(
-          items: DiscountType.values
-              .map((type) => ComboBoxItem(child: Text(type.name)))
-              .toList())),
+          items: DiscountType.values.map((type) => ComboBoxItem(child: Text(type.name))).toList())),
       // Amount
       DataCell(TextFormBox()),
       // Delete
-      DataCell(
-          IconButton(icon: const Icon(FluentIcons.remove), onPressed: () {}))
+      DataCell(IconButton(icon: const Icon(FluentIcons.remove), onPressed: () {}))
     ]);
   }
 
   static DataRow mapOrderToRow(Order order, void Function() onViewPressed) {
     final orderId = order.id?.toString() ?? 'N/A';
     final orderDate = DateFormat.yMMMMd().format(order.orderDate);
-    final payee =
-        order.payeeName.isNotEmpty == true ? order.payeeName : 'Unknown Payee';
+    final payee = order.payeeName.isNotEmpty == true ? order.payeeName : 'Unknown Payee';
     final expenseType = order.expenseType.toString();
     final amount = order.amountDue.toString();
 
@@ -347,8 +336,7 @@ class DataRowMapper {
       DataCell(Text(payee)),
       DataCell(Text(expenseType)),
       DataCell(Text(amount)),
-      DataCell(
-          HyperlinkButton(onPressed: onViewPressed, child: const Text('View'))),
+      DataCell(HyperlinkButton(onPressed: onViewPressed, child: const Text('View'))),
     ]);
   }
 }

@@ -98,8 +98,7 @@ class InventorySummary extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final state = context.watch<ProductListBloc>().state;
-    final activeCount =
-        state.allProducts.where((product) => product.archiveStatus == 0).length;
+    final activeCount = state.allProducts.where((product) => product.archivedStatus == 0).length;
     final lowStockCount = state.lowStockProducts.length;
     final fastMovingCount = state.fastMovingProducts.length;
     final deadCount = state.deadStockProducts.length;
@@ -147,14 +146,10 @@ class InventorySummary extends StatelessWidget {
               return Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  ActiveCountCard(
-                      value: activeCount.toString(), isExpanded: false),
-                  LowStockCountCard(
-                      value: lowStockCount.toString(), isExpanded: false),
-                  HangingCountCard(
-                      value: deadCount.toString(), isExpanded: false),
-                  FastMovingCountCard(
-                      value: fastMovingCount.toString(), isExpanded: false),
+                  ActiveCountCard(value: activeCount.toString(), isExpanded: false),
+                  LowStockCountCard(value: lowStockCount.toString(), isExpanded: false),
+                  HangingCountCard(value: deadCount.toString(), isExpanded: false),
+                  FastMovingCountCard(value: fastMovingCount.toString(), isExpanded: false),
                 ].withSpacing(() => Spacing.v8),
               );
           }
@@ -171,8 +166,7 @@ class ActiveCountCard extends KPICard {
 
 class LowStockCountCard extends KPICard {
   const LowStockCountCard({super.key, required super.value, super.isExpanded})
-      : super('Low Stock Products',
-            icon: const Icon(FluentIcons.product_warning));
+      : super('Low Stock Products', icon: const Icon(FluentIcons.product_warning));
 }
 
 class HangingCountCard extends KPICard {
@@ -235,15 +229,11 @@ class SortByButton extends StatelessWidget {
         child: ButtonText('Sort By'),
       ),
       items: [
-        MenuFlyoutItem(
-            text: const BodyText('Name Ascending'), onPressed: () {}),
-        MenuFlyoutItem(
-            text: const BodyText('Name Descending'), onPressed: () {}),
+        MenuFlyoutItem(text: const BodyText('Name Ascending'), onPressed: () {}),
+        MenuFlyoutItem(text: const BodyText('Name Descending'), onPressed: () {}),
         const MenuFlyoutSeparator(),
-        MenuFlyoutItem(
-            text: const BodyText('Stock Ascending'), onPressed: () {}),
-        MenuFlyoutItem(
-            text: const BodyText('Stock Descending'), onPressed: () {}),
+        MenuFlyoutItem(text: const BodyText('Stock Ascending'), onPressed: () {}),
+        MenuFlyoutItem(text: const BodyText('Stock Descending'), onPressed: () {}),
       ],
     );
   }
@@ -277,14 +267,7 @@ class ProductsDataTable extends StatefulWidget {
 }
 
 class _ProductsDataTableState extends State<ProductsDataTable> {
-  static const names = [
-    'Name',
-    'Category',
-    'Price',
-    'Cost',
-    'Quantity',
-    'Actions'
-  ];
+  static const names = ['Name', 'Category', 'Price', 'Cost', 'Quantity', 'Actions'];
 
   late final AnimatedScrollController _scrollController;
 
@@ -292,8 +275,7 @@ class _ProductsDataTableState extends State<ProductsDataTable> {
   void initState() {
     super.initState();
 
-    _scrollController =
-        AnimatedScrollController(animationFactory: const ChromiumEaseInOut());
+    _scrollController = AnimatedScrollController(animationFactory: const ChromiumEaseInOut());
   }
 
   @override
@@ -313,11 +295,9 @@ class _ProductsDataTableState extends State<ProductsDataTable> {
             return const Center(child: ProgressRing());
           }
 
-          final allProducts =
-              state.allProducts.where((p) => p.archiveStatus == 0).toList();
+          final allProducts = state.allProducts.where((p) => p.archivedStatus == 0).toList();
           if (allProducts.isEmpty) {
-            return const DataTablePlaceHolder(
-                FluentIcons.product_list, 'Products');
+            return const DataTablePlaceHolder(FluentIcons.product_list, 'Products');
           }
 
           return Container(
@@ -340,8 +320,7 @@ class _ProductsDataTableState extends State<ProductsDataTable> {
                     DataRowMapper.mapProductToRow(
                       product,
                       editAction: () {
-                        context.navigateWithExtra(
-                            AppRoutes.admin.editProduct, product);
+                        context.navigateWithExtra(AppRoutes.admin.editProduct, product);
                       },
                     ),
                 ],

@@ -29,8 +29,9 @@ class AuthenticationBloc extends Bloc<AuthenticationEvent, AuthenticationState> 
   }
 
   Future<void> _onLogin(AuthenticationLoginEvent event, Emitter emit) async {
-    emit(state.copyWith(status: AuthenticationStatus.loading));
+    emit(state.copyWith(status: AuthenticationStatus.loggingIn));
     await Future.delayed(Duration.zero);
+    if (isClosed) return;
 
     try {
       final user = await _repository.logIn(username: event.username, password: event.password);
@@ -43,7 +44,7 @@ class AuthenticationBloc extends Bloc<AuthenticationEvent, AuthenticationState> 
         print(e);
       }
 
-      return emit(
+      emit(
         state.copyWith(
           status: AuthenticationStatus.failure,
           loginAttempts: state.loginAttempts + 1,
@@ -52,15 +53,19 @@ class AuthenticationBloc extends Bloc<AuthenticationEvent, AuthenticationState> 
     }
 
     /// [DatabaseException] is thrown when the user is not found in the database.
+    ///   OR the user is not allowed.
     on DatabaseException catch (e) {
       if (kDebugMode) {
-        print(e);
+        print("DatabaseException: $e");
       }
 
-      return emit(
+      emit(
         state.copyWith(
           status: AuthenticationStatus.failure,
           loginAttempts: 0,
+          errors: [
+            ErrorMessage(message: e.message, target: FormElement.username),
+          ],
         ),
       );
     }
@@ -70,11 +75,16 @@ class AuthenticationBloc extends Bloc<AuthenticationEvent, AuthenticationState> 
     AuthenticationLogoutEvent event,
     Emitter<AuthenticationState> emit,
   ) async {
-    emit(state.copyWith(status: AuthenticationStatus.loading));
+    emit(state.copyWith(status: AuthenticationStatus.loggingOut));
     await Future.delayed(Duration.zero);
+    if (isClosed) return;
+
+    assert(state.user != null, "User must be logged in to log out.");
+    final userId = state.user?.id;
+    assert(userId != null, "User ID must not be null when logging out.");
 
     try {
-      _repository.logOut();
+      _repository.logOut(userId: userId!);
       emit(state.copyWith(status: AuthenticationStatus.success, user: null));
     } catch (e) {
       if (kDebugMode) {

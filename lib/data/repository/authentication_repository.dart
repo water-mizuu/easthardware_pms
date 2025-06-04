@@ -35,6 +35,11 @@ class AuthenticationRepositoryImpl implements AuthenticationRepository {
     if (user == null) {
       throw DatabaseException('Invalid username or password');
     }
+
+    if (user.loginStatus != 0) {
+      throw DatabaseException('User is currently logged in.');
+    }
+
     // Hash the input password
     final hashedPassword = CryptographyService.generateHash(password, user.salt);
     // Compare the hashed password with the stored password
@@ -46,7 +51,10 @@ class AuthenticationRepositoryImpl implements AuthenticationRepository {
   }
 
   @override
-  void logOut() {}
+  void logOut({required int userId}) {
+    /// Set the user as inactive.
+    _userRepository.setUserAsInactive(userId);
+  }
 
   @override
   void dispose() {}

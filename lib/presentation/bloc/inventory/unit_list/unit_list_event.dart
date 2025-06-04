@@ -7,9 +7,13 @@ sealed class UnitListEvent extends Equatable {
   List<Object> get props => [];
 }
 
-class LoadUnitsEvent extends UnitListEvent {}
+class LoadUnitsEvent extends UnitListEvent {
+  const LoadUnitsEvent();
+}
 
-class ReloadUnitsEvent extends UnitListEvent {}
+class ReloadUnitsEvent extends UnitListEvent {
+  const ReloadUnitsEvent();
+}
 
 class FilterUnitsEvent extends UnitListEvent {
   const FilterUnitsEvent(this.productId);

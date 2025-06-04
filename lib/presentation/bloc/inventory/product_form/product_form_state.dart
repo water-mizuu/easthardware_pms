@@ -19,10 +19,11 @@ class ProductFormState extends Equatable {
     DateTime? creationDate,
     this.creatorId,
     this.productId,
-    this.archiveStatus,
+    this.archivedStatus,
     this.formStatus = FormStatus.initial,
   })  : sku = sku ?? const Uuid().v4().toString(),
-        secondaryUnits = secondaryUnits ?? [FormUnit(name: '', mainQuantity: '', unitQuantity: '')],
+        secondaryUnits =
+            secondaryUnits ?? [const FormUnit(name: '', mainQuantity: '', unitQuantity: '')],
         creationDate = creationDate ?? DateTime.now(),
         deadStockThreshold = deadStockThreshold ?? DEFAULT_DEAD_STOCK_THRESHOLD.toString(),
         fastMovingThreshold = fastMovingThreshold ?? DEFAULT_FAST_MOVING_STOCK_THRESHOLD.toString();
@@ -42,11 +43,11 @@ class ProductFormState extends Equatable {
       deadStockThreshold: product.deadStockThreshold.toString(),
       fastMovingThreshold: product.fastMovingStockThreshold.toString(),
       secondaryUnits: units.isEmpty
-          ? [FormUnit(name: '', mainQuantity: '', unitQuantity: '')]
+          ? [const FormUnit(name: '', mainQuantity: '', unitQuantity: '')]
           : units.map(FormUnit.fromUnit).toList(),
       creationDate: DateTime.parse(product.creationDate),
       creatorId: product.creatorId,
-      archiveStatus: product.archiveStatus,
+      archivedStatus: product.archivedStatus,
       productId: product.id!,
     );
   }
@@ -79,7 +80,7 @@ class ProductFormState extends Equatable {
 
   // Product Creation Information, Hidden from Form
   final DateTime creationDate;
-  final int? archiveStatus;
+  final int? archivedStatus;
   final int? creatorId;
 
   // Temporary Solution to not use repositories
@@ -103,7 +104,7 @@ class ProductFormState extends Equatable {
     String deadStockThreshold,
     String fastMovingThreshold,
     DateTime creationDate,
-    int? archiveStatus,
+    int? archivedStatus,
     int? creatorId,
     FormStatus formStatus,
     int? productId,
@@ -124,7 +125,7 @@ class ProductFormState extends Equatable {
       Object? deadStockThreshold = undefined,
       Object? fastMovingThreshold = undefined,
       Object? creationDate = undefined,
-      Object? archiveStatus = undefined,
+      Object? archivedStatus = undefined,
       Object? creatorId = undefined,
       Object? formStatus = undefined,
       Object? productId = undefined,
@@ -145,7 +146,7 @@ class ProductFormState extends Equatable {
         deadStockThreshold: deadStockThreshold.or(this.deadStockThreshold),
         fastMovingThreshold: fastMovingThreshold.or(this.fastMovingThreshold),
         creationDate: creationDate.or(this.creationDate),
-        archiveStatus: archiveStatus.or(this.archiveStatus),
+        archivedStatus: archivedStatus.or(this.archivedStatus),
         creatorId: creatorId.or(this.creatorId),
         productId: productId.or(this.productId),
         formStatus: formStatus.or(this.formStatus),
@@ -170,7 +171,7 @@ class ProductFormState extends Equatable {
         deadStockThreshold,
         fastMovingThreshold,
         creationDate,
-        archiveStatus,
+        archivedStatus,
         creatorId,
         formStatus,
         productId,
@@ -191,7 +192,7 @@ class ProductFormState extends Equatable {
       fastMovingStockThreshold: double.parse(deadStockThreshold),
       creationDate: creationDate.toIso8601String(),
       creatorId: creatorId!,
-      archiveStatus: archiveStatus!,
+      archivedStatus: archivedStatus!,
     );
   }
 }

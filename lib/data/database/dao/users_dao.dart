@@ -18,8 +18,10 @@ abstract interface class UsersDao {
   Future<User> insertUser(User user);
   Future<User> updateUser(User user);
   Future<void> deleteUser(User user);
-  Future<void> updatePassword(
-      String username, Uint8List newPasswordHash, Uint8List salt);
+  Future<void> updatePassword(String username, Uint8List newPasswordHash, Uint8List salt);
+
+  Future<void> setUserAsActive(int userId);
+  Future<void> setUserAsInactive(int userId);
 }
 
 final class UsersDaoImpl extends DaoBase implements UsersDao {
@@ -107,8 +109,7 @@ final class UsersDaoImpl extends DaoBase implements UsersDao {
   }
 
   @override
-  Future<void> updatePassword(
-      String username, Uint8List newPasswordHash, Uint8List salt) async {
+  Future<void> updatePassword(String username, Uint8List newPasswordHash, Uint8List salt) async {
     final database = databaseHelper.database;
 
     await database.update(
@@ -119,6 +120,28 @@ final class UsersDaoImpl extends DaoBase implements UsersDao {
       },
       where: "${UsersTable.USERS_USERNAME} = ?",
       whereArgs: [username],
+    );
+  }
+
+  @override
+  Future<void> setUserAsActive(int userId) async {
+    final database = databaseHelper.database;
+    await database.update(
+      UsersTable.USERS_TABLE_NAME,
+      {UsersTable.USERS_LOGIN_STATUS: 1}, // Assuming 1 means active
+      where: "${UsersTable.USERS_ID} = ?",
+      whereArgs: [userId],
+    );
+  }
+
+  @override
+  Future<void> setUserAsInactive(int userId) async {
+    final database = databaseHelper.database;
+    await database.update(
+      UsersTable.USERS_TABLE_NAME,
+      {UsersTable.USERS_LOGIN_STATUS: 0}, // Assuming 0 means inactive
+      where: "${UsersTable.USERS_ID} = ?",
+      whereArgs: [userId],
     );
   }
 }

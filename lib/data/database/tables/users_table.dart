@@ -15,7 +15,8 @@ class UsersTable {
   static const String USERS_ACCESS_LEVEL = 'access_level';
   static const String USERS_SALT = 'salt';
   static const String USERS_CREATION_DATE = 'creation_date';
-  static const String USERS_STATUS = 'status';
+  static const String USERS_ARCHIVED_STATUS = 'archived_status';
+  static const String USERS_LOGIN_STATUS = 'login_status';
 
   static Future<void> createTable(Database database) async {
     await database.execute('''
@@ -28,8 +29,9 @@ class UsersTable {
       $USERS_LAST_NAME TEXT NOT NULL,
       $USERS_ACCESS_LEVEL INTEGER NOT NULL,
       $USERS_SALT INTEGER NOT NULL,
-      $USERS_STATUS INTEGER NOT NULL,
-      $USERS_CREATION_DATE STRING NOT NULL
+      $USERS_ARCHIVED_STATUS INTEGER NOT NULL,
+      $USERS_CREATION_DATE STRING NOT NULL,
+      $USERS_LOGIN_STATUS INTEGER NOT NULL
     )
   ''');
     _insertInitialAdmin(database);
@@ -48,7 +50,8 @@ class UsersTable {
     final admin = User(
       id: 0,
       uid: const Uuid().v4(),
-      status: 0,
+      archivedStatus: 0,
+      loginStatus: 0,
       creationDate: DateTime.now().toIso8601String(),
       firstName: 'System',
       lastName: 'Administrator',
@@ -58,6 +61,21 @@ class UsersTable {
       salt: salt,
     );
 
+    final staff = User(
+      id: 1,
+      uid: const Uuid().v4(),
+      archivedStatus: 0,
+      loginStatus: 0,
+      creationDate: DateTime.now().toIso8601String(),
+      firstName: 'System',
+      lastName: 'Staff',
+      username: 'staff',
+      accessLevel: AccessLevel.staff,
+      passwordHash: passwordHash,
+      salt: salt,
+    );
+
     database.insert(UsersTable.USERS_TABLE_NAME, admin.toMap());
+    database.insert(UsersTable.USERS_TABLE_NAME, staff.toMap());
   }
 }

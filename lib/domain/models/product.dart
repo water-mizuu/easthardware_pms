@@ -2,7 +2,6 @@
 import 'package:easthardware_pms/utils/undefined.dart';
 
 class Product {
-
   Product({
     this.id,
     required this.sku,
@@ -19,7 +18,7 @@ class Product {
     required this.fastMovingStockThreshold,
     required this.creationDate,
     required this.creatorId,
-    required this.archiveStatus,
+    required this.archivedStatus,
     this.isBelowCriticalLevel,
     this.isFastMovingStock,
     this.isDeadStock,
@@ -41,7 +40,7 @@ class Product {
       fastMovingStockThreshold: (map['fast_moving_threshold'] as num).toDouble(),
       creationDate: map['creation_date']?.toString() ?? '',
       creatorId: map['creator_id'] as int,
-      archiveStatus: map['archive_status'] as int,
+      archivedStatus: map['archived_status'] as int,
       isBelowCriticalLevel: map['is_below_critical_level'] == 1,
       isFastMovingStock: map['is_fast_moving_stock'] == 1,
       isDeadStock: map['is_dead_stock'] == 1,
@@ -62,7 +61,7 @@ class Product {
   final double fastMovingStockThreshold;
   final String creationDate;
   final int creatorId;
-  final int archiveStatus;
+  final int archivedStatus;
   final bool? isBelowCriticalLevel;
   final bool? isFastMovingStock;
   final bool? isDeadStock;
@@ -83,7 +82,7 @@ class Product {
     double fastMovingStockThreshold,
     String creationDate,
     int creatorId,
-    int archiveStatus,
+    int archivedStatus,
     bool? isBelowCriticalLevel,
     bool? isFastMovingStock,
     bool? isDeadStock,
@@ -104,7 +103,7 @@ class Product {
       Object? fastMovingStockThreshold = undefined,
       Object? creationDate = undefined,
       Object? creatorId = undefined,
-      Object? archiveStatus = undefined,
+      Object? archivedStatus = undefined,
       Object? isBelowCriticalLevel = undefined,
       Object? isFastMovingStock = undefined,
       Object? isDeadStock = undefined,
@@ -125,7 +124,7 @@ class Product {
         fastMovingStockThreshold: fastMovingStockThreshold.or(this.fastMovingStockThreshold),
         creationDate: creationDate.or(this.creationDate),
         creatorId: creatorId.or(this.creatorId),
-        archiveStatus: archiveStatus.or(this.archiveStatus),
+        archivedStatus: archivedStatus.or(this.archivedStatus),
         isBelowCriticalLevel: isBelowCriticalLevel.or(this.isBelowCriticalLevel),
         isFastMovingStock: isFastMovingStock.or(this.isFastMovingStock),
         isDeadStock: isDeadStock.or(this.isDeadStock),
@@ -148,7 +147,7 @@ class Product {
       'fast_moving_threshold': fastMovingStockThreshold,
       'creation_date': creationDate,
       'creator_id': creatorId,
-      'archive_status': archiveStatus,
+      'archived_status': archivedStatus,
     };
   }
 }

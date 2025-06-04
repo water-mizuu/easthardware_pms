@@ -20,6 +20,7 @@ class ServerState with EquatableMixin {
     this.databaseHelper,
     this.lastUpdated,
     this.bottomText,
+    this.clientUserBeingLoggedOut,
   });
 
   final ServerStatus status;
@@ -27,6 +28,7 @@ class ServerState with EquatableMixin {
   final DatabaseHelper? databaseHelper;
   final DateTime? lastUpdated;
   final String? bottomText;
+  final int? clientUserBeingLoggedOut;
 
   ServerState Function({
     ServerStatus status,
@@ -34,6 +36,7 @@ class ServerState with EquatableMixin {
     DatabaseHelper? databaseHelper,
     DateTime? lastUpdated,
     String bottomText,
+    int? clientUserBeingLoggedOut,
   }) get copyWith {
     return ({
       Object? status = undefined,
@@ -41,6 +44,7 @@ class ServerState with EquatableMixin {
       Object? databaseHelper = undefined,
       Object? lastUpdated = undefined,
       Object? bottomText = undefined,
+      Object? clientUserBeingLoggedOut = undefined,
     }) {
       return ServerState(
         status: status.or(this.status),
@@ -48,12 +52,14 @@ class ServerState with EquatableMixin {
         databaseHelper: databaseHelper.or(this.databaseHelper),
         lastUpdated: lastUpdated.or(this.lastUpdated),
         bottomText: bottomText.or(this.bottomText),
+        clientUserBeingLoggedOut: clientUserBeingLoggedOut.or(this.clientUserBeingLoggedOut),
       );
     };
   }
 
   @override
-  get props => [status, databaseArgs, databaseHelper, lastUpdated, bottomText];
+  get props =>
+      [status, databaseArgs, databaseHelper, lastUpdated, bottomText, clientUserBeingLoggedOut];
 }
 
 sealed class DatabaseArgs {

@@ -23,9 +23,7 @@ class UsersPanePage extends StatelessWidget {
           PageHeader(),
           PageActions(),
           UserDataTable(),
-        ].withSpacing(
-          () => Spacing.v16,
-        ),
+        ].withSpacing(() => Spacing.v16),
       ),
     );
   }
@@ -71,26 +69,32 @@ class UserDataTable extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<UserListBloc, UserListState>(builder: (context, state) {
-      switch (state.status) {
-        case DataStatus.loading:
-          return const Expanded(child: Center(child: ProgressRing()));
-        default:
-          final allUsers = state.users.where((user) => user.status == 0).toList();
-          return Expanded(
-            child: DecoratedBox(
+    return BlocBuilder<UserListBloc, UserListState>(
+      builder: (context, state) {
+        switch (state.status) {
+          case DataStatus.loading:
+            return const Expanded(child: Center(child: ProgressRing()));
+          default:
+            final allUsers = state.users.where((user) => user.archivedStatus == 0).toList();
+            return Expanded(
+              child: DecoratedBox(
                 decoration: const BoxDecoration(color: Colors.white),
                 child: DataTable(
-                    columns: const [
-                      DataColumn(label: Text('Name')),
-                      DataColumn(label: Text('Level of Access')),
-                      DataColumn(label: Text('Creation Date')),
-                    ],
-                    rows: allUsers.map((user) {
-                      return DataRowMapper.mapUserToRow(user, () {});
-                    }).toList())),
-          );
-      }
-    });
+                  columns: const [
+                    DataColumn(label: Text('Name')),
+                    DataColumn(label: Text('Level of Access')),
+                    DataColumn(label: Text('Creation Date')),
+                    DataColumn(label: Text('Status')),
+                  ],
+                  rows: [
+                    for (final user in allUsers) //
+                      DataRowMapper.mapUserToRow(user, user.loginStatus == 1),
+                  ],
+                ),
+              ),
+            );
+        }
+      },
+    );
   }
 }

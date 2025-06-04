@@ -8,6 +8,6 @@ abstract interface class AuthenticationRepository {
   }
 
   Future<User> logIn({required String username, required String password});
-  void logOut();
+  void logOut({required int userId});
   void dispose();
 }

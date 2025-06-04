@@ -1,6 +1,10 @@
+import 'package:easthardware_pms/data/database/database_helper.dart';
+import 'package:easthardware_pms/data/repository/invoice_repository.dart';
 import 'package:easthardware_pms/domain/models/invoice.dart';
 
 abstract class InvoiceRepository {
+  factory InvoiceRepository(DatabaseHelper? databaseHelper) = InvoiceRepositoryImpl;
+
   Future<List<Invoice>> getAllInvoices();
   Future<Invoice?> getInvoiceById(int id);
   Future<Invoice> insertInvoice(Invoice invoice);

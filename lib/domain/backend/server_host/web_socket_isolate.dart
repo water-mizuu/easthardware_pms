@@ -20,7 +20,7 @@ import 'package:shelf_web_socket/shelf_web_socket.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 
 late MessageChannel mainChannel;
-late List<(WebSocketChannel, MessageChannel)> _clientChannels;
+late List<(WebSocketChannel, MessageChannel, int? userId)> _clientChannels;
 late AsyncQueue _handleConnectionQueue;
 
 /// Spawns an isolate to handle database operations and WebSocket connections.
@@ -35,7 +35,7 @@ Future<void> spawnWebSocketIsolate((RootIsolateToken, NamedSendPort) payload) as
   // Ensure messenger to allow communication.
   BackgroundIsolateBinaryMessenger.ensureInitialized(token);
 
-  _clientChannels = <(WebSocketChannel, MessageChannel)>[];
+  _clientChannels = <(WebSocketChannel, MessageChannel, int?)>[];
   _handleConnectionQueue = AsyncQueue.autoStart();
 
   // Create the receive port and send it to the main isolate.
@@ -64,8 +64,13 @@ Future<void> spawnWebSocketIsolate((RootIsolateToken, NamedSendPort) payload) as
     await server.close(force: true);
 
     // Close all WebSocket connections
-    for (final (webSocket, messageChannel) in _clientChannels.toList()) {
+    for (final (webSocket, messageChannel, userId) in _clientChannels.toList()) {
       await webSocket.sink.close();
+
+      if (userId != null) {
+        // Notify the main isolate about the user logout.
+        _logoutClientForcefully(userId);
+      }
 
       /// Ensure that the message channel for this WebSocket is closed to avoid memory leaks.
       assert(messageChannel.receivePort.isClosed);
@@ -174,7 +179,23 @@ Future<void> _handleConnection(
   messageChannel = webSocketChannel //
       .toEncryptedMessageChannel(
     connection.encryptionKey,
-    () => _clientChannels.remove((webSocketChannel, messageChannel)),
+    () {
+      final index = _clientChannels //
+          .indexWhere((c) => c.$1 == webSocketChannel && c.$2 == messageChannel);
+
+      assert(index != -1, "The channel should be in the list of client channels.");
+      if (index == -1) return;
+
+      /// If the channel had an account associated with it,
+      ///   log out the user.
+      final (_, _, userId) = _clientChannels[index];
+      if (userId != null) {
+        _logoutClientForcefully(userId);
+      }
+
+      /// Remove the channel from the list of client channels.
+      _clientChannels.removeAt(index);
+    },
   )..sendPort.send("status", 0);
 
   /// @CLIENT2WS:invocation
@@ -189,15 +210,19 @@ Future<void> _handleConnection(
       case ["db", [final String method, final List<Object?> arguments]]:
         // Handle each db method call.
         final output = await serverHandleDatabaseMethod(method, arguments);
-
         final (result, hasChanged) = output.record;
 
         // Send the result back to the client.
         messageChannel.sendPort.send(name, result);
-
         if (hasChanged) {
           _notifyEveryoneAboutDatabaseChange(from: webSocketChannel, isServerUpdated: true);
         }
+
+        /// Hook onto the database update that signifies that the user has logged in.
+        if (method == "update") {
+          _hookOntoUpdate(arguments, webSocketChannel, messageChannel);
+        }
+
         break;
       case _:
         if (kDebugMode) {
@@ -211,8 +236,16 @@ Future<void> _handleConnection(
     print("New connection established. Current connections: ${_clientChannels.length + 1}");
   }
 
-  _clientChannels.add((webSocketChannel, messageChannel));
+  _clientChannels.add((webSocketChannel, messageChannel, null));
 }
+
+/// This timer is used to debounce the notifications of consequent
+///   database changes to the clients.
+Timer? _notifyTimer;
+
+/// This is the duration after which the notification timer will send out
+/// notifications to the clients about the database change.
+const Duration notifyTimerDuration = Duration(seconds: 1);
 
 /// This sends out a notification to all connected clients about a database change.
 /// This also sends the notification to the server as necessary.
@@ -221,15 +254,69 @@ void _notifyEveryoneAboutDatabaseChange({
   required bool isServerUpdated,
 }) {
   assertChildIsolate();
-  if (isServerUpdated) {
-    mainChannel.sendPort.send("main", ["didUpdate", DateTime.now().millisecondsSinceEpoch]);
+
+  _notifyTimer?.cancel();
+  _notifyTimer = Timer(notifyTimerDuration, () {
+    if (isServerUpdated && mainChannel.isOpen) {
+      mainChannel.sendPort.send("main", ["didUpdate", DateTime.now().millisecondsSinceEpoch]);
+    }
+
+    for (final (client, channel, _) in _clientChannels) {
+      if (client != from && channel.isOpen) {
+        // Notify all other clients about the database change.
+        channel.sendPort.send("client", ["didUpdate", DateTime.now().millisecondsSinceEpoch]);
+      }
+    }
+  });
+}
+
+/// This method hooks onto the database update that signifies that the user has logged in.
+/// We need to ensure that this matches the signature of the update method in the database helper.
+void _hookOntoUpdate(
+  List<Object?> arguments,
+  WebSocketChannel webSocketChannel,
+  MessageChannel messageChannel,
+) {
+  late final index = _clientChannels //
+      .indexWhere((c) => c.$1 == webSocketChannel && c.$2 == messageChannel);
+
+  if (arguments
+      case [
+        "users",
+        {"login_status": 1},
+        {"where": "id = ?", "whereArgs": [final int userId]},
+      ]) {
+    if (index == -1) return;
+    _clientChannels[index] = (webSocketChannel, messageChannel, userId);
+
+    if (kDebugMode) {
+      printBoxed(
+        "User with ID $userId logged in to an existing socket.",
+        "CLIENT2WS:invocation",
+      );
+    }
+    return;
   }
 
-  for (final (client, channel) in _clientChannels) {
-    if (client != from) {
-      // Notify all other clients about the database change.
-      channel.sendPort.send("client", ["didUpdate", DateTime.now().millisecondsSinceEpoch]);
+  /// MANUAL LOGOUT.
+  if (arguments
+      case [
+        "users",
+        {"login_status": 0},
+        {"where": "id = ?", "whereArgs": [final int userId]},
+      ]) {
+    if (index == -1) return;
+    _clientChannels[index] = (webSocketChannel, messageChannel, null);
+
+    _logoutClientForcefully(userId);
+    if (kDebugMode) {
+      printBoxed(
+        "User with ID $userId logged out from an existing socket.",
+        "CLIENT2WS:invocation",
+      );
     }
+
+    return;
   }
 }
 
@@ -241,5 +328,26 @@ Future<SecureConnection> _requestConnection(int sessionKey) async {
     return connection;
   } else {
     throw Exception("Invalid connection response: $connection");
+  }
+}
+
+Future<void> _logoutClientForcefully(int userId) async {
+  assertChildIsolate();
+
+  final (result, hasChanged) = await serverHandleDatabaseMethod(
+    "update",
+    [
+      "users",
+      {"login_status": 0},
+      {
+        "where": "id = ?",
+        "whereArgs": [userId],
+        'conflictAlgorithm': null,
+      },
+    ],
+  ).then((p) => p.record);
+
+  if (hasChanged) {
+    _notifyEveryoneAboutDatabaseChange(from: null, isServerUpdated: true);
   }
 }

@@ -133,7 +133,7 @@ class UserFormBloc extends Bloc<UserFormEvent, UserFormState> {
             uid: uid,
             creationDate: creationDate,
             salt: salt,
-            archiveStatus: 0,
+            archivedStatus: 0,
             passwordHash: passwordHash,
             accessLevelErrorMessage: null,
             status: FormStatus.submitting,

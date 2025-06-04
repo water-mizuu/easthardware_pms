@@ -55,6 +55,7 @@ class ServerBloc extends Bloc<ServerEvent, ServerState> {
     on<ServerSaveServerInformation>(_saveServerInformation);
 
     on<ServerDatabaseUpdated>(_onDatabaseUpdated);
+    on<ServerResetBottomText>(_onResetBottomText);
   }
 
   @override
@@ -440,16 +441,19 @@ class ServerBloc extends Bloc<ServerEvent, ServerState> {
     ));
 
     Future.delayed(const Duration(seconds: 2), () {
-      if (isClosed) return;
-      if (state.databaseArgs case ServerDatabaseArgs(:final ip, :final port)) {
-        emit(state.copyWith(
-          bottomText: "Hosting at: $ip:$port",
-        ));
-      } else if (state.databaseArgs case ClientDatabaseArgs(:final parentIp, :final port)) {
-        emit(state.copyWith(
-          bottomText: "Connected to: $parentIp:$port",
-        ));
-      }
+      add(const ServerResetBottomText());
     });
+  }
+
+  Future<void> _onResetBottomText(ServerResetBottomText event, Emitter<ServerState> emit) async {
+    if (state.databaseArgs case ServerDatabaseArgs(:final ip, :final port)) {
+      emit(state.copyWith(
+        bottomText: "Hosting at: $ip:$port",
+      ));
+    } else if (state.databaseArgs case ClientDatabaseArgs(:final parentIp, :final port)) {
+      emit(state.copyWith(
+        bottomText: "Connected to: $parentIp:$port",
+      ));
+    }
   }
 }

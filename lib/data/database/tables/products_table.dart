@@ -18,7 +18,7 @@ class ProductsTable {
   static const String PRODUCTS_FAST_MOVING_THRESHOLD = 'fast_moving_threshold';
   static const String PRODUCTS_CREATION_DATE = 'creation_date';
   static const String PRODUCTS_CREATOR_ID = 'creator_id';
-  static const String PRODUCTS_ARCHIVE_STATUS = 'archive_status';
+  static const String PRODUCTS_ARCHIVE_STATUS = 'archived_status';
 
   static Future<void> createTable(Database database) async {
     await database.execute('''

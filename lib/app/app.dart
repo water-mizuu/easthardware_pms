@@ -33,7 +33,7 @@ class _AppState extends State<App> with WidgetsBindingObserver {
         listener: (context, state) async {
           databaseHelper = state.databaseHelper;
 
-          await di.initialize(databaseHelper: databaseHelper);
+          di.initialize(databaseHelper: databaseHelper);
           if (!mounted || !context.mounted) return;
 
           setState(() {});

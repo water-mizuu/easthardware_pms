@@ -14,7 +14,8 @@ class User {
     required this.accessLevel,
     required this.passwordHash,
     required this.salt,
-    required this.status,
+    required this.archivedStatus,
+    required this.loginStatus,
     required this.creationDate,
   });
 
@@ -29,7 +30,8 @@ class User {
       passwordHash: base64Decode(map['password_hash'] as String),
       salt: base64Decode(map['salt'] as String),
       creationDate: map['creation_date'] as String,
-      status: map['status'] as int,
+      archivedStatus: map['archived_status'] as int,
+      loginStatus: map['login_status'] as int,
     );
   }
   final int? id;
@@ -40,7 +42,8 @@ class User {
   final AccessLevel accessLevel;
   final Uint8List salt;
   final Uint8List passwordHash;
-  final int status;
+  final int archivedStatus;
+  final int loginStatus;
   final String creationDate;
 
   User Function({
@@ -52,7 +55,8 @@ class User {
     AccessLevel? accessLevel,
     Uint8List? passwordHash,
     Uint8List? salt,
-    int? status,
+    int? archivedStatus,
+    int? loginStatus,
     String? creationDate,
   }) get copyWith {
     return ({
@@ -64,7 +68,8 @@ class User {
       Object? accessLevel = undefined,
       Object? passwordHash = undefined,
       Object? salt = undefined,
-      Object? status = undefined,
+      Object? archivedStatus = undefined,
+      Object? loginStatus = undefined,
       Object? creationDate = undefined,
     }) {
       return User(
@@ -76,7 +81,8 @@ class User {
         accessLevel: accessLevel.or(this.accessLevel),
         passwordHash: passwordHash.or(this.passwordHash),
         salt: salt.or(this.salt),
-        status: status.or(this.status),
+        archivedStatus: archivedStatus.or(this.archivedStatus),
+        loginStatus: loginStatus.or(this.loginStatus),
         creationDate: creationDate.or(this.creationDate),
       );
     };
@@ -92,7 +98,8 @@ class User {
       'access_level': accessLevel.index,
       'password_hash': base64Encode(passwordHash),
       'salt': base64Encode(salt),
-      'status': status,
+      'archived_status': archivedStatus,
+      'login_status': loginStatus,
       'creation_date': creationDate,
     };
   }

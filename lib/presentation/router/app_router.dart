@@ -33,10 +33,9 @@ final router = GoRouter(
           path: AppRoutes.login.path,
           builder: (context, state) => const LoginPage(),
         ),
-        GoRoute(
-          path: AppRoutes.resetPassword.path,
-          builder: (context, state) =>
-              ResetPasswordPage(username: state.extra as String),
+        TypedGoRoute(
+          route: AppRoutes.resetPassword,
+          builder: (context, state) => ResetPasswordPage(username: state.extra),
         ),
         GoRoute(
           path: AppRoutes.newPassword.path,
@@ -79,8 +78,7 @@ final router = GoRouter(
             ),
             TypedGoRoute(
               route: AppRoutes.admin.editProduct,
-              builder: (context, state) =>
-                  EditProductPage(product: state.extra),
+              builder: (context, state) => EditProductPage(product: state.extra),
             ),
             GoRoute(
               path: AppRoutes.admin.categories.path,

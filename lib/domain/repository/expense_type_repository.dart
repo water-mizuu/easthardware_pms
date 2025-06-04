@@ -1,3 +1,5 @@
+import 'package:easthardware_pms/data/database/database_helper.dart';
+import 'package:easthardware_pms/data/repository/expense_type_repository.dart';
 import 'package:easthardware_pms/domain/models/expense_type.dart';
 
 /// ExpenseTypeRepository is an abstract class that defines the contract for
@@ -6,7 +8,9 @@ import 'package:easthardware_pms/domain/models/expense_type.dart';
 /// This class is intended to be implemented by concrete classes that will
 /// provide the actual data access logic for expense types.
 ///
-abstract class ExpenseTypeRepository {
+abstract interface class ExpenseTypeRepository {
+  factory ExpenseTypeRepository(DatabaseHelper? databaseHelper) = ExpenseTypeRepositoryImpl;
+
   /// Fetches all expense types.
   ///
   /// Returns a list of [ExpenseType] objects.

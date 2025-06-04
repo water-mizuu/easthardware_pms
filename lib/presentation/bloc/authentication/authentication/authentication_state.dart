@@ -1,13 +1,13 @@
 part of 'authentication_bloc.dart';
 
-enum AuthenticationStatus { unknown, loading, success, failure }
+enum AuthenticationStatus { unknown, loggingIn, loggingOut, success, failure }
 
 enum FormElement {
   username,
   password,
   passwordVerification,
   securityQuestion,
-  securityAnswer
+  securityAnswer,
 }
 
 class ErrorMessage {
@@ -17,7 +17,7 @@ class ErrorMessage {
   final FormElement target;
 }
 
-class AuthenticationState {
+class AuthenticationState with EquatableMixin {
   AuthenticationState({
     this.status = AuthenticationStatus.unknown,
     this.user,
@@ -50,4 +50,7 @@ class AuthenticationState {
       );
     };
   }
+
+  @override
+  List<Object?> get props => [status, user, loginAttempts, errors];
 }

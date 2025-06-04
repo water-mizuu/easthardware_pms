@@ -1,11 +1,4 @@
 import 'package:easthardware_pms/data/database/database_helper.dart';
-import 'package:easthardware_pms/data/repository/category_repository.dart';
-import 'package:easthardware_pms/data/repository/invoice_repository.dart';
-import 'package:easthardware_pms/data/repository/order_repository.dart';
-import 'package:easthardware_pms/data/repository/product_repository.dart';
-import 'package:easthardware_pms/data/repository/security_question_repository.dart';
-import 'package:easthardware_pms/data/repository/user_log_repository.dart';
-import 'package:easthardware_pms/data/repository/user_repository.dart';
 import 'package:easthardware_pms/domain/repository/authentication_repository.dart';
 import 'package:easthardware_pms/domain/repository/category_repository.dart';
 import 'package:easthardware_pms/domain/repository/invoice_repository.dart';
@@ -66,21 +59,20 @@ class DependencyInjector {
   ResetFormBloc? _resetFormBloc;
   NewPasswordFormBloc? _newPasswordFormBloc;
 
-  Future<void> initialize({
+  void initialize({
     DatabaseHelper? databaseHelper,
-  }) async {
+  }) {
     _databaseHelper = databaseHelper;
     _authenticationRepository = AuthenticationRepository(databaseHelper);
 
-    _productRepository = ProductRepositoryImpl(databaseHelper);
-    _invoiceRepository = InvoiceRepositoryImpl(databaseHelper);
-    _orderRepository = OrderRepositoryImpl(databaseHelper);
-    _categoryRepository = CategoryRepositoryImpl(databaseHelper);
+    _productRepository = ProductRepository(databaseHelper);
+    _invoiceRepository = InvoiceRepository(databaseHelper);
+    _orderRepository = OrderRepository(databaseHelper);
+    _categoryRepository = CategoryRepository(databaseHelper);
     _unitRepository = UnitRepository(databaseHelper);
-    _userLogRepository = UserLogRepositoryImpl(databaseHelper);
-    _userRepository = UserRepositoryImpl(databaseHelper);
-    _securityQuestionRepository =
-        SecurityQuestionRepositoryImpl(databaseHelper);
+    _userLogRepository = UserLogRepository(databaseHelper);
+    _userRepository = UserRepository(databaseHelper);
+    _securityQuestionRepository = SecurityQuestionRepository(databaseHelper);
   }
 
   List<SingleChildWidget> inject() {
@@ -105,11 +97,12 @@ class DependencyInjector {
         key: key(),
       ),
       BlocProvider(
+        lazy: false,
         create: (context) {
           _userListBloc?.close();
 
-          return _userListBloc = UserListBloc(_userRepository)
-            ..add(LoadAllUsersEvent());
+          return _userListBloc = UserListBloc(_userRepository) //
+            ..add(const LoadAllUsersEvent());
         },
         key: key(),
       ),
@@ -118,7 +111,7 @@ class DependencyInjector {
           _productListBloc?.close();
 
           return _productListBloc = ProductListBloc(_productRepository)
-            ..add(LoadAllProductsEvent());
+            ..add(const LoadAllProductsEvent());
         },
         key: key(),
       ),
@@ -127,7 +120,7 @@ class DependencyInjector {
           _categoryListBloc?.close();
 
           return _categoryListBloc = CategoryListBloc(_categoryRepository)
-            ..add(LoadCategoriesEvent());
+            ..add(const LoadCategoriesEvent());
         },
         key: key(),
       ),
@@ -136,7 +129,7 @@ class DependencyInjector {
           _unitListBloc?.close();
 
           return _unitListBloc = UnitListBloc(_unitRepository) //
-            ..add(LoadUnitsEvent());
+            ..add(const LoadUnitsEvent());
         },
         key: key(),
       ),
@@ -153,9 +146,8 @@ class DependencyInjector {
         create: (context) {
           _securityQuestionListBloc?.close();
 
-          return _securityQuestionListBloc =
-              SecurityQuestionListBloc(_securityQuestionRepository)
-                ..add(const FetchSecurityQuestionsEvent());
+          return _securityQuestionListBloc = SecurityQuestionListBloc(_securityQuestionRepository)
+            ..add(const FetchSecurityQuestionsEvent());
         },
         key: key(),
       ),
@@ -163,17 +155,16 @@ class DependencyInjector {
         create: (context) {
           _resetFormBloc?.close();
           return _resetFormBloc = ResetFormBloc(
-              userRepository: _userRepository,
-              securityQuestionRepository: _securityQuestionRepository);
+            userRepository: _userRepository,
+            securityQuestionRepository: _securityQuestionRepository,
+          );
         },
         key: key(),
       ),
       BlocProvider(
         create: (context) {
           _newPasswordFormBloc?.close();
-          return _newPasswordFormBloc = NewPasswordFormBloc(
-            userRepository: _userRepository,
-          );
+          return _newPasswordFormBloc = NewPasswordFormBloc(userRepository: _userRepository);
         },
         key: key(),
       ),
@@ -184,14 +175,14 @@ class DependencyInjector {
           return _invoiceListBloc = InvoiceListBloc(_invoiceRepository)
             ..add(const FetchAllInvoicesEvent());
         },
-        key: ValueKey(_databaseHelper),
+        key: key(),
       ),
       BlocProvider(
         create: (context) {
           _orderListBloc?.close();
 
-          return _orderListBloc = OrderListBloc(_orderRepository)
-            ..add(FetchAllOrdersEvent());
+          return _orderListBloc = OrderListBloc(_orderRepository) //
+            ..add(const FetchAllOrdersEvent());
         },
         key: key(),
       ),
@@ -203,22 +194,13 @@ class DependencyInjector {
   void markNeedsRefresh() {
     if (kDebugMode) {
       print("Dependency Injector: Marking needs refresh");
-      print([
-        _userListBloc,
-        _productListBloc,
-        _invoiceListBloc,
-        _categoryListBloc,
-        _unitListBloc,
-        _userLogListBloc,
-        _securityQuestionListBloc,
-      ]);
     }
 
-    _userListBloc?.add(LoadAllUsersEvent());
-    _productListBloc?.add(LoadAllProductsEvent());
+    _userListBloc?.add(const LoadAllUsersEvent());
+    _productListBloc?.add(const LoadAllProductsEvent());
     _invoiceListBloc?.add(const FetchAllInvoicesEvent());
-    _categoryListBloc?.add(LoadCategoriesEvent());
-    _unitListBloc?.add(LoadUnitsEvent());
+    _categoryListBloc?.add(const LoadCategoriesEvent());
+    _unitListBloc?.add(const LoadUnitsEvent());
     _userLogListBloc?.add(const LoadUserLogsEvent());
     _securityQuestionListBloc?.add(const FetchSecurityQuestionsEvent());
   }

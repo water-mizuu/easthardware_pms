@@ -145,7 +145,11 @@ class DatabaseServerProxy implements Database {
       [
         table,
         values,
-        {'where': where, 'whereArgs': whereArgs, 'conflictAlgorithm': conflictAlgorithm}
+        {
+          'where': where,
+          'whereArgs': whereArgs,
+          'conflictAlgorithm': conflictAlgorithm?.index,
+        }
       ],
     ).cast<int>();
   }
@@ -261,8 +265,8 @@ class ServerBatch implements Batch {
   ///
   /// During [OpenDatabaseOptions.onCreate], [OpenDatabaseOptions.onUpgrade],
   /// [OpenDatabaseOptions.onDowngrade] (we are already in a transaction) or if
-  /// the batch was created in a transaction it will only be commited when
-  /// the transaction is commited ([exclusive] is not used then).
+  /// the batch was created in a transaction it will only be committed when
+  /// the transaction is committed ([exclusive] is not used then).
   ///
   /// Otherwise, sqflite will start a transaction to commit this batch. In rare
   /// cases where you don't need an atomic operation, or where you are manually

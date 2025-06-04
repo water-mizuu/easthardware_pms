@@ -12,26 +12,34 @@ class LoginForm extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ColoredBox(
-      color: Colors.white,
-      child: Padding(
-        padding: AppPadding.a32,
-        child: Builder(builder: (context) {
-          final formKey = context.read<LoginFormBloc>().formKey;
-          return Form(
-            key: formKey,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Image.asset("assets/icons/app.png", height: 24.0),
-                _FormHeader(),
-                _FormUsernameField(),
-                _FormPasswordField(),
-                _FormButton(),
-              ].withSpacing(() => Spacing.v16),
-            ),
-          );
-        }),
+    return BlocListener<LoginFormBloc, LoginFormState>(
+      listener: (context, state) {
+        if (state.usernameError != null || state.passwordError != null) {
+          context.read<LoginFormBloc>().formKey.currentState?.validate();
+        }
+      },
+      child: ColoredBox(
+        color: Colors.white,
+        child: Padding(
+          padding: AppPadding.a32,
+          child: Builder(builder: (context) {
+            final formKey = context.read<LoginFormBloc>().formKey;
+
+            return Form(
+              key: formKey,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Image.asset("assets/icons/app.png", height: 24.0),
+                  _FormHeader(),
+                  _FormUsernameField(),
+                  _FormPasswordField(),
+                  _FormButton(),
+                ].withSpacing(() => Spacing.v16),
+              ),
+            );
+          }),
+        ),
       ),
     );
   }
@@ -41,17 +49,18 @@ class _FormHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          const HeadingText(
-            "Login",
-            textAlign: TextAlign.start,
-          ),
-          const GrayText(
-            "Fill in the form below to log in",
-            textAlign: TextAlign.start,
-          )
-        ].withSpacing(() => Spacing.v8));
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        const HeadingText(
+          "Login",
+          textAlign: TextAlign.start,
+        ),
+        const GrayText(
+          "Fill in the form below to log in",
+          textAlign: TextAlign.start,
+        )
+      ].withSpacing(() => Spacing.v8),
+    );
   }
 }
 
@@ -62,28 +71,39 @@ class _FormUsernameField extends StatelessWidget with LoginFormValidator {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         const BodyText("Username"),
-        TextFormBox(
-          validator: validateUsername,
-          onChanged: (value) => context.read<LoginFormBloc>().add(LoginFormUsernameChanged(value)),
-        )
+        BlocBuilder<LoginFormBloc, LoginFormState>(
+          buildWhen: (p, c) => p.usernameError != c.usernameError,
+          builder: (context, state) => TextFormBox(
+            validator: (v) => state.usernameError ?? validateUsername(v),
+            onChanged: (value) => context //
+                .read<LoginFormBloc>()
+                .add(LoginFormUsernameChanged(value)),
+          ),
+        ),
       ].withSpacing(() => Spacing.v8),
     );
   }
 }
 
 class _FormPasswordField extends StatelessWidget with LoginFormValidator {
+  late final globalKey = GlobalKey<FormFieldState>();
+
   @override
   Widget build(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         const BodyText('Password'),
-        TextFormBox(
-          obscureText: true,
-          validator: validatePassword,
-          onChanged: (value) {
-            context.read<LoginFormBloc>().add(LoginFormPasswordChanged(value));
-          },
+        BlocBuilder<LoginFormBloc, LoginFormState>(
+          buildWhen: (p, c) => p.passwordError != c.passwordError,
+          builder: (context, state) => TextFormBox(
+            key: globalKey,
+            obscureText: true,
+            validator: (v) => state.passwordError ?? validatePassword(v),
+            onChanged: (value) => context //
+                .read<LoginFormBloc>()
+                .add(LoginFormPasswordChanged(value)),
+          ),
         ),
       ].withSpacing(() => Spacing.v8),
     );
@@ -99,7 +119,7 @@ class _FormButton extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         FilledButton(
-          onPressed: state.status != AuthenticationStatus.loading
+          onPressed: state.status != AuthenticationStatus.loggingIn
               ? () => context.read<LoginFormBloc>().add(LoginFormButtonPressed())
               : null,
           child: const Padding(

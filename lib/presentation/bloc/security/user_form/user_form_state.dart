@@ -16,7 +16,7 @@ class UserFormState extends Equatable {
     ],
     this.status = FormStatus.initial,
     this.creationDate,
-    this.archiveStatus,
+    this.archivedStatus,
     this.uid,
     this.salt,
     this.passwordHash,
@@ -33,7 +33,7 @@ class UserFormState extends Equatable {
       accessLevel: user.accessLevel.name,
       passwordHash: user.passwordHash,
       salt: user.salt,
-      archiveStatus: user.status,
+      archivedStatus: user.archivedStatus,
       uid: user.uid,
     );
   }
@@ -52,7 +52,7 @@ class UserFormState extends Equatable {
   final String? uid;
   final Uint8List? salt;
   final Uint8List? passwordHash;
-  final int? archiveStatus;
+  final int? archivedStatus;
 
   // Hidden attributes for the UI
   final String? accessLevelErrorMessage;
@@ -67,7 +67,7 @@ class UserFormState extends Equatable {
         questions,
         status,
         creationDate ?? '',
-        archiveStatus ?? 0,
+        archivedStatus ?? 0,
         uid ?? '',
         salt ?? Uint8List(0),
         passwordHash ?? Uint8List(0),
@@ -89,7 +89,7 @@ class UserFormState extends Equatable {
     String? uid,
     Uint8List? salt,
     Uint8List? passwordHash,
-    int? archiveStatus,
+    int? archivedStatus,
     String? accessLevelErrorMessage,
   }) get copyWith {
     return ({
@@ -103,7 +103,7 @@ class UserFormState extends Equatable {
       Object? questions = undefined,
       Object? status = undefined,
       Object? creationDate = undefined,
-      Object? archiveStatus = undefined,
+      Object? archivedStatus = undefined,
       Object? uid = undefined,
       Object? salt = undefined,
       Object? passwordHash = undefined,
@@ -120,12 +120,11 @@ class UserFormState extends Equatable {
         questions: questions.or(this.questions),
         status: status.or(this.status),
         creationDate: creationDate.or(this.creationDate),
-        archiveStatus: archiveStatus.or(this.archiveStatus),
+        archivedStatus: archivedStatus.or(this.archivedStatus),
         uid: uid.or(this.uid),
         salt: salt.or(this.salt),
         passwordHash: passwordHash.or(this.passwordHash),
-        accessLevelErrorMessage:
-            accessLevelErrorMessage.or(this.accessLevelErrorMessage),
+        accessLevelErrorMessage: accessLevelErrorMessage.or(this.accessLevelErrorMessage),
       );
     };
   }
@@ -136,11 +135,11 @@ class UserFormState extends Equatable {
       firstName: firstName,
       lastName: lastName,
       username: username,
-      accessLevel: AccessLevel.values
-          .firstWhere((element) => element.name == accessLevel),
+      accessLevel: AccessLevel.values.firstWhere((element) => element.name == accessLevel),
       passwordHash: passwordHash!,
       salt: salt!,
-      status: archiveStatus!,
+      archivedStatus: archivedStatus!,
+      loginStatus: 0, // Default login status
       creationDate: creationDate!,
     );
   }

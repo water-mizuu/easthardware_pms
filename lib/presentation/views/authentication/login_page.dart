@@ -1,9 +1,11 @@
 import 'package:easthardware_pms/domain/enums/enums.dart';
 import 'package:easthardware_pms/presentation/bloc/authentication/authentication/authentication_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/authentication/login_form/login_form_bloc.dart';
+import 'package:easthardware_pms/presentation/bloc/security/user_list/user_list_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/security/user_log_list/user_log_list_bloc.dart';
 import 'package:easthardware_pms/presentation/router/app_routes.dart';
 import 'package:easthardware_pms/presentation/views/authentication/login_form.dart';
+import 'package:easthardware_pms/utils/boxed.dart';
 import 'package:easthardware_pms/utils/typed_routes.dart';
 import 'package:fluent_ui/fluent_ui.dart';
 import 'package:flutter/foundation.dart';
@@ -29,26 +31,52 @@ class _LoginPageState extends State<LoginPage> {
 
   List<BlocListener> get listeners {
     return [
+      /// this bloc is for logging in.
       BlocListener<AuthenticationBloc, AuthenticationState>(
-        listenWhen: (previous, current) =>
-            previous.status != current.status ||
-            previous.user != current.user ||
-            previous.loginAttempts != current.loginAttempts,
+        listenWhen: (p, c) =>
+            p.status == AuthenticationStatus.loggingIn &&
+            (p.status != c.status || //
+                p.user != c.user ||
+                p.loginAttempts != c.loginAttempts),
+        //
         listener: (context, authState) {
           final status = authState.status;
           final user = authState.user;
 
-          if (status == AuthenticationStatus.failure) {
-            if (kDebugMode) {
-              print(status);
+          try {
+            assert(
+              {AuthenticationStatus.success, AuthenticationStatus.failure}.contains(status),
+              "After logging in, the status must be either success or failure.",
+            );
+            //
+
+            if (status == AuthenticationStatus.success) {
+              final userId = user!.id;
+              assert(userId != null, "User ID must not be null after successful login.");
+
+              if (kDebugMode) {
+                printBoxed("User logged in: ${user.username} (ID: $userId)", "User Login");
+              }
+              context.read<UserLogListBloc>().add(AddLoginEvent(user));
+              context.read<UserListBloc>().add(UserLoggedInEvent(userId!));
+
+              return;
             }
-            if (authState.loginAttempts >= 3) {
-              context.navigateWithExtra(AppRoutes.resetPassword, loginFormBloc.state.username);
+
+            if (status == AuthenticationStatus.failure) {
+              if (authState.loginAttempts >= 3) {
+                context.navigateWithExtra(AppRoutes.resetPassword, loginFormBloc.state.username);
+              }
+
+              context.read<LoginFormBloc>().add(LoginFormSubmitFailed(authState.errors));
+
+              return;
             }
-          } else if (status == AuthenticationStatus.success) {
-            context.read<UserLogListBloc>().add(AddLoginEvent(user!));
+
+            throw UnreachableError();
+          } finally {
+            loginFormBloc.add(LoginFormReturned());
           }
-          loginFormBloc.add(LoginFormReturned());
         },
       ),
       BlocListener<AuthenticationBloc, AuthenticationState>(
@@ -118,3 +146,5 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 }
+
+final class UnreachableError extends Error {}

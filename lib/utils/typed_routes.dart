@@ -24,7 +24,8 @@ class TypedGoRoute<T> extends GoRoute {
                   final extra = state.extra;
                   if (extra is! T) {
                     throw ArgumentError(
-                      'Expected extra to be of type $T, but got ${extra.runtimeType}',
+                      'Expected extra to be of type $T, '
+                      'but got ${extra.runtimeType}',
                     );
                   }
 

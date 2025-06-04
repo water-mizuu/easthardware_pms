@@ -89,3 +89,7 @@ class ServerDatabaseUpdated extends ServerEvent {
 
   final DateTime lastUpdated;
 }
+
+class ServerResetBottomText extends ServerEvent {
+  const ServerResetBottomText();
+}

@@ -115,4 +115,28 @@ class UserRepositoryImpl implements UserRepository {
       throw DatabaseException('Failed to update password: $e');
     }
   }
+
+  @override
+  Future<void> setUserAsActive(int userId) async {
+    if (userId < 0) {
+      throw ArgumentException('Invalid user ID');
+    }
+    try {
+      await _usersDao.setUserAsActive(userId);
+    } catch (e) {
+      throw DatabaseException('Failed to set user as active: $e');
+    }
+  }
+
+  @override
+  Future<void> setUserAsInactive(int userId) async {
+    if (userId < 0) {
+      throw ArgumentException('Invalid user ID');
+    }
+    try {
+      await _usersDao.setUserAsInactive(userId);
+    } catch (e) {
+      throw DatabaseException('Failed to set user as inactive: $e');
+    }
+  }
 }

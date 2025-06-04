@@ -1,6 +1,10 @@
+import 'package:easthardware_pms/data/database/database_helper.dart';
+import 'package:easthardware_pms/data/repository/order_repository.dart';
 import 'package:easthardware_pms/domain/models/order.dart';
 
 abstract class OrderRepository {
+  factory OrderRepository(DatabaseHelper? databaseHelper) = OrderRepositoryImpl;
+
   Future<List<Order>> getAllOrders();
   Future<Order?> getOrderById(int id);
   Future<Order> insertOrder(Order order);
