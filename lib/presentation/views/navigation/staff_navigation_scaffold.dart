@@ -9,7 +9,6 @@ import 'package:easthardware_pms/presentation/widgets/layout_mode_provider.dart'
 import 'package:easthardware_pms/presentation/widgets/title_bar.dart';
 import 'package:easthardware_pms/utils/typed_routes.dart';
 import 'package:fluent_ui/fluent_ui.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:scroll_animator/scroll_animator.dart';
@@ -90,23 +89,19 @@ class _AdminNavigationViewState extends State<AdminNavigationView> {
     return MultiBlocListener(
       listeners: [
         /// Here, we only listen to the NavigationCubit to update the selected index
-        ///   based on the current route.
         BlocListener<NavigationCubit, NavigationState>(
           listener: (context, state) {
-            /// We update the selected index based on the current route.
-            final index = _routeIndexMapper.getIndexFromRoute(state.route);
-            if (index != null) {
-              _selectedIndex = index;
-            }
+            final route = state.route;
+            if (route is! AppRoute<Null>) return;
+
+            final index = _routeIndexMapper.getIndexFromRoute(route);
+            if (index == null) return;
+
+            _selectedIndex = index;
           },
         ),
       ],
       child: NavigationView(
-        /// By giving the widget a ValueKey, it makes the widget create
-        ///   a new instance whenever the mode changes. This is important
-        ///   because the NavigationView animates its transition when in debugMode,
-        ///   and it throws assertion errors. In release mode, this is not necessary.
-        key: kDebugMode ? ValueKey(widget.mode) : null,
         clipBehavior: Clip.hardEdge,
 
         /// The pane body builder creates the body of the window.

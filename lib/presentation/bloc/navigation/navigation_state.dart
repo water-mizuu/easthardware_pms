@@ -1,6 +1,6 @@
 part of 'navigation_cubit.dart';
 
-final class NavigationState {
+final class NavigationState with EquatableMixin {
   const NavigationState({required this.route, this.extra});
 
   final AppRoute route;
@@ -17,4 +17,7 @@ final class NavigationState {
       );
     };
   }
+
+  @override
+  List<Object?> get props => [route, extra];
 }

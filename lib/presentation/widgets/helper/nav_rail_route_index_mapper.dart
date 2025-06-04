@@ -22,22 +22,32 @@ class NavRailRouteIndexMapper {
 
         routeToIndex[data] = i;
         indexToRoute[i] = data;
+      } else if (badge case Transform(child: RouteText(:final AppRoute<Object> data))) {
+        /// If the route is not null, then the user tried to put
+        ///   a route with a non-nullable type in the navigation pane.
+
+        if (kDebugMode) {
+          print('Warning: Route $data is not nullable, but it was used in the navigation pane.');
+        }
       }
     }
 
-    return NavRailRouteIndexMapper._(routeToIndex, indexToRoute);
+    return NavRailRouteIndexMapper._(
+      UnmodifiableMap(Map.unmodifiable(routeToIndex)),
+      UnmodifiableMap(Map.unmodifiable(indexToRoute)),
+    );
   }
 
   const NavRailRouteIndexMapper._(this._routeToIndex, this._indexToRoute);
 
-  final Map<AppRoute<Null>, int> _routeToIndex;
-  final Map<int, AppRoute<Null>> _indexToRoute;
+  final UnmodifiableMap<AppRoute<Null>, int> _routeToIndex;
+  final UnmodifiableMap<int, AppRoute<Null>> _indexToRoute;
 
   AppRoute<Null>? getRouteFromIndex(int index) {
     return _indexToRoute[index];
   }
 
-  int? getIndexFromRoute(AppRoute route) {
+  int? getIndexFromRoute(AppRoute<Null> route) {
     return _routeToIndex[route];
   }
 }
@@ -54,4 +64,8 @@ extension on Iterable<NavigationPaneItem> {
               : [],
     );
   }
+}
+
+extension type const UnmodifiableMap<K, V>(Map<K, V> map) implements Map<K, V> {
+  V? operator [](K key) => map[key];
 }

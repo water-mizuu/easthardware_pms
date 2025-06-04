@@ -93,21 +93,20 @@ class _AdminNavigationViewState extends State<AdminNavigationView> {
         /// Here, we only listen to the NavigationCubit to update the selected index
         ///   based on the current route.
         BlocListener<NavigationCubit, NavigationState>(
+          listenWhen: (p, c) => p.route != c.route,
           listener: (context, state) {
             /// We update the selected index based on the current route.
-            final index = _routeIndexMapper.getIndexFromRoute(state.route);
-            if (index != null) {
-              _selectedIndex = index;
-            }
+            final route = state.route;
+            if (route is! AppRoute<Null>) return;
+
+            final index = _routeIndexMapper.getIndexFromRoute(route);
+            if (index == null) return;
+
+            _selectedIndex = index;
           },
         ),
       ],
       child: NavigationView(
-        /// By giving the widget a ValueKey, it makes the widget create
-        ///   a new instance whenever the mode changes. This is important
-        ///   because the NavigationView animates its transition when in debugMode,
-        ///   and it throws assertion errors. In release mode, this is not necessary.
-        key: kDebugMode ? ValueKey(widget.mode) : null,
         clipBehavior: Clip.hardEdge,
 
         /// The pane body builder creates the body of the window.
@@ -136,8 +135,6 @@ class _AdminNavigationViewState extends State<AdminNavigationView> {
           toggleable: false,
           displayMode: widget.mode,
           onItemPressed: (index) {
-            /// Redirects such as this should be specified in the
-            ///   [_navigationItems] list.
             final probablyRoute = _routeIndexMapper.getRouteFromIndex(index);
             if (probablyRoute case null) {
               if (kDebugMode) {
