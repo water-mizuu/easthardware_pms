@@ -218,7 +218,7 @@ class _AdminNavigationViewState extends State<AdminNavigationView> {
         _navItem(
           icon: FluentIcons.bill,
           title: 'Orders List',
-          // route: AppRoutes.orderPage,
+          route: AppRoutes.orderPage,
         ),
         _navItem(
           icon: FluentIcons.reservation_orders,

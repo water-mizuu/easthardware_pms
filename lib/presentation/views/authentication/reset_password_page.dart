@@ -1,6 +1,4 @@
 import 'package:easthardware_pms/presentation/bloc/authentication/'
-    'new_password_form/new_password_form_bloc.dart';
-import 'package:easthardware_pms/presentation/bloc/authentication/'
     'reset_form/reset_form_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/navigation/navigation_cubit.dart';
 import 'package:easthardware_pms/presentation/router/app_routes.dart';
@@ -214,8 +212,7 @@ class SubmitSection extends StatelessWidget {
     return BlocListener<ResetFormBloc, ResetFormState>(
       listener: (context, state) {
         if (state.status == ResetFormStatus.success) {
-          context.read<NewPasswordFormBloc>().setUsername(state.username);
-          context.navigate(AppRoutes.newPassword);
+          context.navigateWithExtra(AppRoutes.newPassword, state.username);
         } else if (state.status == ResetFormStatus.error &&
             state.errorMessage.isNotEmpty) {}
       },

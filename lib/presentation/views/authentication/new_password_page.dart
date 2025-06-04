@@ -2,12 +2,40 @@ import 'package:easthardware_pms/presentation/bloc/authentication/new_password_f
 import 'package:easthardware_pms/presentation/bloc/navigation/navigation_cubit.dart';
 import 'package:easthardware_pms/presentation/router/app_routes.dart';
 import 'package:easthardware_pms/presentation/widgets/layout/spacing.dart';
+import 'package:easthardware_pms/presentation/widgets/text.dart';
 import 'package:fluent_ui/fluent_ui.dart';
 import 'package:flutter/material.dart' show Icons;
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-class NewPasswordPage extends StatelessWidget {
-  const NewPasswordPage({super.key});
+class NewPasswordPage extends StatefulWidget {
+  const NewPasswordPage({super.key, required this.username});
+
+  final String username;
+
+  @override
+  State<NewPasswordPage> createState() => _NewPasswordPageState();
+}
+
+class _NewPasswordPageState extends State<NewPasswordPage> {
+  @override
+  void initState() {
+    super.initState();
+
+    context
+        .read<NewPasswordFormBloc>()
+        .add(NewPasswordFormUsernameChanged(widget.username));
+  }
+
+  @override
+  void didUpdateWidget(NewPasswordPage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+
+    if (oldWidget.username != widget.username) {
+      context
+          .read<NewPasswordFormBloc>()
+          .add(NewPasswordFormUsernameChanged(widget.username));
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -45,7 +73,7 @@ class FormHeader extends StatelessWidget {
           style: FluentTheme.of(context).typography.title,
           textAlign: TextAlign.start,
         ),
-        const SizedBox(height: 8),
+        Spacing.v8,
         Text(
           "Fill in the form below to update your password",
           style: FluentTheme.of(context).typography.body?.copyWith(
@@ -53,7 +81,7 @@ class FormHeader extends StatelessWidget {
               ),
           textAlign: TextAlign.start,
         ),
-        const SizedBox(height: 16),
+        Spacing.v16,
       ],
     );
   }
@@ -78,8 +106,8 @@ class _NewPasswordInputSectionState extends State<NewPasswordInputSection> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         const Text('New Password'),
-        const SizedBox(height: 8),
-        TextBox(
+        Spacing.v8,
+        TextFormBox(
           placeholder: 'Enter new password',
           obscureText: obscureText,
           suffix: IconButton(
@@ -98,7 +126,10 @@ class _NewPasswordInputSectionState extends State<NewPasswordInputSection> {
                 .add(NewPasswordChanged(value.trim()));
           },
         ),
-        const SizedBox(height: 16),
+        const CaptionText(
+          'Password must be at least 8 characters long and contain at least one uppercase letter, one lowercase letter, one number, and one special character.',
+        ),
+        Spacing.v16,
       ],
     );
   }
@@ -124,7 +155,7 @@ class _ConfirmPasswordInputSectionState
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             const Text('Confirm Password'),
-            const SizedBox(height: 8),
+            Spacing.v8,
             TextBox(
               placeholder: 'Confirm password',
               obscureText: obscureText,
@@ -144,7 +175,7 @@ class _ConfirmPasswordInputSectionState
                     .add(ConfirmPasswordChanged(value.trim()));
               },
             ),
-            const SizedBox(height: 16),
+            Spacing.v16,
           ],
         );
       },
@@ -162,9 +193,7 @@ class SubmitSection extends StatelessWidget {
         if (state.status == FormStatus.success) {
           context.navigate(AppRoutes.login);
         } else if (state.status == FormStatus.error &&
-            state.errorMessage.isNotEmpty) {
-          // Handle error - show a dialog or snackbar
-        }
+            state.errorMessage.isNotEmpty) {}
       },
       child: BlocBuilder<NewPasswordFormBloc, NewPasswordFormState>(
         builder: (context, state) {

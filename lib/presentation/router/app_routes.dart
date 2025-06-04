@@ -3,8 +3,9 @@ import 'package:easthardware_pms/domain/models/product.dart';
 class AppRoutes {
   static const root = AppRoute<Null>('/');
   static const login = AppRoute<Null>('/login');
-  static const resetPassword = AppRoute<String>('/reset_password_authentication');
-  static const newPassword = AppRoute<Null>('/new_password');
+  static const resetPassword =
+      AppRoute<String>('/reset_password_authentication');
+  static const newPassword = AppRoute<String>('/new_password');
 
   // Major Page Routes
   static const admin = AppRoute<Null>('/admin');

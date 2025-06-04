@@ -1,6 +1,7 @@
 import 'package:easthardware_pms/data/database/database_helper.dart';
 import 'package:easthardware_pms/data/repository/category_repository.dart';
 import 'package:easthardware_pms/data/repository/invoice_repository.dart';
+import 'package:easthardware_pms/data/repository/order_repository.dart';
 import 'package:easthardware_pms/data/repository/product_repository.dart';
 import 'package:easthardware_pms/data/repository/security_question_repository.dart';
 import 'package:easthardware_pms/data/repository/user_log_repository.dart';
@@ -8,6 +9,7 @@ import 'package:easthardware_pms/data/repository/user_repository.dart';
 import 'package:easthardware_pms/domain/repository/authentication_repository.dart';
 import 'package:easthardware_pms/domain/repository/category_repository.dart';
 import 'package:easthardware_pms/domain/repository/invoice_repository.dart';
+import 'package:easthardware_pms/domain/repository/order_repository.dart';
 import 'package:easthardware_pms/domain/repository/product_repository.dart';
 import 'package:easthardware_pms/domain/repository/security_question_repository.dart';
 import 'package:easthardware_pms/domain/repository/unit_repository.dart';
@@ -22,6 +24,7 @@ import 'package:easthardware_pms/presentation/bloc/inventory/category_list/categ
 import 'package:easthardware_pms/presentation/bloc/inventory/product_list/product_list_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/inventory/unit_list/unit_list_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/navigation/navigation_cubit.dart';
+import 'package:easthardware_pms/presentation/bloc/order/orderlist/order_list_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/security/security_questions/security_question_list_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/security/user_list/user_list_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/security/user_log_list/user_log_list_bloc.dart';
@@ -33,6 +36,7 @@ class DependencyInjector {
   late AuthenticationRepository _authenticationRepository;
   late ProductRepository _productRepository;
   late InvoiceRepository _invoiceRepository;
+  late OrderRepository _orderRepository;
   late CategoryRepository _categoryRepository;
   late UnitRepository _unitRepository;
   late UserLogRepository _userLogRepository;
@@ -48,6 +52,7 @@ class DependencyInjector {
   UserLogListBloc? _userLogListBloc;
   SecurityQuestionListBloc? _securityQuestionListBloc;
   InvoiceListBloc? _invoiceListBloc;
+  OrderListBloc? _orderListBloc;
   ResetFormBloc? _resetFormBloc;
   NewPasswordFormBloc? _newPasswordFormBloc;
 
@@ -60,11 +65,13 @@ class DependencyInjector {
 
     _productRepository = ProductRepositoryImpl(databaseHelper);
     _invoiceRepository = InvoiceRepositoryImpl(databaseHelper);
+    _orderRepository = OrderRepositoryImpl(databaseHelper);
     _categoryRepository = CategoryRepositoryImpl(databaseHelper);
     _unitRepository = UnitRepository(databaseHelper);
     _userLogRepository = UserLogRepositoryImpl(databaseHelper);
     _userRepository = UserRepositoryImpl(databaseHelper);
-    _securityQuestionRepository = SecurityQuestionRepositoryImpl(databaseHelper);
+    _securityQuestionRepository =
+        SecurityQuestionRepositoryImpl(databaseHelper);
   }
 
   List<SingleChildWidget> inject() {
@@ -90,7 +97,8 @@ class DependencyInjector {
         create: (context) {
           _userListBloc?.close();
 
-          return _userListBloc = UserListBloc(_userRepository)..add(LoadAllUsersEvent());
+          return _userListBloc = UserListBloc(_userRepository)
+            ..add(LoadAllUsersEvent());
         },
         key: key(),
       ),
@@ -134,8 +142,9 @@ class DependencyInjector {
         create: (context) {
           _securityQuestionListBloc?.close();
 
-          return _securityQuestionListBloc = SecurityQuestionListBloc(_securityQuestionRepository)
-            ..add(const FetchSecurityQuestionsEvent());
+          return _securityQuestionListBloc =
+              SecurityQuestionListBloc(_securityQuestionRepository)
+                ..add(const FetchSecurityQuestionsEvent());
         },
         key: key(),
       ),
@@ -165,6 +174,15 @@ class DependencyInjector {
             ..add(const FetchAllInvoicesEvent());
         },
         key: ValueKey(_databaseHelper),
+      ),
+      BlocProvider(
+        create: (context) {
+          _orderListBloc?.close();
+
+          return _orderListBloc = OrderListBloc(_orderRepository)
+            ..add(FetchAllOrdersEvent());
+        },
+        key: key(),
       ),
     ];
   }

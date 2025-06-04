@@ -1,5 +1,6 @@
 import 'package:easthardware_pms/domain/models/product.dart';
 import 'package:easthardware_pms/presentation/router/app_routes.dart';
+import 'package:easthardware_pms/presentation/views/Order/order_pane_page.dart';
 import 'package:easthardware_pms/presentation/views/authentication/login_page.dart';
 import 'package:easthardware_pms/presentation/views/authentication/new_password_page.dart';
 import 'package:easthardware_pms/presentation/views/authentication/reset_password_page.dart';
@@ -20,95 +21,111 @@ import 'package:go_router/go_router.dart';
 const initialLocation = AppRoutes.login;
 
 final rootWidgetKey = GlobalKey<NavigatorState>();
-final router =
-    GoRouter(initialLocation: initialLocation as String, navigatorKey: rootWidgetKey, routes: [
-  ShellRoute(
-    builder: (_, __, child) => BottomText(child: child),
+final router = GoRouter(
+    initialLocation: initialLocation as String,
+    navigatorKey: rootWidgetKey,
     routes: [
-      GoRoute(
-        path: AppRoutes.login.path,
-        builder: (context, state) => const LoginPage(),
+      ShellRoute(
+        builder: (_, __, child) => BottomText(child: child),
+        routes: [
+          GoRoute(
+            path: AppRoutes.login.path,
+            builder: (context, state) => const LoginPage(),
+          ),
+          GoRoute(
+            path: AppRoutes.resetPassword.path,
+            builder: (context, state) =>
+                ResetPasswordPage(username: state.extra as String),
+          ),
+          GoRoute(
+            path: AppRoutes.newPassword.path,
+            builder: (context, state) => (NewPasswordPage(
+              username: state.extra as String,
+            )),
+          )
+        ],
       ),
-      GoRoute(
-        path: AppRoutes.resetPassword.path,
-        builder: (context, state) => ResetPasswordPage(username: state.extra as String),
-      ),
-      GoRoute(
-        path: AppRoutes.newPassword.path,
-        builder: (context, state) => (const NewPasswordPage()),
-      )
-    ],
-  ),
-  StatefulShellRoute(
-      builder: (context, state, shell) => shell,
-      navigatorContainerBuilder: (context, shell, children) =>
-          BottomText(child: AdminNavigationScaffold(shell, children)),
-      branches: [
-        // Admin Dashboard Shell
-        StatefulShellBranch(
-          initialLocation: AppRoutes.admin.path,
-          routes: [
-            GoRoute(
-              path: AppRoutes.admin.path,
-              builder: (context, state) => const Text("Dashboard"),
-            )
-          ],
-        ),
+      StatefulShellRoute(
+          builder: (context, state, shell) => shell,
+          navigatorContainerBuilder: (context, shell, children) =>
+              BottomText(child: AdminNavigationScaffold(shell, children)),
+          branches: [
+            // Admin Dashboard Shell
+            StatefulShellBranch(
+              initialLocation: AppRoutes.admin.path,
+              routes: [
+                GoRoute(
+                  path: AppRoutes.admin.path,
+                  builder: (context, state) => const Text("Dashboard"),
+                )
+              ],
+            ),
 
-        // Inventory Page Shell
-        StatefulShellBranch(
-          initialLocation: AppRoutes.inventoryPage.path,
-          routes: [
-            GoRoute(
-              path: AppRoutes.inventoryPage.path,
-              builder: (context, state) => (const InventoryPanePage()),
-            ),
-            GoRoute(
-              path: AppRoutes.createProductPage.path,
+            // Inventory Page Shell
+            StatefulShellBranch(
+              initialLocation: AppRoutes.inventoryPage.path,
+              routes: [
+                GoRoute(
+                  path: AppRoutes.inventoryPage.path,
+                  builder: (context, state) => (const InventoryPanePage()),
+                ),
+                GoRoute(
+                  path: AppRoutes.createProductPage.path,
 
-              /// The [MaterialPage] is used for the transition animation.
-              /// Should be removed if decided not to use the transition.
-              builder: (context, state) => (const CreateProductPage()),
+                  /// The [MaterialPage] is used for the transition animation.
+                  /// Should be removed if decided not to use the transition.
+                  builder: (context, state) => (const CreateProductPage()),
+                ),
+                GoRoute(
+                  path: AppRoutes.editProductPage.path,
+                  builder: (context, state) =>
+                      (EditProductPage(product: state.extra as Product)),
+                ),
+                GoRoute(
+                  path: AppRoutes.categoriesPage.path,
+                  builder: (context, state) => (const ManageCategoriesPage()),
+                ),
+              ],
             ),
-            GoRoute(
-              path: AppRoutes.editProductPage.path,
-              builder: (context, state) => (EditProductPage(product: state.extra as Product)),
+            // Billing Shell
+            StatefulShellBranch(
+              initialLocation: AppRoutes.billingPage.path,
+              routes: [
+                GoRoute(
+                    path: AppRoutes.billingPage.path,
+                    builder: (context, state) => const InvoicePanePage()),
+                GoRoute(
+                  path: AppRoutes.createInvoicePage.path,
+                  builder: (context, state) => const CreateInvoicePage(),
+                ),
+              ],
             ),
-            GoRoute(
-              path: AppRoutes.categoriesPage.path,
-              builder: (context, state) => (const ManageCategoriesPage()),
+            // Order Shell
+            StatefulShellBranch(
+              initialLocation: AppRoutes.orderPage.path,
+              routes: [
+                GoRoute(
+                  path: AppRoutes.orderPage.path,
+                  builder: (context, state) => const OrderPanePage(),
+                ),
+              ],
             ),
-          ],
-        ),
-        // Billing Shell
-        StatefulShellBranch(
-          initialLocation: AppRoutes.billingPage.path,
-          routes: [
-            GoRoute(
-                path: AppRoutes.billingPage.path,
-                builder: (context, state) => const InvoicePanePage()),
-            GoRoute(
-              path: AppRoutes.createInvoicePage.path,
-              builder: (context, state) => const CreateInvoicePage(),
-            ),
-          ],
-        ),
-        StatefulShellBranch(
-          initialLocation: AppRoutes.usersPage.path,
-          routes: [
-            GoRoute(
-              path: AppRoutes.usersPage.path,
-              builder: (context, state) => const UsersPanePage(),
-            ),
-            GoRoute(
-              path: AppRoutes.createUserPage.path,
-              builder: (context, state) => const CreateUserPage(),
-            ),
-            GoRoute(
-              path: AppRoutes.userLogsPage.path,
-              builder: (context, state) => const UserLogPane(),
+            StatefulShellBranch(
+              initialLocation: AppRoutes.usersPage.path,
+              routes: [
+                GoRoute(
+                  path: AppRoutes.usersPage.path,
+                  builder: (context, state) => const UsersPanePage(),
+                ),
+                GoRoute(
+                  path: AppRoutes.createUserPage.path,
+                  builder: (context, state) => const CreateUserPage(),
+                ),
+                GoRoute(
+                  path: AppRoutes.userLogsPage.path,
+                  builder: (context, state) => const UserLogPane(),
+                )
+              ],
             )
-          ],
-        )
-      ])
-]);
+          ])
+    ]);
