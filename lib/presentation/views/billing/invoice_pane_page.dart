@@ -4,9 +4,9 @@ import 'package:easthardware_pms/presentation/bloc/billing/invoicelist/invoice_l
 import 'package:easthardware_pms/presentation/bloc/navigation/navigation_cubit.dart';
 import 'package:easthardware_pms/presentation/router/app_routes.dart';
 import 'package:easthardware_pms/presentation/widgets/helper/data_row_mapper.dart';
-import 'package:easthardware_pms/presentation/widgets/ui/text_button.dart';
 import 'package:easthardware_pms/presentation/widgets/layout/spacing.dart';
 import 'package:easthardware_pms/presentation/widgets/text.dart';
+import 'package:easthardware_pms/presentation/widgets/ui/text_button.dart';
 import 'package:fluent_ui/fluent_ui.dart';
 import 'package:flutter/material.dart'
     show
@@ -49,7 +49,9 @@ class PageHeader extends StatelessWidget {
         const Spacer(flex: 1),
         TextButtonFilled(
           "Create Invoice",
-          onPressed: () => context.read<NavigationCubit>().navigateTo(AppRoutes.billingPage),
+          onPressed: () => context //
+              .read<NavigationCubit>()
+              .navigateTo(AppRoutes.admin.createInvoice),
         ),
       ],
     );

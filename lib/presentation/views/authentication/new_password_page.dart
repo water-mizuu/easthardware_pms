@@ -1,7 +1,7 @@
 import 'package:easthardware_pms/presentation/bloc/authentication/new_password_form/new_password_form_bloc.dart';
-import 'package:easthardware_pms/presentation/bloc/navigation/navigation_cubit.dart';
 import 'package:easthardware_pms/presentation/router/app_routes.dart';
 import 'package:easthardware_pms/presentation/widgets/layout/spacing.dart';
+import 'package:easthardware_pms/utils/typed_routes.dart';
 import 'package:easthardware_pms/presentation/widgets/text.dart';
 import 'package:fluent_ui/fluent_ui.dart';
 import 'package:flutter/material.dart' show Icons;
@@ -193,7 +193,9 @@ class SubmitSection extends StatelessWidget {
         if (state.status == FormStatus.success) {
           context.navigate(AppRoutes.login);
         } else if (state.status == FormStatus.error &&
-            state.errorMessage.isNotEmpty) {}
+            state.errorMessage.isNotEmpty) {
+          // Handle error - show a dialog or snackbar
+        }
       },
       child: BlocBuilder<NewPasswordFormBloc, NewPasswordFormState>(
         builder: (context, state) {

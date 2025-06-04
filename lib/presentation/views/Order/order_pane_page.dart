@@ -1,8 +1,6 @@
 import 'package:easthardware_pms/domain/enums/enums.dart';
 import 'package:easthardware_pms/domain/models/order.dart';
-import 'package:easthardware_pms/presentation/bloc/navigation/navigation_cubit.dart';
 import 'package:easthardware_pms/presentation/bloc/order/orderlist/order_list_bloc.dart';
-import 'package:easthardware_pms/presentation/router/app_routes.dart';
 import 'package:easthardware_pms/presentation/widgets/helper/data_row_mapper.dart';
 import 'package:easthardware_pms/presentation/widgets/layout/spacing.dart';
 import 'package:easthardware_pms/presentation/widgets/text.dart';
@@ -52,7 +50,7 @@ class PageHeader extends StatelessWidget {
         const Spacer(flex: 1),
         TextButtonFilled(
           "Create Order",
-          onPressed: () => context.navigate(AppRoutes.billingPage),
+          onPressed: () {},
         ),
       ].withSpacing(() => Spacing.h16),
     );

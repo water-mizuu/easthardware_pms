@@ -2,14 +2,14 @@ import 'package:easthardware_pms/domain/enums/enums.dart';
 import 'package:easthardware_pms/domain/models/category.dart';
 import 'package:easthardware_pms/presentation/bloc/inventory/category_list/category_list_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/inventory/product_list/product_list_bloc.dart';
-import 'package:easthardware_pms/presentation/bloc/navigation/navigation_cubit.dart';
 import 'package:easthardware_pms/presentation/cubit/inventory/category_form/category_form_cubit.dart';
 import 'package:easthardware_pms/presentation/router/app_routes.dart';
-import 'package:easthardware_pms/presentation/widgets/ui/text_button.dart';
 import 'package:easthardware_pms/presentation/widgets/helper/data_row_mapper.dart';
 import 'package:easthardware_pms/presentation/widgets/layout/spacing.dart';
 import 'package:easthardware_pms/presentation/widgets/text.dart';
+import 'package:easthardware_pms/presentation/widgets/ui/text_button.dart';
 import 'package:easthardware_pms/utils/show_single_dialog.dart';
+import 'package:easthardware_pms/utils/typed_routes.dart';
 import 'package:fluent_ui/fluent_ui.dart';
 import 'package:flutter/material.dart' show DataColumn, DataTable;
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -98,7 +98,7 @@ class PageHeader extends StatelessWidget {
       children: [
         IconButton(
           icon: const Icon(FluentIcons.back),
-          onPressed: () => context.navigate(AppRoutes.inventoryPage),
+          onPressed: () => context.navigate(AppRoutes.admin.inventory),
         ),
         const HeadingText('Manage Categories'),
       ].withSpacing(() => Spacing.h16),

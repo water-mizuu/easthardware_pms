@@ -1,13 +1,15 @@
 import 'package:easthardware_pms/app/dependency_injector.dart';
 import 'package:easthardware_pms/data/database/database_helper.dart';
+import 'package:easthardware_pms/domain/enums/enums.dart';
 import 'package:easthardware_pms/presentation/bloc/authentication/'
     'authentication/authentication_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/navigation/navigation_cubit.dart';
 import 'package:easthardware_pms/presentation/bloc/security/user_log_list/user_log_list_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/server/server_bloc.dart';
 import 'package:easthardware_pms/presentation/router/app_router.dart';
-import 'package:easthardware_pms/presentation/widgets/bottom_text.dart';
+import 'package:easthardware_pms/presentation/router/app_routes.dart';
 import 'package:easthardware_pms/presentation/widgets/title_bar.dart';
+import 'package:easthardware_pms/utils/typed_routes.dart';
 import 'package:fluent_ui/fluent_ui.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:provider/provider.dart';
@@ -21,24 +23,12 @@ class App extends StatefulWidget {
 }
 
 class _AppState extends State<App> with WidgetsBindingObserver {
-  late final ValueNotifier<String> bottomText = ValueNotifier<String>("");
-
-  late final ServerBloc serverBloc;
   late DatabaseHelper? databaseHelper;
   late DependencyInjector di;
-
-  List<SingleChildWidget> get providers {
-    return [
-      ...di.inject(),
-      BlocProvider.value(value: serverBloc),
-      Provider.value(value: BottomTextNotifier(bottomText)),
-    ];
-  }
 
   List<SingleChildWidget> get blocListeners {
     return [
       BlocListener<ServerBloc, ServerState>(
-        bloc: serverBloc,
         listenWhen: (p, c) => p.databaseHelper != c.databaseHelper,
         listener: (context, state) async {
           databaseHelper = state.databaseHelper;
@@ -50,10 +40,18 @@ class _AppState extends State<App> with WidgetsBindingObserver {
         },
       ),
       BlocListener<ServerBloc, ServerState>(
-        bloc: serverBloc,
         listenWhen: (p, c) => p.lastUpdated != c.lastUpdated,
         listener: (context, state) {
           di.markNeedsRefresh();
+        },
+      ),
+      BlocListener<ServerBloc, ServerState>(
+        listenWhen: (p, c) => p.bottomText != c.bottomText && c.bottomText != null,
+        listener: (context, state) {
+          final bottomText = state.bottomText!;
+          if (bottomText.isNotEmpty) {
+            di.bottomText.value = bottomText;
+          }
         },
       ),
 
@@ -61,6 +59,23 @@ class _AppState extends State<App> with WidgetsBindingObserver {
       BlocListener<NavigationCubit, NavigationState>(
         listener: (context, state) {
           router.go(state.route.path, extra: state.extra);
+        },
+      ),
+
+      /// Listen to the authentication bloc.
+      BlocListener<AuthenticationBloc, AuthenticationState>(
+        listenWhen: (p, c) => p.user != c.user,
+        listener: (context, state) {
+          final user = state.user;
+
+          switch (user?.accessLevel) {
+            case null: // User is not authenticated.
+              context.navigate(AppRoutes.login);
+            case AccessLevel.staff:
+              context.navigate(AppRoutes.staff.dashboard);
+            case AccessLevel.administrator:
+              context.navigate(AppRoutes.admin.dashboard);
+          }
         },
       ),
     ];
@@ -71,7 +86,6 @@ class _AppState extends State<App> with WidgetsBindingObserver {
     super.initState();
 
     di = DependencyInjector()..initialize();
-    serverBloc = ServerBloc(bottomText)..add(const ServerInit());
   }
 
   @override
@@ -86,26 +100,21 @@ class _AppState extends State<App> with WidgetsBindingObserver {
   }
 
   @override
-  void dispose() {
-    serverBloc.close();
-
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
     return MultiProvider(
-      providers: providers,
-      child: MultiBlocListener(
-        listeners: blocListeners,
-        child: TitleBar(
-          child: FluentApp.router(
-            debugShowCheckedModeBanner: false,
-            routerConfig: router,
-            themeMode: ThemeMode.dark,
+      providers: di.inject(),
+      builder: (context, child) {
+        return MultiBlocListener(
+          listeners: blocListeners,
+          child: TitleBar(
+            child: FluentApp.router(
+              debugShowCheckedModeBanner: false,
+              routerConfig: router,
+              themeMode: ThemeMode.dark,
+            ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 }

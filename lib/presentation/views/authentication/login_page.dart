@@ -1,10 +1,10 @@
 import 'package:easthardware_pms/domain/enums/enums.dart';
 import 'package:easthardware_pms/presentation/bloc/authentication/authentication/authentication_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/authentication/login_form/login_form_bloc.dart';
-import 'package:easthardware_pms/presentation/bloc/navigation/navigation_cubit.dart';
 import 'package:easthardware_pms/presentation/bloc/security/user_log_list/user_log_list_bloc.dart';
 import 'package:easthardware_pms/presentation/router/app_routes.dart';
 import 'package:easthardware_pms/presentation/views/authentication/login_form.dart';
+import 'package:easthardware_pms/utils/typed_routes.dart';
 import 'package:fluent_ui/fluent_ui.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -30,10 +30,7 @@ class _LoginPageState extends State<LoginPage> {
   List<BlocListener> get listeners {
     return [
       BlocListener<AuthenticationBloc, AuthenticationState>(
-        listenWhen: (
-          previous,
-          current,
-        ) =>
+        listenWhen: (previous, current) =>
             previous.status != current.status ||
             previous.user != current.user ||
             previous.loginAttempts != current.loginAttempts,
@@ -45,16 +42,10 @@ class _LoginPageState extends State<LoginPage> {
             if (kDebugMode) {
               print(status);
             }
-            if (authState.loginAttempts > 3) {
-              context.navigateWithExtra(
-                  AppRoutes.resetPassword, loginFormBloc.state.username);
+            if (authState.loginAttempts >= 3) {
+              context.navigateWithExtra(AppRoutes.resetPassword, loginFormBloc.state.username);
             }
           } else if (status == AuthenticationStatus.success) {
-            if (user?.accessLevel == AccessLevel.administrator) {
-              context.navigate(AppRoutes.admin);
-            } else if (user?.accessLevel == AccessLevel.staff) {
-              context.navigate(AppRoutes.admin);
-            }
             context.read<UserLogListBloc>().add(AddLoginEvent(user!));
           }
           loginFormBloc.add(LoginFormReturned());

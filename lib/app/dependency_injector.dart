@@ -28,11 +28,21 @@ import 'package:easthardware_pms/presentation/bloc/order/orderlist/order_list_bl
 import 'package:easthardware_pms/presentation/bloc/security/security_questions/security_question_list_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/security/user_list/user_list_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/security/user_log_list/user_log_list_bloc.dart';
+import 'package:easthardware_pms/presentation/bloc/server/server_bloc.dart';
+import 'package:easthardware_pms/presentation/widgets/bottom_text.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:provider/provider.dart';
 import 'package:provider/single_child_widget.dart';
 
 class DependencyInjector {
+  DependencyInjector()
+      : bottomText = ValueNotifier(""),
+        serverBloc = ServerBloc()..add(const ServerInit());
+
+  final ValueNotifier<String> bottomText;
+  final ServerBloc serverBloc;
+
   late AuthenticationRepository _authenticationRepository;
   late ProductRepository _productRepository;
   late InvoiceRepository _invoiceRepository;
@@ -60,7 +70,6 @@ class DependencyInjector {
     DatabaseHelper? databaseHelper,
   }) async {
     _databaseHelper = databaseHelper;
-
     _authenticationRepository = AuthenticationRepository(databaseHelper);
 
     _productRepository = ProductRepositoryImpl(databaseHelper);
@@ -82,6 +91,8 @@ class DependencyInjector {
     ValueKey key() => ValueKey(_databaseHelper);
 
     return [
+      Provider.value(value: BottomTextNotifier(bottomText)),
+      BlocProvider.value(value: serverBloc),
       RepositoryProvider.value(value: _categoryRepository),
       RepositoryProvider.value(value: _productRepository),
       RepositoryProvider.value(value: _unitRepository),

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:easthardware_pms/domain/errors/exceptions.dart';
 import 'package:easthardware_pms/domain/models/user.dart';
 import 'package:easthardware_pms/domain/repository/authentication_repository.dart';
@@ -12,7 +14,7 @@ part 'authentication_state.dart';
 class AuthenticationBloc extends Bloc<AuthenticationEvent, AuthenticationState> {
   AuthenticationBloc(this._repository) : super(AuthenticationState()) {
     on<AuthenticationLoginEvent>(_onLogin);
-    on<AuthenticationLogoutEvent>((event, emit) {});
+    on<AuthenticationLogoutEvent>(_onLogout);
   }
 
   final AuthenticationRepository _repository;
@@ -61,6 +63,25 @@ class AuthenticationBloc extends Bloc<AuthenticationEvent, AuthenticationState> 
           loginAttempts: 0,
         ),
       );
+    }
+  }
+
+  Future<void> _onLogout(
+    AuthenticationLogoutEvent event,
+    Emitter<AuthenticationState> emit,
+  ) async {
+    emit(state.copyWith(status: AuthenticationStatus.loading));
+    await Future.delayed(Duration.zero);
+
+    try {
+      _repository.logOut();
+      emit(state.copyWith(status: AuthenticationStatus.success, user: null));
+    } catch (e) {
+      if (kDebugMode) {
+        print(e);
+      }
+
+      emit(state.copyWith(status: AuthenticationStatus.failure));
     }
   }
 }

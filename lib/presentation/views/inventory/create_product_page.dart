@@ -6,13 +6,13 @@ import 'package:easthardware_pms/presentation/bloc/inventory/category_list/categ
 import 'package:easthardware_pms/presentation/bloc/inventory/product_form/product_form_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/inventory/product_list/product_list_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/inventory/unit_list/unit_list_bloc.dart';
-import 'package:easthardware_pms/presentation/bloc/navigation/navigation_cubit.dart';
 import 'package:easthardware_pms/presentation/bloc/security/user_log_list/user_log_list_bloc.dart';
 import 'package:easthardware_pms/presentation/router/app_routes.dart';
-import 'package:easthardware_pms/presentation/widgets/ui/text_button.dart';
-import 'package:easthardware_pms/presentation/widgets/layout/spacing.dart';
 import 'package:easthardware_pms/presentation/views/inventory/product_information_form_content.dart';
+import 'package:easthardware_pms/presentation/widgets/layout/spacing.dart';
 import 'package:easthardware_pms/presentation/widgets/text.dart';
+import 'package:easthardware_pms/presentation/widgets/ui/text_button.dart';
+import 'package:easthardware_pms/utils/typed_routes.dart';
 import 'package:fluent_ui/fluent_ui.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:provider/provider.dart';
@@ -79,7 +79,7 @@ class CreateProductPage extends StatelessWidget {
                 context.read<ProductFormBloc>().add(FormResetEvent());
 
                 /// Navigate to the inventory page after successful submission.
-                context.navigate(AppRoutes.inventoryPage);
+                context.navigate(AppRoutes.admin.inventory);
                 break;
               default:
                 break;
@@ -110,7 +110,7 @@ class PageHeader extends StatelessWidget {
       children: [
         IconButton(
           icon: const Icon(FluentIcons.back),
-          onPressed: () => context.navigate(AppRoutes.inventoryPage),
+          onPressed: () => context.navigate(AppRoutes.admin.inventory),
         ),
         const DisplayText('Create Product'),
         const Spacer(flex: 1),
