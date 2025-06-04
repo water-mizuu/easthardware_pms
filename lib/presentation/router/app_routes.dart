@@ -26,6 +26,9 @@ class AppRoutes {
     createInvoice: AppRoute<Null>('/admin/create/invoice'),
     payInvoice: AppRoute<Null>('/admin/pay/invoice'),
 
+    //Order Sub Pages
+    createOrder: AppRoute<Null>('/admin/create/order'),
+
     // Security Sub Pages
     users: AppRoute<Null>('/admin/users'),
     createUser: AppRoute<Null>('/admin/create/user'),

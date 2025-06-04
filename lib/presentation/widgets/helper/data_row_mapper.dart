@@ -339,4 +339,82 @@ class DataRowMapper {
       DataCell(HyperlinkButton(onPressed: onViewPressed, child: const Text('View'))),
     ]);
   }
+
+  static DataRow mapOrderProductToRow(
+    int index,
+    FormProduct product,
+    List<Product> products,
+    List<Unit> units,
+    OrderProductFunctions functions,
+  ) {
+    return DataRow(cells: [
+      // No.
+      DataCell(Text((index + 1).toString())),
+
+      // Product with AutoSuggestBox
+      DataCell(SizedBox(
+        height: 32,
+        width: 128,
+        child: AutoSuggestBox.form(
+          foregroundDecoration: const BoxDecoration(border: Border()),
+          onSelected: (value) {
+            if (value.value != null) {
+              functions.onProductSelected(value.value!);
+            }
+          },
+          items: products.map((product) {
+            return AutoSuggestBoxItem(
+              value: product,
+              label: product.name,
+            );
+          }).toList(),
+        ),
+      )),
+
+      // Description (TextFormBox)
+      DataCell(TextFormBox(
+        controller: TextEditingController(text: product.description ?? ''),
+        onChanged: (value) => functions.onDescriptionChanged(value),
+      )),
+
+      // Quantity with CompoundButton (Text + ComboBox)
+      DataCell(CompoundButton(
+        text: product.quantity.toString(),
+        onTextChanged: (value) =>
+            functions.onQuantityChanged(double.tryParse(value) ?? 0),
+        onComboBoxSelected: (unit) => functions.onUnitSelected(unit),
+        items: units
+            .map((unit) => ComboBoxItem(
+                  value: unit,
+                  child: Text(unit.name),
+                ))
+            .toList(),
+      )),
+
+      // Rate (TextFormBox)
+      DataCell(TextFormBox(
+        controller: TextEditingController(text: product.rate.toString()),
+        onChanged: (value) =>
+            functions.onRateChanged(double.tryParse(value) ?? 0),
+      )),
+
+      // Amount (TextFormBox)
+      DataCell(TextFormBox(
+        controller: TextEditingController(text: product.amount.toString()),
+        onChanged: (value) =>
+            functions.onAmountChanged(double.tryParse(value) ?? 0),
+      )),
+
+      // Actions - Delete button
+      DataCell(
+        IconButton(
+          icon: const Icon(FluentIcons.remove),
+          onPressed: () {
+            // You might want to add a delete event here via functions
+            // e.g. functions.onDelete(index);
+          },
+        ),
+      ),
+    ]);
+  }
 }

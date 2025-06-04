@@ -1,4 +1,5 @@
 import 'package:easthardware_pms/presentation/router/app_routes.dart';
+import 'package:easthardware_pms/presentation/views/Order/create_order_page.dart';
 import 'package:easthardware_pms/presentation/views/Order/order_pane_page.dart';
 import 'package:easthardware_pms/presentation/views/authentication/login_page.dart';
 import 'package:easthardware_pms/presentation/views/authentication/new_password_page.dart';
@@ -107,6 +108,10 @@ final router = GoRouter(
             GoRoute(
               path: AppRoutes.admin.order.path,
               builder: (context, state) => const OrderPanePage(),
+            ),
+            GoRoute(
+              path: AppRoutes.admin.createOrder.path,
+              builder: (context, state) => const CreateOrderPage(),
             ),
           ],
         ),

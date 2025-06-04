@@ -66,7 +66,8 @@ extension<K> on Map<K, dynamic> {
     if (value is T) {
       return value;
     } else {
-      throw Exception('Value for key $key is not of type $T, but is of ${value.runtimeType}');
+      throw Exception(
+          'Value for key $key is not of type $T, but is of ${value.runtimeType}');
     }
   }
 }

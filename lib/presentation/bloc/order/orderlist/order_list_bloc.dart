@@ -15,6 +15,7 @@ class OrderListBloc extends Bloc<OrderListEvent, OrderListState> {
     on<AddOrderEvent>(_onAddOrder);
     on<UpdateOrderEvent>(_onUpdateOrder);
     on<DeleteOrderEvent>(_onDeleteOrder);
+    on<ChangeRowsPerPageEvent>(_onChangeRowsPerPage);
   }
 
   Future<void> _onFetchOrders(FetchAllOrdersEvent event, Emitter emit) async {
@@ -36,6 +37,11 @@ class OrderListBloc extends Bloc<OrderListEvent, OrderListState> {
     } catch (e) {
       emit(state.copyWith(status: DataStatus.error));
     }
+  }
+
+  Future<void> _onChangeRowsPerPage(
+      ChangeRowsPerPageEvent event, Emitter emit) async {
+    emit(state.copyWith(rowsPerPage: event.rowsPerPage));
   }
 
   Future<void> _onUpdateOrder(UpdateOrderEvent event, Emitter emit) async {

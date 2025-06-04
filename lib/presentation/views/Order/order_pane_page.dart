@@ -1,11 +1,13 @@
 import 'package:easthardware_pms/domain/enums/enums.dart';
 import 'package:easthardware_pms/domain/models/order.dart';
 import 'package:easthardware_pms/presentation/bloc/order/orderlist/order_list_bloc.dart';
+import 'package:easthardware_pms/presentation/router/app_routes.dart';
 import 'package:easthardware_pms/presentation/widgets/helper/data_row_mapper.dart';
 import 'package:easthardware_pms/presentation/widgets/layout/spacing.dart';
 import 'package:easthardware_pms/presentation/widgets/text.dart';
 import 'package:easthardware_pms/presentation/widgets/ui/data_table_place_holder.dart';
 import 'package:easthardware_pms/presentation/widgets/ui/text_button.dart';
+import 'package:easthardware_pms/utils/typed_routes.dart';
 import 'package:fluent_ui/fluent_ui.dart';
 import 'package:flutter/material.dart'
     show
@@ -50,7 +52,9 @@ class PageHeader extends StatelessWidget {
         const Spacer(flex: 1),
         TextButtonFilled(
           "Create Order",
-          onPressed: () {},
+          onPressed: () {
+            context.navigate(AppRoutes.admin.createOrder);
+          },
         ),
       ].withSpacing(() => Spacing.h16),
     );
@@ -89,9 +93,7 @@ class OrdersDataTable extends StatelessWidget {
 
         return Theme(
           data: ThemeData(
-            dataTableTheme: const DataTableThemeData(
-              dividerThickness: 0,
-            ),
+            dataTableTheme: const DataTableThemeData(dividerThickness: 0),
             cardTheme: const CardTheme(
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.all(Radius.circular(4)),
@@ -105,6 +107,15 @@ class OrdersDataTable extends StatelessWidget {
             child: PaginatedDataTable(
               headingRowHeight: 36,
               columnSpacing: 12,
+              rowsPerPage: state.rowsPerPage,
+              availableRowsPerPage: const [5, 10],
+              onRowsPerPageChanged: (value) {
+                if (value != null) {
+                  context
+                      .read<OrderListBloc>()
+                      .add(ChangeRowsPerPageEvent(value));
+                }
+              },
               columns: const [
                 DataColumn(label: Text('ID')),
                 DataColumn(label: Text('Order Date')),
