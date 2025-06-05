@@ -59,9 +59,7 @@ class DependencyInjector {
   ResetFormBloc? _resetFormBloc;
   NewPasswordFormBloc? _newPasswordFormBloc;
 
-  void initialize({
-    DatabaseHelper? databaseHelper,
-  }) {
+  void initialize({DatabaseHelper? databaseHelper}) {
     _databaseHelper = databaseHelper;
     _authenticationRepository = AuthenticationRepository(databaseHelper);
 
@@ -100,9 +98,12 @@ class DependencyInjector {
         lazy: false,
         create: (context) {
           _userListBloc?.close();
+          _userListBloc = UserListBloc(_userRepository);
+          if (_databaseHelper != null) {
+            _userListBloc!.add(const LoadAllUsersEvent());
+          }
 
-          return _userListBloc = UserListBloc(_userRepository) //
-            ..add(const LoadAllUsersEvent());
+          return _userListBloc!;
         },
         key: key(),
       ),

@@ -23,10 +23,18 @@ class AuthenticationState with EquatableMixin {
     this.user,
     this.loginAttempts = 0,
     this.errors = const [],
+    this.previousUser,
   });
 
   final AuthenticationStatus status;
   final User? user;
+
+  /// This is used to keep track of the user being logged out.
+  ///   This is a special attribute that cannot be copied.
+  ///   If a subsequent [copyWith] call is made without providing a value for [previousUser],
+  ///   it will be assigned 'null'.
+  final User? previousUser;
+
   final int loginAttempts;
   final List<ErrorMessage> errors;
 
@@ -35,18 +43,21 @@ class AuthenticationState with EquatableMixin {
     User? user,
     int loginAttempts,
     List<ErrorMessage> errors,
+    User? previousUser,
   }) get copyWith {
     return ({
       Object? status = undefined,
       Object? user = undefined,
       Object? loginAttempts = undefined,
       Object? errors = undefined,
+      Object? previousUser = undefined,
     }) {
       return AuthenticationState(
         status: status.or(this.status),
         user: user.or(this.user),
         loginAttempts: loginAttempts.or(this.loginAttempts),
         errors: errors.or(this.errors),
+        previousUser: previousUser is User ? previousUser : null,
       );
     };
   }

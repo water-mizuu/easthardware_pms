@@ -9,6 +9,7 @@ import 'package:easthardware_pms/presentation/bloc/security/user_form/user_form_
 import 'package:easthardware_pms/presentation/bloc/security/user_list/user_list_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/security/user_log_list/user_log_list_bloc.dart';
 import 'package:easthardware_pms/presentation/router/app_routes.dart';
+import 'package:easthardware_pms/presentation/widgets/dialog/success_dialog.dart';
 import 'package:easthardware_pms/presentation/widgets/layout/spacing.dart';
 import 'package:easthardware_pms/presentation/widgets/layout_mode_provider.dart';
 import 'package:easthardware_pms/presentation/widgets/text.dart';
@@ -42,7 +43,7 @@ class _CreateUserPageState extends State<CreateUserPage> {
     return [
       BlocListener<UserFormBloc, UserFormState>(
         bloc: userFormBloc,
-        listener: (context, state) {
+        listener: (context, state) async {
           switch (state.status) {
             case FormStatus.initial:
               break;
@@ -53,10 +54,11 @@ class _CreateUserPageState extends State<CreateUserPage> {
                   print('Tried to submit a user with no ID.');
                 }
 
-                return;
+                break;
               }
-              final user = state.mapStateToUser().copyWith(id: id);
-              context.read<UserListBloc>().add(AddUserEvent(user));
+
+              final creator = context.read<AuthenticationBloc>().state.user;
+              final createdUser = state.mapStateToUser().copyWith(id: id);
 
               final securityQuestions = state.questions //
                   .map((question) => question.toSecurityQuestion(id))
@@ -65,18 +67,20 @@ class _CreateUserPageState extends State<CreateUserPage> {
               for (final question in securityQuestions) {
                 context.read<SecurityQuestionListBloc>().add(AddSecurityQuestionEvent(question));
               }
-              final creator = context.read<AuthenticationBloc>().state.user;
-              context.read<UserFormBloc>().add(FormSubmittedEvent());
+              context.read<UserListBloc>().add(AddUserEvent(createdUser));
               context.read<UserLogListBloc>().add(AddCreateEvent('User #$id', creator!));
-              break;
-            case FormStatus.submitted:
-              Future.delayed(Duration.zero, () {
-                if (context.mounted) {
-                  context.read<UserFormBloc>().add(FormResetEvent());
-                }
-              });
+
+              /// This makes the form status be submitted.
+              context.read<UserFormBloc>().add(FormResetEvent());
+
               // Show success message and navigate back
-              context.navigate(AppRoutes.admin.createUser);
+              await context.showSuccessDialog(
+                title: 'User Created',
+                body: 'The user \'${createdUser.username}\' has been successfully created.',
+              );
+              if (!context.mounted) break;
+              context.navigate(AppRoutes.admin.users);
+
               break;
             case FormStatus.error:
               // Show error message
@@ -410,7 +414,11 @@ class SecurityQuestionFields extends StatelessWidget with UserFormValidator {
 
   @override
   Widget build(BuildContext context) {
-    final formQuestions = context.read<UserFormBloc>().state.questions;
+    final formQuestions = context.select((UserFormBloc b) => b.state.questions);
+    final remainingStaticQuestions = SECURITY_QUESTIONS //
+        .where((question) => !formQuestions.any((e) => e.question == question))
+        .toList();
+
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -420,63 +428,104 @@ class SecurityQuestionFields extends StatelessWidget with UserFormValidator {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             for (final (index, _) in formQuestions.indexed)
-              Row(
+              Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Expanded(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        BodyText('Security Question ${index + 1}'),
-                        Spacing.v8,
-                        AutoSuggestBox.form(
-                          validator: (value) {
-                            final copy = formQuestions.toList()..removeAt(index);
+                  BodyText('Security Question ${index + 1}'),
+                  AutoSuggestBox.form(
+                    placeholder: "Select or enter security question ${index + 1}",
+                    validator: (value) {
+                      final copy = formQuestions.toList()..removeAt(index);
 
-                            return validateSecurityQuestion(
-                              value,
-                              copy.map((e) => e.question).toList(),
-                              index,
-                            );
-                          },
-                          items: [
-                            for (final staticQuestion in SECURITY_QUESTIONS)
-                              AutoSuggestBoxItem(
-                                label: staticQuestion,
-                                value: staticQuestion,
-                                onSelected: () {
-                                  context
-                                      .read<UserFormBloc>()
-                                      .add(QuestionFieldChangedEvent(staticQuestion, index));
-                                },
-                              )
-                          ],
-                          onChanged: (text, reason) {
+                      return validateSecurityQuestion(
+                        value,
+                        copy.map((e) => e.question).toList(),
+                        index,
+                      );
+                    },
+                    items: [
+                      for (final staticQuestion in remainingStaticQuestions)
+                        AutoSuggestBoxItem(
+                          label: staticQuestion,
+                          value: staticQuestion,
+                          onSelected: () {
                             context
                                 .read<UserFormBloc>()
-                                .add(QuestionFieldChangedEvent(text, index));
+                                .add(QuestionFieldChangedEvent(staticQuestion, index));
                           },
                         )
-                      ],
-                    ),
+                    ],
+                    onChanged: (text, reason) {
+                      context.read<UserFormBloc>().add(QuestionFieldChangedEvent(text, index));
+                    },
                   ),
-                  Expanded(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        const BodyText('Answer'),
-                        TextFormBox(
-                          validator: (value) => validateSecurityAnswer(value, index),
-                          onChanged: (value) {
-                            context.read<UserFormBloc>().add(AnswerFieldChangedEvent(value, index));
-                          },
-                        ),
-                      ].withSpacing(() => Spacing.v8),
-                    ),
+                  TextFormBox(
+                    placeholder: "Answer for question ${index + 1}",
+                    validator: (value) => validateSecurityAnswer(value, index),
+                    onChanged: (value) {
+                      context.read<UserFormBloc>().add(AnswerFieldChangedEvent(value, index));
+                    },
                   ),
-                ].withSpacing(() => Spacing.h16),
-              ),
+                ].withSpacing(() => Spacing.v8),
+              )
+            // Row(
+            //   children: [
+            //     Expanded(
+            //       child: Column(
+            //         mainAxisSize: MainAxisSize.min,
+            //         crossAxisAlignment: CrossAxisAlignment.stretch,
+            //         children: [
+            //           BodyText('Security Question ${index + 1}'),
+            //           Spacing.v8,
+            //           AutoSuggestBox.form(
+            //             validator: (value) {
+            //               final copy = formQuestions.toList()..removeAt(index);
+
+            //               return validateSecurityQuestion(
+            //                 value,
+            //                 copy.map((e) => e.question).toList(),
+            //                 index,
+            //               );
+            //             },
+            //             items: [
+            //               for (final staticQuestion in SECURITY_QUESTIONS)
+            //                 AutoSuggestBoxItem(
+            //                   label: staticQuestion,
+            //                   value: staticQuestion,
+            //                   onSelected: () {
+            //                     context
+            //                         .read<UserFormBloc>()
+            //                         .add(QuestionFieldChangedEvent(staticQuestion, index));
+            //                   },
+            //                 )
+            //             ],
+            //             onChanged: (text, reason) {
+            //               context
+            //                   .read<UserFormBloc>()
+            //                   .add(QuestionFieldChangedEvent(text, index));
+            //             },
+            //           )
+            //         ],
+            //       ),
+            //     ),
+            //     Expanded(
+            //       child: Column(
+            //         mainAxisSize: MainAxisSize.min,
+            //         crossAxisAlignment: CrossAxisAlignment.stretch,
+            //         children: [
+            //           const BodyText('Answer'),
+            //           TextFormBox(
+            //             validator: (value) => validateSecurityAnswer(value, index),
+            //             onChanged: (value) {
+            //               context.read<UserFormBloc>().add(AnswerFieldChangedEvent(value, index));
+            //             },
+            //           ),
+            //         ].withSpacing(() => Spacing.v8),
+            //       ),
+            //     ),
+            //   ].withSpacing(() => Spacing.h16),
+            // ),
           ].withSpacing(() => Spacing.v16),
         ),
         Spacing.v8,

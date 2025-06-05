@@ -56,6 +56,4 @@ class AnswerFieldChangedEvent extends UserFormEvent {
 
 class FormButtonPressedEvent extends UserFormEvent {}
 
-class FormSubmittedEvent extends UserFormEvent {}
-
 class FormResetEvent extends UserFormEvent {}

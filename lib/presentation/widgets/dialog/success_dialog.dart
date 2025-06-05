@@ -1,21 +1,25 @@
 import 'package:easthardware_pms/utils/show_single_dialog.dart';
 import 'package:fluent_ui/fluent_ui.dart';
 
-class ApplicationCloseDialog extends StatelessWidget {
-  const ApplicationCloseDialog({
+class SuccessDialog extends StatelessWidget {
+  const SuccessDialog({
     super.key,
+    required this.title,
+    required this.body,
     this.onSuccess,
     this.onCancel,
   });
 
+  final String title;
+  final String body;
   final void Function()? onSuccess;
   final void Function()? onCancel;
 
   @override
   Widget build(BuildContext context) {
     return ContentDialog(
-      title: const Text('Close Application'),
-      content: const Text('Are you sure you want to close this window?'),
+      title: Text(title),
+      content: Text(body),
       actions: [
         FilledButton(
           autofocus: true,
@@ -40,12 +44,36 @@ class ApplicationCloseDialog extends StatelessWidget {
 
   static Future<void> show(
     BuildContext context, {
-    required VoidCallback? onSuccess,
-    required VoidCallback? onCancel,
+    required String title,
+    required String body,
+    VoidCallback? onSuccess,
+    VoidCallback? onCancel,
   }) async {
     await showSingleDialog(
       context,
-      (context) => ApplicationCloseDialog(onSuccess: onSuccess, onCancel: onCancel),
+      (context) => SuccessDialog(
+        title: title,
+        body: body,
+        onSuccess: onSuccess,
+        onCancel: onCancel,
+      ),
+    );
+  }
+}
+
+extension SuccessDialogExtension on BuildContext {
+  Future<void> showSuccessDialog({
+    required String title,
+    required String body,
+    VoidCallback? onSuccess,
+    VoidCallback? onCancel,
+  }) async {
+    return SuccessDialog.show(
+      this,
+      title: title,
+      body: body,
+      onSuccess: onSuccess,
+      onCancel: onCancel,
     );
   }
 }

@@ -39,7 +39,8 @@ class UserLogListBloc extends Bloc<UserLogListEvent, UserLogListState> {
 
   Future<void> _onAddCreateLog(AddCreateEvent event, Emitter<UserLogListState> emit) async {
     try {
-      final logEvent = "Created ${event.item}";
+      final logEvent = "User ${event.user.firstName} ${event.user.lastName} with "
+          "access level ${event.user.accessLevel} created ${event.item}";
       final logDateTime = DateTime.now();
       final userLog = UserLog(
         userId: event.user.id!,

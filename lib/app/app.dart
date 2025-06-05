@@ -86,6 +86,27 @@ class _AppState extends State<App> with WidgetsBindingObserver {
           }
         },
       ),
+
+      BlocListener<AuthenticationBloc, AuthenticationState>(
+        listenWhen: (p, c) =>
+            p.user == null && c.user != null || // User logged in
+            p.user != null && c.user == null, // User logged out
+        listener: (context, state) {
+          final didUserLogIn = state.user != null;
+          if (didUserLogIn) {
+            // If the user logged in, we need to update the user log list.
+            final user = state.user!;
+            context.read<UserLogListBloc>().add(AddLoginEvent(user));
+          } else {
+            // If the user logged out, we need to update the user log list.
+            final user = context.read<AuthenticationBloc>().state.user;
+            assert(user != null, "User must be logged in to log out.");
+
+            context.read<UserLogListBloc>().add(AddLogoutEvent(user!));
+            context.read<AuthenticationBloc>().add(const AuthenticationPostLogoutEvent());
+          }
+        },
+      ),
     ];
   }
 

@@ -1,6 +1,4 @@
-import 'package:fluent_ui/fluent_ui.dart';
-
-mixin UserFormValidator on Widget {
+mixin UserFormValidator {
   String? validateFirstName(String? value) {
     if (value == null || value.isEmpty) {
       return 'Please enter a first name';
