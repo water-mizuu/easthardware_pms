@@ -26,6 +26,16 @@ class DeleteUserEvent extends UserListEvent {
   final User user;
 }
 
+class FilterUsersByAccessLevelEvent extends UserListEvent {
+  const FilterUsersByAccessLevelEvent(this.accessLevelQuery);
+  final AccessLevel? accessLevelQuery;
+}
+
+class SearchUsersByStringEvent extends UserListEvent {
+  const SearchUsersByStringEvent(this.searchQuery);
+  final String searchQuery;
+}
+
 class UserLoggedInEvent extends UserListEvent {
   const UserLoggedInEvent(this.userId);
   final int userId;

@@ -6,6 +6,20 @@ import 'package:fluent_ui/fluent_ui.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 mixin CommonSidePanelMixin {
+  Widget? menuButton(PaneDisplayMode mode) {
+    return switch (mode) {
+      PaneDisplayMode.compact => Padding(
+          padding: const EdgeInsets.fromLTRB(16, 16, 16, 19),
+          child: Image.asset(
+            'assets/icons/app.png',
+            height: 18,
+            width: 18,
+          ),
+        ),
+      _ => null,
+    };
+  }
+
   NavigationPaneItem navItem({
     required IconData icon,
     required String title,

@@ -137,6 +137,7 @@ class _AdminNavigationViewState extends State<AdminNavigationView> with CommonSi
           selected: _selectedIndex,
           toggleable: false,
           displayMode: widget.mode,
+          menuButton: menuButton(widget.mode),
           onItemPressed: (index) {
             /// Redirects such as this should be specified in the
             ///   [_navigationItems] list.

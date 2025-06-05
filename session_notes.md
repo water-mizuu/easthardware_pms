@@ -34,3 +34,12 @@ Now, onto the main issues. I added FocusScopeWidgets, but it seems that they do 
 one another, needing mouse clicks on a what is supposed to be a tab-driven workflow. I need
 to look into this. Furthermore, I need to change the units in the creation / edit windows, so
 there's that
+
+## June 5, 2025 || 8:49PM -- @water-mizuu
+
+I just accounted for two window lifecycle events, which update the login/logout state in the
+database. First, I implemented an automatic logout system whenever a client has been found
+to log in, and then subsequently disconnect. This handles all cases where the client disconnects,
+whether it is due to errors, shutdown, or whatnot. On the other hand, cases where the server
+crashes / closes is tricky. If the server closes gracefully, all connections are severed,
+and the clients see that the server closed. However, if the server crashes,

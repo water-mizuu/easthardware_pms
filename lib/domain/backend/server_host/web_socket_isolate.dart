@@ -3,10 +3,13 @@ import 'dart:io';
 import 'dart:isolate';
 
 import 'package:async_queue/async_queue.dart';
+import 'package:easthardware_pms/data/database/dao/user_logs_dao.dart';
+import 'package:easthardware_pms/data/database/dao/users_dao.dart';
 import 'package:easthardware_pms/domain/backend/classes/secure_connection.dart';
 import 'package:easthardware_pms/domain/backend/extensions/to_message_channel.dart';
 import 'package:easthardware_pms/domain/backend/server_database.dart';
 import 'package:easthardware_pms/domain/backend/utils/isolate_indicator.dart';
+import 'package:easthardware_pms/domain/models/user_log.dart';
 import 'package:easthardware_pms/utils/boxed.dart';
 import 'package:easthardware_pms/utils/message_channel.dart';
 import 'package:easthardware_pms/utils/parallelism.dart';
@@ -19,6 +22,7 @@ import "package:shelf/shelf_io.dart" as shelf_io;
 import 'package:shelf_web_socket/shelf_web_socket.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 
+late int? _userId;
 late MessageChannel mainChannel;
 late List<(WebSocketChannel, MessageChannel, int? userId)> _clientChannels;
 late AsyncQueue _handleConnectionQueue;
@@ -118,6 +122,10 @@ Future<void> spawnWebSocketIsolate((RootIsolateToken, NamedSendPort) payload) as
           sendPort.send(returnName, result);
           if (hasChanged) {
             _notifyEveryoneAboutDatabaseChange(from: null, isServerUpdated: false);
+          }
+
+          if (method == "update") {
+            _hookOntoUpdate(arguments);
           }
           break;
       }
@@ -220,7 +228,7 @@ Future<void> _handleConnection(
 
         /// Hook onto the database update that signifies that the user has logged in.
         if (method == "update") {
-          _hookOntoUpdate(arguments, webSocketChannel, messageChannel);
+          _hookOntoUpdate(arguments, (webSocketChannel, messageChannel));
         }
 
         break;
@@ -242,6 +250,8 @@ Future<void> _handleConnection(
 /// This timer is used to debounce the notifications of consequent
 ///   database changes to the clients.
 Timer? _notifyTimer;
+WebSocketChannel? _fromChannel;
+bool _isServerUpdated = false;
 
 /// This is the duration after which the notification timer will send out
 /// notifications to the clients about the database change.
@@ -256,6 +266,16 @@ void _notifyEveryoneAboutDatabaseChange({
   assertChildIsolate();
 
   _notifyTimer?.cancel();
+
+  /// If someone requested to notify everyone about a database change,
+  ///   and someone else requests it too, and those two requests are from different
+  ///   clients, then we want to basically notify everyone (including the two clients).
+  _fromChannel = (_fromChannel != null && from != _fromChannel) ? null : _fromChannel;
+
+  /// In the same way, if the server was not requested to be updated, and an existing
+  ///   request was made, we want to keep the server updated.
+  _isServerUpdated = _isServerUpdated || isServerUpdated;
+
   _notifyTimer = Timer(notifyTimerDuration, () {
     if (isServerUpdated && mainChannel.isOpen) {
       mainChannel.sendPort.send("main", ["didUpdate", DateTime.now().millisecondsSinceEpoch]);
@@ -267,18 +287,20 @@ void _notifyEveryoneAboutDatabaseChange({
         channel.sendPort.send("client", ["didUpdate", DateTime.now().millisecondsSinceEpoch]);
       }
     }
+
+    _fromChannel = null;
+    _isServerUpdated = false;
   });
 }
 
 /// This method hooks onto the database update that signifies that the user has logged in.
 /// We need to ensure that this matches the signature of the update method in the database helper.
 void _hookOntoUpdate(
-  List<Object?> arguments,
-  WebSocketChannel webSocketChannel,
-  MessageChannel messageChannel,
-) {
+  List<Object?> arguments, [
+  (WebSocketChannel, MessageChannel)? clientChannel,
+]) {
   late final index = _clientChannels //
-      .indexWhere((c) => c.$1 == webSocketChannel && c.$2 == messageChannel);
+      .indexWhere((c) => c.$1 == clientChannel?.$1 && c.$2 == clientChannel?.$2);
 
   if (arguments
       case [
@@ -286,14 +308,16 @@ void _hookOntoUpdate(
         {"login_status": 1},
         {"where": "id = ?", "whereArgs": [final int userId]},
       ]) {
-    if (index == -1) return;
-    _clientChannels[index] = (webSocketChannel, messageChannel, userId);
-
-    if (kDebugMode) {
-      printBoxed(
-        "User with ID $userId logged in to an existing socket.",
-        "CLIENT2WS:invocation",
-      );
+    if (clientChannel case (final webSocketChannel, final messageChannel) when index >= 0) {
+      _clientChannels[index] = (webSocketChannel, messageChannel, userId);
+      if (kDebugMode) {
+        print("User with ID $userId logged in from an existing client.");
+      }
+    } else {
+      _userId = userId;
+      if (kDebugMode) {
+        print("User with ID $userId logged in from a new client.");
+      }
     }
     return;
   }
@@ -305,17 +329,14 @@ void _hookOntoUpdate(
         {"login_status": 0},
         {"where": "id = ?", "whereArgs": [final int userId]},
       ]) {
-    if (index == -1) return;
-    _clientChannels[index] = (webSocketChannel, messageChannel, null);
-
-    _logoutClientForcefully(userId);
-    if (kDebugMode) {
-      printBoxed(
-        "User with ID $userId logged out from an existing socket.",
-        "CLIENT2WS:invocation",
-      );
+    if (clientChannel case (final webSocketChannel, final messageChannel) when index >= 0) {
+      _clientChannels[index] = (webSocketChannel, messageChannel, null);
+    } else {
+      assert(_userId == userId, "User ID should match the one in the arguments.");
+      _userId = null;
     }
 
+    _logoutClientForcefully(userId);
     return;
   }
 }
@@ -334,20 +355,30 @@ Future<SecureConnection> _requestConnection(int sessionKey) async {
 Future<void> _logoutClientForcefully(int userId) async {
   assertChildIsolate();
 
-  final (result, hasChanged) = await serverHandleDatabaseMethod(
-    "update",
-    [
-      "users",
-      {"login_status": 0},
-      {
-        "where": "id = ?",
-        "whereArgs": [userId],
-        'conflictAlgorithm': null,
-      },
-    ],
-  ).then((p) => p.record);
+  final dbHelper = await getWebSocketDatabaseHelper();
 
-  if (hasChanged) {
-    _notifyEveryoneAboutDatabaseChange(from: null, isServerUpdated: true);
+  {
+    /// We want to set the user as inactive in the database.
+    final userListDao = UsersDao(dbHelper);
+
+    await userListDao.setUserAsInactive(userId);
   }
+
+  {
+    /// We want to log this inactivity in the server database.
+    final userListDao = UsersDao(dbHelper);
+    final userLogsDao = UserLogsDao(dbHelper);
+
+    final user = await userListDao.getUserById(userId);
+    if (user == null) {
+      if (kDebugMode) {
+        print("User with ID $userId not found in the database.");
+      }
+      return;
+    }
+
+    await userLogsDao.insertUserLog(UserLog.logout(user: user));
+  }
+
+  _notifyEveryoneAboutDatabaseChange(from: null, isServerUpdated: true);
 }

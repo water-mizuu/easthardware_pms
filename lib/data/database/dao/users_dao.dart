@@ -7,9 +7,7 @@ import 'package:easthardware_pms/data/database/tables/users_table.dart';
 import 'package:easthardware_pms/domain/models/user.dart';
 
 abstract interface class UsersDao {
-  factory UsersDao(DatabaseHelper? databaseHelper) {
-    return UsersDaoImpl._(databaseHelper);
-  }
+  factory UsersDao(DatabaseHelper? databaseHelper) = UsersDaoImpl._;
   Future<List<User>> getAllUsers();
   Future<User?> getUserById(int id);
   Future<User?> getUserByUid(String uid);

@@ -1,15 +1,21 @@
 import 'dart:async';
+import 'dart:math';
 
 import 'package:bloc/bloc.dart';
+import 'package:dart_bloc_concurrency/dart_bloc_concurrency.dart';
 import 'package:easthardware_pms/domain/enums/enums.dart';
 import 'package:easthardware_pms/domain/models/user.dart';
 import 'package:easthardware_pms/domain/repository/user_repository.dart';
+import 'package:easthardware_pms/utils/duration.dart';
+import 'package:easthardware_pms/utils/levenshtein.dart';
 import 'package:easthardware_pms/utils/undefined.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter/foundation.dart';
 
 part 'user_list_event.dart';
 part 'user_list_state.dart';
+
+const _levenshteinThreshold = 20;
 
 class UserListBloc extends Bloc<UserListEvent, UserListState> {
   UserListBloc(this._repository) : super(const UserListState()) {
@@ -19,6 +25,9 @@ class UserListBloc extends Bloc<UserListEvent, UserListState> {
     on<DeleteUserEvent>(_onDeleteUser);
     on<UserLoggedInEvent>(_onUserLoggedIn);
     on<UserLoggedOutEvent>(_onUserLoggedOut);
+
+    on<FilterUsersByAccessLevelEvent>(_onFilterByAccessLevel);
+    on<SearchUsersByStringEvent>(_onSearchByString, transformer: debounce(200.ms));
   }
   final UserRepository _repository;
 
@@ -34,7 +43,13 @@ class UserListBloc extends Bloc<UserListEvent, UserListState> {
   Future<void> _onLoadUsers(LoadAllUsersEvent event, Emitter<UserListState> emit) async {
     emit(state.copyWith(status: DataStatus.loading));
     try {
-      emit(state.copyWith(status: DataStatus.success, users: await _repository.getAllUsers()));
+      final users = await _repository.getAllUsers();
+
+      emit(state.copyWith(
+        status: DataStatus.success,
+        users: users,
+        filteredUsers: users,
+      ));
     } catch (e) {
       if (kDebugMode) {
         print('Error loading users $e');
@@ -55,7 +70,7 @@ class UserListBloc extends Bloc<UserListEvent, UserListState> {
       );
 
       final users = List<User>.from(state.users)..add(insertedUser);
-      emit(state.copyWith(users: users, status: DataStatus.success));
+      emit(state.copyWith(users: users, filteredUsers: users, status: DataStatus.success));
     } catch (e) {
       if (kDebugMode) {
         print('Error adding user $e');
@@ -75,7 +90,11 @@ class UserListBloc extends Bloc<UserListEvent, UserListState> {
         updatedUsers[index] = updatedUser;
       }
 
-      emit(state.copyWith(users: updatedUsers, status: DataStatus.success));
+      emit(state.copyWith(
+        users: updatedUsers,
+        filteredUsers: updatedUsers,
+        status: DataStatus.success,
+      ));
     } catch (e) {
       if (kDebugMode) {
         print('Error updating user $e');
@@ -92,7 +111,11 @@ class UserListBloc extends Bloc<UserListEvent, UserListState> {
           .where((user) => user.id != event.user.id)
           .toList();
 
-      emit(state.copyWith(users: updatedUsers, status: DataStatus.success));
+      emit(state.copyWith(
+        users: updatedUsers,
+        filteredUsers: updatedUsers,
+        status: DataStatus.success,
+      ));
     } catch (e) {
       if (kDebugMode) {
         print('Error deleting user $e');
@@ -113,7 +136,11 @@ class UserListBloc extends Bloc<UserListEvent, UserListState> {
       print('UserListBloc: User logged in: ${user.username} (ID: ${user.id})');
     }
 
-    emit(state.copyWith(users: updatedUsers, status: DataStatus.success));
+    emit(state.copyWith(
+      users: updatedUsers,
+      filteredUsers: updatedUsers,
+      status: DataStatus.success,
+    ));
   }
 
   Future<void> _onUserLoggedOut(UserLoggedOutEvent event, Emitter<UserListState> emit) async {
@@ -128,6 +155,83 @@ class UserListBloc extends Bloc<UserListEvent, UserListState> {
       print('UserListBloc: User logged out: ${user.username} (ID: ${user.id})');
     }
 
-    emit(state.copyWith(users: updatedUsers, status: DataStatus.success));
+    emit(state.copyWith(
+      users: updatedUsers,
+      filteredUsers: updatedUsers,
+      status: DataStatus.success,
+    ));
+  }
+
+  Future<void> _onFilterByAccessLevel(
+    FilterUsersByAccessLevelEvent event,
+    Emitter<UserListState> emit,
+  ) async {
+    final shown = _filterUsers(
+      state.users,
+      state.searchQuery,
+      event.accessLevelQuery,
+    );
+
+    emit(state.copyWith(
+      accessLevelQuery: event.accessLevelQuery,
+      filteredUsers: shown,
+    ));
+  }
+
+  Future<void> _onSearchByString(
+    SearchUsersByStringEvent event,
+    Emitter<UserListState> emit,
+  ) async {
+    final shown = _filterUsers(
+      state.users,
+      event.searchQuery,
+      state.accessLevelQuery,
+    );
+
+    emit(state.copyWith(
+      searchQuery: event.searchQuery,
+      filteredUsers: shown,
+    ));
+  }
+
+  static List<User> _filterUsers(
+    List<User> allUsers,
+    String? searchQuery,
+    AccessLevel? accessLevelQuery,
+  ) {
+    var filteredUsers = allUsers
+        .where((u) => accessLevelQuery == null || u.accessLevel == accessLevelQuery)
+        .toList();
+
+    if (searchQuery != null && searchQuery.isNotEmpty) {
+      final matchedValues = {
+        for (final user in filteredUsers) //
+          user: [
+            user.username.toLowerCase(),
+            user.firstName.toLowerCase(),
+            user.lastName.toLowerCase(),
+          ]
+      };
+
+      final query = searchQuery.toLowerCase();
+      final scores = matchedValues.map(
+        (key, values) => MapEntry(
+          key,
+          values.map((v) => Levenshtein.distance(query, v, _levenshteinThreshold)).reduce(min),
+        ),
+      );
+      final lowest = scores.values.fold(_levenshteinThreshold + 1, min);
+
+      /// We only show the ones with the score which is 20% above the lowest score.
+      final shown = scores.entries //
+          .where((e) => e.value <= lowest * 1.2)
+          .map((e) => e.key)
+          .toList()
+        ..sort((a, b) => scores[a]!.compareTo(scores[b]!));
+
+      filteredUsers = shown;
+    }
+
+    return filteredUsers;
   }
 }

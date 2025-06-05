@@ -142,6 +142,7 @@ class _AdminNavigationViewState extends State<AdminNavigationView> with CommonSi
           selected: _selectedIndex,
           toggleable: false,
           displayMode: widget.mode,
+          menuButton: menuButton(widget.mode),
           onItemPressed: (index) {
             final probablyRoute = _routeIndexMapper.getRouteFromIndex(index);
             if (probablyRoute case null) {

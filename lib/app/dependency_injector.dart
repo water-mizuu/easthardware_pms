@@ -86,6 +86,7 @@ class DependencyInjector {
       RepositoryProvider.value(value: _categoryRepository),
       RepositoryProvider.value(value: _productRepository),
       RepositoryProvider.value(value: _unitRepository),
+      RepositoryProvider.value(value: _userRepository),
       BlocProvider(
         create: (context) => AuthenticationBloc(_authenticationRepository),
         key: key(),

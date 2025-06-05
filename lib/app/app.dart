@@ -100,8 +100,8 @@ class _AppState extends State<App> with WidgetsBindingObserver {
             context.read<UserLogListBloc>().add(AddLoginEvent(user));
           } else {
             // If the user logged out, we need to update the user log list.
-            final user = context.read<AuthenticationBloc>().state.user;
-            assert(user != null, "User must be logged in to log out.");
+            final user = context.read<AuthenticationBloc>().state.previousUser;
+            assert(user != null, "Log out event must have saved a previousUser.");
 
             context.read<UserLogListBloc>().add(AddLogoutEvent(user!));
             context.read<AuthenticationBloc>().add(const AuthenticationPostLogoutEvent());
