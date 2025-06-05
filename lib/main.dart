@@ -14,13 +14,13 @@ void main(List<String> args) async {
 
   /// Load the window manager plus plugin.
   if ((!kIsWeb) && (Platform.isWindows || Platform.isMacOS)) {
-    const minimumSize = Size(800, 600);
+    const minimumSize = Size(805, 600);
 
     final id = args.isEmpty ? 0 : int.tryParse(args[0]) ?? 0;
     final (_) = await WindowManagerPlus.ensureInitialized(id).tryCatch();
     const options = WindowOptions(
       size: minimumSize,
-      // minimumSize: minimumSize,
+      minimumSize: minimumSize,
       center: true,
       skipTaskbar: false,
     );

@@ -1,8 +1,8 @@
 import 'dart:io' show Platform;
 
-import 'package:easthardware_pms/presentation/bloc/authentication/authentication/authentication_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/navigation/navigation_cubit.dart';
 import 'package:easthardware_pms/presentation/router/app_routes.dart';
+import 'package:easthardware_pms/presentation/views/navigation/common_side_panel_mixin.dart';
 import 'package:easthardware_pms/presentation/widgets/brand/navrail_header.dart';
 import 'package:easthardware_pms/presentation/widgets/helper/nav_rail_route_index_mapper.dart';
 import 'package:easthardware_pms/presentation/widgets/layout_mode_provider.dart';
@@ -30,6 +30,10 @@ class AdminNavigationScaffold extends StatelessWidget {
           >= 600 => PaneDisplayMode.compact,
           _ => PaneDisplayMode.minimal,
         };
+
+        if (kDebugMode) {
+          print(constraints.maxWidth);
+        }
 
         return AdminNavigationView(
           mode: mode,
@@ -65,7 +69,7 @@ class AdminNavigationView extends StatefulWidget {
   State<AdminNavigationView> createState() => _AdminNavigationViewState();
 }
 
-class _AdminNavigationViewState extends State<AdminNavigationView> {
+class _AdminNavigationViewState extends State<AdminNavigationView> with CommonSidePanelMixin {
   late final NavRailRouteIndexMapper _routeIndexMapper;
   late final AnimatedScrollController _scrollController;
   late int _selectedIndex;
@@ -152,97 +156,97 @@ class _AdminNavigationViewState extends State<AdminNavigationView> {
             }
           },
           items: _navigationItems(context),
-          footerItems: _footerItems(context),
+          footerItems: footerItems(context),
         ),
       ),
     );
   }
 
-  static List<NavigationPaneItem> _navigationItems(BuildContext context) {
+  List<NavigationPaneItem> _navigationItems(BuildContext context) {
     return [
-      _navItem(
+      navItem(
         icon: FluentIcons.dynamic_list,
         title: "Dashboard",
         route: AppRoutes.admin.dashboard,
       ),
       PaneItemSeparator(),
-      _navItem(
+      navItem(
         icon: FluentIcons.product,
         title: "Inventory",
         route: AppRoutes.admin.inventory,
         items: [
-          _navItem(
+          navItem(
             icon: FluentIcons.product_list,
             title: "List of Products",
             route: AppRoutes.admin.inventory,
           ),
-          _navItem(
+          navItem(
             icon: FluentIcons.product_release,
             title: "Register Product",
             route: AppRoutes.admin.createProduct,
           ),
-          _navItem(
+          navItem(
             icon: FluentIcons.product_catalog,
             title: "Manage Categories",
             route: AppRoutes.admin.categories,
           ),
         ],
       ),
-      _navItem(
+      navItem(
         icon: FluentIcons.text_document,
         title: 'Billing',
         route: AppRoutes.admin.billing,
         items: [
-          _navItem(
+          navItem(
             icon: FluentIcons.text_document,
             title: "Invoice List",
             route: AppRoutes.admin.billing,
           ),
-          _navItem(
+          navItem(
             icon: FluentIcons.text_document_edit,
             title: "Create Invoice",
             route: AppRoutes.admin.createInvoice,
           ),
         ],
       ),
-      _navItem(
+      navItem(
         icon: FluentIcons.bill,
         title: 'Orders',
         // route: AppRoutes.orderPage,
         items: [
-          _navItem(
+          navItem(
             icon: FluentIcons.bill,
             title: 'Orders List',
             route: AppRoutes.admin.order,
           ),
-          _navItem(
+          navItem(
             icon: FluentIcons.reservation_orders,
             title: 'Manage Expense Type',
             // route: AppRoutes.admin.createOrder,
           ),
         ],
       ),
-      _navItem(
+      navItem(
         icon: FluentIcons.bar_chart_vertical_fill,
         title: 'Reports',
         // route: AppRoutes.reportsPage,
       ),
-      _navItem(
+      navItem(
         icon: FluentIcons.local_admin,
         title: 'Security',
         // route: AppRoutes.admin.userLogs,
         items: [
-          _navItem(
+          navItem(
             icon: FluentIcons.contact_list,
             title: 'List of Users',
             route: AppRoutes.admin.users,
           ),
-          _navItem(
+          navItem(
             icon: FluentIcons.add_friend,
             title: 'Register User',
             route: AppRoutes.admin.createUser,
           ),
-          _navItem(
+          navItem(
             icon: FluentIcons.user_window,
             title: 'User Logs',
             route: AppRoutes.admin.userLogs,
@@ -251,52 +255,4 @@ class _AdminNavigationViewState extends State<AdminNavigationView> {
       ),
     ];
   }
-
-  static List<NavigationPaneItem> _footerItems(BuildContext context) {
-    return [
-      _navItem(
-        icon: FluentIcons.leave,
-        title: 'Log Out',
-        onTap: () {
-          context.read<AuthenticationBloc>().add(const AuthenticationLogoutEvent());
-        },
-      ),
-    ];
-  }
-
-  static NavigationPaneItem _navItem({
-    required IconData icon,
-    required String title,
-    AppRoute? route,
-    List<NavigationPaneItem>? items,
-    VoidCallback? onTap,
-  }) {
-    if (items != null && items.isNotEmpty) {
-      return PaneItemExpander(
-        icon: Icon(icon),
-        title: Text(title),
-        items: items,
-
-        /// A little hack to allow the [RouteIndexMapper] to access the route linked
-        ///   to this item.
-        infoBadge: route == null ? null : Transform.scale(scale: 0.0, child: RouteText(route)),
-        body: const SizedBox.shrink(),
-      );
-    } else {
-      return PaneItem(
-        icon: Icon(icon),
-        title: Text(title),
-
-        /// A little hack to allow the [RouteIndexMapper] to access the route linked
-        ///   to this item.
-        infoBadge: route == null ? null : Transform.scale(scale: 0.0, child: RouteText(route)),
-        body: const SizedBox.shrink(),
-        onTap: onTap,
-      );
-    }
-  }
-}
-
-class RouteText extends Text {
-  const RouteText(AppRoute data, {super.key}) : super(data as String);
 }

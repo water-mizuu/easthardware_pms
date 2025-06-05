@@ -30,41 +30,53 @@ class OrderFormState extends Equatable {
   final int creatorId;
   final List<FormProduct> products;
 
-  OrderFormState copyWith({
-    String? payeeName,
-    int? expenseType,
-    DateTime? orderDate,
-    int? paymentMethod,
-    String? referenceNumber,
-    String? memo,
-    double? amountDue,
+  OrderFormState Function({
+    String payeeName,
+    int expenseType,
+    DateTime orderDate,
+    int paymentMethod,
+    String referenceNumber,
+    String memo,
+    double amountDue,
     double? amountPaid,
     DateTime? paymentDate,
-    DateTime? creationDate,
-    int? creatorId,
-    List<FormProduct>? products,
-  }) {
-    return OrderFormState(
-      payeeName: payeeName ?? this.payeeName,
-      expenseType: expenseType ?? this.expenseType,
-      orderDate: orderDate ?? this.orderDate,
-      paymentMethod: paymentMethod ?? this.paymentMethod,
-      referenceNumber: referenceNumber ?? this.referenceNumber,
-      memo: memo ?? this.memo,
-      amountDue: amountDue ?? _calculateAmountDue(products ?? this.products),
-      amountPaid: amountPaid ?? this.amountPaid,
-      paymentDate: paymentDate ?? this.paymentDate,
-      creationDate: creationDate ?? this.creationDate,
-      creatorId: creatorId ?? this.creatorId,
-      products: products ?? this.products,
-    );
+    DateTime creationDate,
+    int creatorId,
+    List<FormProduct> products,
+  }) get copyWith {
+    return ({
+      Object? payeeName = undefined,
+      Object? expenseType = undefined,
+      Object? orderDate = undefined,
+      Object? paymentMethod = undefined,
+      Object? referenceNumber = undefined,
+      Object? memo = undefined,
+      Object? amountDue = undefined,
+      Object? amountPaid = undefined,
+      Object? paymentDate = undefined,
+      Object? creationDate = undefined,
+      Object? creatorId = undefined,
+      Object? products = undefined,
+    }) {
+      return OrderFormState(
+        payeeName: payeeName.or(this.payeeName),
+        expenseType: expenseType.or(this.expenseType),
+        orderDate: orderDate.or(this.orderDate),
+        paymentMethod: paymentMethod.or(this.paymentMethod),
+        referenceNumber: referenceNumber.or(this.referenceNumber),
+        memo: memo.or(this.memo),
+        amountDue: amountDue.or(_calculateAmountDue(products.or(this.products))),
+        amountPaid: amountPaid.or(this.amountPaid),
+        paymentDate: paymentDate.or(this.paymentDate),
+        creationDate: creationDate.or(this.creationDate),
+        creatorId: creatorId.or(this.creatorId),
+        products: products.or(this.products),
+      );
+    };
   }
 
   static double _calculateAmountDue(List<FormProduct> products) {
-    return products.fold(
-      0,
-      (sum, p) => sum + (p.amount ?? 0),
-    );
+    return products.fold(0, (sum, p) => sum + p.amount);
   }
 
   @override

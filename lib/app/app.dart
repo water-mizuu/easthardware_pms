@@ -1,5 +1,4 @@
 import 'package:easthardware_pms/app/dependency_injector.dart';
-import 'package:easthardware_pms/data/database/database_helper.dart';
 import 'package:easthardware_pms/domain/enums/enums.dart';
 import 'package:easthardware_pms/presentation/bloc/authentication/'
     'authentication/authentication_bloc.dart';
@@ -23,28 +22,34 @@ class App extends StatefulWidget {
 }
 
 class _AppState extends State<App> with WidgetsBindingObserver {
-  late DatabaseHelper? databaseHelper;
-  late DependencyInjector di;
+  late final DependencyInjector di;
 
   List<SingleChildWidget> get blocListeners {
     return [
+      /// This listener automatically initializes the dependency injector
+      ///   whenever the database helper is updated.
+      /// This happens when the user decides to change the database or server type.
       BlocListener<ServerBloc, ServerState>(
         listenWhen: (p, c) => p.databaseHelper != c.databaseHelper,
         listener: (context, state) async {
-          databaseHelper = state.databaseHelper;
-
-          di.initialize(databaseHelper: databaseHelper);
+          di.initialize(databaseHelper: state.databaseHelper);
           if (!mounted || !context.mounted) return;
 
           setState(() {});
         },
       ),
+
+      /// This listener automatically refreshes parts of the app whenever
+      ///   the server state is updated
       BlocListener<ServerBloc, ServerState>(
         listenWhen: (p, c) => p.lastUpdated != c.lastUpdated,
         listener: (context, state) {
           di.markNeedsRefresh();
         },
       ),
+
+      /// Listen to the server bloc for bottom text updates.
+      ///   This is used to display messages at the bottom of the app.
       BlocListener<ServerBloc, ServerState>(
         listenWhen: (p, c) => p.bottomText != c.bottomText && c.bottomText != null,
         listener: (context, state) {
@@ -63,6 +68,9 @@ class _AppState extends State<App> with WidgetsBindingObserver {
       ),
 
       /// Listen to the authentication bloc.
+      ///   This listener handles the changes in the stored user.
+      ///   It makes it simpler to navigate to the correct page based on the user's access level.
+      ///   However, order is not guaranteed.
       BlocListener<AuthenticationBloc, AuthenticationState>(
         listenWhen: (p, c) => p.user != c.user,
         listener: (context, state) {

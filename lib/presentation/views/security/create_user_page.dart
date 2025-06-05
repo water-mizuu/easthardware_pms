@@ -2,13 +2,15 @@ import 'package:easthardware_pms/domain/constants/constants.dart';
 import 'package:easthardware_pms/domain/enums/enums.dart';
 import 'package:easthardware_pms/presentation/bloc/authentication/authentication/'
     'authentication_bloc.dart';
-import 'package:easthardware_pms/presentation/bloc/security/security_questions/security_question_list_bloc.dart';
+import 'package:easthardware_pms/presentation/bloc/security/security_questions/'
+    'security_question_list_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/security/user_form/user_form_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/security/user_form/user_form_validator.dart';
 import 'package:easthardware_pms/presentation/bloc/security/user_list/user_list_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/security/user_log_list/user_log_list_bloc.dart';
 import 'package:easthardware_pms/presentation/router/app_routes.dart';
 import 'package:easthardware_pms/presentation/widgets/layout/spacing.dart';
+import 'package:easthardware_pms/presentation/widgets/layout_mode_provider.dart';
 import 'package:easthardware_pms/presentation/widgets/text.dart';
 import 'package:easthardware_pms/presentation/widgets/ui/text_button.dart';
 import 'package:easthardware_pms/utils/typed_routes.dart';
@@ -17,6 +19,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:provider/provider.dart';
 import 'package:provider/single_child_widget.dart';
+import 'package:scroll_animator/scroll_animator.dart';
 
 class CreateUserPage extends StatefulWidget {
   const CreateUserPage({super.key});
@@ -27,6 +30,7 @@ class CreateUserPage extends StatefulWidget {
 
 class _CreateUserPageState extends State<CreateUserPage> {
   late final UserFormBloc userFormBloc;
+  late final AnimatedScrollController _scrollController;
 
   List<SingleChildWidget> get providers {
     return [
@@ -90,34 +94,62 @@ class _CreateUserPageState extends State<CreateUserPage> {
     super.initState();
 
     userFormBloc = UserFormBloc();
+    _scrollController = AnimatedScrollController(animationFactory: const ChromiumEaseInOut());
   }
 
   @override
   void dispose() {
     userFormBloc.close();
+    _scrollController.dispose();
 
     super.dispose();
   }
 
   Widget buildWidget(BuildContext context) {
-    return Padding(
-      padding: AppPadding.panePadding,
-      child: Column(
-        children: [
-          const PageHeader(),
-          Expanded(
-            child: Form(
-              key: userFormBloc.formKey,
-              child: Row(
-                children: const [
-                  UserCredentialsSection(),
-                  SecuritySection(),
-                ].withSpacing(() => Spacing.h16),
-              ),
-            ),
-          )
-        ].withSpacing(() => Spacing.v16),
-      ),
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Padding(
+          padding: AppPadding.panePadding.copyWith(bottom: 0.0),
+          child: const PageHeader(),
+        ),
+        Expanded(
+          child: Form(
+            key: userFormBloc.formKey,
+            child: LayoutMode.builder((context, mode) {
+              switch (mode) {
+                case LayoutMode.wide:
+                  return Padding(
+                    padding: AppPadding.panePadding.copyWith(top: 0.0),
+                    child: const Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(child: UserCredentialsSection()),
+                        Spacing.h16,
+                        Expanded(child: SecuritySection()),
+                      ],
+                    ),
+                  );
+                case LayoutMode.constrained:
+                case LayoutMode.compact:
+                  return SingleChildScrollView(
+                    controller: _scrollController,
+                    child: Padding(
+                      padding: AppPadding.panePadding.copyWith(top: 0.0),
+                      child: const Column(
+                        children: [
+                          UserCredentialsSection(),
+                          Spacing.v16,
+                          SecuritySection(),
+                        ],
+                      ),
+                    ),
+                  );
+              }
+            }),
+          ),
+        )
+      ].withSpacing(() => Spacing.v16),
     );
   }
 
@@ -168,20 +200,19 @@ class UserCredentialsSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Expanded(
-      child: Container(
-        padding: AppPadding.a16,
-        decoration: const BoxDecoration(color: Colors.white),
-        child: FocusTraversalGroup(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: const [
-              SubheadingText('User Information'),
-              FirstNameLastNameFields(),
-              UsernameField(),
-              PasswordField(),
-            ].withSpacing(() => Spacing.v16),
-          ),
+    return Container(
+      padding: AppPadding.a16,
+      decoration: const BoxDecoration(color: Colors.white),
+      child: FocusTraversalGroup(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: const [
+            SubheadingText('User Information'),
+            FirstNameLastNameFields(),
+            UsernameField(),
+            PasswordField(),
+          ].withSpacing(() => Spacing.v16),
         ),
       ),
     );
@@ -193,20 +224,19 @@ class SecuritySection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Expanded(
-      child: Container(
-        padding: AppPadding.a16,
-        decoration: const BoxDecoration(color: Colors.white),
-        child: FocusTraversalGroup(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: const [
-              SubheadingText('Account Information'),
-              AccessLevelField(),
-              SecurityQuestionFields(),
-              // Include access level permissions
-            ].withSpacing(() => Spacing.v16),
-          ),
+    return Container(
+      padding: AppPadding.a16,
+      decoration: const BoxDecoration(color: Colors.white),
+      child: FocusTraversalGroup(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: const [
+            SubheadingText('Account Information'),
+            AccessLevelField(),
+            SecurityQuestionFields(),
+            // Include access level permissions
+          ].withSpacing(() => Spacing.v16),
         ),
       ),
     );
@@ -221,33 +251,37 @@ class FirstNameLastNameFields extends StatelessWidget with UserFormValidator {
     return Row(
       children: [
         Expanded(
-            child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            const BodyText('First Name'),
-            TextFormBox(
-              validator: validateFirstName,
-              placeholder: 'First Name',
-              onChanged: (value) {
-                context.read<UserFormBloc>().add(FirstNameFieldChangedEvent(value));
-              },
-            ),
-          ].withSpacing(() => Spacing.v8),
-        )),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const BodyText('First Name'),
+              TextFormBox(
+                validator: validateFirstName,
+                placeholder: 'First Name',
+                onChanged: (value) {
+                  context.read<UserFormBloc>().add(FirstNameFieldChangedEvent(value));
+                },
+              ),
+            ].withSpacing(() => Spacing.v8),
+          ),
+        ),
         Expanded(
-            child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            const BodyText('Last Name'),
-            TextFormBox(
-              validator: validateLastName,
-              placeholder: 'Last Name',
-              onChanged: (value) {
-                context.read<UserFormBloc>().add(LastNameFieldChangedEvent(value));
-              },
-            ),
-          ].withSpacing(() => Spacing.v8),
-        )),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const BodyText('Last Name'),
+              TextFormBox(
+                validator: validateLastName,
+                placeholder: 'Last Name',
+                onChanged: (value) {
+                  context.read<UserFormBloc>().add(LastNameFieldChangedEvent(value));
+                },
+              ),
+            ].withSpacing(() => Spacing.v8),
+          ),
+        ),
       ].withSpacing(() => Spacing.h16),
     );
   }
@@ -266,6 +300,7 @@ class UsernameField extends StatelessWidget with UserFormValidator {
         .toList();
 
     return Column(
+      mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         const BodyText('Username'),
@@ -287,6 +322,7 @@ class PasswordField extends StatelessWidget with UserFormValidator {
   @override
   Widget build(BuildContext context) {
     return Column(
+      mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         const BodyText('Password'),
@@ -311,6 +347,7 @@ class ConfirmPasswordField extends StatelessWidget with UserFormValidator {
   @override
   Widget build(BuildContext context) {
     return Column(
+      mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         const BodyText('Confirm Password'),
@@ -337,6 +374,7 @@ class AccessLevelField extends StatelessWidget with UserFormValidator {
     return BlocBuilder<UserFormBloc, UserFormState>(
       builder: (context, state) {
         return Column(
+          mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             const BodyText('Access Level'),
@@ -374,62 +412,79 @@ class SecurityQuestionFields extends StatelessWidget with UserFormValidator {
   Widget build(BuildContext context) {
     final formQuestions = context.read<UserFormBloc>().state.questions;
     return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        for (final (index, _) in formQuestions.indexed)
-          Row(
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    BodyText('Security Question ${index + 1}'),
-                    Spacing.v8,
-                    AutoSuggestBox.form(
-                      validator: (value) {
-                        final copy = formQuestions.toList()..removeAt(index);
+        Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            for (final (index, _) in formQuestions.indexed)
+              Row(
+                children: [
+                  Expanded(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        BodyText('Security Question ${index + 1}'),
+                        Spacing.v8,
+                        AutoSuggestBox.form(
+                          validator: (value) {
+                            final copy = formQuestions.toList()..removeAt(index);
 
-                        return validateSecurityQuestion(
-                          value,
-                          copy.map((e) => e.question).toList(),
-                          index,
-                        );
-                      },
-                      items: [
-                        for (final staticQuestion in SECURITY_QUESTIONS)
-                          AutoSuggestBoxItem(
-                            label: staticQuestion,
-                            value: staticQuestion,
-                            onSelected: () {
-                              context
-                                  .read<UserFormBloc>()
-                                  .add(QuestionFieldChangedEvent(staticQuestion, index));
-                            },
-                          )
+                            return validateSecurityQuestion(
+                              value,
+                              copy.map((e) => e.question).toList(),
+                              index,
+                            );
+                          },
+                          items: [
+                            for (final staticQuestion in SECURITY_QUESTIONS)
+                              AutoSuggestBoxItem(
+                                label: staticQuestion,
+                                value: staticQuestion,
+                                onSelected: () {
+                                  context
+                                      .read<UserFormBloc>()
+                                      .add(QuestionFieldChangedEvent(staticQuestion, index));
+                                },
+                              )
+                          ],
+                          onChanged: (text, reason) {
+                            context
+                                .read<UserFormBloc>()
+                                .add(QuestionFieldChangedEvent(text, index));
+                          },
+                        )
                       ],
-                      onChanged: (text, reason) {
-                        context.read<UserFormBloc>().add(QuestionFieldChangedEvent(text, index));
-                      },
-                    )
-                  ],
-                ),
-              ),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    const BodyText('Answer'),
-                    TextFormBox(
-                      validator: (value) => validateSecurityAnswer(value, index),
-                      onChanged: (value) {
-                        context.read<UserFormBloc>().add(AnswerFieldChangedEvent(value, index));
-                      },
                     ),
-                  ].withSpacing(() => Spacing.v8),
-                ),
+                  ),
+                  Expanded(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        const BodyText('Answer'),
+                        TextFormBox(
+                          validator: (value) => validateSecurityAnswer(value, index),
+                          onChanged: (value) {
+                            context.read<UserFormBloc>().add(AnswerFieldChangedEvent(value, index));
+                          },
+                        ),
+                      ].withSpacing(() => Spacing.v8),
+                    ),
+                  ),
+                ].withSpacing(() => Spacing.h16),
               ),
-            ].withSpacing(() => Spacing.h16),
-          )
-      ].withSpacing(() => Spacing.v16),
+          ].withSpacing(() => Spacing.v16),
+        ),
+        Spacing.v8,
+        const CaptionText(
+          'Each security question can be chosen from the'
+          ' defined list, or a custom question can be entered.',
+        ),
+      ],
     );
   }
 }

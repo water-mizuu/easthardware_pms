@@ -9,9 +9,7 @@ Future<void> showSingleDialog(
   bool dismissWithEsc = true,
 }) async {
   if (_isDialogShowing) {
-    if (Navigator.canPop(context)) {
-      Navigator.of(context).pop();
-    }
+    Navigator.of(context).pop();
   }
 
   _isDialogShowing = true;
