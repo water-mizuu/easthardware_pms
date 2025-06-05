@@ -22,15 +22,6 @@ class SuccessDialog extends StatelessWidget {
       content: Text(body),
       actions: [
         FilledButton(
-          autofocus: true,
-          child: const Text('No'),
-          onPressed: () {
-            Navigator.of(context).pop();
-
-            onCancel?.call();
-          },
-        ),
-        Button(
           onPressed: () async {
             Navigator.of(context).pop();
 

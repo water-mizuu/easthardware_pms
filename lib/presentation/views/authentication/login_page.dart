@@ -2,7 +2,6 @@ import 'package:easthardware_pms/domain/enums/enums.dart';
 import 'package:easthardware_pms/presentation/bloc/authentication/authentication/authentication_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/authentication/login_form/login_form_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/security/user_list/user_list_bloc.dart';
-import 'package:easthardware_pms/presentation/bloc/security/user_log_list/user_log_list_bloc.dart';
 import 'package:easthardware_pms/presentation/router/app_routes.dart';
 import 'package:easthardware_pms/presentation/views/authentication/login_form.dart';
 import 'package:easthardware_pms/utils/boxed.dart';
@@ -57,7 +56,9 @@ class _LoginPageState extends State<LoginPage> {
               if (kDebugMode) {
                 printBoxed("User logged in: ${user.username} (ID: $userId)", "User Login");
               }
-              context.read<UserLogListBloc>().add(AddLoginEvent(user));
+
+              /// Logging the login is now handled in a different part of the tree,
+              ///   so we don't want to log it here.
               context.read<UserListBloc>().add(UserLoggedInEvent(userId!));
 
               return;

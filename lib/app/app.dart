@@ -7,6 +7,7 @@ import 'package:easthardware_pms/presentation/bloc/security/user_log_list/user_l
 import 'package:easthardware_pms/presentation/bloc/server/server_bloc.dart';
 import 'package:easthardware_pms/presentation/router/app_router.dart';
 import 'package:easthardware_pms/presentation/router/app_routes.dart';
+import 'package:easthardware_pms/presentation/widgets/is_full_screen_provider.dart';
 import 'package:easthardware_pms/presentation/widgets/title_bar.dart';
 import 'package:easthardware_pms/utils/typed_routes.dart';
 import 'package:fluent_ui/fluent_ui.dart';
@@ -135,11 +136,13 @@ class _AppState extends State<App> with WidgetsBindingObserver {
       builder: (context, child) {
         return MultiBlocListener(
           listeners: blocListeners,
-          child: TitleBar(
-            child: FluentApp.router(
-              debugShowCheckedModeBanner: false,
-              routerConfig: router,
-              themeMode: ThemeMode.dark,
+          child: IsFullScreen.provider(
+            child: TitleBar(
+              child: FluentApp.router(
+                debugShowCheckedModeBanner: false,
+                routerConfig: router,
+                themeMode: ThemeMode.dark,
+              ),
             ),
           ),
         );

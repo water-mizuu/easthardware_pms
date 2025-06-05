@@ -7,10 +7,27 @@ class IsFullScreen {
 
   final bool isFullScreen;
 
-  static Widget provider({
-    required Widget child,
-  }) {
+  /// Provides a way to access the current full-screen state of the
+  ///   application synchronously. Use [context.isFullScreen] or [IsFullScreen.builder]
+  ///   to access the state in the widget tree.
+  static Widget provider({required Widget child}) {
     return _IsFullScreenProvider(child: child);
+  }
+
+  /// A builder that provides the current full-screen state of the application.
+  ///   This is useful for widgets that need to react to the full-screen state.
+  static Widget builder({
+    required Widget Function(
+      BuildContext context,
+      bool isFullScreen,
+      Widget? child,
+    ) builder,
+    Widget? child,
+  }) {
+    return Consumer<IsFullScreen>(
+      builder: (context, obj, child) => builder(context, obj.isFullScreen, child),
+      child: child,
+    );
   }
 }
 
@@ -40,17 +57,15 @@ class _IsFullScreenProviderState extends State<_IsFullScreenProvider> with Windo
     super.dispose();
   }
 
-  /// Emitted when window is maximized.
   @override
-  void onWindowMaximize([int? windowId]) {
+  void onWindowEnterFullScreen([int? windowId]) {
     setState(() {
       isFullScreen = true;
     });
   }
 
-  /// Emitted when the window exits from a maximized state.
   @override
-  void onWindowUnmaximize([int? windowId]) {
+  void onWindowLeaveFullScreen([int? windowId]) {
     setState(() {
       isFullScreen = false;
     });
@@ -63,12 +78,4 @@ class _IsFullScreenProviderState extends State<_IsFullScreenProvider> with Windo
       child: widget.child,
     );
   }
-}
-
-extension IsFullScreenExtension on BuildContext {
-  /// Returns the current [IsFullScreen] state.
-  bool get isFullScreen => read<IsFullScreen>().isFullScreen;
-
-  /// Returns the current [IsFullScreen] state with listening enabled.
-  bool watchIsFullScreen() => watch<IsFullScreen>().isFullScreen;
 }

@@ -31,10 +31,10 @@ class LoginForm extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Image.asset("assets/icons/app.png", height: 24.0),
-                  _FormHeader(),
-                  _FormUsernameField(),
-                  _FormPasswordField(),
-                  _FormButton(),
+                  const _FormHeader(),
+                  const _FormUsernameField(),
+                  const _FormPasswordField(),
+                  const _FormButton(),
                 ].withSpacing(() => Spacing.v16),
               ),
             );
@@ -46,6 +46,8 @@ class LoginForm extends StatelessWidget {
 }
 
 class _FormHeader extends StatelessWidget {
+  const _FormHeader();
+
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -65,6 +67,8 @@ class _FormHeader extends StatelessWidget {
 }
 
 class _FormUsernameField extends StatelessWidget with LoginFormValidator {
+  const _FormUsernameField();
+
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -86,7 +90,7 @@ class _FormUsernameField extends StatelessWidget with LoginFormValidator {
 }
 
 class _FormPasswordField extends StatelessWidget with LoginFormValidator {
-  late final globalKey = GlobalKey<FormFieldState>();
+  const _FormPasswordField();
 
   @override
   Widget build(BuildContext context) {
@@ -97,7 +101,6 @@ class _FormPasswordField extends StatelessWidget with LoginFormValidator {
         BlocBuilder<LoginFormBloc, LoginFormState>(
           buildWhen: (p, c) => p.passwordError != c.passwordError,
           builder: (context, state) => TextFormBox(
-            key: globalKey,
             obscureText: true,
             validator: (v) => state.passwordError ?? validatePassword(v),
             onChanged: (value) => context //
@@ -111,6 +114,8 @@ class _FormPasswordField extends StatelessWidget with LoginFormValidator {
 }
 
 class _FormButton extends StatelessWidget {
+  const _FormButton();
+
   @override
   Widget build(BuildContext context) {
     final state = context.watch<AuthenticationBloc>().state;

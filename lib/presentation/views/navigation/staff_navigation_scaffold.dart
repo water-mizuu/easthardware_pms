@@ -5,6 +5,7 @@ import 'package:easthardware_pms/presentation/router/app_routes.dart';
 import 'package:easthardware_pms/presentation/views/navigation/common_side_panel_mixin.dart';
 import 'package:easthardware_pms/presentation/widgets/brand/navrail_header.dart';
 import 'package:easthardware_pms/presentation/widgets/helper/nav_rail_route_index_mapper.dart';
+import 'package:easthardware_pms/presentation/widgets/is_full_screen_provider.dart';
 import 'package:easthardware_pms/presentation/widgets/layout_mode_provider.dart';
 import 'package:easthardware_pms/presentation/widgets/title_bar.dart';
 import 'package:easthardware_pms/utils/typed_routes.dart';
@@ -38,9 +39,16 @@ class StaffNavigationScaffold extends StatelessWidget {
 
     /// If the platform is macOS, we need to account for the menu buttons
     if (Platform.isMacOS) {
-      widget = Container(
-        color: FluentTheme.of(context).micaBackgroundColor,
-        padding: const EdgeInsets.only(top: macOSTitleBarHeight),
+      widget = IsFullScreen.builder(
+        builder: (context, isFullScreen, child) {
+          return Container(
+            color: FluentTheme.of(context).micaBackgroundColor,
+            padding: isFullScreen //
+                ? EdgeInsets.zero
+                : const EdgeInsets.only(top: macOSTitleBarHeight),
+            child: child,
+          );
+        },
         child: widget,
       );
     }

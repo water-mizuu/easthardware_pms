@@ -5,6 +5,8 @@ import 'package:easthardware_pms/data/database/database_helper.dart';
 import 'package:easthardware_pms/data/database/database_server_proxy.dart';
 import 'package:easthardware_pms/domain/backend/enum/database_mode.dart';
 import 'package:easthardware_pms/domain/backend/extension_types/shelf_server.dart';
+import 'package:easthardware_pms/presentation/bloc/authentication/'
+    'authentication/authentication_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/server/services/server_connection_service.dart'
     as connection_service;
 import 'package:easthardware_pms/presentation/bloc/server/services/server_preferences_service.dart'
@@ -14,6 +16,7 @@ import 'package:easthardware_pms/presentation/widgets/dialog/client_connection_d
 import 'package:easthardware_pms/presentation/widgets/dialog/server_configuration_dialog.dart';
 import 'package:easthardware_pms/presentation/widgets/dialog/server_mode_selection_dialog.dart';
 import 'package:easthardware_pms/presentation/widgets/dialog/server_success_dialogs.dart';
+import 'package:easthardware_pms/utils/boxed.dart';
 import 'package:easthardware_pms/utils/message_channel.dart';
 import 'package:easthardware_pms/utils/undefined.dart';
 import 'package:equatable/equatable.dart';
@@ -76,7 +79,26 @@ class ServerBloc extends Bloc<ServerEvent, ServerState> {
     return await connection_service.connectToWebSocketServer(
       serverIp,
       port,
-      onConnectionClose: () => add(const ServerReset()),
+      onConnectionClose: () {
+        final innerContext = rootWidgetKey.currentContext;
+        if (innerContext == null || !innerContext.mounted) return;
+        if (kDebugMode) {
+          printBoxed(
+            "Connection to server at $serverIp:$port closed.",
+            "ServerBloc",
+          );
+        }
+
+        /// If the connection is closed, we reset the server state.
+        ///   We also reset the authentication bloc.
+
+        final authenticationBloc = innerContext.read<AuthenticationBloc>();
+        if (authenticationBloc.state.user != null) {
+          authenticationBloc.add(const AuthenticationLogoutEvent());
+        }
+
+        add(const ServerReset());
+      },
     );
   }
 
