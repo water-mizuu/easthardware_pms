@@ -6,7 +6,10 @@
   "dart.flutterSdkPath": ".fvm/versions/3.24.3",
   "files.associations": {
     "*.dart_grammar": "dart",
-    "map": "cpp"
+    "map": "cpp",
+    "functional": "cpp",
+    "variant": "cpp",
+    "xhash": "cpp"
   },
   "cSpell.words": [
     "easthardware",

@@ -33,8 +33,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE prev,
   if (!window.Create(L"easthardware_pms", origin, size)) {
     return EXIT_FAILURE;
   }
-  // window.SetQuitOnClose(true);
-  window.SetQuitOnClose(false);
+  window.SetQuitOnClose(true);
    WindowManagerPlusPluginSetWindowCreatedCallback(
      [](std::vector<std::string> command_line_arguments) {
        flutter::DartProject project(L"data");

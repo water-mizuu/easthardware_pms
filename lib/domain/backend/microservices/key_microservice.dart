@@ -9,7 +9,6 @@ import 'package:easthardware_pms/domain/services/cryptography_service.dart';
 import 'package:easthardware_pms/utils/boxed.dart';
 import 'package:easthardware_pms/utils/message_channel.dart';
 import 'package:easthardware_pms/utils/parallelism.dart';
-import 'package:fluent_ui/fluent_ui.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
@@ -24,6 +23,9 @@ bool _hasSetup = false;
 
 @mainIsolate
 late final MessageChannel _channel;
+
+@mainIsolate
+final Completer<void> _setupCompleter = Completer<void>();
 
 Future<void> setupKeyMicroService() async {
   assertMainIsolate();
@@ -51,36 +53,41 @@ Future<void> setupKeyMicroService() async {
   _channel = MessageChannel(receivePort, sendPort);
   _hasSetup = true;
 
-  final (publicKey, privateKey) = await _channel.invoke<AsymmetricKeys>("requestKeys");
-  _publicKey = publicKey;
-  _privateKey = privateKey;
+  unawaited(() async {
+    final (publicKey, privateKey) = await _channel.invoke<AsymmetricKeys>("requestKeys");
+    _publicKey = publicKey;
+    _privateKey = privateKey;
 
-  await _channel.invoke("stop");
+    await _channel.invoke("stop");
 
-  if (kDebugMode) {
-    printBoxed(
-      "Public Key: $_publicKey\nPrivate Key: $_privateKey",
-      "Generated Keys Microservice",
-    );
-  }
+    if (kDebugMode) {
+      printBoxed(
+        "Public Key: $_publicKey\nPrivate Key: $_privateKey",
+        "Generated Keys Microservice",
+      );
+    }
 
-  TextFormBox();
+    _setupCompleter.complete();
+  }());
 }
 
 Future<AsymmetricKey> get publicKey async {
   assertMainIsolate();
+  await _setupCompleter.future;
 
   return _publicKey;
 }
 
 Future<AsymmetricKey> get privateKey async {
   assertMainIsolate();
+  await _setupCompleter.future;
 
   return _privateKey;
 }
 
 Future<AsymmetricKeys> get keys async {
   assertMainIsolate();
+  await _setupCompleter.future;
 
   return (_publicKey, _privateKey);
 }
