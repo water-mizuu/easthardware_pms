@@ -25,58 +25,7 @@ mixin CommonSidePanelMixin {
   PaneItemWidgetAdapter navSearch() {
     return PaneItemWidgetAdapter(
       applyPadding: false,
-      child: Padding(
-        padding: const EdgeInsets.all(4.0),
-        child: Builder(
-          builder: (context) {
-            final mode = context.watch<PaneDisplayMode>();
-            final navigationView = NavigationView.of(context);
-
-            if (mode == PaneDisplayMode.compact && !navigationView.compactOverlayOpen) {
-              return SizedBox(
-                height: 32.0,
-                width: 32.0,
-                child: Button(
-                  style: ButtonStyle(
-                    backgroundColor: WidgetStateProperty.all(
-                      Colors.transparent,
-                    ),
-                    padding: const WidgetStatePropertyAll(EdgeInsets.all(12)),
-                    shape: const WidgetStatePropertyAll(
-                      RoundedRectangleBorder(
-                        borderRadius: BorderRadius.all(Radius.circular(4)),
-                      ),
-                    ),
-                  ),
-                  child: const Center(child: Icon(FluentIcons.search)),
-                  onPressed: () {
-                    if (!navigationView.compactOverlayOpen) {
-                      navigationView.toggleCompactOpenMode();
-                    }
-                  },
-                ),
-              );
-            } else {
-              return AutoSuggestBox(
-                placeholder: "Search",
-                trailingIcon: const Padding(
-                  padding: EdgeInsets.only(right: 9.0),
-                  child: Icon(FluentIcons.search, size: 12),
-                ),
-                items: [
-                  AutoSuggestBoxItem(
-                    value: "Label",
-                    label: "Search",
-                    onSelected: () {
-                      // Implement search functionality here
-                    },
-                  ),
-                ],
-              );
-            }
-          },
-        ),
-      ),
+      child: const _SearchPaneItem(),
     );
   }
 
@@ -131,8 +80,124 @@ mixin CommonSidePanelMixin {
   }
 }
 
+class _SearchPaneItem extends StatefulWidget {
+  const _SearchPaneItem();
+
+  @override
+  State<_SearchPaneItem> createState() => _SearchPaneItemState();
+}
+
+class _SearchPaneItemState extends State<_SearchPaneItem> {
+  late final FocusNode searchBoxFocusNode = FocusNode();
+
+  @override
+  Widget build(BuildContext context) {
+    final routes = context.read<ProvidedPaneItems>().items;
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 6.0),
+      child: Builder(
+        builder: (context) {
+          final mode = context.watch<PaneDisplayMode>();
+          final navigationView = NavigationView.of(context);
+
+          if (mode == PaneDisplayMode.compact && !navigationView.compactOverlayOpen) {
+            return ConstrainedBox(
+              constraints: const BoxConstraints(maxHeight: 42.0),
+              child: AspectRatio(
+                aspectRatio: 1.0,
+                child: HoverButton(
+                  onPressed: () {
+                    if (!navigationView.compactOverlayOpen) {
+                      navigationView.toggleCompactOpenMode();
+                    }
+                  },
+                  builder: (context, states) {
+                    return DecoratedBox(
+                      decoration: BoxDecoration(
+                        color: () {
+                          final tileColor = kDefaultPaneItemColor(context, false);
+                          final newStates = states.toSet()..remove(WidgetState.disabled);
+
+                          return tileColor.resolve(newStates);
+                        }(),
+                        borderRadius: BorderRadius.circular(6.0),
+                      ),
+                      child: const Icon(FluentIcons.search, size: 12.0),
+                    );
+                  },
+                ),
+              ),
+            );
+          } else {
+            return Builder(
+              builder: (context) {
+                final navigationView = NavigationView.of(context);
+                if (navigationView.compactOverlayOpen) {
+                  searchBoxFocusNode.requestFocus();
+                } else {
+                  searchBoxFocusNode.unfocus();
+                }
+
+                return AutoSuggestBox(
+                  focusNode: searchBoxFocusNode,
+                  placeholder: "Search",
+                  trailingIcon: const Padding(
+                    padding: EdgeInsets.only(right: 9.0),
+                    child: Icon(FluentIcons.search, size: 12),
+                  ),
+                  items: [
+                    for (final route in routes)
+                      if (route
+                          case PaneItem(
+                            title: Text(data: final String title),
+                            infoBadge: SizedBox(child: RouteText(:final AppRoute<Null> data))
+                          ))
+                        AutoSuggestBoxItem(
+                          value: data,
+                          label: title,
+                          onSelected: () {
+                            if (!context.mounted) return;
+
+                            context.navigate(data);
+
+                            if (NavigationView.of(context).compactOverlayOpen) {
+                              NavigationView.of(context).toggleCompactOpenMode();
+                            }
+                          },
+                        ),
+                  ],
+                );
+              },
+            );
+          }
+        },
+      ),
+    );
+  }
+}
+
 Widget _hiddenRoute(AppRoute route) => SizedBox(width: 0.0, height: 0.0, child: RouteText(route));
 
 class RouteText extends Text {
   const RouteText(AppRoute data, {super.key}) : super(data as String, overflow: TextOverflow.clip);
+}
+
+extension ExpandPaneItemExtension on Iterable<NavigationPaneItem> {
+  /// Flattens the list of NavigationPaneItems, expanding any PaneItemExpander items.
+  Iterable<PaneItem> expandItems() {
+    return expand(
+      (item) => item is PaneItemExpander //
+          ? [item, ...item.items.expandItems()]
+          : item is PaneItem
+              ? [item]
+              : [],
+    );
+  }
+}
+
+class ProvidedPaneItems {
+  const ProvidedPaneItems(this.items);
+
+  final List<PaneItem> items;
 }

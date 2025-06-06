@@ -41,7 +41,9 @@ extension type const TypedGoRouterState<T>(GoRouterState state) implements GoRou
 
 /// A zero-cost compile-time wrapper for a string path.
 ///   This is used to define and use routes in a type-safe manner.
-extension type const AppRoute<T>(String path) {}
+extension type const AppRoute<T>(String path) {
+  List<String> get segments => path.split('/').where((s) => s.isNotEmpty).toList();
+}
 
 extension SafeNavigationExtension on BuildContext {
   void navigate(AppRoute<Null> route) {

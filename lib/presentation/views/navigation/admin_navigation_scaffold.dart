@@ -25,6 +25,7 @@ class AdminNavigationScaffold extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    print(#Redraw);
     var widget = LayoutBuilder(
       builder: (context, constraints) {
         final mode = switch (constraints.maxWidth) {
@@ -61,10 +62,7 @@ class AdminNavigationScaffold extends StatelessWidget {
 }
 
 class AdminNavigationView extends StatefulWidget {
-  const AdminNavigationView({
-    super.key,
-    required this.child,
-  });
+  const AdminNavigationView({super.key, required this.child});
 
   final Widget child;
 
@@ -77,11 +75,15 @@ class _AdminNavigationViewState extends State<AdminNavigationView> with CommonSi
   late final AnimatedScrollController _scrollController;
   late int _selectedIndex;
 
+  late final List<NavigationPaneItem> _navigationItems = buildNavigationItems(context);
+  late final List<NavigationPaneItem> _footerItems = footerItems(context);
+  late final List<PaneItem> _expandedNavigationItems = _navigationItems.expandItems().toList();
+
   @override
   void initState() {
     super.initState();
 
-    _routeIndexMapper = NavRailRouteIndexMapper(items: _navigationItems(context));
+    _routeIndexMapper = NavRailRouteIndexMapper(items: _expandedNavigationItems);
     _scrollController = AnimatedScrollController(animationFactory: const ChromiumEaseInOut());
     _selectedIndex = 0;
   }
@@ -115,67 +117,75 @@ class _AdminNavigationViewState extends State<AdminNavigationView> with CommonSi
           },
         ),
       ],
-      child: NavigationView(
-        clipBehavior: Clip.hardEdge,
+      child: Provider.value(
+        value: ProvidedPaneItems(_expandedNavigationItems),
+        child: NavigationView(
+          clipBehavior: Clip.hardEdge,
 
-        /// The pane body builder creates the body of the window.
-        ///   It is essentially the right side of the navigation view.
-        paneBodyBuilder: (item, body) {
-          var widget = LayoutModeProvider(child: this.widget.child) as Widget;
+          /// The pane body builder creates the body of the window.
+          ///   It is essentially the right side of the navigation view.
+          paneBodyBuilder: (item, body) {
+            var widget = LayoutModeProvider(child: this.widget.child) as Widget;
 
-          /// We only impose a padding on the child if the title bar is present
-          ///   and we are in windows.
-          if (Platform.isWindows) {
-            widget = Padding(
-              padding: const EdgeInsets.only(top: windowsTitleBarHeight),
-              child: widget,
-            );
-          }
-
-          return widget;
-        },
-
-        /// The pane represents the left side of the navigation view.
-        ///   It contains the navigation items and the header.
-        pane: NavigationPane(
-          header: const LogoRow(),
-          scrollController: _scrollController,
-          selected: _selectedIndex,
-          toggleable: true,
-          displayMode: paneDisplayMode,
-          menuButton: menuButton(),
-          onItemPressed: (index) {
-            final probablyRoute = _routeIndexMapper.getRouteFromIndex(index);
-            if (probablyRoute case null) {
-              if (kDebugMode) {
-                printBoxed(
-                  "Tried to navigate to a route which does not exist: $probablyRoute",
-                  "AdminNavigationView",
-                );
-              }
-              return;
+            /// We only impose a padding on the child if the title bar is present
+            ///   and we are in windows.
+            if (Platform.isWindows) {
+              widget = Padding(
+                padding: const EdgeInsets.only(top: windowsTitleBarHeight),
+                child: widget,
+              );
             }
 
-            if (probablyRoute case final AppRoute<Null> route) {
-              context.navigate(route);
-              return;
-            }
+            return widget;
           },
-          items: _navigationItems(context),
-          footerItems: footerItems(context),
+
+          /// The pane represents the left side of the navigation view.
+          ///   It contains the navigation items and the header.
+          pane: NavigationPane(
+            header: const LogoRow(),
+            scrollController: _scrollController,
+            selected: _selectedIndex,
+            toggleable: true,
+            displayMode: paneDisplayMode,
+            menuButton: menuButton(),
+            onItemPressed: (index) {
+              final probablyRoute = _routeIndexMapper.getRouteFromIndex(index);
+              if (probablyRoute case null) {
+                if (kDebugMode) {
+                  printBoxed(
+                    "Tried to navigate to a route which does not exist: $probablyRoute",
+                    "AdminNavigationView",
+                  );
+                }
+                return;
+              }
+
+              if (probablyRoute case final AppRoute<Null> route) {
+                context.navigate(route);
+                return;
+              }
+            },
+            items: _navigationItems,
+            footerItems: _footerItems,
+          ),
         ),
       ),
     );
   }
 
-  List<NavigationPaneItem> _navigationItems(BuildContext context) {
+  List<NavigationPaneItem> buildNavigationItems(BuildContext context) {
     return [
       navItem(
         icon: FluentIcons.dynamic_list,
         title: "Dashboard",
         route: AppRoutes.admin.dashboard,
       ),
-      navSearch(),
+      // navSearch(),
+      navItem(
+        icon: FluentIcons.search,
+        title: "Search",
+        route: AppRoutes.admin.search,
+      ),
       PaneItemSeparator(),
       navItem(
         icon: FluentIcons.product,

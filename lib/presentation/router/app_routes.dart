@@ -4,8 +4,7 @@ import 'package:easthardware_pms/utils/typed_routes.dart';
 class AppRoutes {
   static const root = AppRoute<Null>('/');
   static const login = AppRoute<Null>('/login');
-  static const resetPassword =
-      AppRoute<String>('/reset_password_authentication');
+  static const resetPassword = AppRoute<String>('/reset_password_authentication');
   static const newPassword = AppRoute<String>('/new_password');
 
   // Major Page Routes
@@ -21,6 +20,9 @@ class AppRoutes {
     categories: AppRoute<Null>('/admin/categories'),
     createProduct: AppRoute<Null>('/admin/create/product'),
     editProduct: AppRoute<Product>('/admin/edit/product'),
+
+    // Search Pages
+    search: AppRoute<Null>('/admin/search'),
 
     // Billing Sub Pages
     createInvoice: AppRoute<Null>('/admin/create/invoice'),

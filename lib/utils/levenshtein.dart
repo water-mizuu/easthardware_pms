@@ -5,10 +5,10 @@ final class Levenshtein {
   const Levenshtein._();
 
   ///
-  static int distance(String a, String b, [int maximum = 100]) {
+  static double distance(String a, String b, [double maximum = double.infinity]) {
     if (a == b) return 0;
-    if (a.isEmpty) return b.length;
-    if (b.isEmpty) return a.length;
+    if (a.isEmpty) return b.length.toDouble();
+    if (b.isEmpty) return a.length.toDouble();
 
     final v0 = List<int>.generate(b.length + 1, (i) => i);
     final v1 = List<int>.filled(b.length + 1, 0);
@@ -33,6 +33,6 @@ final class Levenshtein {
       v1.setAll(0, temp);
     }
 
-    return v0[b.length];
+    return v0[b.length].toDouble();
   }
 }

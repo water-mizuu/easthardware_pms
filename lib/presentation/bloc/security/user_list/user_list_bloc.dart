@@ -15,7 +15,7 @@ import 'package:flutter/foundation.dart';
 part 'user_list_event.dart';
 part 'user_list_state.dart';
 
-const _levenshteinThreshold = 20;
+const _levenshteinThreshold = 20.0;
 
 class UserListBloc extends Bloc<UserListEvent, UserListState> {
   UserListBloc(this._repository) : super(const UserListState()) {

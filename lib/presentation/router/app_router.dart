@@ -12,6 +12,7 @@ import 'package:easthardware_pms/presentation/views/inventory/inventory_pane_pag
 import 'package:easthardware_pms/presentation/views/inventory/manage_categories_page.dart';
 import 'package:easthardware_pms/presentation/views/navigation/admin_navigation_scaffold.dart';
 import 'package:easthardware_pms/presentation/views/navigation/staff_navigation_scaffold.dart';
+import 'package:easthardware_pms/presentation/views/search/search_page.dart';
 import 'package:easthardware_pms/presentation/views/security/create_user_page.dart';
 import 'package:easthardware_pms/presentation/views/security/user_log_pane.dart';
 import 'package:easthardware_pms/presentation/views/security/users_pane_page.dart';
@@ -59,6 +60,17 @@ final router = GoRouter(
               path: AppRoutes.admin.dashboard.path,
               builder: (context, state) => const Text("Dashboard"),
             )
+          ],
+        ),
+
+        // Search Page Shell
+        StatefulShellBranch(
+          initialLocation: AppRoutes.admin.search.path,
+          routes: [
+            TypedGoRoute(
+              route: AppRoutes.admin.search,
+              builder: (context, state) => const SearchPage(),
+            ),
           ],
         ),
 
@@ -140,7 +152,7 @@ final router = GoRouter(
         return BottomText(child: StaffNavigationScaffold(shell, children));
       },
       branches: [
-        // Admin Dashboard Shell
+        // Staff Dashboard Shell
         StatefulShellBranch(
           initialLocation: AppRoutes.staff.dashboard.path,
           routes: [
