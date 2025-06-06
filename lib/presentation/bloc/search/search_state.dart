@@ -1,11 +1,10 @@
-import 'package:easthardware_pms/domain/models/invoice.dart';
-import 'package:easthardware_pms/domain/models/order.dart';
-import 'package:easthardware_pms/domain/models/product.dart';
-import 'package:easthardware_pms/utils/undefined.dart';
+part of 'search_bloc.dart';
 
 final class SearchState {
   const SearchState({
     required this.allProducts,
+    required this.allInvoices,
+    required this.allOrders,
     this.query = '',
     this.results = const SearchResults.empty(),
     this.isLoading = false,
@@ -13,6 +12,9 @@ final class SearchState {
   });
 
   final List<Product> allProducts;
+  final List<Invoice> allInvoices;
+  final List<Order> allOrders;
+
   final String query;
   final SearchResults results;
   final bool isLoading;
@@ -20,6 +22,8 @@ final class SearchState {
 
   SearchState Function({
     List<Product> allProducts,
+    List<Invoice> allInvoices,
+    List<Order> allOrders,
     String query,
     SearchResults results,
     bool isLoading,
@@ -27,6 +31,8 @@ final class SearchState {
   }) get copyWith {
     return ({
       Object? allProducts = undefined,
+      Object? allInvoices = undefined,
+      Object? allOrders = undefined,
       Object? query = undefined,
       Object? results = undefined,
       Object? isLoading = undefined,
@@ -34,6 +40,8 @@ final class SearchState {
     }) {
       return SearchState(
         allProducts: allProducts.or(this.allProducts),
+        allInvoices: allInvoices.or(this.allInvoices),
+        allOrders: allOrders.or(this.allOrders),
         query: query.or(this.query),
         results: results.or(this.results),
         isLoading: isLoading.or(this.isLoading),
@@ -54,7 +62,7 @@ final class SearchResults {
         invoices = const [],
         orders = const [];
 
-  final List<(Product, double)> products;
+  final List<Product> products;
   final List<Invoice> invoices;
   final List<Order> orders;
 }

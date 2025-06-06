@@ -1,5 +1,7 @@
+import 'package:easthardware_pms/presentation/bloc/billing/invoicelist/invoice_list_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/inventory/product_list/product_list_bloc.dart';
-import 'package:easthardware_pms/presentation/bloc/search/search_cubit.dart';
+import 'package:easthardware_pms/presentation/bloc/order/orderlist/order_list_bloc.dart';
+import 'package:easthardware_pms/presentation/bloc/search/search_bloc.dart';
 import 'package:easthardware_pms/presentation/widgets/layout/spacing.dart';
 import 'package:easthardware_pms/presentation/widgets/text.dart';
 import 'package:fluent_ui/fluent_ui.dart';
@@ -16,12 +18,16 @@ class SearchPage extends StatefulWidget {
 }
 
 class _SearchPageState extends State<SearchPage> {
-  late final SearchCubit _searchCubit;
+  late ProductListBloc? _productListBloc;
+  late InvoiceListBloc? _invoiceListBloc;
+  late OrderListBloc? _orderListBloc;
+
+  late final SearchBloc _searchBloc;
   late final AnimatedScrollController _scrollController;
 
   List<SingleChildWidget> get providers {
     return [
-      BlocProvider<SearchCubit>.value(value: _searchCubit),
+      BlocProvider<SearchBloc>.value(value: _searchBloc),
     ];
   }
 
@@ -29,13 +35,37 @@ class _SearchPageState extends State<SearchPage> {
   void initState() {
     super.initState();
 
-    _searchCubit = SearchCubit(context.read<ProductListBloc>().state.allProducts);
+    _productListBloc = null;
+    _invoiceListBloc = null;
+    _orderListBloc = null;
+
+    _searchBloc = SearchBloc();
     _scrollController = AnimatedScrollController(animationFactory: const ChromiumEaseInOut());
   }
 
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
+    final productListBloc = context.watch<ProductListBloc>();
+    final invoiceListBloc = context.watch<InvoiceListBloc>();
+    final orderListBloc = context.watch<OrderListBloc>();
+    if (productListBloc != _productListBloc ||
+        invoiceListBloc != _invoiceListBloc ||
+        orderListBloc != _orderListBloc) {
+      _searchBloc.add(
+        SearchDependentsUpdated(
+          products: productListBloc.state.allProducts,
+          invoices: invoiceListBloc.state.allInvoices,
+          orders: orderListBloc.state.allOrders,
+        ),
+      );
+    }
+  }
+
+  @override
   void dispose() {
-    _searchCubit.close();
+    _searchBloc.close();
     _scrollController.dispose();
 
     super.dispose();
@@ -100,15 +130,15 @@ class SearchBody extends StatelessWidget {
       children: [
         const SubheadingText('Inventory Summary'),
         TextBox(
-          onChanged: (value) => context.read<SearchCubit>().updateQuery(value),
+          onChanged: (value) => context.read<SearchBloc>().add(SearchQueryUpdated(value)),
         ),
         Spacing.v8,
         Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            for (final (result, score) in context.watch<SearchCubit>().state.results.products)
+            for (final result in context.watch<SearchBloc>().state.results.products)
               Text(
-                (result.name, score).toString(),
+                (result.name).toString(),
                 style: FluentTheme.of(context).typography.body,
               ),
           ],
