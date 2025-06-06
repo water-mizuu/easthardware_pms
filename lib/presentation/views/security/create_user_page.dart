@@ -186,7 +186,7 @@ class PageHeader extends StatelessWidget {
             context.navigate(AppRoutes.admin.users);
           },
         ),
-        const DisplayText('Create User'),
+        const HeadingText('Create User'),
         const Spacer(flex: 1),
         TextButtonFilled(
           'Save User',

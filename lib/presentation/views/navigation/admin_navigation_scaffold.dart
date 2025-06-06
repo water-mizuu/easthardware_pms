@@ -14,6 +14,7 @@ import 'package:fluent_ui/fluent_ui.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
 import 'package:scroll_animator/scroll_animator.dart';
 
 class AdminNavigationScaffold extends StatelessWidget {
@@ -32,9 +33,9 @@ class AdminNavigationScaffold extends StatelessWidget {
           _ => PaneDisplayMode.minimal,
         };
 
-        return AdminNavigationView(
-          mode: mode,
-          child: children[shell.currentIndex],
+        return Provider.value(
+          value: mode,
+          child: AdminNavigationView(child: children[shell.currentIndex]),
         );
       },
     ) as Widget;
@@ -62,11 +63,9 @@ class AdminNavigationScaffold extends StatelessWidget {
 class AdminNavigationView extends StatefulWidget {
   const AdminNavigationView({
     super.key,
-    required this.mode,
     required this.child,
   });
 
-  final PaneDisplayMode mode;
   final Widget child;
 
   @override
@@ -96,6 +95,8 @@ class _AdminNavigationViewState extends State<AdminNavigationView> with CommonSi
 
   @override
   Widget build(BuildContext context) {
+    final paneDisplayMode = context.watch<PaneDisplayMode>();
+
     return MultiBlocListener(
       listeners: [
         /// Here, we only listen to the NavigationCubit to update the selected index
@@ -140,9 +141,9 @@ class _AdminNavigationViewState extends State<AdminNavigationView> with CommonSi
           header: const LogoRow(),
           scrollController: _scrollController,
           selected: _selectedIndex,
-          toggleable: false,
-          displayMode: widget.mode,
-          menuButton: menuButton(widget.mode),
+          toggleable: true,
+          displayMode: paneDisplayMode,
+          menuButton: menuButton(),
           onItemPressed: (index) {
             final probablyRoute = _routeIndexMapper.getRouteFromIndex(index);
             if (probablyRoute case null) {
@@ -174,6 +175,7 @@ class _AdminNavigationViewState extends State<AdminNavigationView> with CommonSi
         title: "Dashboard",
         route: AppRoutes.admin.dashboard,
       ),
+      navSearch(),
       PaneItemSeparator(),
       navItem(
         icon: FluentIcons.product,

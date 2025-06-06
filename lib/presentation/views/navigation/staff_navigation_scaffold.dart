@@ -12,6 +12,7 @@ import 'package:easthardware_pms/utils/typed_routes.dart';
 import 'package:fluent_ui/fluent_ui.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
 import 'package:scroll_animator/scroll_animator.dart';
 
 class StaffNavigationScaffold extends StatelessWidget {
@@ -30,9 +31,9 @@ class StaffNavigationScaffold extends StatelessWidget {
           _ => PaneDisplayMode.minimal,
         };
 
-        return AdminNavigationView(
-          mode: mode,
-          child: children[shell.currentIndex],
+        return Provider.value(
+          value: mode,
+          child: AdminNavigationView(child: children[shell.currentIndex]),
         );
       },
     ) as Widget;
@@ -60,11 +61,9 @@ class StaffNavigationScaffold extends StatelessWidget {
 class AdminNavigationView extends StatefulWidget {
   const AdminNavigationView({
     super.key,
-    required this.mode,
     required this.child,
   });
 
-  final PaneDisplayMode mode;
   final Widget child;
 
   @override
@@ -94,6 +93,8 @@ class _AdminNavigationViewState extends State<AdminNavigationView> with CommonSi
 
   @override
   Widget build(BuildContext context) {
+    final paneDisplayMode = context.watch<PaneDisplayMode>();
+
     return MultiBlocListener(
       listeners: [
         /// Here, we only listen to the NavigationCubit to update the selected index
@@ -136,8 +137,8 @@ class _AdminNavigationViewState extends State<AdminNavigationView> with CommonSi
           scrollController: _scrollController,
           selected: _selectedIndex,
           toggleable: false,
-          displayMode: widget.mode,
-          menuButton: menuButton(widget.mode),
+          displayMode: paneDisplayMode,
+          menuButton: menuButton(),
           onItemPressed: (index) {
             /// Redirects such as this should be specified in the
             ///   [_navigationItems] list.

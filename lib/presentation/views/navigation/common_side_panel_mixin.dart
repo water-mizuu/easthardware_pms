@@ -6,18 +6,78 @@ import 'package:fluent_ui/fluent_ui.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 mixin CommonSidePanelMixin {
-  Widget? menuButton(PaneDisplayMode mode) {
-    return switch (mode) {
-      PaneDisplayMode.compact => Padding(
-          padding: const EdgeInsets.fromLTRB(16, 16, 16, 19),
-          child: Image.asset(
-            'assets/icons/app.png',
-            height: 18,
-            width: 18,
+  Widget menuButton() {
+    return Builder(builder: (context) {
+      return switch (context.watch<PaneDisplayMode>()) {
+        PaneDisplayMode.compact when !NavigationView.of(context).compactOverlayOpen => Padding(
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 19),
+            child: Image.asset(
+              'assets/icons/app.png',
+              height: 18,
+              width: 18,
+            ),
           ),
+        _ => const SizedBox.shrink(),
+      };
+    });
+  }
+
+  PaneItemWidgetAdapter navSearch() {
+    return PaneItemWidgetAdapter(
+      applyPadding: false,
+      child: Padding(
+        padding: const EdgeInsets.all(4.0),
+        child: Builder(
+          builder: (context) {
+            final mode = context.watch<PaneDisplayMode>();
+            final navigationView = NavigationView.of(context);
+
+            if (mode == PaneDisplayMode.compact && !navigationView.compactOverlayOpen) {
+              return SizedBox(
+                height: 32.0,
+                width: 32.0,
+                child: Button(
+                  style: ButtonStyle(
+                    backgroundColor: WidgetStateProperty.all(
+                      Colors.transparent,
+                    ),
+                    padding: const WidgetStatePropertyAll(EdgeInsets.all(12)),
+                    shape: const WidgetStatePropertyAll(
+                      RoundedRectangleBorder(
+                        borderRadius: BorderRadius.all(Radius.circular(4)),
+                      ),
+                    ),
+                  ),
+                  child: const Center(child: Icon(FluentIcons.search)),
+                  onPressed: () {
+                    if (!navigationView.compactOverlayOpen) {
+                      navigationView.toggleCompactOpenMode();
+                    }
+                  },
+                ),
+              );
+            } else {
+              return AutoSuggestBox(
+                placeholder: "Search",
+                trailingIcon: const Padding(
+                  padding: EdgeInsets.only(right: 9.0),
+                  child: Icon(FluentIcons.search, size: 12),
+                ),
+                items: [
+                  AutoSuggestBoxItem(
+                    value: "Label",
+                    label: "Search",
+                    onSelected: () {
+                      // Implement search functionality here
+                    },
+                  ),
+                ],
+              );
+            }
+          },
         ),
-      _ => null,
-    };
+      ),
+    );
   }
 
   NavigationPaneItem navItem({
