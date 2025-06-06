@@ -17,6 +17,7 @@ import 'package:easthardware_pms/presentation/widgets/ui/text_button.dart';
 import 'package:easthardware_pms/utils/typed_routes.dart';
 import 'package:fluent_ui/fluent_ui.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart' show Icons;
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:provider/provider.dart';
 import 'package:provider/single_child_widget.dart';
@@ -83,6 +84,9 @@ class _CreateUserPageState extends State<CreateUserPage> {
 
               break;
             case FormStatus.error:
+              if (kDebugMode) {
+                print('Error while submitting user form: ${state.accessLevelErrorMessage}');
+              }
               // Show error message
               break;
             default:
@@ -320,8 +324,29 @@ class UsernameField extends StatelessWidget with UserFormValidator {
   }
 }
 
-class PasswordField extends StatelessWidget with UserFormValidator {
+class PasswordField extends StatefulWidget {
   const PasswordField({super.key});
+
+  @override
+  State<PasswordField> createState() => _PasswordFieldState();
+}
+
+class _PasswordFieldState extends State<PasswordField> with UserFormValidator {
+  late final ValueNotifier<bool> _isObscuredNotifier;
+
+  @override
+  void initState() {
+    super.initState();
+
+    _isObscuredNotifier = ValueNotifier<bool>(true);
+  }
+
+  @override
+  void dispose() {
+    _isObscuredNotifier.dispose();
+
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -330,12 +355,29 @@ class PasswordField extends StatelessWidget with UserFormValidator {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         const BodyText('Password'),
-        TextFormBox(
-          validator: validatePassword,
-          placeholder: 'Password',
-          onChanged: (value) {
-            context.read<UserFormBloc>().add(PasswordFieldChangedEvent(value));
-          },
+        ValueListenableBuilder(
+          valueListenable: _isObscuredNotifier,
+          builder: (context, isObscured, _) => TextFormBox(
+            validator: validatePassword,
+            placeholder: 'Password',
+            obscureText: isObscured,
+            suffix: Consumer<UserFormBloc>(
+              builder: (context, bloc, _) {
+                final hasContent = bloc.state.password.isNotEmpty;
+                if (!hasContent) {
+                  return const SizedBox.shrink();
+                }
+
+                return IconButton(
+                  icon: Icon(isObscured ? Icons.visibility : Icons.visibility_off),
+                  onPressed: () => _isObscuredNotifier.value = !isObscured,
+                );
+              },
+            ),
+            onChanged: (value) {
+              context.read<UserFormBloc>().add(PasswordFieldChangedEvent(value));
+            },
+          ),
         ),
         const CaptionText(
           'Password must be at least 8 characters long and contain at least one uppercase letter, one lowercase letter, one number, and one special character.',
@@ -434,7 +476,7 @@ class SecurityQuestionFields extends StatelessWidget with UserFormValidator {
                 children: [
                   BodyText('Security Question ${index + 1}'),
                   AutoSuggestBox.form(
-                    placeholder: "Select or enter security question ${index + 1}",
+                    placeholder: "Select or enter question ${index + 1}",
                     validator: (value) {
                       final copy = formQuestions.toList()..removeAt(index);
 
@@ -468,64 +510,7 @@ class SecurityQuestionFields extends StatelessWidget with UserFormValidator {
                     },
                   ),
                 ].withSpacing(() => Spacing.v8),
-              )
-            // Row(
-            //   children: [
-            //     Expanded(
-            //       child: Column(
-            //         mainAxisSize: MainAxisSize.min,
-            //         crossAxisAlignment: CrossAxisAlignment.stretch,
-            //         children: [
-            //           BodyText('Security Question ${index + 1}'),
-            //           Spacing.v8,
-            //           AutoSuggestBox.form(
-            //             validator: (value) {
-            //               final copy = formQuestions.toList()..removeAt(index);
-
-            //               return validateSecurityQuestion(
-            //                 value,
-            //                 copy.map((e) => e.question).toList(),
-            //                 index,
-            //               );
-            //             },
-            //             items: [
-            //               for (final staticQuestion in SECURITY_QUESTIONS)
-            //                 AutoSuggestBoxItem(
-            //                   label: staticQuestion,
-            //                   value: staticQuestion,
-            //                   onSelected: () {
-            //                     context
-            //                         .read<UserFormBloc>()
-            //                         .add(QuestionFieldChangedEvent(staticQuestion, index));
-            //                   },
-            //                 )
-            //             ],
-            //             onChanged: (text, reason) {
-            //               context
-            //                   .read<UserFormBloc>()
-            //                   .add(QuestionFieldChangedEvent(text, index));
-            //             },
-            //           )
-            //         ],
-            //       ),
-            //     ),
-            //     Expanded(
-            //       child: Column(
-            //         mainAxisSize: MainAxisSize.min,
-            //         crossAxisAlignment: CrossAxisAlignment.stretch,
-            //         children: [
-            //           const BodyText('Answer'),
-            //           TextFormBox(
-            //             validator: (value) => validateSecurityAnswer(value, index),
-            //             onChanged: (value) {
-            //               context.read<UserFormBloc>().add(AnswerFieldChangedEvent(value, index));
-            //             },
-            //           ),
-            //         ].withSpacing(() => Spacing.v8),
-            //       ),
-            //     ),
-            //   ].withSpacing(() => Spacing.h16),
-            // ),
+              ),
           ].withSpacing(() => Spacing.v16),
         ),
         Spacing.v8,

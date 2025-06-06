@@ -22,7 +22,7 @@ class App extends StatefulWidget {
   State<StatefulWidget> createState() => _AppState();
 }
 
-class _AppState extends State<App> with WidgetsBindingObserver {
+class _AppState extends State<App> {
   late final DependencyInjector di;
 
   List<SingleChildWidget> get blocListeners {
@@ -32,11 +32,8 @@ class _AppState extends State<App> with WidgetsBindingObserver {
       /// This happens when the user decides to change the database or server type.
       BlocListener<ServerBloc, ServerState>(
         listenWhen: (p, c) => p.databaseHelper != c.databaseHelper,
-        listener: (context, state) async {
+        listener: (context, state) {
           di.initialize(databaseHelper: state.databaseHelper);
-          if (!mounted || !context.mounted) return;
-
-          setState(() {});
         },
       ),
 
@@ -116,17 +113,15 @@ class _AppState extends State<App> with WidgetsBindingObserver {
     super.initState();
 
     di = DependencyInjector()..initialize();
+    di.addListener(_handleDependencyInjectorChanges);
   }
 
   @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.detached) {
-      final user = context.read<AuthenticationBloc>().state.user;
-      if (user != null) {
-        context.read<UserLogListBloc>().add(AddLogoutEvent(user));
-      }
-    }
-    super.didChangeAppLifecycleState(state);
+  void dispose() {
+    di.removeListener(_handleDependencyInjectorChanges);
+    di.dispose();
+
+    super.dispose();
   }
 
   @override
@@ -148,5 +143,9 @@ class _AppState extends State<App> with WidgetsBindingObserver {
         );
       },
     );
+  }
+
+  void _handleDependencyInjectorChanges() {
+    setState(() {});
   }
 }
