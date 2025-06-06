@@ -17,18 +17,28 @@ class NewPasswordFormState extends Equatable {
   final FormStatus status;
   final String errorMessage;
 
-  NewPasswordFormState copyWith({
-    String? newPassword,
-    String? confirmPassword,
-    FormStatus? status,
-    String? errorMessage,
-  }) {
-    return NewPasswordFormState(
-      newPassword: newPassword ?? this.newPassword,
-      confirmPassword: confirmPassword ?? this.confirmPassword,
-      status: status ?? this.status,
-      errorMessage: errorMessage ?? this.errorMessage,
-    );
+  NewPasswordFormState Function({
+    String username,
+    String newPassword,
+    String confirmPassword,
+    FormStatus status,
+    String errorMessage,
+  }) get copyWith {
+    return ({
+      Object? username = undefined,
+      Object? newPassword = undefined,
+      Object? confirmPassword = undefined,
+      Object? status = undefined,
+      Object? errorMessage = undefined,
+    }) {
+      return NewPasswordFormState(
+        username: username.or(this.username),
+        newPassword: newPassword.or(this.newPassword),
+        confirmPassword: confirmPassword.or(this.confirmPassword),
+        status: status.or(this.status),
+        errorMessage: errorMessage.or(this.errorMessage),
+      );
+    };
   }
 
   bool get isValid =>
@@ -38,8 +48,7 @@ class NewPasswordFormState extends Equatable {
       newPassword == confirmPassword;
 
   bool _isPasswordStrong(String password) {
-    final passwordRegex =
-        RegExp(r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$');
+    final passwordRegex = RegExp(r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$');
     return passwordRegex.hasMatch(password);
   }
 

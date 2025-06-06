@@ -184,8 +184,7 @@ Future<void> _handleConnection(
   assertChildIsolate();
 
   late final MessageChannel messageChannel;
-  messageChannel = webSocketChannel //
-      .toEncryptedMessageChannel(
+  messageChannel = webSocketChannel.toEncryptedMessageChannel(
     connection.encryptionKey,
     () {
       final index = _clientChannels //

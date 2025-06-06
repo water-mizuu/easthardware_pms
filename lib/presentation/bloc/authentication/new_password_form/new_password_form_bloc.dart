@@ -1,5 +1,6 @@
 import 'package:bloc/bloc.dart';
 import 'package:easthardware_pms/domain/repository/user_repository.dart';
+import 'package:easthardware_pms/utils/undefined.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter/foundation.dart';
 
@@ -15,13 +16,12 @@ class NewPasswordFormBloc extends Bloc<NewPasswordFormEvent, NewPasswordFormStat
   }
 
   final UserRepository userRepository;
-  String? username;
 
   void _onUsernameChanged(
     NewPasswordFormUsernameChanged event,
     Emitter<NewPasswordFormState> emit,
   ) {
-    username = event.username;
+    emit(state.copyWith(username: event.username));
   }
 
   void _onNewPasswordChanged(
@@ -42,15 +42,6 @@ class NewPasswordFormBloc extends Bloc<NewPasswordFormEvent, NewPasswordFormStat
     NewPasswordFormSubmitted event,
     Emitter<NewPasswordFormState> emit,
   ) async {
-    print("Current State Username ${username}");
-    if (username == null || username!.isEmpty) {
-      emit(state.copyWith(
-        status: FormStatus.error,
-        errorMessage: 'User session expired. Please start over.',
-      ));
-      return;
-    }
-
     if (!state.isValid) {
       emit(state.copyWith(
         status: FormStatus.error,
@@ -62,11 +53,11 @@ class NewPasswordFormBloc extends Bloc<NewPasswordFormEvent, NewPasswordFormStat
     emit(state.copyWith(status: FormStatus.loading));
 
     if (kDebugMode) {
-      print('Submitting new password for $username: ${state.newPassword}');
+      print('Submitting new password for ${state.username}: ${state.newPassword}');
     }
 
     try {
-      await userRepository.updatePassword(username!, state.newPassword);
+      await userRepository.updatePassword(state.username, state.newPassword);
 
       emit(state.copyWith(status: FormStatus.success, errorMessage: ''));
     } catch (_) {
