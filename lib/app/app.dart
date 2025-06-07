@@ -24,6 +24,7 @@ class App extends StatefulWidget {
 
 class _AppState extends State<App> {
   late final DependencyInjector di;
+  late FluentThemeData theme;
 
   List<SingleChildWidget> get blocListeners {
     return [
@@ -112,6 +113,7 @@ class _AppState extends State<App> {
   void initState() {
     super.initState();
 
+    theme = FluentThemeData.light().copyWith(cardColor: Colors.white);
     di = DependencyInjector()..initialize();
     di.addListener(_handleDependencyInjectorChanges);
   }
@@ -131,12 +133,15 @@ class _AppState extends State<App> {
       builder: (context, child) {
         return MultiBlocListener(
           listeners: blocListeners,
-          child: IsFullScreen.provider(
-            child: TitleBar(
-              child: FluentApp.router(
-                debugShowCheckedModeBanner: false,
-                routerConfig: router,
-                themeMode: ThemeMode.dark,
+          child: FluentTheme(
+            data: theme,
+            child: IsFullScreen.provider(
+              child: TitleBar(
+                child: FluentApp.router(
+                  debugShowCheckedModeBanner: false,
+                  routerConfig: router,
+                  themeMode: ThemeMode.dark,
+                ),
               ),
             ),
           ),

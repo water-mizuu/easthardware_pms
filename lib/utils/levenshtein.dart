@@ -58,13 +58,14 @@ final class Levenshtein {
 
       /// The threshold is strictly decreasing as the items are processed.
       ///   It starts at infinity and is adjusted based on the scores of the items.
-      var threshold = double.infinity;
-      for (final (item, factor) in items.map((c) => (c, mapper(c).toSet()))) {
+      var threshold = 20.0;
+      for (final (item, factor)
+          in items.map((c) => (c, mapper(c).map((c) => c.toLowerCase()).toSet()))) {
         var score = _scoreFactorsByLevenshtein(query, factor, threshold);
 
         /// If any of the tokens have a direct match with the factor,
         ///   we reduce the score even more.
-        if (tokens.any(factor.contains)) {
+        if (tokens.any((token) => factor.any((f) => f.contains(token)))) {
           score = sqrt(score);
         }
 
