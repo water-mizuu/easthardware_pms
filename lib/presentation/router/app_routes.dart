@@ -22,7 +22,12 @@ class AppRoutes {
     editProduct: AppRoute<Product>('/admin/edit/product'),
 
     // Search Pages
-    search: AppRoute<Null>('/admin/search'),
+    search: (
+      products: AppRoute<Null>('/admin/search/products'),
+      invoices: AppRoute<Null>('/admin/search/invoices'),
+      orders: AppRoute<Null>('/admin/search/orders'),
+    ),
+    // search: AppRoute<Null>('/admin/search'),
 
     // Billing Sub Pages
     createInvoice: AppRoute<Null>('/admin/create/invoice'),
@@ -43,6 +48,11 @@ class AppRoutes {
   static const staff = (
     dashboard: AppRoute<Null>('/staff/dashboard'),
     inventory: AppRoute<Null>('/staff/inventory'),
+    search: (
+      products: AppRoute<Null>('/staff/search/products'),
+      invoices: AppRoute<Null>('/staff/search/invoices'),
+      orders: AppRoute<Null>('/staff/search/orders'),
+    ),
     createInvoice: AppRoute<Null>('/staff/create/invoice'),
     payInvoice: AppRoute<Null>('/staff/pay/invoice'),
     help: AppRoute<Null>('/staff/help'),

@@ -70,7 +70,8 @@ class AdminNavigationView extends StatefulWidget {
   State<AdminNavigationView> createState() => _AdminNavigationViewState();
 }
 
-class _AdminNavigationViewState extends State<AdminNavigationView> with CommonSidePanelMixin {
+class _AdminNavigationViewState extends State<AdminNavigationView>
+    with NavigationPanelMixin, CommonSidePanelMixin {
   late final NavRailRouteIndexMapper _routeIndexMapper;
   late final AnimatedScrollController _scrollController;
   late int _selectedIndex;
@@ -122,7 +123,7 @@ class _AdminNavigationViewState extends State<AdminNavigationView> with CommonSi
           /// The pane body builder creates the body of the window.
           ///   It is essentially the right side of the navigation view.
           paneBodyBuilder: (item, body) {
-            var widget = LayoutModeProvider(child: this.widget.child) as Widget;
+            var widget = LayoutMode.provider(child: this.widget.child);
 
             /// We only impose a padding on the child if the title bar is present
             ///   and we are in windows.
@@ -169,7 +170,11 @@ class _AdminNavigationViewState extends State<AdminNavigationView> with CommonSi
         title: "Dashboard",
         route: AppRoutes.staff.dashboard,
       ),
-      navSearch(),
+      navItem(
+        icon: FluentIcons.search,
+        title: "Search",
+        route: AppRoutes.staff.search.products,
+      ),
       PaneItemSeparator(),
       navItem(
         icon: FluentIcons.product,

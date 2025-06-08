@@ -18,14 +18,12 @@ import 'package:provider/provider.dart';
 import 'package:scroll_animator/scroll_animator.dart';
 
 class AdminNavigationScaffold extends StatelessWidget {
-  const AdminNavigationScaffold(this.shell, this.children, {super.key});
+  const AdminNavigationScaffold(this.shell, {super.key});
 
   final StatefulNavigationShell shell;
-  final List<Widget> children;
 
   @override
   Widget build(BuildContext context) {
-    print(#Redraw);
     var widget = LayoutBuilder(
       builder: (context, constraints) {
         final mode = switch (constraints.maxWidth) {
@@ -36,7 +34,7 @@ class AdminNavigationScaffold extends StatelessWidget {
 
         return Provider.value(
           value: mode,
-          child: AdminNavigationView(child: children[shell.currentIndex]),
+          child: AdminNavigationView(child: shell),
         );
       },
     ) as Widget;
@@ -70,7 +68,8 @@ class AdminNavigationView extends StatefulWidget {
   State<AdminNavigationView> createState() => _AdminNavigationViewState();
 }
 
-class _AdminNavigationViewState extends State<AdminNavigationView> with CommonSidePanelMixin {
+class _AdminNavigationViewState extends State<AdminNavigationView>
+    with NavigationPanelMixin, CommonSidePanelMixin {
   late final NavRailRouteIndexMapper _routeIndexMapper;
   late final AnimatedScrollController _scrollController;
   late int _selectedIndex;
@@ -125,7 +124,7 @@ class _AdminNavigationViewState extends State<AdminNavigationView> with CommonSi
           /// The pane body builder creates the body of the window.
           ///   It is essentially the right side of the navigation view.
           paneBodyBuilder: (item, body) {
-            var widget = LayoutModeProvider(child: this.widget.child) as Widget;
+            var widget = LayoutMode.provider(child: this.widget.child);
 
             /// We only impose a padding on the child if the title bar is present
             ///   and we are in windows.
@@ -184,7 +183,7 @@ class _AdminNavigationViewState extends State<AdminNavigationView> with CommonSi
       navItem(
         icon: FluentIcons.search,
         title: "Search",
-        route: AppRoutes.admin.search,
+        route: AppRoutes.admin.search.products,
       ),
       PaneItemSeparator(),
       navItem(
