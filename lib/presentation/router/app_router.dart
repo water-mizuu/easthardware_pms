@@ -176,11 +176,8 @@ final router = GoRouter(
         )
       ],
     ),
-    StatefulShellRoute(
-      builder: (context, state, shell) => shell,
-      navigatorContainerBuilder: (context, shell, children) {
-        return BottomText(child: StaffNavigationScaffold(shell, children));
-      },
+    StatefulShellRoute.indexedStack(
+      builder: (context, state, shell) => BottomText(child: StaffNavigationScaffold(shell)),
       branches: [
         // Staff Dashboard Shell
         StatefulShellBranch(
@@ -190,6 +187,46 @@ final router = GoRouter(
               path: AppRoutes.staff.dashboard.path,
               builder: (context, state) => const Text("Dashboard"),
             )
+          ],
+        ),
+
+        // Search Page Shell
+        StatefulShellBranch(
+          navigatorKey: keys.searchKey,
+          initialLocation: AppRoutes.staff.search.products.path,
+          routes: [
+            StatefulShellRoute.indexedStack(
+              builder: (context, state, shell) => SearchPage(shell),
+              branches: [
+                StatefulShellBranch(
+                  initialLocation: AppRoutes.staff.search.products.path,
+                  routes: [
+                    TypedGoRoute(
+                      route: AppRoutes.staff.search.products,
+                      builder: (context, state) => ProductsBody(),
+                    ),
+                  ],
+                ),
+                StatefulShellBranch(
+                  initialLocation: AppRoutes.staff.search.invoices.path,
+                  routes: [
+                    TypedGoRoute(
+                      route: AppRoutes.staff.search.invoices,
+                      builder: (context, state) => InvoicesBody(),
+                    ),
+                  ],
+                ),
+                StatefulShellBranch(
+                  initialLocation: AppRoutes.staff.search.orders.path,
+                  routes: [
+                    TypedGoRoute(
+                      route: AppRoutes.staff.search.orders,
+                      builder: (context, state) => OrdersBody(),
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ],
         ),
 

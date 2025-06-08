@@ -16,10 +16,9 @@ import 'package:provider/provider.dart';
 import 'package:scroll_animator/scroll_animator.dart';
 
 class StaffNavigationScaffold extends StatelessWidget {
-  const StaffNavigationScaffold(this.shell, this.children, {super.key});
+  const StaffNavigationScaffold(this.shell, {super.key});
 
   final StatefulNavigationShell shell;
-  final List<Widget> children;
 
   @override
   Widget build(BuildContext context) {
@@ -33,7 +32,7 @@ class StaffNavigationScaffold extends StatelessWidget {
 
         return Provider.value(
           value: mode,
-          child: AdminNavigationView(child: children[shell.currentIndex]),
+          child: StaffNavigationView(child: shell),
         );
       },
     ) as Widget;
@@ -58,8 +57,8 @@ class StaffNavigationScaffold extends StatelessWidget {
   }
 }
 
-class AdminNavigationView extends StatefulWidget {
-  const AdminNavigationView({
+class StaffNavigationView extends StatefulWidget {
+  const StaffNavigationView({
     super.key,
     required this.child,
   });
@@ -67,10 +66,10 @@ class AdminNavigationView extends StatefulWidget {
   final Widget child;
 
   @override
-  State<AdminNavigationView> createState() => _AdminNavigationViewState();
+  State<StaffNavigationView> createState() => _StaffNavigationViewState();
 }
 
-class _AdminNavigationViewState extends State<AdminNavigationView>
+class _StaffNavigationViewState extends State<StaffNavigationView>
     with NavigationPanelMixin, CommonSidePanelMixin {
   late final NavRailRouteIndexMapper _routeIndexMapper;
   late final AnimatedScrollController _scrollController;

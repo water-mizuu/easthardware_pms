@@ -178,7 +178,7 @@ class _SearchTableResultState<T> extends State<SearchTableResult<T>> {
                     padding: SpanPadding(trailing: rowPadding),
                   );
                 },
-                cellBuilder: (BuildContext context, TableVicinity vicinity) {
+                cellBuilder: (context, vicinity) {
                   return TableViewCell(
                     child: Builder(
                       builder: (context) {
