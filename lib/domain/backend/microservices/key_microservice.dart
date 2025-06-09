@@ -24,6 +24,9 @@ bool _hasSetup = false;
 @mainIsolate
 late final MessageChannel _channel;
 
+@mainIsolate
+final Completer<void> _setupCompleter = Completer<void>();
+
 Future<void> setupKeyMicroService() async {
   assertMainIsolate();
 
@@ -49,26 +52,44 @@ Future<void> setupKeyMicroService() async {
   ///   to communicate with the isolate.
   _channel = MessageChannel(receivePort, sendPort);
   _hasSetup = true;
+
+  unawaited(() async {
+    final (publicKey, privateKey) = await _channel.invoke<AsymmetricKeys>("requestKeys");
+    _publicKey = publicKey;
+    _privateKey = privateKey;
+
+    await _channel.invoke("stop");
+
+    if (kDebugMode) {
+      printBoxed(
+        "Public Key: $_publicKey\nPrivate Key: $_privateKey",
+        "Generated Keys Microservice",
+      );
+    }
+
+    _setupCompleter.complete();
+  }());
 }
 
 Future<AsymmetricKey> get publicKey async {
   assertMainIsolate();
-  final (publicKey, _) = await _channel.invoke<AsymmetricKeys>("requestKeys");
+  await _setupCompleter.future;
 
-  return publicKey;
+  return _publicKey;
 }
 
 Future<AsymmetricKey> get privateKey async {
   assertMainIsolate();
-  final (_, privateKey) = await _channel.invoke<AsymmetricKeys>("requestKeys");
+  await _setupCompleter.future;
 
-  return privateKey;
+  return _privateKey;
 }
 
 Future<AsymmetricKeys> get keys async {
   assertMainIsolate();
+  await _setupCompleter.future;
 
-  return await _channel.invoke<AsymmetricKeys>("requestKeys");
+  return (_publicKey, _privateKey);
 }
 
 @childIsolate
@@ -94,6 +115,7 @@ Future<void> _spawnKeyMicroserviceIsolate((RootIsolateToken, NamedSendPort) payl
   sendPort.send("setup", localChannel.receivePort.sendPort);
   sendPort.send("setup", 0);
 
+  /// Generate the asymmetric keys to be used.
   _generateKeys();
 
   /// @MAIN2MS_KEYS:invocation
@@ -106,6 +128,7 @@ Future<void> _spawnKeyMicroserviceIsolate((RootIsolateToken, NamedSendPort) payl
       switch (args) {
         case ["stop", _]:
           localChannel.close();
+          sendPort.send(returnName, 0);
           break;
         case ['requestKeys', _]:
           sendPort.send(returnName, (_publicKey, _privateKey));

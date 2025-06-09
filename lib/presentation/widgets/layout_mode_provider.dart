@@ -1,13 +1,14 @@
 import 'package:fluent_ui/fluent_ui.dart';
 import 'package:provider/provider.dart';
 
-class LayoutModeProvider extends StatelessWidget {
-  const LayoutModeProvider({required this.child, super.key});
+enum LayoutMode {
+  wide,
+  constrained,
+  compact;
 
-  final Widget child;
-
-  @override
-  Widget build(BuildContext context) {
+  static Widget provider({
+    required Widget child,
+  }) {
     return LayoutBuilder(
       builder: (context, constraints) {
         assert(
@@ -31,12 +32,6 @@ class LayoutModeProvider extends StatelessWidget {
       },
     );
   }
-}
-
-enum LayoutMode {
-  wide,
-  constrained,
-  compact;
 
   static Widget builder(Widget Function(BuildContext context, LayoutMode mode) builder) {
     return Builder(builder: (context) {

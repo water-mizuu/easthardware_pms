@@ -64,7 +64,7 @@ class ServerState with EquatableMixin {
 
 sealed class DatabaseArgs {
   const DatabaseArgs(this.databaseMode);
-  final DatabaseMode? databaseMode;
+  final DatabaseMode databaseMode;
 }
 
 final class ServerDatabaseArgs extends DatabaseArgs {

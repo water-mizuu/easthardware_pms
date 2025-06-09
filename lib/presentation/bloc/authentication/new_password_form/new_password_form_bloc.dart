@@ -1,5 +1,6 @@
 import 'package:bloc/bloc.dart';
 import 'package:easthardware_pms/domain/repository/user_repository.dart';
+import 'package:easthardware_pms/utils/undefined.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter/foundation.dart';
 
@@ -68,6 +69,7 @@ class NewPasswordFormBloc
     }
 
     try {
+      await userRepository.updatePassword(state.username, state.newPassword);
       await userRepository.updatePassword(state.username, state.newPassword);
 
       emit(state.copyWith(status: FormStatus.success, errorMessage: ''));

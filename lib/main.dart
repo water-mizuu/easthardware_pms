@@ -14,13 +14,13 @@ void main(List<String> args) async {
 
   /// Load the window manager plus plugin.
   if ((!kIsWeb) && (Platform.isWindows || Platform.isMacOS)) {
-    const minimumSize = Size(800, 600);
+    const minimumSize = Size(800, 550);
 
     final id = args.isEmpty ? 0 : int.tryParse(args[0]) ?? 0;
     final (_) = await WindowManagerPlus.ensureInitialized(id).tryCatch();
     const options = WindowOptions(
       size: minimumSize,
-      // minimumSize: minimumSize,
+      minimumSize: minimumSize,
       center: true,
       skipTaskbar: false,
     );
@@ -36,7 +36,7 @@ void main(List<String> args) async {
     });
   }
 
-  await setupKeyMicroService();
+  setupKeyMicroService();
 
   /// Current idea:
   ///   1. scan for all ips in the subnetwork.

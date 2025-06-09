@@ -7,18 +7,30 @@ class LogoRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    const padding = EdgeInsets.fromLTRB(8, 14, 8, 12);
     return Padding(
-      padding: const EdgeInsets.fromLTRB(8, 14, 8, 12),
-      child: Row(
-        children: <Widget>[
-          Image.asset(
-            'assets/icons/app.png',
-            height: 18,
-            width: 18,
-          ),
-          const SubheadingText("East Hardware")
-        ].withSpacing(() => Spacing.h16),
-      ),
+      padding: padding,
+      child: LayoutBuilder(builder: (context, constraints) {
+        final maxWidth = constraints.maxWidth;
+        final logo = Image.asset(
+          'assets/icons/app.png',
+          height: 18,
+          width: 18,
+          fit: BoxFit.contain,
+        );
+
+        /// Is overflowing formula. Somehow it works. Don't modify.
+        final isOverflowing = maxWidth < (padding.left + padding.right + 18) * 1.5;
+        if (isOverflowing) {
+          return Padding(padding: const EdgeInsets.only(top: 2), child: logo);
+        }
+        return Row(
+          children: <Widget>[
+            logo,
+            const Expanded(child: SubheadingText("East Hardware", overflow: TextOverflow.clip))
+          ].withSpacing(() => Spacing.h16),
+        );
+      }),
     );
   }
 }

@@ -15,6 +15,7 @@ class AuthenticationBloc extends Bloc<AuthenticationEvent, AuthenticationState> 
   AuthenticationBloc(this._repository) : super(AuthenticationState()) {
     on<AuthenticationLoginEvent>(_onLogin);
     on<AuthenticationLogoutEvent>(_onLogout);
+    on<AuthenticationPostLogoutEvent>(_onPostLogout);
   }
 
   final AuthenticationRepository _repository;
@@ -85,13 +86,23 @@ class AuthenticationBloc extends Bloc<AuthenticationEvent, AuthenticationState> 
 
     try {
       _repository.logOut(userId: userId!);
-      emit(state.copyWith(status: AuthenticationStatus.success, user: null));
-    } catch (e) {
-      if (kDebugMode) {
-        print(e);
-      }
 
+      emit(
+        state.copyWith(
+          status: AuthenticationStatus.success,
+          user: null,
+          previousUser: state.user,
+        ),
+      );
+    } catch (e) {
       emit(state.copyWith(status: AuthenticationStatus.failure));
     }
+  }
+
+  Future<void> _onPostLogout(
+    AuthenticationPostLogoutEvent event,
+    Emitter<AuthenticationState> emit,
+  ) async {
+    emit(state.copyWith(previousUser: null));
   }
 }

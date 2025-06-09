@@ -1,3 +1,4 @@
+import 'package:easthardware_pms/domain/models/user.dart';
 import 'package:easthardware_pms/utils/undefined.dart';
 import 'package:uuid/uuid.dart';
 
@@ -9,6 +10,84 @@ class UserLog {
     required this.event,
     required this.eventTime,
   }) : uid = uid ?? const Uuid().v4();
+
+  factory UserLog.login({
+    required User user,
+    DateTime? eventTime,
+  }) {
+    final logEvent = "User '${user.username}' logged in";
+    final logDateTime = eventTime ?? DateTime.now();
+    final userLog = UserLog(
+      userId: user.id!,
+      event: logEvent,
+      eventTime: logDateTime,
+    );
+
+    return userLog;
+  }
+
+  factory UserLog.logout({
+    required User user,
+    DateTime? eventTime,
+  }) {
+    final logEvent = "User '${user.username}' logged out";
+    final logDateTime = eventTime ?? DateTime.now();
+    final userLog = UserLog(
+      userId: user.id!,
+      event: logEvent,
+      eventTime: logDateTime,
+    );
+
+    return userLog;
+  }
+
+  factory UserLog.create({
+    required User user,
+    required String item,
+    DateTime? eventTime,
+  }) {
+    final logEvent = "User '${user.username}' created $item";
+    final logDateTime = eventTime ?? DateTime.now();
+    final userLog = UserLog(
+      userId: user.id!,
+      event: logEvent,
+      eventTime: logDateTime,
+    );
+
+    return userLog;
+  }
+
+  factory UserLog.update({
+    required User user,
+    required String item,
+    DateTime? eventTime,
+  }) {
+    final logEvent = "Updated $item";
+    final logDateTime = eventTime ?? DateTime.now();
+    final userLog = UserLog(
+      userId: user.id!,
+      event: logEvent,
+      eventTime: logDateTime,
+    );
+
+    return userLog;
+  }
+
+  factory UserLog.archive({
+    required User user,
+    required String item,
+    DateTime? eventTime,
+  }) {
+    final logEvent = "Archived $item";
+    final logDateTime = eventTime ?? DateTime.now();
+    final userLog = UserLog(
+      userId: user.id!,
+      event: logEvent,
+      eventTime: logDateTime,
+    );
+
+    return userLog;
+  }
 
   factory UserLog.fromMap(Map<String, dynamic> map) {
     return UserLog(
@@ -51,6 +130,7 @@ class UserLog {
 
   Map<String, dynamic> toMap() {
     return {
+      if (id != null) 'id': id,
       'uid': uid,
       'user_id': userId,
       'event': event,

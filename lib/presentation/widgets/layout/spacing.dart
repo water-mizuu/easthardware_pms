@@ -27,11 +27,12 @@ class AppPadding {
 
   // Context Specific Padding
   static const EdgeInsets panePadding = EdgeInsets.all(20.0);
+  static const EdgeInsets cardPadding = AppPadding.a16;
 }
 
 extension SpacingList on List<Widget> {
   List<Widget> withSpacing(Widget Function() spacing) => [
-        for (var (index, widget) in indexed) ...[
+        for (final (index, widget) in indexed) ...[
           widget,
           if (index < length - 1) spacing(),
         ]

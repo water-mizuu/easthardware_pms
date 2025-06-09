@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:async_queue/async_queue.dart';
+import 'package:easthardware_pms/data/database/database_helper.dart';
 import 'package:easthardware_pms/data/database/tables/categories_table.dart';
 import 'package:easthardware_pms/data/database/tables/expense_types_table.dart';
 import 'package:easthardware_pms/data/database/tables/invoice_products_table.dart';
@@ -24,6 +25,13 @@ import 'package:path/path.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 final AsyncQueue _dbMethodQueue = AsyncQueue.autoStart();
+
+Future<DatabaseHelper> getWebSocketDatabaseHelper() async {
+  assertChildIsolate();
+  final database = await _getDatabase();
+
+  return DirectDatabaseHelper(database);
+}
 
 /// Handles JSON encoded database method calls.
 /// Each job is executed sequentially in calling order, backed by an [AsyncQueue].

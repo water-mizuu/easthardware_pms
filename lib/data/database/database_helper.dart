@@ -18,3 +18,7 @@ abstract base class DatabaseHelper {
 final class ServerDatabaseHelper extends DatabaseHelper {
   ServerDatabaseHelper(Server server) : super(DatabaseServerProxy(server));
 }
+
+final class DirectDatabaseHelper extends DatabaseHelper {
+  DirectDatabaseHelper(Database super.database);
+}

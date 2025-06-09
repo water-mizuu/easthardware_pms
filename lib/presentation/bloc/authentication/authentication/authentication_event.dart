@@ -23,3 +23,10 @@ class AuthenticationLogoutEvent with EquatableMixin implements AuthenticationEve
   @override
   List<Object> get props => [];
 }
+
+class AuthenticationPostLogoutEvent with EquatableMixin implements AuthenticationEvent {
+  const AuthenticationPostLogoutEvent();
+
+  @override
+  List<Object> get props => [];
+}

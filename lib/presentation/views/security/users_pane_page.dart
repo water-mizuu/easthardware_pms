@@ -22,7 +22,7 @@ class UsersPanePage extends StatelessWidget {
         children: const [
           PageHeader(),
           PageActions(),
-          UserDataTable(),
+          Expanded(child: UserDataTable()),
         ].withSpacing(() => Spacing.v16),
       ),
     );
@@ -50,11 +50,26 @@ class PageActions extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        const ComboBox(
-          placeholder: Text('Filter by Level'),
-          items: [],
+        ComboBox(
+          placeholder: const Text('Filter by Level'),
+          value: context.select((UserListBloc b) => b.state.accessLevelQuery),
+          onChanged: (value) {
+            context.read<UserListBloc>().add(FilterUsersByAccessLevelEvent(value));
+          },
+          items: [
+            const ComboBoxItem(value: null, child: Text('All Users')),
+            for (final accessLevel in AccessLevel.values)
+              ComboBoxItem(value: accessLevel, child: Text(accessLevel.toString())),
+          ],
         ),
-        const Expanded(child: TextBox()),
+        Expanded(
+          child: TextBox(
+            onChanged: (value) {
+              context.read<UserListBloc>().add(SearchUsersByStringEvent(value));
+            },
+            placeholder: 'Search',
+          ),
+        ),
         const Spacer(flex: 2),
         TextButtonFilled('Add User', onPressed: () {
           context.navigate(AppRoutes.admin.createUser);
@@ -71,29 +86,23 @@ class UserDataTable extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocBuilder<UserListBloc, UserListState>(
       builder: (context, state) {
-        switch (state.status) {
-          case DataStatus.loading:
-            return const Expanded(child: Center(child: ProgressRing()));
-          default:
-            final allUsers = state.users.where((user) => user.archivedStatus == 0).toList();
-            return Expanded(
-              child: DecoratedBox(
-                decoration: const BoxDecoration(color: Colors.white),
-                child: DataTable(
-                  columns: const [
-                    DataColumn(label: Text('Name')),
-                    DataColumn(label: Text('Level of Access')),
-                    DataColumn(label: Text('Creation Date')),
-                    DataColumn(label: Text('Status')),
-                  ],
-                  rows: [
-                    for (final user in allUsers) //
-                      DataRowMapper.mapUserToRow(user, user.loginStatus == 1),
-                  ],
-                ),
-              ),
-            );
-        }
+        final allUsers = state.filteredUsers.where((user) => user.archivedStatus == 0).toList();
+
+        return DecoratedBox(
+          decoration: const BoxDecoration(color: Colors.white),
+          child: DataTable(
+            columns: const [
+              DataColumn(label: Text('Name', overflow: TextOverflow.fade)),
+              DataColumn(label: Text('Level of Access', overflow: TextOverflow.fade)),
+              DataColumn(label: Text('Creation Date', overflow: TextOverflow.fade)),
+              DataColumn(label: Text('Status', overflow: TextOverflow.fade)),
+            ],
+            rows: [
+              for (final user in allUsers) //
+                DataRowMapper.mapUserToRow(user, user.loginStatus == 1),
+            ],
+          ),
+        );
       },
     );
   }

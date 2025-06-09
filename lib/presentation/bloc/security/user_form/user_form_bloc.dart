@@ -27,7 +27,6 @@ class UserFormBloc extends Bloc<UserFormEvent, UserFormState> {
     on<QuestionFieldChangedEvent>(_onQuestionChanged);
     on<AnswerFieldChangedEvent>(_onAnswerChanged);
     on<FormButtonPressedEvent>(_onButtonPressed);
-    on<FormSubmittedEvent>(_onFormSubmitted);
     on<FormResetEvent>(_onFormReset);
   }
   final GlobalKey<FormState> formKey;
@@ -140,14 +139,6 @@ class UserFormBloc extends Bloc<UserFormEvent, UserFormState> {
           ));
         }
       }
-    } catch (e) {
-      emit(state.copyWith(status: FormStatus.error));
-    }
-  }
-
-  Future<void> _onFormSubmitted(FormSubmittedEvent event, Emitter emit) async {
-    try {
-      emit(state.copyWith(status: FormStatus.submitted));
     } catch (e) {
       emit(state.copyWith(status: FormStatus.error));
     }

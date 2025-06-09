@@ -145,7 +145,7 @@ class _UserLogDataTableState extends State<UserLogDataTable> {
                   DataColumn(label: Text('Action')),
                 ],
                 rows: [
-                  for (final log in allLogs)
+                  for (final log in allLogs.reversed)
                     if (findUserById(log.userId) case final user?)
                       DataRowMapper.mapUserLogToRow(log, user),
                 ],

@@ -1,6 +1,7 @@
 import 'package:bloc/bloc.dart';
 import 'package:easthardware_pms/domain/models/product.dart';
 import 'package:easthardware_pms/presentation/models/form_product.dart';
+import 'package:easthardware_pms/utils/undefined.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter/widgets.dart';
 
@@ -8,8 +9,6 @@ part 'order_form_event.dart';
 part 'order_form_state.dart';
 
 class OrderFormBloc extends Bloc<OrderFormEvent, OrderFormState> {
-  final GlobalKey<FormState> formKey;
-
   OrderFormBloc()
       : formKey = GlobalKey<FormState>(),
         super(OrderFormState()) {
@@ -27,33 +26,29 @@ class OrderFormBloc extends Bloc<OrderFormEvent, OrderFormState> {
     on<FormButtonPressedEvent>(_onFormButtonPressed);
   }
 
-  void _onPayeeNameChanged(
-      PayeeNameChangedEvent event, Emitter<OrderFormState> emit) {
+  final GlobalKey<FormState> formKey;
+
+  void _onPayeeNameChanged(PayeeNameChangedEvent event, Emitter<OrderFormState> emit) {
     emit(state.copyWith(payeeName: event.payeeName));
   }
 
-  void _onOrderDateChanged(
-      OrderDateChangedEvent event, Emitter<OrderFormState> emit) {
+  void _onOrderDateChanged(OrderDateChangedEvent event, Emitter<OrderFormState> emit) {
     emit(state.copyWith(orderDate: event.orderDate));
   }
 
-  void _onExpenseTypeChanged(
-      ExpenseTypeChangedEvent event, Emitter<OrderFormState> emit) {
+  void _onExpenseTypeChanged(ExpenseTypeChangedEvent event, Emitter<OrderFormState> emit) {
     emit(state.copyWith(expenseType: event.expenseType));
   }
 
-  void _onPaymentMethodChanged(
-      PaymentMethodChangedEvent event, Emitter<OrderFormState> emit) {
+  void _onPaymentMethodChanged(PaymentMethodChangedEvent event, Emitter<OrderFormState> emit) {
     emit(state.copyWith(paymentMethod: event.paymentMethod));
   }
 
-  void _onReferenceNumberChanged(
-      ReferenceNumberChangedEvent event, Emitter<OrderFormState> emit) {
+  void _onReferenceNumberChanged(ReferenceNumberChangedEvent event, Emitter<OrderFormState> emit) {
     emit(state.copyWith(referenceNumber: event.referenceNumber));
   }
 
-  void _onPaymentDateChanged(
-      PaymentDateChangedEvent event, Emitter<OrderFormState> emit) {
+  void _onPaymentDateChanged(PaymentDateChangedEvent event, Emitter<OrderFormState> emit) {
     emit(state.copyWith(paymentDate: event.paymentDate));
   }
 
@@ -62,20 +57,16 @@ class OrderFormBloc extends Bloc<OrderFormEvent, OrderFormState> {
   }
 
   void _onProductAdded(ProductAddedEvent event, Emitter<OrderFormState> emit) {
-    final updatedProducts = List<FormProduct>.from(state.products)
-      ..add(EmptyFormProduct());
+    final updatedProducts = List<FormProduct>.from(state.products)..add(EmptyFormProduct());
     emit(state.copyWith(products: updatedProducts));
   }
 
-  void _onProductRemoved(
-      ProductRemovedEvent event, Emitter<OrderFormState> emit) {
-    final updatedProducts = List<FormProduct>.from(state.products)
-      ..removeAt(event.index);
+  void _onProductRemoved(ProductRemovedEvent event, Emitter<OrderFormState> emit) {
+    final updatedProducts = List<FormProduct>.from(state.products)..removeAt(event.index);
     emit(state.copyWith(products: updatedProducts));
   }
 
-  void _onProductSelected(
-      ProductSelectedEvent event, Emitter<OrderFormState> emit) {
+  void _onProductSelected(ProductSelectedEvent event, Emitter<OrderFormState> emit) {
     final updatedProducts = List<FormProduct>.from(state.products);
     if (event.index != -1) {
       updatedProducts[event.index] = FormProduct.fromProduct(event.product);
@@ -83,8 +74,7 @@ class OrderFormBloc extends Bloc<OrderFormEvent, OrderFormState> {
     }
   }
 
-  void _onProductUpdated(
-      ProductUpdatedEvent event, Emitter<OrderFormState> emit) {
+  void _onProductUpdated(ProductUpdatedEvent event, Emitter<OrderFormState> emit) {
     final updatedProducts = List<FormProduct>.from(state.products);
     if (event.index != -1) {
       updatedProducts[event.index] = event.product;
@@ -92,8 +82,7 @@ class OrderFormBloc extends Bloc<OrderFormEvent, OrderFormState> {
     }
   }
 
-  void _onFormButtonPressed(
-      FormButtonPressedEvent event, Emitter<OrderFormState> emit) {
+  void _onFormButtonPressed(FormButtonPressedEvent event, Emitter<OrderFormState> emit) {
     // TODO: Handle form submission
   }
 }

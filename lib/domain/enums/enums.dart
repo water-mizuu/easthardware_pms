@@ -5,7 +5,13 @@ enum DiscountType {
 
 enum AccessLevel {
   staff,
-  administrator,
+  administrator;
+
+  @override
+  String toString() => switch (this) {
+        staff => 'Staff',
+        administrator => 'Administrator',
+      };
 }
 
 enum DataStatus {
