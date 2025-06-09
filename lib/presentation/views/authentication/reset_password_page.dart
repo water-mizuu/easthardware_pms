@@ -170,6 +170,7 @@ class _SubmitSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocConsumer<ResetFormBloc, ResetFormState>(
+      listenWhen: (p, c) => p.status != c.status,
       listener: (context, state) {
         if (state.status == ResetFormStatus.success) {
           context.navigateWithExtra(AppRoutes.newPassword, state.username);

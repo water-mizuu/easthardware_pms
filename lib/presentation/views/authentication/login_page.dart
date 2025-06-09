@@ -44,32 +44,39 @@ class _LoginPageState extends State<LoginPage> {
 
           try {
             assert(
-              {AuthenticationStatus.success, AuthenticationStatus.failure}.contains(status),
+              {AuthenticationStatus.success, AuthenticationStatus.failure}
+                  .contains(status),
               "After logging in, the status must be either success or failure.",
             );
             //
 
             if (status == AuthenticationStatus.success) {
               final userId = user!.id;
-              assert(userId != null, "User ID must not be null after successful login.");
+              assert(userId != null,
+                  "User ID must not be null after successful login.");
 
               if (kDebugMode) {
-                printBoxed("User logged in: ${user.username} (ID: $userId)", "User Login");
+                printBoxed(
+                    "User logged in: ${user.username} (ID: $userId) (Attempts: ${authState.loginAttempts})",
+                    "User Login");
               }
 
               /// Logging the login is now handled in a different part of the tree,
               ///   so we don't want to log it here.
               context.read<UserListBloc>().add(UserLoggedInEvent(userId!));
-
               return;
             }
 
             if (status == AuthenticationStatus.failure) {
+              print("Current Login Attempts: ${authState.loginAttempts}");
               if (authState.loginAttempts >= 3) {
-                context.navigateWithExtra(AppRoutes.resetPassword, loginFormBloc.state.username);
+                context.navigateWithExtra(
+                    AppRoutes.resetPassword, loginFormBloc.state.username);
               }
 
-              context.read<LoginFormBloc>().add(LoginFormSubmitFailed(authState.errors));
+              context
+                  .read<LoginFormBloc>()
+                  .add(LoginFormSubmitFailed(authState.errors));
 
               return;
             }
@@ -81,6 +88,7 @@ class _LoginPageState extends State<LoginPage> {
         },
       ),
       BlocListener<AuthenticationBloc, AuthenticationState>(
+        listenWhen: (p, c) => p.status != c.status,
         listener: (context, state) {
           if (state.status == AuthenticationStatus.success) {
             loginFormBloc.add(LoginFormResetEvent());
@@ -89,6 +97,7 @@ class _LoginPageState extends State<LoginPage> {
       ),
       BlocListener<LoginFormBloc, LoginFormState>(
         bloc: loginFormBloc,
+        listenWhen: (p, c) => p.status != c.status,
         listener: (context, state) {
           if (state.status == FormStatus.submitting) {
             final event = AuthenticationLoginEvent(

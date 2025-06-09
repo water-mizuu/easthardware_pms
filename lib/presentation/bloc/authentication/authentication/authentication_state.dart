@@ -22,6 +22,7 @@ class AuthenticationState with EquatableMixin {
     this.status = AuthenticationStatus.unknown,
     this.user,
     this.loginAttempts = 0,
+    this.lastUsername,
     this.errors = const [],
     this.previousUser,
   });
@@ -36,12 +37,14 @@ class AuthenticationState with EquatableMixin {
   final User? previousUser;
 
   final int loginAttempts;
+  final String? lastUsername;
   final List<ErrorMessage> errors;
 
   AuthenticationState Function({
     AuthenticationStatus status,
     User? user,
     int loginAttempts,
+    String? lastUsername,
     List<ErrorMessage> errors,
     User? previousUser,
   }) get copyWith {
@@ -49,6 +52,7 @@ class AuthenticationState with EquatableMixin {
       Object? status = undefined,
       Object? user = undefined,
       Object? loginAttempts = undefined,
+      Object? lastUsername = undefined,
       Object? errors = undefined,
       Object? previousUser = undefined,
     }) {
@@ -56,6 +60,7 @@ class AuthenticationState with EquatableMixin {
         status: status.or(this.status),
         user: user.or(this.user),
         loginAttempts: loginAttempts.or(this.loginAttempts),
+        lastUsername: lastUsername.or(this.lastUsername),
         errors: errors.or(this.errors),
         previousUser: previousUser is User ? previousUser : null,
       );
@@ -63,5 +68,6 @@ class AuthenticationState with EquatableMixin {
   }
 
   @override
-  List<Object?> get props => [status, user, loginAttempts, errors];
+  List<Object?> get props =>
+      [status, user, loginAttempts, lastUsername, errors];
 }
