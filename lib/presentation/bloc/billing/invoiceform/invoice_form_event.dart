@@ -8,48 +8,51 @@ sealed class InvoiceFormEvent extends Equatable {
 }
 
 class CustomerNameChangedEvent extends InvoiceFormEvent {
-  final String customerName;
-
   const CustomerNameChangedEvent(this.customerName);
+  final String customerName;
 
   @override
   List<Object> get props => [customerName];
 }
 
 class InvoiceDateChangedEvent extends InvoiceFormEvent {
-  final DateTime invoiceDate;
-
   const InvoiceDateChangedEvent(this.invoiceDate);
+  final DateTime invoiceDate;
 
   @override
   List<Object> get props => [invoiceDate];
 }
 
 class DueDateChangedEvent extends InvoiceFormEvent {
-  final DateTime dueDate;
-
   const DueDateChangedEvent(this.dueDate);
+  final DateTime dueDate;
 
   @override
   List<Object> get props => [dueDate];
 }
 
 class MemoChangedEvent extends InvoiceFormEvent {
-  final String memo;
-
   const MemoChangedEvent(this.memo);
+  final String memo;
 
   @override
   List<Object> get props => [memo];
 }
 
 class DiscountChangedEvent extends InvoiceFormEvent {
-  final double discount;
-
   const DiscountChangedEvent(this.discount);
+  final double discount;
 
   @override
   List<Object> get props => [discount];
+}
+
+class DiscountTypeChangedEvent extends InvoiceFormEvent {
+  const DiscountTypeChangedEvent(this.discountType);
+  final DiscountType discountType;
+
+  @override
+  List<Object> get props => [discountType];
 }
 
 class ProductAddedEvent extends InvoiceFormEvent {
@@ -60,29 +63,33 @@ class ProductAddedEvent extends InvoiceFormEvent {
 }
 
 class ProductRemovedEvent extends InvoiceFormEvent {
-  final int index;
-
   const ProductRemovedEvent(this.index);
+  final int index;
 
   @override
   List<Object> get props => [index];
 }
 
-class ProductSelectedEvent extends InvoiceFormEvent {
-  final Product product;
-  final int index;
+class ProductsClearedEvent extends InvoiceFormEvent {
+  const ProductsClearedEvent();
 
+  @override
+  List<Object> get props => [];
+}
+
+class ProductSelectedEvent extends InvoiceFormEvent {
   const ProductSelectedEvent(this.product, this.index);
+  final FormProduct product;
+  final int index;
 
   @override
   List<Object> get props => [product];
 }
 
 class ProductUpdatedEvent extends InvoiceFormEvent {
+  const ProductUpdatedEvent(this.product, this.index);
   final FormProduct product;
   final int index;
-
-  const ProductUpdatedEvent(this.product, this.index);
 
   @override
   List<Object> get props => [product];
