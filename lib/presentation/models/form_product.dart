@@ -7,7 +7,7 @@ class FormProduct {
       productId: product.id,
       productName: product.name,
       description: product.description,
-      quantity: 1,
+      quantity: 0,
       unit: product.mainUnit,
       conversionFactor: 1,
       rate: product.salePrice,
@@ -16,7 +16,7 @@ class FormProduct {
     );
   }
   FormProduct({
-    required this.productId,
+    this.productId,
     required this.productName,
     this.description,
     required this.quantity,
@@ -68,7 +68,6 @@ class FormProduct {
 class EmptyFormProduct extends FormProduct {
   EmptyFormProduct()
       : super(
-          productId: 0,
           productName: '',
           quantity: 0,
           unit: '',

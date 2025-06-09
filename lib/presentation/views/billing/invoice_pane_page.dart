@@ -97,8 +97,8 @@ class InvoiceDataTable extends StatelessWidget {
           child: FractionallySizedBox(
             widthFactor: 1,
             child: PaginatedDataTable(
-                headingRowHeight: 36,
-                columnSpacing: 12,
+                dataRowMaxHeight: 36,
+                dataRowMinHeight: 32,
                 columns: const [
                   DataColumn(label: Text('Invoice Date')),
                   DataColumn(label: Text('ID')),

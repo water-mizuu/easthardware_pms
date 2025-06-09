@@ -1,7 +1,7 @@
 import 'package:bloc/bloc.dart';
 import 'package:easthardware_pms/domain/enums/enums.dart';
-import 'package:easthardware_pms/domain/models/product.dart';
 import 'package:easthardware_pms/presentation/models/form_product.dart';
+import 'package:easthardware_pms/utils/boxed.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter/widgets.dart';
 
@@ -21,6 +21,7 @@ class InvoiceFormBloc extends Bloc<InvoiceFormEvent, InvoiceFormState> {
     on<ProductAddedEvent>(_onProductAdded);
     on<ProductSelectedEvent>(_onProductSelected);
     on<ProductRemovedEvent>(_onProductRemoved);
+    on<ProductsClearedEvent>(_onProductsCleared);
     on<ProductUpdatedEvent>(_onProductUpdated);
     on<FormButtonPressedEvent>(_onFormButtonPressed);
   }
@@ -56,13 +57,20 @@ class InvoiceFormBloc extends Bloc<InvoiceFormEvent, InvoiceFormState> {
     emit(state.copyWith(products: updatedProducts));
   }
 
+  void _onProductsCleared(ProductsClearedEvent event, Emitter<InvoiceFormState> emit) {
+    final updatedProducts = <FormProduct>[EmptyFormProduct()];
+    emit(state.copyWith(products: updatedProducts));
+  }
+
   void _onProductSelected(ProductSelectedEvent event, Emitter<InvoiceFormState> emit) {
-    print("Selected: ${event.product}");
     final index = event.index;
-    final selectedProduct = event.product;
     final updatedProducts = List<FormProduct>.from(state.products);
+    printBoxed('Product Selected: ${event.product.productId} at index $index');
     if (index != -1) {
-      updatedProducts[index] = FormProduct.fromProduct(selectedProduct);
+      updatedProducts[index] = event.product.copyWith(
+        quantity: 0,
+        rate: event.product.rate,
+      );
       emit(state.copyWith(products: updatedProducts));
     }
   }

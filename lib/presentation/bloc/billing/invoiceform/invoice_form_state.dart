@@ -1,27 +1,6 @@
 part of 'invoice_form_bloc.dart';
 
 class InvoiceFormState extends Equatable {
-  final int? invoiceId;
-  final String customerName;
-  final DateTime invoiceDate;
-  final DateTime dueDate;
-  final List<FormProduct> products;
-  final String? memo;
-  final double? subtotal;
-  final double? discount;
-  final DiscountType? discountType;
-  final double? amountDue;
-
-  // For Payment
-  final double? amountPaid;
-  final DateTime? paymentDate;
-  final PaymentMethod? paymentMethod;
-  final String? referenceNumber;
-
-  // For Userlog
-  final int? creatorId;
-  final DateTime? creationDate;
-
   InvoiceFormState({
     this.invoiceId,
     this.customerName = '',
@@ -42,6 +21,27 @@ class InvoiceFormState extends Equatable {
   })  : invoiceDate = invoiceDate ?? DateTime.now(),
         products = products ?? [EmptyFormProduct()],
         dueDate = dueDate ?? DateTime.now().add(const Duration(days: 30));
+
+  final int? invoiceId;
+  final String customerName;
+  final DateTime invoiceDate;
+  final DateTime dueDate;
+  final List<FormProduct> products;
+  final String? memo;
+  final double? subtotal;
+  final double? discount;
+  final DiscountType? discountType;
+  final double? amountDue;
+
+  // For Payment
+  final double? amountPaid;
+  final DateTime? paymentDate;
+  final PaymentMethod? paymentMethod;
+  final String? referenceNumber;
+
+  // For Userlog
+  final int? creatorId;
+  final DateTime? creationDate;
 
   InvoiceFormState copyWith({
     int? invoiceId,
