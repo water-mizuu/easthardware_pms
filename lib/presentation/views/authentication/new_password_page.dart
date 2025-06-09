@@ -20,20 +20,18 @@ class _NewPasswordPageState extends State<NewPasswordPage> {
   @override
   void initState() {
     super.initState();
-
     context
         .read<NewPasswordFormBloc>()
-        .add(NewPasswordFormUsernameChanged(widget.username));
+        .add(NewPasswordFormReset(widget.username));
   }
 
   @override
   void didUpdateWidget(NewPasswordPage oldWidget) {
     super.didUpdateWidget(oldWidget);
-
     if (oldWidget.username != widget.username) {
       context
           .read<NewPasswordFormBloc>()
-          .add(NewPasswordFormUsernameChanged(widget.username));
+          .add(NewPasswordFormReset(widget.username));
     }
   }
 
@@ -41,48 +39,58 @@ class _NewPasswordPageState extends State<NewPasswordPage> {
   Widget build(BuildContext context) {
     return ColoredBox(
       color: FluentTheme.of(context).micaBackgroundColor,
-      child: const Center(
-        child: SizedBox(
-          width: 400,
-          height: 300,
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
+      child: const Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Row(
             children: [
-              FormHeader(),
-              NewPasswordInputSection(),
-              ConfirmPasswordInputSection(),
-              SubmitSection(),
+              Spacer(),
+              Expanded(child: _NewPasswordForm()),
+              Spacer(),
             ],
           ),
+        ],
+      ),
+    );
+  }
+}
+
+class _NewPasswordForm extends StatelessWidget {
+  const _NewPasswordForm();
+
+  @override
+  Widget build(BuildContext context) {
+    return ColoredBox(
+      color: Colors.white,
+      child: Padding(
+        padding: AppPadding.a32,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Image.asset("assets/icons/app.png", height: 24.0),
+            const _FormHeader(),
+            const NewPasswordInputSection(),
+            const ConfirmPasswordInputSection(),
+            const SubmitSection(),
+          ].withSpacing(() => Spacing.v16),
         ),
       ),
     );
   }
 }
 
-class FormHeader extends StatelessWidget {
-  const FormHeader({super.key});
+class _FormHeader extends StatelessWidget {
+  const _FormHeader();
 
   @override
   Widget build(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Text(
-          "New Password",
-          style: FluentTheme.of(context).typography.title,
-          textAlign: TextAlign.start,
-        ),
-        Spacing.v8,
-        Text(
-          "Fill in the form below to update your password",
-          style: FluentTheme.of(context).typography.body?.copyWith(
-                color: Colors.grey[170],
-              ),
-          textAlign: TextAlign.start,
-        ),
-        Spacing.v16,
-      ],
+      children: const [
+        HeadingText("New Password", textAlign: TextAlign.start),
+        GrayText("Fill in the form below to update your password",
+            textAlign: TextAlign.start),
+      ].withSpacing(() => Spacing.v8),
     );
   }
 }
@@ -100,25 +108,16 @@ class _NewPasswordInputSectionState extends State<NewPasswordInputSection> {
 
   @override
   Widget build(BuildContext context) {
-    final (_) = context.watch<NewPasswordFormBloc>().state;
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        const Text('New Password'),
-        Spacing.v8,
+        const BodyText('New Password'),
         TextFormBox(
           placeholder: 'Enter new password',
           obscureText: obscureText,
           suffix: IconButton(
-            icon: Icon(
-              obscureText ? Icons.visibility : Icons.visibility_off,
-            ),
-            onPressed: () {
-              setState(() {
-                obscureText = !obscureText;
-              });
-            },
+            icon: Icon(obscureText ? Icons.visibility : Icons.visibility_off),
+            onPressed: () => setState(() => obscureText = !obscureText),
           ),
           onChanged: (value) {
             context
@@ -129,8 +128,7 @@ class _NewPasswordInputSectionState extends State<NewPasswordInputSection> {
         const CaptionText(
           'Password must be at least 8 characters long and contain at least one uppercase letter, one lowercase letter, one number, and one special character.',
         ),
-        Spacing.v16,
-      ],
+      ].withSpacing(() => Spacing.v8),
     );
   }
 }
@@ -154,20 +152,14 @@ class _ConfirmPasswordInputSectionState
         return Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            const Text('Confirm Password'),
-            Spacing.v8,
-            TextBox(
+            const BodyText('Confirm Password'),
+            TextFormBox(
               placeholder: 'Confirm password',
               obscureText: obscureText,
               suffix: IconButton(
-                icon: Icon(
-                  obscureText ? Icons.visibility : Icons.visibility_off,
-                ),
-                onPressed: () {
-                  setState(() {
-                    obscureText = !obscureText;
-                  });
-                },
+                icon:
+                    Icon(obscureText ? Icons.visibility : Icons.visibility_off),
+                onPressed: () => setState(() => obscureText = !obscureText),
               ),
               onChanged: (value) {
                 context
@@ -175,8 +167,7 @@ class _ConfirmPasswordInputSectionState
                     .add(ConfirmPasswordChanged(value.trim()));
               },
             ),
-            Spacing.v16,
-          ],
+          ].withSpacing(() => Spacing.v8),
         );
       },
     );
@@ -192,40 +183,30 @@ class SubmitSection extends StatelessWidget {
       listener: (context, state) {
         if (state.status == FormStatus.success) {
           context.navigate(AppRoutes.login);
-        } else if (state.status == FormStatus.error &&
-            state.errorMessage.isNotEmpty) {
-          // Handle error - show a dialog or snackbar
         }
       },
       child: BlocBuilder<NewPasswordFormBloc, NewPasswordFormState>(
         builder: (context, state) {
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
+          return Row(
             children: [
-              FilledButton(
-                onPressed: state.status == FormStatus.loading || !state.isValid
-                    ? null
-                    : () {
-                        primaryFocus?.unfocus();
-                        context
-                            .read<NewPasswordFormBloc>()
-                            .add(const NewPasswordFormSubmitted());
-                      },
-                child: Padding(
-                  padding: AppPadding.a4,
-                  child: state.status == FormStatus.loading
-                      ? const SizedBox(
-                          height: 16,
-                          width: 16,
-                          child: ProgressRing(),
-                        )
-                      : Text(
-                          "Submit",
-                          style: FluentTheme.of(context)
-                              .typography
-                              .bodyLarge!
-                              .copyWith(color: const Color(0xFFFFFFFF)),
-                        ),
+              Expanded(
+                child: FilledButton(
+                  onPressed:
+                      state.status == FormStatus.loading || !state.isValid
+                          ? null
+                          : () {
+                              primaryFocus?.unfocus();
+                              context
+                                  .read<NewPasswordFormBloc>()
+                                  .add(const NewPasswordFormSubmitted());
+                            },
+                  child: Padding(
+                    padding: AppPadding.a8,
+                    child: state.status == FormStatus.loading
+                        ? const SizedBox(
+                            height: 16, width: 16, child: ProgressRing())
+                        : const ButtonText("Submit"),
+                  ),
                 ),
               ),
             ],

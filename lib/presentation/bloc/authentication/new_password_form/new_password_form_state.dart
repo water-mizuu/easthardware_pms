@@ -18,12 +18,14 @@ class NewPasswordFormState extends Equatable {
   final String errorMessage;
 
   NewPasswordFormState copyWith({
+    String? username,
     String? newPassword,
     String? confirmPassword,
     FormStatus? status,
     String? errorMessage,
   }) {
     return NewPasswordFormState(
+      username: username ?? this.username,
       newPassword: newPassword ?? this.newPassword,
       confirmPassword: confirmPassword ?? this.confirmPassword,
       status: status ?? this.status,
@@ -45,6 +47,7 @@ class NewPasswordFormState extends Equatable {
 
   @override
   List<Object> get props => [
+        username,
         newPassword,
         confirmPassword,
         status,
