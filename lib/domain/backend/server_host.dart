@@ -10,10 +10,13 @@ import 'package:easthardware_pms/domain/backend/microservices/key_microservice.d
 import 'package:easthardware_pms/domain/backend/server_host/landing_isolate.dart';
 import 'package:easthardware_pms/domain/backend/server_host/web_socket_isolate.dart';
 import 'package:easthardware_pms/domain/backend/utils/isolate_indicator.dart';
+import 'package:easthardware_pms/domain/models/user.dart';
 import 'package:easthardware_pms/presentation/bloc/server/server_bloc.dart';
+import 'package:easthardware_pms/presentation/router/app_router.dart';
 import 'package:easthardware_pms/utils/boxed.dart';
 import 'package:easthardware_pms/utils/message_channel.dart';
 import 'package:easthardware_pms/utils/parallelism.dart';
+import 'package:fluent_ui/fluent_ui.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
@@ -58,6 +61,12 @@ Future<(ShelfServer, ShelfServer, Stream<ServerEvent>)> hostShelfServer(int port
 
             channel.send(to: returnName, requested);
             break;
+          case _:
+            if (kDebugMode) {
+              printBoxed("Unknown request: $request", "LANDING2MAIN:main");
+            }
+            channel.send(to: returnName, -1); // Unknown request
+            break;
         }
       }
     },
@@ -90,6 +99,64 @@ Future<(ShelfServer, ShelfServer, Stream<ServerEvent>)> hostShelfServer(int port
               );
 
               channel.send(to: returnName, secureConnection);
+              break;
+            case ['userLoggedIn', [final User user]]:
+              channel.send(to: returnName, 0);
+              if (kDebugMode) {
+                printBoxed("User logged in: ${user.toMap()}");
+              }
+              final innerContext = overlayWidgetKey.currentContext;
+
+              // Notify the app that a user has logged in.
+              if (innerContext != null) {
+                displayInfoBar(
+                  innerContext,
+                  builder: (context, close) {
+                    return InfoBar(
+                      title: const Text("User Logged In"),
+                      content: Text("User ${user.username} has logged in."),
+                      action: IconButton(
+                        icon: const Icon(FluentIcons.clear),
+                        onPressed: close,
+                      ),
+                      severity: InfoBarSeverity.success,
+                    );
+                  },
+                );
+              }
+
+              break;
+            case ['userLoggedOut', [final User user]]:
+              channel.send(to: returnName, 0);
+              if (kDebugMode) {
+                printBoxed("User logged out: ${user.toMap()}");
+              }
+              final innerContext = overlayWidgetKey.currentContext;
+
+              // Notify the app that a user has logged out.
+              if (innerContext != null) {
+                displayInfoBar(
+                  innerContext,
+                  builder: (context, close) {
+                    return InfoBar(
+                      title: const Text("User Logged Out"),
+                      content: Text("User ${user.username} has logged out."),
+                      action: IconButton(
+                        icon: const Icon(FluentIcons.clear),
+                        onPressed: close,
+                      ),
+                      severity: InfoBarSeverity.success,
+                    );
+                  },
+                );
+              }
+
+              break;
+            case _:
+              if (kDebugMode) {
+                printBoxed("Unknown request from $returnName: $request", "WS2MAIN:main");
+              }
+              channel.send(to: returnName, -1); // Unknown request
               break;
           }
           break;

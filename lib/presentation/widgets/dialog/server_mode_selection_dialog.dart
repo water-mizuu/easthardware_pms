@@ -33,6 +33,7 @@ class ServerModeSelectionDialog extends StatelessWidget {
   /// Shows the dialog and returns the selected mode
   static Future<DatabaseMode?> show(BuildContext context) {
     return showDialog<DatabaseMode>(
+      useRootNavigator: true,
       context: context,
       dismissWithEsc: false,
       builder: (context) => const ServerModeSelectionDialog(),

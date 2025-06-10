@@ -35,6 +35,10 @@ extension type const MessageChannel._((ListenedReceivePort, NamedSendPort) pair)
     return receivePort.next(uuid);
   }
 
+  ///
+  Future<T> invokeMain<T>(String method, [List<Object?>? arguments]) =>
+      invokeNamed("main", method, arguments);
+
   /// Invokes a method on the channel with the given arguments.
   /// Returns a future which completes with the result of the invocation.
   Future<T> invoke<T>(String method, [List<Object?>? arguments]) =>

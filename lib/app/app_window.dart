@@ -133,6 +133,7 @@ Future<void> _closeServers(BuildContext context) async {
       });
       dialogHasShown = true;
       await showDialog(
+        useRootNavigator: true,
         context: context,
         builder: (context) {
           return ValueListenableBuilder(
@@ -156,20 +157,13 @@ Future<void> _closeServers(BuildContext context) async {
                     if (value)
                       Text(
                         "It's taking a while. You can force close the application.",
-                        style: TextStyle(
-                          color: Colors.red,
-                        ),
+                        style: TextStyle(color: Colors.red),
                       ),
                   ],
                 ),
                 actions: !value
                     ? null
-                    : [
-                        const FilledButton(
-                          onPressed: _exit,
-                          child: Text("End Process"),
-                        ),
-                      ],
+                    : [const FilledButton(onPressed: _exit, child: Text("End Process"))],
               );
             },
           );
@@ -221,9 +215,7 @@ Future<void> _closeServers(BuildContext context) async {
 }
 
 Never _exit() {
-  Timer(const Duration(milliseconds: 100), () {
-    WindowManagerPlus.current.destroy();
-  });
+  Timer(const Duration(milliseconds: 100), () => WindowManagerPlus.current.destroy());
 
   WindowManagerPlus.current.setPreventClose(false);
   WindowManagerPlus.current.close();

@@ -70,7 +70,7 @@ Future<void> spawnWebSocketIsolate((RootIsolateToken, NamedSendPort) payload) as
 
   // Set up the heartbeat timer. This will be used to detect unexpected crashes of the isolate.
   await _sharedPreferencesAsync.setInt("heartbeat", DateTime.now().millisecondsSinceEpoch);
-  _heartbeatTimer = Timer.periodic(2.seconds, (timer) async {
+  _heartbeatTimer = Timer.periodic(30.seconds, (timer) async {
     await _sharedPreferencesAsync.setInt("heartbeat", DateTime.now().millisecondsSinceEpoch);
   });
 
@@ -316,13 +316,13 @@ void _notifyEveryoneAboutDatabaseChange({
 
 /// This method hooks onto the database update that signifies that the user has logged in.
 /// We need to ensure that this matches the signature of the update method in the database helper.
-void _hookOntoUpdate(
+Future<void> _hookOntoUpdate(
   List<Object?> arguments, [
   (WebSocketChannel, MessageChannel)? clientChannel,
-]) {
-  late final index = _clientChannels //
-      .indexWhere((c) => c.$1 == clientChannel?.$1 && c.$2 == clientChannel?.$2);
+]) async {
+  late final index = _clientChannels.indexWhere((c) => (c.$1, c.$2) == clientChannel);
 
+  /// MANUAL LOGIN.
   if (arguments
       case [
         "users",
@@ -331,11 +331,20 @@ void _hookOntoUpdate(
       ]) {
     if (clientChannel case (final webSocketChannel, final messageChannel) when index >= 0) {
       _clientChannels[index] = (webSocketChannel, messageChannel, userId);
+
       if (kDebugMode) {
         print("User with ID $userId logged in from an existing client.");
       }
+
+      final db = await getWebSocketDatabaseHelper(_savedHeartbeat);
+      final usersDao = UsersDao(db);
+      final user = await usersDao.getUserById(userId);
+
+      mainChannel.invokeMain("userLoggedIn", [user]);
     } else {
+      /// We assume that the user logged in from the server.
       _userId = userId;
+
       if (kDebugMode) {
         print("User with ID $userId logged in from a new client.");
       }
@@ -352,12 +361,17 @@ void _hookOntoUpdate(
       ]) {
     if (clientChannel case (final webSocketChannel, final messageChannel) when index >= 0) {
       _clientChannels[index] = (webSocketChannel, messageChannel, null);
+
+      final db = await getWebSocketDatabaseHelper(_savedHeartbeat);
+      final usersDao = UsersDao(db);
+      final user = await usersDao.getUserById(userId);
+
+      mainChannel.invoke("userLoggedOut", [user]);
     } else {
       assert(_userId == userId, "User ID should match the one in the arguments.");
       _userId = null;
     }
 
-    _logoutClientForcefully(userId);
     return;
   }
 }

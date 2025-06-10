@@ -26,250 +26,261 @@ final keys = (searchKey: GlobalKey<NavigatorState>(),);
 
 const initialLocation = AppRoutes.login;
 
-final rootWidgetKey = GlobalKey<NavigatorState>();
+/// This is the global key for the root navigator. This should be used for modals.
+final rootWidgetKey = GlobalKey<NavigatorState>(debugLabel: "Complain the money's hard");
+
+/// This is the global key for the inner navigator, containing the overlay.
+///   This should be used for overlay calls.
+final overlayWidgetKey = GlobalKey<NavigatorState>(debugLabel: "bailey");
 final router = GoRouter(
   initialLocation: initialLocation as String,
   navigatorKey: rootWidgetKey,
   routes: [
     ShellRoute(
-      builder: (_, __, child) => BottomText(child: child),
+      navigatorKey: overlayWidgetKey,
+      builder: (_, __, child) => Overlay.wrap(child: child),
       routes: [
-        TypedGoRoute(
-          route: AppRoutes.login,
-          builder: (context, state) => const LoginPage(),
-        ),
-        TypedGoRoute(
-          route: AppRoutes.resetPassword,
-          builder: (context, state) => ResetPasswordPage(username: state.extra),
-        ),
-        TypedGoRoute(
-          route: AppRoutes.newPassword,
-          builder: (context, state) => NewPasswordPage(username: state.extra),
-        )
-      ],
-    ),
-    StatefulShellRoute.indexedStack(
-      builder: (context, state, shell) => BottomText(child: AdminNavigationScaffold(shell)),
-      branches: [
-        // Admin Dashboard Shell
-        StatefulShellBranch(
-          initialLocation: AppRoutes.admin.dashboard.path,
+        ShellRoute(
+          builder: (_, __, child) => BottomText(child: child),
           routes: [
             TypedGoRoute(
-              route: AppRoutes.admin.dashboard,
-              builder: (context, state) => const Text("Dashboard"),
+              route: AppRoutes.login,
+              builder: (context, state) => const LoginPage(),
+            ),
+            TypedGoRoute(
+              route: AppRoutes.resetPassword,
+              builder: (context, state) => ResetPasswordPage(username: state.extra),
+            ),
+            TypedGoRoute(
+              route: AppRoutes.newPassword,
+              builder: (context, state) => NewPasswordPage(username: state.extra),
             )
           ],
         ),
+        StatefulShellRoute.indexedStack(
+          builder: (context, state, shell) => BottomText(child: AdminNavigationScaffold(shell)),
+          branches: [
+            // Admin Dashboard Shell
+            StatefulShellBranch(
+              initialLocation: AppRoutes.admin.dashboard.path,
+              routes: [
+                TypedGoRoute(
+                  route: AppRoutes.admin.dashboard,
+                  builder: (context, state) => const Text("Dashboard"),
+                )
+              ],
+            ),
 
-        // Search Page Shell
-        StatefulShellBranch(
-          navigatorKey: keys.searchKey,
-          initialLocation: AppRoutes.admin.search.products.path,
-          routes: [
-            StatefulShellRoute.indexedStack(
-              builder: (context, state, shell) => SearchPage(shell),
-              branches: [
-                StatefulShellBranch(
-                  initialLocation: AppRoutes.admin.search.products.path,
-                  routes: [
-                    TypedGoRoute(
-                      route: AppRoutes.admin.search.products,
-                      builder: (context, state) => ProductsBody(),
+            // Search Page Shell
+            StatefulShellBranch(
+              navigatorKey: keys.searchKey,
+              initialLocation: AppRoutes.admin.search.products.path,
+              routes: [
+                StatefulShellRoute.indexedStack(
+                  builder: (context, state, shell) => SearchPage(shell),
+                  branches: [
+                    StatefulShellBranch(
+                      initialLocation: AppRoutes.admin.search.products.path,
+                      routes: [
+                        TypedGoRoute(
+                          route: AppRoutes.admin.search.products,
+                          builder: (context, state) => ProductsBody(),
+                        ),
+                      ],
                     ),
-                  ],
-                ),
-                StatefulShellBranch(
-                  initialLocation: AppRoutes.admin.search.invoices.path,
-                  routes: [
-                    TypedGoRoute(
-                      route: AppRoutes.admin.search.invoices,
-                      builder: (context, state) => InvoicesBody(),
+                    StatefulShellBranch(
+                      initialLocation: AppRoutes.admin.search.invoices.path,
+                      routes: [
+                        TypedGoRoute(
+                          route: AppRoutes.admin.search.invoices,
+                          builder: (context, state) => InvoicesBody(),
+                        ),
+                      ],
                     ),
-                  ],
-                ),
-                StatefulShellBranch(
-                  initialLocation: AppRoutes.admin.search.orders.path,
-                  routes: [
-                    TypedGoRoute(
-                      route: AppRoutes.admin.search.orders,
-                      builder: (context, state) => OrdersBody(),
+                    StatefulShellBranch(
+                      initialLocation: AppRoutes.admin.search.orders.path,
+                      routes: [
+                        TypedGoRoute(
+                          route: AppRoutes.admin.search.orders,
+                          builder: (context, state) => OrdersBody(),
+                        ),
+                      ],
                     ),
                   ],
                 ),
               ],
             ),
-          ],
-        ),
 
-        // Inventory Page Shell
-        StatefulShellBranch(
-          initialLocation: AppRoutes.admin.inventory.path,
-          routes: [
-            TypedGoRoute(
-              route: AppRoutes.admin.inventory,
-              builder: (context, state) => (const InventoryPanePage()),
-            ),
-            TypedGoRoute(
-              route: AppRoutes.admin.createProduct,
+            // Inventory Page Shell
+            StatefulShellBranch(
+              initialLocation: AppRoutes.admin.inventory.path,
+              routes: [
+                TypedGoRoute(
+                  route: AppRoutes.admin.inventory,
+                  builder: (context, state) => (const InventoryPanePage()),
+                ),
+                TypedGoRoute(
+                  route: AppRoutes.admin.createProduct,
 
-              /// The [MaterialPage] is used for the transition animation.
-              /// Should be removed if decided not to use the transition.
-              builder: (context, state) => (const CreateProductPage()),
+                  /// The [MaterialPage] is used for the transition animation.
+                  /// Should be removed if decided not to use the transition.
+                  builder: (context, state) => (const CreateProductPage()),
+                ),
+                TypedGoRoute(
+                  route: AppRoutes.admin.editProduct,
+                  builder: (context, state) => EditProductPage(product: state.extra),
+                ),
+                TypedGoRoute(
+                  route: AppRoutes.admin.categories,
+                  builder: (context, state) => (const ManageCategoriesPage()),
+                ),
+              ],
             ),
-            TypedGoRoute(
-              route: AppRoutes.admin.editProduct,
-              builder: (context, state) => EditProductPage(product: state.extra),
+            // Billing Shell
+            StatefulShellBranch(
+              initialLocation: AppRoutes.admin.billing.path,
+              routes: [
+                TypedGoRoute(
+                  route: AppRoutes.admin.billing,
+                  builder: (context, state) => const InvoicePanePage(),
+                ),
+                TypedGoRoute(
+                  route: AppRoutes.admin.createInvoice,
+                  builder: (context, state) => const CreateInvoicePage(),
+                ),
+              ],
             ),
-            TypedGoRoute(
-              route: AppRoutes.admin.categories,
-              builder: (context, state) => (const ManageCategoriesPage()),
+            // Order Shell
+            StatefulShellBranch(
+              initialLocation: AppRoutes.admin.order.path,
+              routes: [
+                TypedGoRoute(
+                  route: AppRoutes.admin.order,
+                  builder: (context, state) => const OrderPanePage(),
+                ),
+                TypedGoRoute(
+                  route: AppRoutes.admin.createOrder,
+                  builder: (context, state) => const CreateOrderPage(),
+                ),
+              ],
             ),
-          ],
-        ),
-        // Billing Shell
-        StatefulShellBranch(
-          initialLocation: AppRoutes.admin.billing.path,
-          routes: [
-            TypedGoRoute(
-              route: AppRoutes.admin.billing,
-              builder: (context, state) => const InvoicePanePage(),
-            ),
-            TypedGoRoute(
-              route: AppRoutes.admin.createInvoice,
-              builder: (context, state) => const CreateInvoicePage(),
-            ),
-          ],
-        ),
-        // Order Shell
-        StatefulShellBranch(
-          initialLocation: AppRoutes.admin.order.path,
-          routes: [
-            TypedGoRoute(
-              route: AppRoutes.admin.order,
-              builder: (context, state) => const OrderPanePage(),
-            ),
-            TypedGoRoute(
-              route: AppRoutes.admin.createOrder,
-              builder: (context, state) => const CreateOrderPage(),
-            ),
-          ],
-        ),
-        StatefulShellBranch(
-          initialLocation: AppRoutes.admin.users.path,
-          routes: [
-            TypedGoRoute(
-              route: AppRoutes.admin.users,
-              builder: (context, state) => const UsersPanePage(),
-            ),
-            TypedGoRoute(
-              route: AppRoutes.admin.createUser,
-              builder: (context, state) => const CreateUserPage(),
-            ),
-            TypedGoRoute(
-              route: AppRoutes.admin.userLogs,
-              builder: (context, state) => const UserLogPane(),
-            )
-          ],
-        )
-      ],
-    ),
-    StatefulShellRoute.indexedStack(
-      builder: (context, state, shell) => BottomText(child: StaffNavigationScaffold(shell)),
-      branches: [
-        // Staff Dashboard Shell
-        StatefulShellBranch(
-          initialLocation: AppRoutes.staff.dashboard.path,
-          routes: [
-            GoRoute(
-              path: AppRoutes.staff.dashboard.path,
-              builder: (context, state) => const Text("Dashboard"),
+            StatefulShellBranch(
+              initialLocation: AppRoutes.admin.users.path,
+              routes: [
+                TypedGoRoute(
+                  route: AppRoutes.admin.users,
+                  builder: (context, state) => const UsersPanePage(),
+                ),
+                TypedGoRoute(
+                  route: AppRoutes.admin.createUser,
+                  builder: (context, state) => const CreateUserPage(),
+                ),
+                TypedGoRoute(
+                  route: AppRoutes.admin.userLogs,
+                  builder: (context, state) => const UserLogPane(),
+                )
+              ],
             )
           ],
         ),
+        StatefulShellRoute.indexedStack(
+          builder: (context, state, shell) => BottomText(child: StaffNavigationScaffold(shell)),
+          branches: [
+            // Staff Dashboard Shell
+            StatefulShellBranch(
+              initialLocation: AppRoutes.staff.dashboard.path,
+              routes: [
+                GoRoute(
+                  path: AppRoutes.staff.dashboard.path,
+                  builder: (context, state) => const Text("Dashboard"),
+                )
+              ],
+            ),
 
-        // Search Page Shell
-        StatefulShellBranch(
-          navigatorKey: keys.searchKey,
-          initialLocation: AppRoutes.staff.search.products.path,
-          routes: [
-            StatefulShellRoute.indexedStack(
-              builder: (context, state, shell) => SearchPage(shell),
-              branches: [
-                StatefulShellBranch(
-                  initialLocation: AppRoutes.staff.search.products.path,
-                  routes: [
-                    TypedGoRoute(
-                      route: AppRoutes.staff.search.products,
-                      builder: (context, state) => ProductsBody(),
+            // Search Page Shell
+            StatefulShellBranch(
+              navigatorKey: keys.searchKey,
+              initialLocation: AppRoutes.staff.search.products.path,
+              routes: [
+                StatefulShellRoute.indexedStack(
+                  builder: (context, state, shell) => SearchPage(shell),
+                  branches: [
+                    StatefulShellBranch(
+                      initialLocation: AppRoutes.staff.search.products.path,
+                      routes: [
+                        TypedGoRoute(
+                          route: AppRoutes.staff.search.products,
+                          builder: (context, state) => ProductsBody(),
+                        ),
+                      ],
                     ),
-                  ],
-                ),
-                StatefulShellBranch(
-                  initialLocation: AppRoutes.staff.search.invoices.path,
-                  routes: [
-                    TypedGoRoute(
-                      route: AppRoutes.staff.search.invoices,
-                      builder: (context, state) => InvoicesBody(),
+                    StatefulShellBranch(
+                      initialLocation: AppRoutes.staff.search.invoices.path,
+                      routes: [
+                        TypedGoRoute(
+                          route: AppRoutes.staff.search.invoices,
+                          builder: (context, state) => InvoicesBody(),
+                        ),
+                      ],
                     ),
-                  ],
-                ),
-                StatefulShellBranch(
-                  initialLocation: AppRoutes.staff.search.orders.path,
-                  routes: [
-                    TypedGoRoute(
-                      route: AppRoutes.staff.search.orders,
-                      builder: (context, state) => OrdersBody(),
+                    StatefulShellBranch(
+                      initialLocation: AppRoutes.staff.search.orders.path,
+                      routes: [
+                        TypedGoRoute(
+                          route: AppRoutes.staff.search.orders,
+                          builder: (context, state) => OrdersBody(),
+                        ),
+                      ],
                     ),
                   ],
                 ),
               ],
             ),
-          ],
-        ),
 
-        // Inventory Page Shell
-        StatefulShellBranch(
-          initialLocation: AppRoutes.staff.inventory.path,
-          routes: [
-            TypedGoRoute(
-              route: AppRoutes.staff.inventory,
-              builder: (context, state) => (const InventoryPanePage()),
+            // Inventory Page Shell
+            StatefulShellBranch(
+              initialLocation: AppRoutes.staff.inventory.path,
+              routes: [
+                TypedGoRoute(
+                  route: AppRoutes.staff.inventory,
+                  builder: (context, state) => (const InventoryPanePage()),
+                ),
+              ],
             ),
-          ],
-        ),
 
-        // Invoice Shell
-        StatefulShellBranch(
-          initialLocation: AppRoutes.staff.createInvoice.path,
-          routes: [
-            TypedGoRoute(
-              route: AppRoutes.staff.createInvoice,
-              builder: (context, state) => const CreateInvoicePage(),
+            // Invoice Shell
+            StatefulShellBranch(
+              initialLocation: AppRoutes.staff.createInvoice.path,
+              routes: [
+                TypedGoRoute(
+                  route: AppRoutes.staff.createInvoice,
+                  builder: (context, state) => const CreateInvoicePage(),
+                ),
+                TypedGoRoute(
+                  route: AppRoutes.staff.payInvoice,
+                  builder: (context, state) => const InvoicePanePage(),
+                ),
+              ],
             ),
-            TypedGoRoute(
-              route: AppRoutes.staff.payInvoice,
-              builder: (context, state) => const InvoicePanePage(),
-            ),
-          ],
-        ),
 
-        StatefulShellBranch(
-          initialLocation: AppRoutes.staff.help.path,
-          routes: [
-            TypedGoRoute(
-              route: AppRoutes.staff.help,
-              builder: (context, state) => const Text("Help Page"),
+            StatefulShellBranch(
+              initialLocation: AppRoutes.staff.help.path,
+              routes: [
+                TypedGoRoute(
+                  route: AppRoutes.staff.help,
+                  builder: (context, state) => const Text("Help Page"),
+                ),
+              ],
             ),
-          ],
-        ),
 
-        StatefulShellBranch(
-          initialLocation: AppRoutes.staff.about.path,
-          routes: [
-            TypedGoRoute(
-              route: AppRoutes.staff.about,
-              builder: (context, state) => const Text("About Page"),
+            StatefulShellBranch(
+              initialLocation: AppRoutes.staff.about.path,
+              routes: [
+                TypedGoRoute(
+                  route: AppRoutes.staff.about,
+                  builder: (context, state) => const Text("About Page"),
+                ),
+              ],
             ),
           ],
         ),

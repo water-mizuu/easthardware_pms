@@ -14,6 +14,7 @@ Future<void> showSingleDialog(
 
   _isDialogShowing = true;
   await showDialog<void>(
+    useRootNavigator: true,
     context: context,
     barrierDismissible: barrierDismissible,
     dismissWithEsc: dismissWithEsc,
