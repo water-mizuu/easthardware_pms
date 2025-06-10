@@ -11,20 +11,25 @@ import 'package:easthardware_pms/domain/backend/server_database.dart';
 import 'package:easthardware_pms/domain/backend/utils/isolate_indicator.dart';
 import 'package:easthardware_pms/domain/models/user_log.dart';
 import 'package:easthardware_pms/utils/boxed.dart';
+import 'package:easthardware_pms/utils/duration.dart';
 import 'package:easthardware_pms/utils/message_channel.dart';
 import 'package:easthardware_pms/utils/parallelism.dart';
 import 'package:easthardware_pms/utils/try_future.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:network_info_plus/network_info_plus.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:shelf/shelf.dart';
 import "package:shelf/shelf_io.dart" as shelf_io;
 import 'package:shelf_web_socket/shelf_web_socket.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 
+late final SharedPreferencesAsync _sharedPreferencesAsync;
+late final int? _savedHeartbeat;
 late int? _userId;
 late MessageChannel mainChannel;
 late List<(WebSocketChannel, MessageChannel, int? userId)> _clientChannels;
+late Timer _heartbeatTimer;
 late AsyncQueue _handleConnectionQueue;
 
 /// Spawns an isolate to handle database operations and WebSocket connections.
@@ -38,6 +43,12 @@ Future<void> spawnWebSocketIsolate((RootIsolateToken, NamedSendPort) payload) as
 
   // Ensure messenger to allow communication.
   BackgroundIsolateBinaryMessenger.ensureInitialized(token);
+  _sharedPreferencesAsync = SharedPreferencesAsync();
+
+  _savedHeartbeat = await _sharedPreferencesAsync.getInt("heartbeat");
+  if (kDebugMode) {
+    printBoxed("Saved heartbeat: $_savedHeartbeat", "Spawn WebSocket Isolate");
+  }
 
   _clientChannels = <(WebSocketChannel, MessageChannel, int?)>[];
   _handleConnectionQueue = AsyncQueue.autoStart();
@@ -57,6 +68,12 @@ Future<void> spawnWebSocketIsolate((RootIsolateToken, NamedSendPort) payload) as
     sendPort.send("setup", 0);
   }
 
+  // Set up the heartbeat timer. This will be used to detect unexpected crashes of the isolate.
+  await _sharedPreferencesAsync.setInt("heartbeat", DateTime.now().millisecondsSinceEpoch);
+  _heartbeatTimer = Timer.periodic(2.seconds, (timer) async {
+    await _sharedPreferencesAsync.setInt("heartbeat", DateTime.now().millisecondsSinceEpoch);
+  });
+
   // Send the server port back to the main isolate.
   //  The main isolate compares the port to the one provided.
   sendPort.send("setup", server!.port);
@@ -66,6 +83,10 @@ Future<void> spawnWebSocketIsolate((RootIsolateToken, NamedSendPort) payload) as
   Future<void> closeIsolate(String name) async {
     // Close the shelf server
     await server.close(force: true);
+
+    // Close the heartbeat timer, invalidate the heartbeat.
+    _heartbeatTimer.cancel();
+    await SharedPreferencesAsync().remove("heartbeat");
 
     // Close all WebSocket connections
     for (final (webSocket, messageChannel, userId) in _clientChannels.toList()) {
@@ -115,7 +136,7 @@ Future<void> spawnWebSocketIsolate((RootIsolateToken, NamedSendPort) payload) as
           break;
         case ["db", [final String method, final List<Object?> arguments]]:
           // Handle each db method call.
-          final output = await serverHandleDatabaseMethod(method, arguments);
+          final output = await serverHandleDatabaseMethod(method, arguments, _savedHeartbeat);
           final (result, hasChanged) = output.record;
 
           // Send the result back to the client.
@@ -216,7 +237,8 @@ Future<void> _handleConnection(
     switch (message) {
       case ["db", [final String method, final List<Object?> arguments]]:
         // Handle each db method call.
-        final output = await serverHandleDatabaseMethod(method, arguments);
+
+        final output = await serverHandleDatabaseMethod(method, arguments, _savedHeartbeat);
         final (result, hasChanged) = output.record;
 
         // Send the result back to the client.
@@ -354,7 +376,7 @@ Future<SecureConnection> _requestConnection(int sessionKey) async {
 Future<void> _logoutClientForcefully(int userId) async {
   assertChildIsolate();
 
-  final dbHelper = await getWebSocketDatabaseHelper();
+  final dbHelper = await getWebSocketDatabaseHelper(_savedHeartbeat);
 
   {
     /// We want to set the user as inactive in the database.

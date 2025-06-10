@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:async_queue/async_queue.dart';
+import 'package:easthardware_pms/data/database/dao/user_logs_dao.dart';
 import 'package:easthardware_pms/data/database/database_helper.dart';
 import 'package:easthardware_pms/data/database/tables/categories_table.dart';
 import 'package:easthardware_pms/data/database/tables/expense_types_table.dart';
@@ -18,6 +19,8 @@ import 'package:easthardware_pms/data/database/tables/user_logs_table.dart';
 import 'package:easthardware_pms/data/database/tables/users_table.dart';
 import 'package:easthardware_pms/data/database/views/product_flags_view.dart';
 import 'package:easthardware_pms/domain/backend/utils/isolate_indicator.dart';
+import 'package:easthardware_pms/domain/models/user.dart';
+import 'package:easthardware_pms/domain/models/user_log.dart';
 import 'package:easthardware_pms/domain/services/cryptography_service.dart';
 import 'package:easthardware_pms/utils/boxed.dart';
 import 'package:flutter/foundation.dart';
@@ -26,9 +29,9 @@ import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 final AsyncQueue _dbMethodQueue = AsyncQueue.autoStart();
 
-Future<DatabaseHelper> getWebSocketDatabaseHelper() async {
+Future<DatabaseHelper> getWebSocketDatabaseHelper(int? savedHeartbeat) async {
   assertChildIsolate();
-  final database = await _getDatabase();
+  final database = await _getDatabase(savedHeartbeat);
 
   return DirectDatabaseHelper(database);
 }
@@ -38,13 +41,14 @@ Future<DatabaseHelper> getWebSocketDatabaseHelper() async {
 Future<DatabaseMethodResult> serverHandleDatabaseMethod(
   String method,
   List<Object?> arguments,
+  int? savedHeartbeat,
 ) async {
   // Create a database instance or use an existing one
   assertChildIsolate();
   final start = DateTime.now();
   final completer = Completer<DatabaseMethodResult>.sync();
   _dbMethodQueue.addJob((_) async {
-    final isolateDatabase = await _getDatabase();
+    final isolateDatabase = await _getDatabase(savedHeartbeat);
     final waitingDuration = DateTime.now().difference(start);
 
     DatabaseMethodResult? jobResult;
@@ -292,7 +296,7 @@ Database? _databaseInstance;
 
 /// The creation of the database instance is here.
 ///   It is created after a server isolate is spawned.
-Future<Database> _getDatabase() async {
+Future<Database> _getDatabase(int? savedHeartbeat) async {
   assertChildIsolate();
   if (_databaseInstance == null) {
     // Initialize the database - this would typically be your actual database initialization
@@ -393,11 +397,47 @@ Future<Database> _getDatabase() async {
       },
       onOpen: (db) async {
         /// Regardless of the database version, we reset the login status for all users.
-        await db.update(
+
+        if (kDebugMode) {
+          printBoxed(
+            "Database opened with saved heartbeat: $savedHeartbeat\n${StackTrace.current}",
+            "Database Open",
+          );
+        }
+
+        if (savedHeartbeat == null) {
+          // Reset the login status for the user
+          await db.update(
+            UsersTable.USERS_TABLE_NAME,
+            {UsersTable.USERS_LOGIN_STATUS: 0}, // Reset login status
+            where: '${UsersTable.USERS_LOGIN_STATUS} = ?',
+            whereArgs: [1],
+          );
+
+          return;
+        }
+
+        final loggedInUsers = await db.query(
           UsersTable.USERS_TABLE_NAME,
-          {UsersTable.USERS_LOGIN_STATUS: 0}, // Reset login status for all users
           where: '${UsersTable.USERS_LOGIN_STATUS} = ?',
           whereArgs: [1], // Assuming 1 is the logged-in status
+        );
+        if (loggedInUsers.isEmpty) return;
+
+        final databaseHelper = DirectDatabaseHelper(db);
+        final userLogsDao = UserLogsDao(databaseHelper);
+        final lastHeartbeat = DateTime.fromMillisecondsSinceEpoch(savedHeartbeat);
+        for (final userMap in loggedInUsers) {
+          await userLogsDao.insertUserLog(
+            UserLog.logout(user: User.fromMap(userMap), eventTime: lastHeartbeat),
+          );
+        }
+
+        await db.update(
+          UsersTable.USERS_TABLE_NAME,
+          {UsersTable.USERS_LOGIN_STATUS: 0}, // Reset login status
+          where: '${UsersTable.USERS_LOGIN_STATUS} = ?',
+          whereArgs: [1],
         );
       },
     );
