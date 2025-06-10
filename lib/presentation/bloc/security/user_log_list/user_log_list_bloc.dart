@@ -33,7 +33,7 @@ class UserLogListBloc extends Bloc<UserLogListEvent, UserLogListState> {
       if (kDebugMode) {
         print("BLoC Error loading user logs: $e");
       }
-      emit(state.copyWith(status: DataStatus.error));
+      emit(state.copyWith(status: DataStatus.error, errorMessage: e.toString()));
     }
   }
 
@@ -48,7 +48,7 @@ class UserLogListBloc extends Bloc<UserLogListEvent, UserLogListState> {
       if (kDebugMode) {
         print("BLoC Error inserting user log: $e");
       }
-      emit(state.copyWith(status: DataStatus.error));
+      emit(state.copyWith(status: DataStatus.error, errorMessage: e.toString()));
     }
   }
 
@@ -63,7 +63,7 @@ class UserLogListBloc extends Bloc<UserLogListEvent, UserLogListState> {
       if (kDebugMode) {
         print("BLoC Error inserting user log: $e");
       }
-      emit(state.copyWith(status: DataStatus.error));
+      emit(state.copyWith(status: DataStatus.error, errorMessage: e.toString()));
     }
   }
 
@@ -78,7 +78,7 @@ class UserLogListBloc extends Bloc<UserLogListEvent, UserLogListState> {
       if (kDebugMode) {
         print("BLoC Error inserting user log: $e");
       }
-      emit(state.copyWith(status: DataStatus.error));
+      emit(state.copyWith(status: DataStatus.error, errorMessage: e.toString()));
     }
   }
 
@@ -93,7 +93,7 @@ class UserLogListBloc extends Bloc<UserLogListEvent, UserLogListState> {
       if (kDebugMode) {
         print("BLoC Error inserting user log: $e");
       }
-      emit(state.copyWith(status: DataStatus.error));
+      emit(state.copyWith(status: DataStatus.error, errorMessage: e.toString()));
     }
   }
 
@@ -113,7 +113,7 @@ class UserLogListBloc extends Bloc<UserLogListEvent, UserLogListState> {
       if (kDebugMode) {
         print("BLoC Error updating user log: $e");
       }
-      emit(state.copyWith(status: DataStatus.error));
+      emit(state.copyWith(status: DataStatus.error, errorMessage: e.toString()));
     }
   }
 
@@ -129,7 +129,7 @@ class UserLogListBloc extends Bloc<UserLogListEvent, UserLogListState> {
       if (kDebugMode) {
         print("BLoC Error deleting user log: $e");
       }
-      emit(state.copyWith(status: DataStatus.error));
+      emit(state.copyWith(status: DataStatus.error, errorMessage: e.toString()));
     }
   }
 
@@ -142,7 +142,7 @@ class UserLogListBloc extends Bloc<UserLogListEvent, UserLogListState> {
       if (kDebugMode) {
         print("BLoC Error filtering user log: $e");
       }
-      emit(state.copyWith(status: DataStatus.error));
+      emit(state.copyWith(status: DataStatus.error, errorMessage: e.toString()));
     }
   }
 
@@ -157,7 +157,7 @@ class UserLogListBloc extends Bloc<UserLogListEvent, UserLogListState> {
       if (kDebugMode) {
         print("BLoC Error inserting user log: $e");
       }
-      emit(state.copyWith(status: DataStatus.error));
+      emit(state.copyWith(status: DataStatus.error, errorMessage: e.toString()));
     }
   }
 }

@@ -230,7 +230,8 @@ class ProductFormBloc extends Bloc<ProductFormEvent, ProductFormState> {
       if (kDebugMode) {
         printBoxed(e.toString().wrap, 'ProductFormBloc: Error on Button Pressed');
       }
-      emit(state.copyWith(formStatus: FormStatus.error));
+
+      emit(state.copyWith(formStatus: FormStatus.error, errorMessage: e.toString()));
     }
   }
 
@@ -267,7 +268,7 @@ class ProductFormBloc extends Bloc<ProductFormEvent, ProductFormState> {
       if (kDebugMode) {
         printBoxed(e.toString().wrap, 'ProductFormBloc: Error on Product Loaded');
       }
-      emit(state.copyWith(formStatus: FormStatus.error));
+      emit(state.copyWith(formStatus: FormStatus.error, errorMessage: e.toString()));
     }
   }
 }

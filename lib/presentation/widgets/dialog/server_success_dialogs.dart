@@ -56,7 +56,6 @@ class ClientConnectionSuccessDialog extends StatelessWidget {
     required VoidCallback onConfirm,
   }) {
     return showSingleDialog(
-      context,
       (context) => ClientConnectionSuccessDialog(
         onCancel: onCancel,
         onConfirm: onConfirm,
@@ -140,14 +139,12 @@ class ServerStartedSuccessDialog extends StatelessWidget {
 
   /// Shows the server started success dialog
   static Future<void> show({
-    required BuildContext context,
     required String serverIp,
     required int port,
     required VoidCallback onGoBack,
     required VoidCallback onConfirm,
   }) {
     return showSingleDialog(
-      context,
       (context) => ServerStartedSuccessDialog(
         serverIp: serverIp,
         port: port,

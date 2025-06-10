@@ -70,7 +70,7 @@ mixin CommonSidePanelMixin on NavigationPanelMixin {
         title: 'Log Out',
         color: Colors.red,
         onTap: () async {
-          final userConfirmedLogout = await LogOutDialog.show(context);
+          final userConfirmedLogout = await LogOutDialog.show();
           if (!context.mounted) return;
           if (userConfirmedLogout) {
             context.read<AuthenticationBloc>().add(const AuthenticationLogoutEvent());

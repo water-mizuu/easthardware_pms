@@ -38,13 +38,11 @@ class ApplicationCloseDialog extends StatelessWidget {
     );
   }
 
-  static Future<void> show(
-    BuildContext context, {
+  static Future<void> show({
     required VoidCallback? onSuccess,
     required VoidCallback? onCancel,
   }) async {
     await showSingleDialog(
-      context,
       (context) => ApplicationCloseDialog(onSuccess: onSuccess, onCancel: onCancel),
     );
   }

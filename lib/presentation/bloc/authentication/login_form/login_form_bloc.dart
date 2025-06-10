@@ -2,7 +2,9 @@ import 'dart:async';
 
 import 'package:easthardware_pms/domain/enums/enums.dart';
 import 'package:easthardware_pms/presentation/bloc/authentication/authentication/authentication_bloc.dart';
+import 'package:easthardware_pms/utils/duration.dart';
 import 'package:easthardware_pms/utils/undefined.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -19,8 +21,18 @@ class LoginFormBloc extends Bloc<LoginFormEvent, LoginFormState> {
     on<LoginFormReturned>(_onFormReturned);
     on<LoginFormResetEvent>(_onReset);
     on<LoginFormSubmitFailed>(_onSubmitFailed);
+    on<LoginFormClearErrors>(_onClearErrors);
   }
   final GlobalKey<FormState> formKey;
+
+  @override
+  void onEvent(LoginFormEvent event) {
+    super.onEvent(event);
+
+    if (kDebugMode) {
+      print('LoginFormBloc: Event received: ${event.runtimeType}');
+    }
+  }
 
   void _onUsernameChanged(LoginFormUsernameChanged event, Emitter emit) {
     final username = event.username;
@@ -32,10 +44,12 @@ class LoginFormBloc extends Bloc<LoginFormEvent, LoginFormState> {
     return emit(state.copyWith(password: password, passwordError: null));
   }
 
-  void _onButtonPressed(LoginFormButtonPressed event, Emitter emit) {
+  Future<void> _onButtonPressed(LoginFormButtonPressed event, Emitter emit) async {
     emit(state.copyWith(status: FormStatus.validating));
 
+    assert(formKey.currentState != null, 'Form key must be initialized before validation.');
     if (formKey.currentState case final FormState formState when formState.validate()) {
+      await Future.delayed(1.seconds);
       emit(state.copyWith(status: FormStatus.submitting));
     } else {
       emit(state.copyWith(status: FormStatus.error));
@@ -60,6 +74,13 @@ class LoginFormBloc extends Bloc<LoginFormEvent, LoginFormState> {
           .where((error) => error.target == FormElement.password)
           .firstOrNull
           ?.message,
+    ));
+  }
+
+  Future<void> _onClearErrors(LoginFormClearErrors event, Emitter<LoginFormState> emit) async {
+    emit(state.copyWith(
+      usernameError: null,
+      passwordError: null,
     ));
   }
 }

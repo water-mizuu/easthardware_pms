@@ -5,26 +5,31 @@ class UnitListState {
     required this.status,
     required this.units,
     this.filteredUnits,
+    this.errorMessage,
   });
 
   final DataStatus status;
   final List<Unit> units;
   final List<Unit>? filteredUnits;
+  final String? errorMessage;
 
   UnitListState Function({
     DataStatus status,
     List<Unit> units,
     List<Unit>? filteredUnits,
+    String? errorMessage,
   }) get copyWith {
     return ({
       Object? status = undefined,
       Object? units = undefined,
       Object? filteredUnits = undefined,
+      Object? errorMessage = undefined,
     }) {
       return UnitListState(
         status: status.or(this.status),
         units: units.or(this.units),
         filteredUnits: filteredUnits.or(this.filteredUnits),
+        errorMessage: errorMessage.or(this.errorMessage),
       );
     };
   }

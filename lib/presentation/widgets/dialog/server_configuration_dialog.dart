@@ -23,13 +23,11 @@ class ServerConfigurationDialog extends StatefulWidget {
   State<ServerConfigurationDialog> createState() => _ServerConfigurationDialogState();
 
   static Future<void> show({
-    required BuildContext context,
     required Future<ServerTriple> Function(int port) onStartServer,
     required VoidCallback onCancel,
     required OnSuccess onSuccess,
   }) {
     return showSingleDialog(
-      context,
       (context) => ServerConfigurationDialog(
         onStartServer: onStartServer,
         onCancel: onCancel,

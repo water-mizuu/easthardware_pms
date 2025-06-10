@@ -12,8 +12,11 @@ import 'package:easthardware_pms/presentation/views/inventory/product_informatio
 import 'package:easthardware_pms/presentation/widgets/layout/spacing.dart';
 import 'package:easthardware_pms/presentation/widgets/text.dart';
 import 'package:easthardware_pms/presentation/widgets/ui/text_button.dart';
+import 'package:easthardware_pms/utils/boxed.dart';
+import 'package:easthardware_pms/utils/notification.dart';
 import 'package:easthardware_pms/utils/typed_routes.dart';
 import 'package:fluent_ui/fluent_ui.dart';
+import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:provider/provider.dart';
 
@@ -28,7 +31,7 @@ class CreateProductPage extends StatelessWidget {
       (category) => category.name == formCategory,
       orElse: () {
         /// If no match found, create a new category.
-        final newCategory = Category(name: formCategory, id: stateCategories.length + 1);
+        final newCategory = Category(name: formCategory, id: stateCategories.length);
         context.read<CategoryListBloc>().add(AddCategoryEvent(newCategory));
 
         return newCategory;
@@ -71,33 +74,97 @@ class CreateProductPage extends StatelessWidget {
     return MultiProvider(
       providers: [BlocProvider(create: (_) => ProductFormBloc())],
       builder: (context, child) {
-        return BlocListener<ProductFormBloc, ProductFormState>(
-          listener: (context, state) {
-            switch (state.formStatus) {
-              case FormStatus.submitting:
-                _handleFormSubmit(context, state);
-                break;
-              case FormStatus.submitted:
+        return MultiBlocListener(
+          listeners: [
+            BlocListener<ProductFormBloc, ProductFormState>(
+              bloc: context.read<ProductFormBloc>(),
+              listenWhen: (p, c) => c.formStatus == FormStatus.error,
+              listener: (context, state) {
+                assert(state.errorMessage != null, "Error message must not be empty.");
 
-                /// Reset the form
-                context.read<ProductFormBloc>().add(FormResetEvent());
+                if (kDebugMode) {
+                  printBoxed(
+                    "Error occurred while submitting the form: "
+                        "${state.errorMessage}\n${StackTrace.current}",
+                    "ProductFormBloc",
+                  );
+                }
 
-                /// Navigate to the inventory page after successful submission.
-                context.navigate(AppRoutes.admin.inventory);
-                break;
-              default:
-                break;
-            }
-          },
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Padding(
-                padding: AppPadding.panePadding.copyWith(bottom: 0.0),
-                child: const PageHeader(),
-              ),
-              const Expanded(child: ProductInformationFormContent()),
-            ].withSpacing(() => Spacing.v16),
+                showNotification(
+                  title: 'Error',
+                  message: state.errorMessage ?? 'An error occurred while submitting the form.',
+                );
+              },
+            ),
+            BlocListener<UserLogListBloc, UserLogListState>(
+              bloc: context.read<UserLogListBloc>(),
+              listenWhen: (p, c) => c.status == DataStatus.error,
+              listener: (context, state) {
+                assert(state.errorMessage != null, "Error message must not be empty.");
+
+                if (kDebugMode) {
+                  printBoxed(
+                    "Error occurred while submitting the form: "
+                        "${state.errorMessage}\n${StackTrace.current}",
+                    "ProductFormBloc",
+                  );
+                }
+
+                showNotification(
+                  title: 'Error',
+                  message: state.errorMessage ?? 'An error occurred while submitting the form.',
+                );
+              },
+            ),
+            BlocListener<UnitListBloc, UnitListState>(
+              bloc: context.read<UnitListBloc>(),
+              listenWhen: (p, c) => c.status == DataStatus.error,
+              listener: (context, state) {
+                assert(state.errorMessage != null, "Error message must not be empty.");
+
+                if (kDebugMode) {
+                  printBoxed(
+                    "Error occurred while submitting the form: "
+                        "${state.errorMessage}\n${StackTrace.current}",
+                    "ProductFormBloc",
+                  );
+                }
+
+                showNotification(
+                  title: 'Error',
+                  message: state.errorMessage ?? 'An error occurred while submitting the form.',
+                );
+              },
+            ),
+          ],
+          child: BlocListener<ProductFormBloc, ProductFormState>(
+            listener: (context, state) {
+              switch (state.formStatus) {
+                case FormStatus.submitting:
+                  _handleFormSubmit(context, state);
+                  break;
+                case FormStatus.submitted:
+
+                  /// Reset the form
+                  context.read<ProductFormBloc>().add(FormResetEvent());
+
+                  /// Navigate to the inventory page after successful submission.
+                  context.navigate(AppRoutes.admin.inventory);
+                  break;
+                default:
+                  break;
+              }
+            },
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Padding(
+                  padding: AppPadding.panePadding.copyWith(bottom: 0.0),
+                  child: const PageHeader(),
+                ),
+                const Expanded(child: ProductInformationFormContent()),
+              ].withSpacing(() => Spacing.v16),
+            ),
           ),
         );
       },
@@ -124,7 +191,7 @@ class PageHeader extends StatelessWidget {
             // Added 1 because SQLite has one-based indexing
             print(context.read<AuthenticationBloc>().state.user);
             final creatorId = context.read<AuthenticationBloc>().state.user!.id!;
-            final productId = 1 + context.read<ProductListBloc>().state.allProducts.length;
+            final productId = context.read<ProductListBloc>().state.allProducts.length;
             context.read<ProductFormBloc>().add(
                   FormButtonPressedEvent(productId: productId, creatorId: creatorId),
                 );

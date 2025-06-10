@@ -124,7 +124,6 @@ class PageActions extends StatelessWidget {
 
 Future<void> showContentDialog(BuildContext context, [Category? category]) async {
   await showSingleDialog(
-    context,
     (context) {
       final bloc = context.read<CategoryListBloc>();
       final existingNames = bloc.state.categories.map((category) => category.name).toList();

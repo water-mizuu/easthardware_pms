@@ -191,7 +191,6 @@ class ServerBloc extends Bloc<ServerEvent, ServerState> {
     final context = rootWidgetKey.currentContext!;
 
     await ClientConnectionDialog.show(
-      context: context,
       onConnectToServer: _connectToServer,
       onCancel: () {
         Navigator.of(context).pop();
@@ -268,7 +267,6 @@ class ServerBloc extends Bloc<ServerEvent, ServerState> {
       if (isClosed) return;
 
       await ServerConfigurationDialog.show(
-        context: rootWidgetKey.currentContext!,
         onStartServer: (port) => connection_service.startServers(port),
         onCancel: () => add(const ServerPromptingUserFromNull()),
         onSuccess: (landing, webSocket, stream) {
@@ -412,7 +410,6 @@ class ServerBloc extends Bloc<ServerEvent, ServerState> {
     if (event.popupToUser) {
       final didUserCancelCompleter = Completer<bool>();
       ServerStartedSuccessDialog.show(
-        context: rootWidgetKey.currentContext!,
         serverIp: event.args.ip,
         port: event.args.port,
         onGoBack: () async {

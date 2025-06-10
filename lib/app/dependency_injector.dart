@@ -10,7 +10,10 @@ import 'package:easthardware_pms/domain/repository/user_log_repository.dart';
 import 'package:easthardware_pms/domain/repository/user_repository.dart';
 import 'package:easthardware_pms/presentation/bloc/authentication/authentication/'
     'authentication_bloc.dart';
-import 'package:easthardware_pms/presentation/bloc/authentication/new_password_form/new_password_form_bloc.dart';
+import 'package:easthardware_pms/presentation/bloc/authentication/login_form/'
+    'login_form_bloc.dart';
+import 'package:easthardware_pms/presentation/bloc/authentication/new_password_form/'
+    'new_password_form_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/authentication/reset_form/reset_form_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/billing/invoicelist/invoice_list_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/inventory/category_list/category_list_bloc.dart';
@@ -18,7 +21,8 @@ import 'package:easthardware_pms/presentation/bloc/inventory/product_list/produc
 import 'package:easthardware_pms/presentation/bloc/inventory/unit_list/unit_list_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/navigation/navigation_cubit.dart';
 import 'package:easthardware_pms/presentation/bloc/order/orderlist/order_list_bloc.dart';
-import 'package:easthardware_pms/presentation/bloc/security/security_questions/security_question_list_bloc.dart';
+import 'package:easthardware_pms/presentation/bloc/security/security_questions/'
+    'security_question_list_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/security/user_list/user_list_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/security/user_log_list/user_log_list_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/server/server_bloc.dart';
@@ -55,9 +59,11 @@ class DependencyInjector extends ChangeNotifier {
   UserLogListBloc? _userLogListBloc;
   SecurityQuestionListBloc? _securityQuestionListBloc;
   ResetFormBloc? _resetFormBloc;
-  NewPasswordFormBloc? _newPasswordFormBloc;
   InvoiceListBloc? _invoiceListBloc;
   OrderListBloc? _orderListBloc;
+
+  NewPasswordFormBloc? _newPasswordFormBloc;
+  LoginFormBloc? _loginFormBloc;
 
   late DatabaseHelper? _databaseHelper;
   late DateTime? _lastUpdated;
@@ -171,19 +177,6 @@ class DependencyInjector extends ChangeNotifier {
       BlocProvider(
         key: key(),
         create: (context) {
-          final state = _resetFormBloc?.state;
-          _resetFormBloc?.close();
-
-          return _resetFormBloc = ResetFormBloc(
-            userRepository: _userRepository,
-            securityQuestionRepository: _securityQuestionRepository,
-            initialState: state ?? const ResetFormState(),
-          );
-        },
-      ),
-      BlocProvider(
-        key: key(),
-        create: (context) {
           final state = _newPasswordFormBloc?.state;
           _newPasswordFormBloc?.close();
 
@@ -213,6 +206,27 @@ class DependencyInjector extends ChangeNotifier {
             ..add(const FetchAllOrdersEvent());
         },
       ),
+      BlocProvider(
+        key: key(),
+        create: (context) {
+          final state = _resetFormBloc?.state;
+          _resetFormBloc?.close();
+
+          return _resetFormBloc = ResetFormBloc(
+            userRepository: _userRepository,
+            securityQuestionRepository: _securityQuestionRepository,
+            initialState: state ?? const ResetFormState(),
+          );
+        },
+      ),
+      BlocProvider(
+        key: key(),
+        create: (context) {
+          _loginFormBloc?.close();
+
+          return _loginFormBloc = LoginFormBloc();
+        },
+      )
     ];
   }
 

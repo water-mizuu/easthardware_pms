@@ -27,7 +27,6 @@ class ClientConnectionDialog extends StatefulWidget {
   State<ClientConnectionDialog> createState() => _ClientConnectionDialogState();
 
   static Future<void> show({
-    required BuildContext context,
     required VoidCallback onCancel,
     required Future<(WebSocketChannel, MessageChannel, Stream<ServerEvent>)> Function(
       String serverIp,
@@ -36,7 +35,6 @@ class ClientConnectionDialog extends StatefulWidget {
     required void Function(MessageChannel, ClientDatabaseArgs) onConfirm,
   }) {
     return showSingleDialog(
-      context,
       (context) => ClientConnectionDialog(
         onCancel: onCancel,
         onConnectToServer: onConnectToServer,

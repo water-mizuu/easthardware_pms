@@ -6,7 +6,6 @@ import 'package:easthardware_pms/presentation/bloc/authentication/'
 import 'package:easthardware_pms/presentation/bloc/security/user_log_list/user_log_list_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/server/server_bloc.dart';
 import 'package:easthardware_pms/presentation/router/app_router.dart';
-import 'package:easthardware_pms/presentation/views/authentication/login_page.dart';
 import 'package:easthardware_pms/presentation/widgets/dialog/application_close_dialog.dart';
 import 'package:easthardware_pms/presentation/widgets/layout/spacing.dart';
 import 'package:easthardware_pms/utils/boxed.dart';
@@ -73,7 +72,6 @@ class _AppWindowState extends State<AppWindow> with WindowListener {
       ///   for the dialog.
       final exitCompleter = Completer<bool>();
       ApplicationCloseDialog.show(
-        innerContext,
         onSuccess: () => exitCompleter.complete(true),
         onCancel: () => exitCompleter.complete(false),
       );
@@ -86,7 +84,7 @@ class _AppWindowState extends State<AppWindow> with WindowListener {
       /// If the user confirmed the exit, we can safely close the application.
       ///   We also need to add a logout event to the logs.
       await _exitGracefully(innerContext);
-    } on UnreachableError {
+    } on Symbol {
       /// Do nothing, as this is expected.
     }
   }
@@ -220,7 +218,7 @@ Never _exit() {
   WindowManagerPlus.current.setPreventClose(false);
   WindowManagerPlus.current.close();
 
-  throw UnreachableError();
+  throw _unreachable;
 }
 
 Future<Never> _exitGracefully(BuildContext context) async {
@@ -232,3 +230,5 @@ Future<Never> _exitGracefully(BuildContext context) async {
 
   _exit();
 }
+
+const _unreachable = #Unreachable;

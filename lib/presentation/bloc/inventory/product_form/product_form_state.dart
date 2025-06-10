@@ -21,6 +21,7 @@ class ProductFormState extends Equatable {
     this.productId,
     this.archivedStatus,
     this.formStatus = FormStatus.initial,
+    this.errorMessage,
   })  : sku = sku ?? const Uuid().v4().toString(),
         secondaryUnits = secondaryUnits ?? [const FormUnit.empty()],
         creationDate = creationDate ?? DateTime.now(),
@@ -48,6 +49,7 @@ class ProductFormState extends Equatable {
       creatorId: product.creatorId,
       archivedStatus: product.archivedStatus,
       productId: product.id!,
+      errorMessage: null,
     );
   }
   // Data Entity attributes
@@ -86,6 +88,7 @@ class ProductFormState extends Equatable {
   final int? productId;
 
   final FormStatus formStatus;
+  final String? errorMessage;
 
   ProductFormState Function({
     String name,
@@ -107,6 +110,7 @@ class ProductFormState extends Equatable {
     int? creatorId,
     FormStatus formStatus,
     int? productId,
+    String? errorMessage,
   }) get copyWith {
     return ({
       Object? name = undefined,
@@ -128,6 +132,7 @@ class ProductFormState extends Equatable {
       Object? creatorId = undefined,
       Object? formStatus = undefined,
       Object? productId = undefined,
+      Object? errorMessage = undefined,
     }) {
       return ProductFormState(
         name: name.or(this.name),
@@ -149,6 +154,7 @@ class ProductFormState extends Equatable {
         creatorId: creatorId.or(this.creatorId),
         productId: productId.or(this.productId),
         formStatus: formStatus.or(this.formStatus),
+        errorMessage: errorMessage.or(this.errorMessage),
       );
     };
   }
@@ -174,6 +180,7 @@ class ProductFormState extends Equatable {
         creatorId,
         formStatus,
         productId,
+        errorMessage,
       ];
 
   Product toProduct() {

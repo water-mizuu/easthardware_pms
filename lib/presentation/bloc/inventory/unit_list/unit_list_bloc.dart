@@ -35,7 +35,7 @@ class UnitListBloc extends Bloc<UnitListEvent, UnitListState> {
       if (kDebugMode) {
         print('Error loading units: $e');
       }
-      emit(state.copyWith(status: DataStatus.error));
+      emit(state.copyWith(status: DataStatus.error, errorMessage: e.toString()));
     }
   }
 
@@ -58,7 +58,7 @@ class UnitListBloc extends Bloc<UnitListEvent, UnitListState> {
         status: DataStatus.success,
       ));
     } catch (e) {
-      emit(state.copyWith(status: DataStatus.error));
+      emit(state.copyWith(status: DataStatus.error, errorMessage: e.toString()));
     }
   }
 
@@ -71,7 +71,7 @@ class UnitListBloc extends Bloc<UnitListEvent, UnitListState> {
         status: DataStatus.success,
       ));
     } catch (e) {
-      emit(state.copyWith(status: DataStatus.error));
+      emit(state.copyWith(status: DataStatus.error, errorMessage: e.toString()));
     }
   }
 
@@ -84,7 +84,7 @@ class UnitListBloc extends Bloc<UnitListEvent, UnitListState> {
         status: DataStatus.success,
       ));
     } catch (e) {
-      emit(state.copyWith(status: DataStatus.error));
+      emit(state.copyWith(status: DataStatus.error, errorMessage: e.toString()));
     }
   }
 
@@ -97,7 +97,7 @@ class UnitListBloc extends Bloc<UnitListEvent, UnitListState> {
         status: DataStatus.success,
       ));
     } catch (e) {
-      emit(state.copyWith(status: DataStatus.error));
+      emit(state.copyWith(status: DataStatus.error, errorMessage: e.toString()));
     }
   }
 }

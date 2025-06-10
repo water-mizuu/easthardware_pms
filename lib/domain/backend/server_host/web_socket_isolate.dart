@@ -6,9 +6,11 @@ import 'package:async_queue/async_queue.dart';
 import 'package:easthardware_pms/data/database/dao/user_logs_dao.dart';
 import 'package:easthardware_pms/data/database/dao/users_dao.dart';
 import 'package:easthardware_pms/domain/backend/classes/secure_connection.dart';
+import 'package:easthardware_pms/domain/backend/extension_types/log_command.dart';
 import 'package:easthardware_pms/domain/backend/extensions/to_message_channel.dart';
 import 'package:easthardware_pms/domain/backend/server_database.dart';
 import 'package:easthardware_pms/domain/backend/utils/isolate_indicator.dart';
+import 'package:easthardware_pms/domain/models/user.dart';
 import 'package:easthardware_pms/domain/models/user_log.dart';
 import 'package:easthardware_pms/utils/boxed.dart';
 import 'package:easthardware_pms/utils/duration.dart';
@@ -339,8 +341,14 @@ Future<void> _hookOntoUpdate(
       final db = await getWebSocketDatabaseHelper(_savedHeartbeat);
       final usersDao = UsersDao(db);
       final user = await usersDao.getUserById(userId);
+      if (user == null) {
+        if (kDebugMode) {
+          print("User with ID $userId not found in the database.");
+        }
+        return;
+      }
 
-      mainChannel.invokeMain("userLoggedIn", [user]);
+      _logToMain(LogCommand.userLoggedIn, user);
     } else {
       /// We assume that the user logged in from the server.
       _userId = userId;
@@ -353,6 +361,8 @@ Future<void> _hookOntoUpdate(
   }
 
   /// MANUAL LOGOUT.
+  ///   If we detect a manual logout (either the client or the server pressed the logout button),
+  ///   we want to let everyone know about it.
   if (arguments
       case [
         "users",
@@ -365,8 +375,14 @@ Future<void> _hookOntoUpdate(
       final db = await getWebSocketDatabaseHelper(_savedHeartbeat);
       final usersDao = UsersDao(db);
       final user = await usersDao.getUserById(userId);
+      if (user == null) {
+        if (kDebugMode) {
+          print("User with ID $userId not found in the database.");
+        }
+        return;
+      }
 
-      mainChannel.invoke("userLoggedOut", [user]);
+      _logToMain(LogCommand.userLoggedOut, user);
     } else {
       assert(_userId == userId, "User ID should match the one in the arguments.");
       _userId = null;
@@ -374,6 +390,13 @@ Future<void> _hookOntoUpdate(
 
     return;
   }
+}
+
+/// Logs to the user in the main isolate that a user has logged out.
+Future<void> _logToMain(LogCommand command, User user) async {
+  assertChildIsolate();
+
+  mainChannel.invokeMain(command as String, [user]);
 }
 
 Future<SecureConnection> _requestConnection(int sessionKey) async {

@@ -33,15 +33,13 @@ class SuccessDialog extends StatelessWidget {
     );
   }
 
-  static Future<void> show(
-    BuildContext context, {
+  static Future<void> show({
     required String title,
     required String body,
     VoidCallback? onSuccess,
     VoidCallback? onCancel,
   }) async {
     await showSingleDialog(
-      context,
       (context) => SuccessDialog(
         title: title,
         body: body,
@@ -60,7 +58,6 @@ extension SuccessDialogExtension on BuildContext {
     VoidCallback? onCancel,
   }) async {
     return SuccessDialog.show(
-      this,
       title: title,
       body: body,
       onSuccess: onSuccess,

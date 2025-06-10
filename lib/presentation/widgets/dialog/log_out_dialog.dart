@@ -38,9 +38,9 @@ class LogOutDialog extends StatelessWidget {
     );
   }
 
-  static Future<bool> show(BuildContext context) {
+  static Future<bool> show() {
     final result = Completer<bool>.sync();
-    showSingleDialog(context, (context) {
+    showSingleDialog((context) {
       return LogOutDialog(
         onConfirmed: () {
           result.complete(true);

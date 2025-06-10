@@ -1,3 +1,4 @@
+import 'package:easthardware_pms/domain/enums/enums.dart';
 import 'package:easthardware_pms/presentation/bloc/authentication/'
     'authentication/authentication_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/authentication/login_form/login_form_bloc.dart';
@@ -16,36 +17,39 @@ class LoginForm extends StatelessWidget {
     return BlocListener<LoginFormBloc, LoginFormState>(
       listener: (context, state) {
         if (state.usernameError != null || state.passwordError != null) {
-          context.read<LoginFormBloc>().formKey.currentState?.validate();
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            context.read<LoginFormBloc>()
+              // Validate the form after the frame is drawn to ensure the UI is updated
+              ..formKey.currentState?.validate()
+
+              /// After showing the errors, clear the errors in the state.
+              ..add(const LoginFormClearErrors());
+          });
         }
       },
       child: ColoredBox(
         color: Colors.white,
         child: Padding(
           padding: AppPadding.a32,
-          child: Builder(builder: (context) {
-            final formKey = context.read<LoginFormBloc>().formKey;
-
-            return Form(
-              key: formKey,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Image.asset("assets/icons/app.png", height: 24.0),
-                  const _FormHeader(),
-                  const _FormUsernameField(),
-                  const _FormPasswordField(),
-                  const _FormButton(),
-                  if (kDebugMode)
-                    BlocBuilder<AuthenticationBloc, AuthenticationState>(
-                      builder: (context, state) {
-                        return Text(state.loginAttempts.toString());
-                      },
-                    )
-                ].withSpacing(() => Spacing.v16),
-              ),
-            );
-          }),
+          child: Form(
+            key: context.select((LoginFormBloc b) => b.formKey),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Image.asset("assets/icons/app.png", height: 24.0),
+                const _FormHeader(),
+                const _FormUsernameField(),
+                const _FormPasswordField(),
+                const _FormButton(),
+                if (kDebugMode)
+                  BlocBuilder<AuthenticationBloc, AuthenticationState>(
+                    builder: (context, state) {
+                      return Text(state.loginAttempts.toString());
+                    },
+                  )
+              ].withSpacing(() => Spacing.v16),
+            ),
+          ),
         ),
       ),
     );
@@ -125,18 +129,40 @@ class _FormButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final state = context.watch<AuthenticationBloc>().state;
+    final state = context.watch<LoginFormBloc>().state;
+    final isLoading = state.status == FormStatus.validating || //
+        state.status == FormStatus.submitting;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         FilledButton(
-          onPressed: state.status != AuthenticationStatus.loggingIn
-              ? () => context.read<LoginFormBloc>().add(LoginFormButtonPressed())
-              : null,
-          child: const Padding(
+          onPressed: () {
+            if (isLoading) {
+              return null;
+            }
+
+            return () => context.read<LoginFormBloc>().add(LoginFormButtonPressed());
+          }(),
+          child: Padding(
             padding: AppPadding.a8,
-            child: ButtonText("Login"),
+            child: Builder(builder: (context) {
+              var child = const ButtonText("Login") as Widget;
+              if (isLoading) {
+                child = Center(
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const SizedBox(
+                          height: 24.0, width: 24.0, child: ProgressRing(strokeWidth: 3.5)),
+                      Spacing.h8,
+                      child
+                    ],
+                  ),
+                );
+              }
+              return child;
+            }),
           ),
         ),
       ],
