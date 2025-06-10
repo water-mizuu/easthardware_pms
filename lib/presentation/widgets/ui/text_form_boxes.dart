@@ -1,4 +1,4 @@
-import 'package:easthardware_pms/presentation/widgets/ui/box_decorations.dart';
+import 'package:easthardware_pms/presentation/widgets/ui/decorations.dart';
 import 'package:fluent_ui/fluent_ui.dart';
 
 class TextFormBoxes extends TextFormBox {
@@ -9,7 +9,7 @@ class TextFormBoxes extends TextFormBox {
     super.focusNode,
     super.autofillHints,
     super.placeholder,
-    super.placeholderStyle = const TextStyle(color: Color(0xFFB0B0B0)),
+    super.placeholderStyle,
     super.style,
     super.textAlign,
     super.textInputAction,
@@ -34,9 +34,11 @@ class TextFormBoxes extends TextFormBox {
     TextEditingController? controller,
     Function(String)? onChanged,
     String? placeholder,
+    TextStyle? placeholderStyle,
     bool? enabled,
   }) {
     return TextFormBoxes(
+      placeholderStyle: placeholderStyle,
       controller: controller,
       enabled: enabled ?? true,
       placeholder: placeholder,
