@@ -65,7 +65,17 @@ class InvoiceFormBloc extends Bloc<InvoiceFormEvent, InvoiceFormState> {
   void _onProductSelected(ProductSelectedEvent event, Emitter<InvoiceFormState> emit) {
     final index = event.index;
     final updatedProducts = List<FormProduct>.from(state.products);
-    printBoxed('Product Selected: ${event.product.productId} at index $index');
+    printBoxed('''
+    Product Selected:
+    Id: ${event.product.productId}
+    Name: ${event.product.productName}
+    Description: ${event.product.description}
+    Quantity: ${event.product.quantity}
+    Unit: ${event.product.unit}
+    Conversion Factor: ${event.product.conversionFactor}
+    Rate: ${event.product.rate}
+    Amount: ${event.product.amount}
+    ''', 'InvoiceFormBloc');
     if (index != -1) {
       updatedProducts[index] = event.product.copyWith(
         quantity: 0,
@@ -76,10 +86,29 @@ class InvoiceFormBloc extends Bloc<InvoiceFormEvent, InvoiceFormState> {
   }
 
   void _onProductUpdated(ProductUpdatedEvent event, Emitter<InvoiceFormState> emit) {
+    final adjustedRate = event.product.rate * event.product.conversionFactor!;
+    printBoxed('Adjusted Rate: $adjustedRate', 'InvoiceFormBloc');
+    final adjustedProduct = event.product.copyWith(
+      rate: adjustedRate,
+      amount: adjustedRate * event.product.quantity,
+    );
     final index = event.index;
     final updatedProducts = List<FormProduct>.from(state.products);
+    //print all fields in one box
+
     if (index != -1) {
-      updatedProducts[index] = event.product;
+      printBoxed('''
+    Product Updated:
+    Id: ${adjustedProduct.productId}
+    Name: ${adjustedProduct.productName}
+    Description: ${adjustedProduct.description}
+    Quantity: ${adjustedProduct.quantity}
+    Unit: ${adjustedProduct.unit}
+    Conversion Factor: ${adjustedProduct.conversionFactor}
+    Rate: ${adjustedProduct.rate}
+    Amount: ${adjustedProduct.amount}
+    ''', 'InvoiceFormBloc');
+      updatedProducts[index] = adjustedProduct;
       emit(state.copyWith(products: updatedProducts));
     }
   }

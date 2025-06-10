@@ -11,7 +11,7 @@ class FormProduct {
       unit: product.mainUnit,
       conversionFactor: 1,
       rate: product.salePrice,
-      amount: product.salePrice,
+      amount: 0,
       discountType: DiscountType.value,
     );
   }

@@ -10,9 +10,9 @@ import 'package:easthardware_pms/presentation/widgets/layout/spacing.dart';
 import 'package:easthardware_pms/presentation/widgets/text.dart';
 import 'package:easthardware_pms/presentation/widgets/ui/form_table_cell.dart';
 import 'package:easthardware_pms/presentation/widgets/ui/form_table_column.dart';
-import 'package:easthardware_pms/presentation/widgets/ui/box_decorations.dart';
+import 'package:easthardware_pms/presentation/widgets/ui/decorations.dart';
+import 'package:easthardware_pms/presentation/widgets/ui/styles.dart';
 import 'package:easthardware_pms/presentation/widgets/ui/text_button.dart';
-import 'package:easthardware_pms/utils/boxed.dart';
 import 'package:easthardware_pms/utils/typed_routes.dart';
 import 'package:fluent_ui/fluent_ui.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -309,249 +309,296 @@ class FormTableRow extends StatefulWidget {
 }
 
 class _FormTableRowState extends State<FormTableRow> {
-  TextEditingController? _descriptionController;
-  TextEditingController? _quantityController;
-  TextEditingController? _rateController;
-  TextEditingController? _amountController;
+  late TextEditingController _descriptionController;
+  late TextEditingController _quantityController;
+  late TextEditingController _rateController;
+
+  FormProduct? _lastProduct;
+
+  @override
+  void initState() {
+    super.initState();
+    _descriptionController = TextEditingController();
+    _quantityController = TextEditingController();
+    _rateController = TextEditingController();
+  }
+
+  @override
+  void dispose() {
+    _descriptionController.dispose();
+    _quantityController.dispose();
+    _rateController.dispose();
+    super.dispose();
+  }
+
+  void _updateControllersIfNeeded(FormProduct currentProduct) {
+    // Only update if the product has actually changed to avoid cursor issues
+    final isProductChanged = _lastProduct == null ||
+        _lastProduct!.productId != currentProduct.productId ||
+        _lastProduct!.description != currentProduct.description ||
+        _lastProduct!.rate != currentProduct.rate;
+    if (isProductChanged) {
+      _descriptionController.text = currentProduct.description ?? '';
+      _quantityController.text = currentProduct.quantity.toString();
+      _rateController.text = currentProduct.rate.toString();
+      _lastProduct = currentProduct;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    final products = context.read<ProductListBloc>().state.allProducts;
-    final bloc = context.read<InvoiceFormBloc>();
-    final currentProduct = bloc.state.products[widget.index];
-    return BlocListener<InvoiceFormBloc, InvoiceFormState>(
-      listenWhen: (previous, current) {
-        return previous.products[widget.index] != current.products[widget.index];
-      },
-      listener: (context, state) {
-        printBoxed(
-            "Index:${widget.index}\nId:${currentProduct.productId}\nDescription:${currentProduct.description}\nQuantity:${currentProduct.quantity}\nRate:${currentProduct.rate}\nAmount:${currentProduct.amount}",
-            "FormBlocListener");
-        _descriptionController ??= TextEditingController(text: currentProduct.description);
-        _quantityController ??= TextEditingController(text: currentProduct.quantity.toString());
-        _rateController ??= TextEditingController(text: currentProduct.rate.toString());
-        _amountController ??= TextEditingController(text: currentProduct.amount.toStringAsFixed(2));
-      },
-      child: Container(
-        decoration: BoxDecoration(
-          border: Border(bottom: BorderSide(color: Colors.grey[40])),
-        ),
-        child: Row(
-          children: [
-            FormTableCell(
-                child: SizedBox(
-                    height: 32.0,
-                    width: 32.0,
-                    child: Center(child: Text((widget.index + 1).toString())))),
-            // Field 1 - Product
-            Expanded(
-              flex: 2,
-              // Primitive Solution to AutoSuggestBox lack of padding
-              child: Container(
-                decoration: const BoxDecoration(
-                    border: Border(right: BorderSide(width: 0.5, color: Colors.transparent))),
-                child: AutoSuggestBox.form(
-                  decoration: BoxDecorations.ghost,
-                  foregroundDecoration: BoxDecorations.ghost,
-                  items: [
-                    for (final product in products)
-                      AutoSuggestBoxItem<Product>(
-                        value: product,
-                        label: product.name,
-                      ),
-                  ],
-                  onChanged: (value, reason) {
-                    if (reason == TextChangedReason.cleared) {
-                      // bloc.add(ProductUpdatedEvent(
-                      //   // EmptyFormProduct(),
-                      //   widget.index,
-                      // ));
-                    }
-                  },
-                  onSelected: (value) {
-                    // If no product is currently, we select the product
-                    if (currentProduct.productId == null) {
-                      final formProduct = FormProduct.fromProduct(value.value!);
-                      printBoxed(
-                        "Selected Product: ${formProduct.productId} - ${formProduct.productName}",
-                        "FormTableRow",
-                      );
-                      bloc.add(ProductSelectedEvent(formProduct, widget.index));
-                      // Else, we update the product
-                    } else if (currentProduct.productId != value.value!.id) {
-                      bloc.add(ProductUpdatedEvent(
-                        FormProduct.fromProduct(value.value!).copyWith(
-                          description: currentProduct.description,
-                          quantity: currentProduct.quantity,
-                        ),
-                        widget.index,
-                      ));
-                    } else {
-                      // If the product is already selected, we do nothing
-                      // This is to prevent unnecessary updates
-                      return;
-                    }
-                  },
-                  placeholder: 'Select Product',
-                  placeholderStyle: const TextStyle(color: Color(0xFFB0B0B0)),
-                ),
-              ),
-            ),
-            // Field 2 - Description
-            Expanded(
+    return BlocBuilder<InvoiceFormBloc, InvoiceFormState>(
+      builder: (context, state) {
+        final products = context.read<ProductListBloc>().state.allProducts;
+        final bloc = context.read<InvoiceFormBloc>();
+        final currentProduct = bloc.state.products[widget.index];
+
+        // Update controllers when product changes
+        _updateControllersIfNeeded(currentProduct);
+
+        return Container(
+          decoration: BoxDecoration(
+            border: Border(bottom: BorderSide(color: Colors.grey[40])),
+          ),
+          child: Row(
+            children: [
+              FormTableCell(
+                  child: SizedBox(
+                      height: 32.0,
+                      width: 32.0,
+                      child: Center(child: Text((widget.index + 1).toString())))),
+              // Field 1 - Product
+              Expanded(
                 flex: 2,
-                child: FormTableCell(
-                  child: TextFormBoxes.ghost(
-                    controller: _descriptionController,
-                    enabled: currentProduct.productId != null,
-                    placeholder: 'Sale Description',
-                    onChanged: (value) {
-                      bloc.add(ProductUpdatedEvent(
-                        currentProduct.copyWith(description: value),
-                        widget.index,
-                      ));
-                    },
-                  ),
-                )),
-            // Field 3 - Quantity
-            Expanded(
-              child: FormTableCell(
-                child: IntrinsicHeight(
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      Expanded(
-                          flex: 1,
-                          child: TextFormBoxes.ghost(
-                            controller: _quantityController,
-                            placeholder: '0',
-                            onChanged: (value) {
-                              final quantity = double.tryParse(value) ?? 0.0;
-                              bloc.add(
-                                ProductUpdatedEvent(
-                                  currentProduct.copyWith(
-                                    quantity: quantity,
-                                    amount: quantity * currentProduct.rate,
-                                  ),
-                                  widget.index,
-                                ),
-                              );
-                            },
-                          )),
-                      if (currentProduct.productId != null)
-                        Expanded(
-                          flex: 2,
-                          child: DropDownButton(
-                            items: [
-                              MenuFlyoutItem(
-                                  text: Text(context
-                                      .read<ProductListBloc>()
-                                      .state
-                                      .allProducts
-                                      .firstWhere(
-                                          (product) => product.id == currentProduct.productId)
-                                      .mainUnit),
-                                  onPressed: () {
-                                    bloc.add(ProductUpdatedEvent(
-                                      currentProduct.copyWith(
-                                          unit: context
-                                              .read<ProductListBloc>()
-                                              .state
-                                              .allProducts
-                                              .firstWhere((product) =>
-                                                  product.id == currentProduct.productId)
-                                              .mainUnit),
-                                      widget.index,
-                                    ));
-                                  }),
-                              for (final unit in context
-                                  .read<UnitListBloc>()
-                                  .state
-                                  .units
-                                  .where((u) => u.productId == currentProduct.productId))
-                                MenuFlyoutItem(
-                                  text: Text(unit.name),
-                                  onPressed: () {
-                                    bloc.add(
-                                      ProductUpdatedEvent(
-                                        currentProduct.copyWith(unit: unit.name),
-                                        widget.index,
-                                      ),
-                                    );
-                                  },
-                                ),
-                            ],
-                            buttonBuilder: (context, onOpen) {
-                              return Button(
-                                  style: ButtonStyle(
-                                    padding: const WidgetStatePropertyAll(
-                                      EdgeInsetsDirectional.fromSTEB(0, 5, 0, 6),
-                                    ),
-                                    shape: WidgetStatePropertyAll(
-                                      RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(4.0),
-                                        side: const BorderSide(color: Colors.transparent),
-                                      ),
-                                    ),
-                                  ),
-                                  onPressed: onOpen,
-                                  child: Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      Text(currentProduct.unit),
-                                      Spacing.h12,
-                                      const Icon(FluentIcons.chevron_down),
-                                    ],
-                                  ));
-                            },
-                          ),
+                child: Container(
+                  decoration: const BoxDecoration(
+                      border: Border(right: BorderSide(width: 0.5, color: Colors.transparent))),
+                  child: AutoSuggestBox.form(
+                    decoration: BoxDecorations.ghost,
+                    foregroundDecoration: BoxDecorations.ghost,
+                    items: [
+                      for (final product in products)
+                        AutoSuggestBoxItem<Product>(
+                          value: product,
+                          label: product.name,
                         ),
                     ],
+                    onChanged: (value, reason) {
+                      if (reason == TextChangedReason.cleared) {
+                        // Clear the controllers when product is cleared
+                        _descriptionController.clear();
+                        _quantityController.clear();
+                        _rateController.clear();
+                      }
+                    },
+                    onSelected: (value) {
+                      if (currentProduct.productId == null) {
+                        final formProduct = FormProduct.fromProduct(value.value!);
+                        bloc.add(ProductSelectedEvent(formProduct, widget.index));
+                      } else if (currentProduct.productId != value.value!.id) {
+                        bloc.add(ProductUpdatedEvent(
+                          FormProduct.fromProduct(value.value!).copyWith(
+                            description: currentProduct.description,
+                            quantity: currentProduct.quantity,
+                          ),
+                          widget.index,
+                        ));
+                      }
+                    },
+                    placeholder: 'Select Product',
                   ),
                 ),
               ),
-            ),
-            // Field 4 - Rate
-            Expanded(
-              child: FormTableCell(
-                child: TextFormBoxes.ghost(
-                  controller: _rateController,
-                  enabled: currentProduct.productId != null,
-                  placeholder: '0.0',
-                  onChanged: (value) {
-                    final rate = double.tryParse(value) ?? 0.0;
-                    bloc.add(
-                      ProductUpdatedEvent(
-                        currentProduct.copyWith(rate: rate, amount: rate * currentProduct.quantity),
-                        widget.index,
-                      ),
-                    );
-                  },
-                ),
-              ),
-            ),
-            // Field 5 - Amount
-            Expanded(
-              child: FormTableCell(
-                child: TextFormBoxes.ghost(
-                  enabled: false,
-                  placeholder: currentProduct.amount.toStringAsFixed(2),
-                  onChanged: null,
-                ),
-              ),
-            ),
-            widget.index > 0
-                ? SizedBox(
-                    width: 82.0,
-                    child: Center(
-                      child: IconButton(
-                          icon: const Icon(FluentIcons.cancel),
-                          onPressed: () => bloc.add(ProductRemovedEvent(widget.index))),
+              // Field 2 - Description
+              Expanded(
+                  flex: 2,
+                  child: FormTableCell(
+                    child: TextFormBoxes.ghost(
+                      controller: _descriptionController,
+                      enabled: currentProduct.productId != null,
+                      placeholder: 'Sale Description',
+                      onChanged: (value) {
+                        bloc.add(ProductUpdatedEvent(
+                          currentProduct.copyWith(description: value),
+                          widget.index,
+                        ));
+                      },
                     ),
-                  )
-                : const SizedBox(width: 82.0)
-          ],
-        ),
-      ),
+                  )),
+              // Field 3 - Quantity
+              Expanded(
+                child: Container(
+                  padding: const EdgeInsets.fromLTRB(8.0, 8.0, 0.0, 8.0),
+                  decoration: const BoxDecoration(
+                    border: Border(
+                      right: BorderSide(
+                        width: 0.5,
+                        color: Colors.transparent,
+                      ),
+                    ),
+                  ),
+                  child: IntrinsicHeight(
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Expanded(
+                            flex: 1,
+                            child: TextFormBoxes.ghost(
+                              controller: _quantityController,
+                              placeholder: '0',
+                              placeholderStyle: currentProduct.productId == null
+                                  ? TextStyles.inactive
+                                  : TextStyles.active,
+                              onChanged: (value) {
+                                final quantity = double.tryParse(value) ?? 0.0;
+                                bloc.add(
+                                  ProductUpdatedEvent(
+                                    currentProduct.copyWith(quantity: quantity),
+                                    widget.index,
+                                  ),
+                                );
+                              },
+                            )),
+                        if (currentProduct.productId != null)
+                          Expanded(
+                            flex: 2,
+                            child: DropDownButton(
+                              items: [
+                                MenuFlyoutItem(
+                                    text: Text(context
+                                        .read<ProductListBloc>()
+                                        .state
+                                        .allProducts
+                                        .firstWhere(
+                                            (product) => product.id == currentProduct.productId)
+                                        .mainUnit),
+                                    onPressed: () {
+                                      bloc.add(ProductUpdatedEvent(
+                                          currentProduct.copyWith(
+                                            // Primitive Solution to get correct amount computation
+                                            rate: context
+                                                .read<ProductListBloc>()
+                                                .state
+                                                .allProducts
+                                                .firstWhere((product) =>
+                                                    product.id == currentProduct.productId)
+                                                .salePrice,
+                                            unit: context
+                                                .read<ProductListBloc>()
+                                                .state
+                                                .allProducts
+                                                .firstWhere((product) =>
+                                                    product.id == currentProduct.productId)
+                                                .mainUnit,
+                                            conversionFactor: 1.0,
+                                          ),
+                                          widget.index));
+                                    }),
+                                for (final unit in context
+                                    .read<UnitListBloc>()
+                                    .state
+                                    .units
+                                    .where((u) => u.productId == currentProduct.productId))
+                                  MenuFlyoutItem(
+                                    text: Text(unit.name),
+                                    onPressed: () {
+                                      bloc.add(
+                                        ProductUpdatedEvent(
+                                          currentProduct.copyWith(
+                                            unit: unit.name,
+                                            // Primitive Solution to get correct amount computation
+                                            rate: context
+                                                .read<ProductListBloc>()
+                                                .state
+                                                .allProducts
+                                                .firstWhere((product) =>
+                                                    product.id == currentProduct.productId)
+                                                .salePrice,
+                                            conversionFactor: unit.mainQuantity / unit.unitQuantity,
+                                          ),
+                                          widget.index,
+                                        ),
+                                      );
+                                    },
+                                  ),
+                              ],
+                              buttonBuilder: (context, onOpen) {
+                                return Button(
+                                    style: ButtonStyle(
+                                      padding: const WidgetStatePropertyAll(
+                                        EdgeInsetsDirectional.fromSTEB(0, 5, 0, 6),
+                                      ),
+                                      shape: WidgetStatePropertyAll(
+                                        RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(4.0),
+                                          side: const BorderSide(color: Colors.transparent),
+                                        ),
+                                      ),
+                                    ),
+                                    onPressed: onOpen,
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Text(currentProduct.unit),
+                                        Spacing.h12,
+                                        const Icon(FluentIcons.chevron_down),
+                                      ],
+                                    ));
+                              },
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              // Field 4 - Rate
+              Expanded(
+                child: FormTableCell(
+                  child: TextFormBoxes.ghost(
+                    controller: _rateController,
+                    enabled: currentProduct.productId != null,
+                    placeholder: '0.0',
+                    placeholderStyle:
+                        currentProduct.productId == null ? TextStyles.inactive : TextStyles.active,
+                    onChanged: (value) {
+                      final rate = double.tryParse(value) ?? 0.0;
+                      bloc.add(
+                        ProductUpdatedEvent(
+                          currentProduct.copyWith(rate: rate),
+                          widget.index,
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ),
+              // Field 5 - Amount (read-only, calculated field)
+              Expanded(
+                child: FormTableCell(
+                  child: TextFormBoxes.ghost(
+                    enabled: false,
+                    placeholder: currentProduct.amount.toStringAsFixed(2),
+                    placeholderStyle:
+                        currentProduct.productId == null ? TextStyles.inactive : TextStyles.active,
+                    onChanged: null,
+                  ),
+                ),
+              ),
+              widget.index > 0
+                  ? SizedBox(
+                      width: 82.0,
+                      child: Center(
+                        child: IconButton(
+                            icon: const Icon(FluentIcons.cancel),
+                            onPressed: () => bloc.add(ProductRemovedEvent(widget.index))),
+                      ),
+                    )
+                  : const SizedBox(width: 82.0)
+            ],
+          ),
+        );
+      },
     );
   }
 }
