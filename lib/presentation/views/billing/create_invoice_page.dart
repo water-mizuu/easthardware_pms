@@ -13,6 +13,7 @@ import 'package:easthardware_pms/presentation/widgets/ui/form_table_column.dart'
 import 'package:easthardware_pms/presentation/widgets/ui/decorations.dart';
 import 'package:easthardware_pms/presentation/widgets/ui/styles.dart';
 import 'package:easthardware_pms/presentation/widgets/ui/text_button.dart';
+import 'package:easthardware_pms/utils/boxed.dart';
 import 'package:easthardware_pms/utils/typed_routes.dart';
 import 'package:fluent_ui/fluent_ui.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -73,6 +74,7 @@ class PageForm extends StatelessWidget {
                 color: Colors.grey[150],
               ),
             ),
+            // Form Row 1 - Customer Name
             Row(
               children: [
                 Expanded(
@@ -95,7 +97,9 @@ class PageForm extends StatelessWidget {
                 Spacing.h12,
               ],
             ),
+            // Form Row 2 - Invoice and Due Date
             Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Expanded(
                   flex: 2,
@@ -109,7 +113,12 @@ class PageForm extends StatelessWidget {
                         onChanged: (value) => context.read<InvoiceFormBloc>().add(
                               InvoiceDateChangedEvent(value),
                             ),
-                      )
+                      ),
+                      if (context.watch<InvoiceFormBloc>().state.invoiceDateErrorMessage != null)
+                        Text(
+                          context.watch<InvoiceFormBloc>().state.invoiceDateErrorMessage!,
+                          style: TextStyles.error,
+                        ),
                     ],
                   ),
                 ),
@@ -127,6 +136,11 @@ class PageForm extends StatelessWidget {
                               DueDateChangedEvent(value),
                             ),
                       ),
+                      if (context.watch<InvoiceFormBloc>().state.dueDateErrorMessage != null)
+                        Text(
+                          context.watch<InvoiceFormBloc>().state.dueDateErrorMessage!,
+                          style: TextStyles.error,
+                        ),
                     ],
                   ),
                 ),
@@ -353,7 +367,9 @@ class _FormTableRowState extends State<FormTableRow> {
         final currentProduct = bloc.state.products[widget.index];
 
         // Update controllers when product changes
-        _updateControllersIfNeeded(currentProduct);
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          _updateControllersIfNeeded(currentProduct);
+        });
 
         return Container(
           decoration: BoxDecoration(
@@ -362,16 +378,28 @@ class _FormTableRowState extends State<FormTableRow> {
           child: Row(
             children: [
               FormTableCell(
-                  child: SizedBox(
-                      height: 32.0,
-                      width: 32.0,
-                      child: Center(child: Text((widget.index + 1).toString())))),
+                child: SizedBox(
+                  height: 32.0,
+                  width: 32.0,
+                  child: Center(
+                    child: Text(
+                      (widget.index + 1).toString(),
+                    ),
+                  ),
+                ),
+              ),
               // Field 1 - Product
               Expanded(
                 flex: 2,
                 child: Container(
-                  decoration: const BoxDecoration(
-                      border: Border(right: BorderSide(width: 0.5, color: Colors.transparent))),
+                  decoration: BoxDecoration(
+                    color: state.invoiceTableErrorMessage != null
+                        ? Colors.errorSecondaryColor
+                        : Colors.transparent,
+                    border: const Border(
+                      right: BorderSide(width: 0.5, color: Colors.transparent),
+                    ),
+                  ),
                   child: AutoSuggestBox.form(
                     decoration: BoxDecorations.ghost,
                     foregroundDecoration: BoxDecorations.ghost,
@@ -388,6 +416,30 @@ class _FormTableRowState extends State<FormTableRow> {
                         _descriptionController.clear();
                         _quantityController.clear();
                         _rateController.clear();
+                        return bloc.add(ProductUpdatedEvent(
+                          EmptyFormProduct().copyWith(
+                            productId: null,
+                          ),
+                          widget.index,
+                        ));
+                      }
+                      if (reason == TextChangedReason.userInput) {
+                        for (final product in products) {
+                          if (product.name.toLowerCase() == value.toLowerCase()) {
+                            final formProduct = FormProduct.fromProduct(product)
+                                .copyWith(quantity: currentProduct.quantity);
+                            return bloc.add(ProductUpdatedEvent(formProduct, widget.index));
+                          }
+                        }
+                        bloc.add(ProductUpdatedEvent(
+                          EmptyFormProduct().copyWith(
+                            productName: value,
+                            productId: null,
+                            description: currentProduct.description,
+                            quantity: currentProduct.quantity,
+                          ),
+                          widget.index,
+                        ));
                       }
                     },
                     onSelected: (value) {
@@ -414,7 +466,6 @@ class _FormTableRowState extends State<FormTableRow> {
                   child: FormTableCell(
                     child: TextFormBoxes.ghost(
                       controller: _descriptionController,
-                      enabled: currentProduct.productId != null,
                       placeholder: 'Sale Description',
                       onChanged: (value) {
                         bloc.add(ProductUpdatedEvent(
@@ -449,7 +500,7 @@ class _FormTableRowState extends State<FormTableRow> {
                                   ? TextStyles.inactive
                                   : TextStyles.active,
                               onChanged: (value) {
-                                final quantity = double.tryParse(value) ?? 0.0;
+                                final quantity = double.tryParse(value) ?? 0;
                                 bloc.add(
                                   ProductUpdatedEvent(
                                     currentProduct.copyWith(quantity: quantity),
@@ -458,7 +509,9 @@ class _FormTableRowState extends State<FormTableRow> {
                                 );
                               },
                             )),
-                        if (currentProduct.productId != null)
+                        if (currentProduct.productId == null)
+                          const Spacer(flex: 2)
+                        else
                           Expanded(
                             flex: 2,
                             child: DropDownButton(
@@ -527,10 +580,11 @@ class _FormTableRowState extends State<FormTableRow> {
                                     onPressed: onOpen,
                                     child: Row(
                                       mainAxisSize: MainAxisSize.min,
+                                      crossAxisAlignment: CrossAxisAlignment.center,
                                       children: [
                                         Text(currentProduct.unit),
-                                        Spacing.h12,
-                                        const Icon(FluentIcons.chevron_down),
+                                        Spacing.h8,
+                                        const Icon(FluentIcons.chevron_down, size: 8.0),
                                       ],
                                     ));
                               },
@@ -546,7 +600,6 @@ class _FormTableRowState extends State<FormTableRow> {
                 child: FormTableCell(
                   child: TextFormBoxes.ghost(
                     controller: _rateController,
-                    enabled: currentProduct.productId != null,
                     placeholder: '0.0',
                     placeholderStyle:
                         currentProduct.productId == null ? TextStyles.inactive : TextStyles.active,

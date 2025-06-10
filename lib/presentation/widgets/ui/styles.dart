@@ -5,7 +5,10 @@ class TextStyles {
     color: Color(0xFFB0B0B0),
   );
   static const TextStyle active = TextStyle(
-    color: Color(0xFF000000),
+    color: Color(0xFF030303),
+  );
+  static const TextStyle error = TextStyle(
+    color: Colors.errorPrimaryColor,
   );
 }
 

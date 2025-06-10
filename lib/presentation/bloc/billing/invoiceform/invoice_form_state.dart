@@ -18,6 +18,9 @@ class InvoiceFormState extends Equatable {
     this.referenceNumber,
     this.creatorId,
     this.creationDate,
+    this.invoiceDateErrorMessage,
+    this.dueDateErrorMessage,
+    this.invoiceTableErrorMessage,
   })  : invoiceDate = invoiceDate ?? DateTime.now(),
         products = products ?? [EmptyFormProduct()],
         dueDate = dueDate ?? DateTime.now().add(const Duration(days: 30));
@@ -43,6 +46,11 @@ class InvoiceFormState extends Equatable {
   final int? creatorId;
   final DateTime? creationDate;
 
+  // For Form Validation for components with no validator support
+  final String? invoiceDateErrorMessage;
+  final String? dueDateErrorMessage;
+  final String? invoiceTableErrorMessage;
+
   InvoiceFormState copyWith({
     int? invoiceId,
     String? customerName,
@@ -60,6 +68,9 @@ class InvoiceFormState extends Equatable {
     String? referenceNumber,
     int? creatorId,
     DateTime? creationDate,
+    String? invoiceDateErrorMessage,
+    String? dueDateErrorMessage,
+    String? invoiceTableErrorMessage,
   }) {
     return InvoiceFormState(
       invoiceId: invoiceId ?? this.invoiceId,
@@ -78,6 +89,9 @@ class InvoiceFormState extends Equatable {
       referenceNumber: referenceNumber ?? this.referenceNumber,
       creatorId: creatorId ?? this.creatorId,
       creationDate: creationDate ?? this.creationDate,
+      invoiceDateErrorMessage: invoiceDateErrorMessage ?? this.invoiceDateErrorMessage,
+      dueDateErrorMessage: dueDateErrorMessage ?? this.dueDateErrorMessage,
+      invoiceTableErrorMessage: invoiceTableErrorMessage ?? this.invoiceTableErrorMessage,
     );
   }
 

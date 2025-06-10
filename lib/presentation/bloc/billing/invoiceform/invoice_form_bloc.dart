@@ -32,11 +32,26 @@ class InvoiceFormBloc extends Bloc<InvoiceFormEvent, InvoiceFormState> {
   }
 
   void _onInvoiceDateChanged(InvoiceDateChangedEvent event, Emitter<InvoiceFormState> emit) {
-    emit(state.copyWith(invoiceDate: event.invoiceDate));
+    // Ensure that the invoice date is not in the future
+    if (event.invoiceDate.isAfter(DateTime.now())) {
+      emit(state.copyWith(
+        invoiceDateErrorMessage: 'Invoice date cannot be in the future.',
+      ));
+      return;
+    }
+    // Clear any previous error message
+    emit(state.copyWith(invoiceDateErrorMessage: null, invoiceDate: event.invoiceDate));
   }
 
   void _onDueDateChanged(DueDateChangedEvent event, Emitter<InvoiceFormState> emit) {
-    emit(state.copyWith(dueDate: event.dueDate));
+    // Ensure that the due date is not before the invoice date
+    if (event.dueDate.isBefore(state.invoiceDate)) {
+      emit(state.copyWith(
+        dueDateErrorMessage: 'Due date cannot be before the invoice date.',
+      ));
+      return;
+    }
+    emit(state.copyWith(dueDate: event.dueDate, dueDateErrorMessage: null));
   }
 
   void _onMemoChanged(MemoChangedEvent event, Emitter<InvoiceFormState> emit) {
@@ -85,17 +100,17 @@ class InvoiceFormBloc extends Bloc<InvoiceFormEvent, InvoiceFormState> {
   void _onProductSelected(ProductSelectedEvent event, Emitter<InvoiceFormState> emit) {
     final index = event.index;
     final updatedProducts = List<FormProduct>.from(state.products);
-    printBoxed('''
-    Product Selected:
-    Id: ${event.product.productId}
-    Name: ${event.product.productName}
-    Description: ${event.product.description}
-    Quantity: ${event.product.quantity}
-    Unit: ${event.product.unit}
-    Conversion Factor: ${event.product.conversionFactor}
-    Rate: ${event.product.rate}
-    Amount: ${event.product.amount}
-    ''', 'InvoiceFormBloc');
+    // printBoxed('''
+    // Product Selected:
+    // Id: ${event.product.productId}
+    // Name: ${event.product.productName}
+    // Description: ${event.product.description}
+    // Quantity: ${event.product.quantity}
+    // Unit: ${event.product.unit}
+    // Conversion Factor: ${event.product.conversionFactor}
+    // Rate: ${event.product.rate}
+    // Amount: ${event.product.amount}
+    // ''', 'InvoiceFormBloc');
     if (index != -1) {
       updatedProducts[index] = event.product.copyWith(
         quantity: 0,
@@ -106,8 +121,8 @@ class InvoiceFormBloc extends Bloc<InvoiceFormEvent, InvoiceFormState> {
   }
 
   void _onProductUpdated(ProductUpdatedEvent event, Emitter<InvoiceFormState> emit) {
-    final adjustedRate = event.product.rate * event.product.conversionFactor!;
-    printBoxed('Adjusted Rate: $adjustedRate', 'InvoiceFormBloc');
+    final adjustedRate = event.product.rate * (event.product.conversionFactor ?? 1.0);
+    // printBoxed('Adjusted Rate: $adjustedRate', 'InvoiceFormBloc');
     final adjustedProduct = event.product.copyWith(
       rate: adjustedRate,
       amount: adjustedRate * event.product.quantity,
@@ -118,25 +133,26 @@ class InvoiceFormBloc extends Bloc<InvoiceFormEvent, InvoiceFormState> {
 
     if (index != -1) {
       printBoxed('''
-    Product Updated:
-    Id: ${adjustedProduct.productId}
-    Name: ${adjustedProduct.productName}
-    Description: ${adjustedProduct.description}
-    Quantity: ${adjustedProduct.quantity}
-    Unit: ${adjustedProduct.unit}
-    Conversion Factor: ${adjustedProduct.conversionFactor}
-    Rate: ${adjustedProduct.rate}
-    Amount: ${adjustedProduct.amount}
-    ''', 'InvoiceFormBloc');
+      Product Updated:
+      Id: ${adjustedProduct.productId}
+      Name: ${adjustedProduct.productName}
+      Description: ${adjustedProduct.description}
+      Quantity: ${adjustedProduct.quantity}
+      Unit: ${adjustedProduct.unit}
+      Conversion Factor: ${adjustedProduct.conversionFactor}
+      Rate: ${adjustedProduct.rate}
+      Amount: ${adjustedProduct.amount}
+      ''', 'InvoiceFormBloc');
+
       updatedProducts[index] = adjustedProduct;
 
       final subtotal = updatedProducts.fold<double>(
-        0.0,
+        0,
         (previousValue, element) => previousValue + (element.amount),
       );
       final discountAmount = state.discountType == DiscountType.percentage
-          ? (subtotal * (state.discount ?? 0.0) / 100)
-          : (state.discount ?? 0.0);
+          ? (subtotal * (state.discount ?? 0) / 100)
+          : (state.discount ?? 0);
       final amountDue = subtotal - discountAmount;
 
       emit(
