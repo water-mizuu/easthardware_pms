@@ -124,7 +124,7 @@ class _ClientConnectionDialogState extends State<ClientConnectionDialog> {
           messageChannel: loadedMessageChannel!,
           stream: loadedStream!,
           close: () async {
-            await loadedWebSocketChannel!.sink.close(0);
+            await loadedWebSocketChannel!.sink.close();
           },
         ),
       );

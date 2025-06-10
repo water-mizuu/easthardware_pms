@@ -35,22 +35,26 @@ class CreateProductPage extends StatelessWidget {
       },
     );
 
-    final createdProduct = state.toProduct().copyWith(
+    final createdProduct = state //
+        .toProduct()
+        .copyWith(
           categoryId: matchedCategory.id,
           categoryName: matchedCategory.name,
           id: state.productId,
         );
 
-    context.read<ProductListBloc>().add(AddProductEvent(createdProduct));
-
-    final addCreateEvent = AddCreateEvent(
-      'Product #${state.productId}',
-      context.read<AuthenticationBloc>().state.user!,
-    );
-    context.read<UserLogListBloc>().add(addCreateEvent);
+    context //
+        .read<ProductListBloc>()
+        .add(AddProductEvent(createdProduct));
+    context //
+        .read<UserLogListBloc>()
+        .add(AddCreateEvent(
+          'Product #${state.productId}',
+          context.read<AuthenticationBloc>().state.user!,
+        ));
 
     final mappedUnits = state.secondaryUnits
-        .where((formUnit) => formUnit.name.isNotEmpty)
+        .where((formUnit) => formUnit.name.value.isNotEmpty)
         .map((formUnit) => formUnit.toUnit(state.productId!));
 
     for (final unit in mappedUnits) {
@@ -118,6 +122,7 @@ class PageHeader extends StatelessWidget {
           'Save Product',
           onPressed: () {
             // Added 1 because SQLite has one-based indexing
+            print(context.read<AuthenticationBloc>().state.user);
             final creatorId = context.read<AuthenticationBloc>().state.user!.id!;
             final productId = 1 + context.read<ProductListBloc>().state.allProducts.length;
             context.read<ProductFormBloc>().add(

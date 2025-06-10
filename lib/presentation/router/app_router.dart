@@ -34,19 +34,17 @@ final router = GoRouter(
     ShellRoute(
       builder: (_, __, child) => BottomText(child: child),
       routes: [
-        GoRoute(
-          path: AppRoutes.login.path,
+        TypedGoRoute(
+          route: AppRoutes.login,
           builder: (context, state) => const LoginPage(),
         ),
         TypedGoRoute(
           route: AppRoutes.resetPassword,
           builder: (context, state) => ResetPasswordPage(username: state.extra),
         ),
-        GoRoute(
-          path: AppRoutes.newPassword.path,
-          builder: (context, state) => (NewPasswordPage(
-            username: state.extra as String,
-          )),
+        TypedGoRoute(
+          route: AppRoutes.newPassword,
+          builder: (context, state) => NewPasswordPage(username: state.extra),
         )
       ],
     ),
@@ -57,8 +55,8 @@ final router = GoRouter(
         StatefulShellBranch(
           initialLocation: AppRoutes.admin.dashboard.path,
           routes: [
-            GoRoute(
-              path: AppRoutes.admin.dashboard.path,
+            TypedGoRoute(
+              route: AppRoutes.admin.dashboard,
               builder: (context, state) => const Text("Dashboard"),
             )
           ],
@@ -133,12 +131,12 @@ final router = GoRouter(
         StatefulShellBranch(
           initialLocation: AppRoutes.admin.billing.path,
           routes: [
-            GoRoute(
-              path: AppRoutes.admin.billing.path,
+            TypedGoRoute(
+              route: AppRoutes.admin.billing,
               builder: (context, state) => const InvoicePanePage(),
             ),
-            GoRoute(
-              path: AppRoutes.admin.createInvoice.path,
+            TypedGoRoute(
+              route: AppRoutes.admin.createInvoice,
               builder: (context, state) => const CreateInvoicePage(),
             ),
           ],
@@ -147,12 +145,12 @@ final router = GoRouter(
         StatefulShellBranch(
           initialLocation: AppRoutes.admin.order.path,
           routes: [
-            GoRoute(
-              path: AppRoutes.admin.order.path,
+            TypedGoRoute(
+              route: AppRoutes.admin.order,
               builder: (context, state) => const OrderPanePage(),
             ),
-            GoRoute(
-              path: AppRoutes.admin.createOrder.path,
+            TypedGoRoute(
+              route: AppRoutes.admin.createOrder,
               builder: (context, state) => const CreateOrderPage(),
             ),
           ],
@@ -160,16 +158,16 @@ final router = GoRouter(
         StatefulShellBranch(
           initialLocation: AppRoutes.admin.users.path,
           routes: [
-            GoRoute(
-              path: AppRoutes.admin.users.path,
+            TypedGoRoute(
+              route: AppRoutes.admin.users,
               builder: (context, state) => const UsersPanePage(),
             ),
-            GoRoute(
-              path: AppRoutes.admin.createUser.path,
+            TypedGoRoute(
+              route: AppRoutes.admin.createUser,
               builder: (context, state) => const CreateUserPage(),
             ),
-            GoRoute(
-              path: AppRoutes.admin.userLogs.path,
+            TypedGoRoute(
+              route: AppRoutes.admin.userLogs,
               builder: (context, state) => const UserLogPane(),
             )
           ],
@@ -234,8 +232,8 @@ final router = GoRouter(
         StatefulShellBranch(
           initialLocation: AppRoutes.staff.inventory.path,
           routes: [
-            GoRoute(
-              path: AppRoutes.staff.inventory.path,
+            TypedGoRoute(
+              route: AppRoutes.staff.inventory,
               builder: (context, state) => (const InventoryPanePage()),
             ),
           ],
@@ -245,12 +243,12 @@ final router = GoRouter(
         StatefulShellBranch(
           initialLocation: AppRoutes.staff.createInvoice.path,
           routes: [
-            GoRoute(
-              path: AppRoutes.staff.createInvoice.path,
+            TypedGoRoute(
+              route: AppRoutes.staff.createInvoice,
               builder: (context, state) => const CreateInvoicePage(),
             ),
-            GoRoute(
-              path: AppRoutes.staff.payInvoice.path,
+            TypedGoRoute(
+              route: AppRoutes.staff.payInvoice,
               builder: (context, state) => const InvoicePanePage(),
             ),
           ],
@@ -259,8 +257,8 @@ final router = GoRouter(
         StatefulShellBranch(
           initialLocation: AppRoutes.staff.help.path,
           routes: [
-            GoRoute(
-              path: AppRoutes.staff.help.path,
+            TypedGoRoute(
+              route: AppRoutes.staff.help,
               builder: (context, state) => const Text("Help Page"),
             ),
           ],
@@ -269,8 +267,8 @@ final router = GoRouter(
         StatefulShellBranch(
           initialLocation: AppRoutes.staff.about.path,
           routes: [
-            GoRoute(
-              path: AppRoutes.staff.about.path,
+            TypedGoRoute(
+              route: AppRoutes.staff.about,
               builder: (context, state) => const Text("About Page"),
             ),
           ],

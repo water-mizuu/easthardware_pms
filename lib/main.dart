@@ -9,6 +9,9 @@ import 'package:fluent_ui/fluent_ui.dart';
 import 'package:flutter/foundation.dart';
 import 'package:window_manager_plus/window_manager_plus.dart';
 
+const printWebSocketMessages = true;
+const printDatabaseMessages = true;
+
 void main(List<String> args) async {
   WidgetsFlutterBinding.ensureInitialized();
 
@@ -16,14 +19,14 @@ void main(List<String> args) async {
   if ((!kIsWeb) && (Platform.isWindows || Platform.isMacOS)) {
     const minimumSize = Size(800, 550);
 
-    final id = args.isEmpty ? 0 : int.tryParse(args[0]) ?? 0;
-    final (_) = await WindowManagerPlus.ensureInitialized(id).tryCatch();
     const options = WindowOptions(
       size: minimumSize,
       minimumSize: minimumSize,
       center: true,
       skipTaskbar: false,
     );
+    final id = args.isEmpty ? 0 : int.tryParse(args[0]) ?? 0;
+    final (_) = await WindowManagerPlus.ensureInitialized(id).tryCatch();
 
     WindowManagerPlus.current.waitUntilReadyToShow(options, () async {
       if (Platform.isWindows) {

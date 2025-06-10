@@ -12,7 +12,8 @@ class ResetFormBloc extends Bloc<ResetFormEvent, ResetFormState> {
   ResetFormBloc({
     required this.userRepository,
     required this.securityQuestionRepository,
-  }) : super(const ResetFormState()) {
+    required ResetFormState initialState,
+  }) : super(initialState) {
     on<ResetFormUsernameChanged>(_onUsernameChanged);
     on<ResetFormSecurityQuestionSelected>(_onSecurityQuestionSelected);
     on<ResetFormAnswerChanged>(_onAnswerChanged);
@@ -31,7 +32,7 @@ class ResetFormBloc extends Bloc<ResetFormEvent, ResetFormState> {
     emit(state.copyWith(
       username: username,
       status: ResetFormStatus.loading,
-      questions: [],
+      questions: const [],
       selectedQuestion: '',
     ));
 
@@ -44,7 +45,7 @@ class ResetFormBloc extends Bloc<ResetFormEvent, ResetFormState> {
       emit(state.copyWith(
         status: ResetFormStatus.error,
         errorMessage: 'Admin user cannot reset password',
-        questions: [],
+        questions: const [],
         selectedQuestion: '',
       ));
       return;
@@ -60,7 +61,7 @@ class ResetFormBloc extends Bloc<ResetFormEvent, ResetFormState> {
       ));
     } catch (e) {
       emit(state.copyWith(
-        questions: [],
+        questions: const [],
         status: ResetFormStatus.error,
         errorMessage: 'Failed to load security questions',
       ));
@@ -91,9 +92,8 @@ class ResetFormBloc extends Bloc<ResetFormEvent, ResetFormState> {
 
     try {
       // Find the security question that matches the selected question
-      final selectedSecurityQuestion = state.questions.firstWhere(
-        (q) => q.question == state.selectedQuestion,
-      );
+      final selectedSecurityQuestion = state.questions //
+          .firstWhere((q) => q.question == state.selectedQuestion);
 
       // Verify the answer (you might want to hash this for security)
       if (selectedSecurityQuestion.answer.toLowerCase().trim() ==

@@ -7,6 +7,14 @@ abstract class NewPasswordFormEvent extends Equatable {
   List<Object> get props => [];
 }
 
+class NewPasswordFormUsernameChanged extends NewPasswordFormEvent {
+  const NewPasswordFormUsernameChanged(this.username);
+  final String username;
+
+  @override
+  List<Object> get props => [username];
+}
+
 class NewPasswordChanged extends NewPasswordFormEvent {
   const NewPasswordChanged(this.password);
   final String password;

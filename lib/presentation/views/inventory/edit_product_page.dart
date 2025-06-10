@@ -32,104 +32,199 @@ class EditProductPage extends StatelessWidget {
       providers: [
         BlocProvider(
           create: (context) {
-            final secondaryUnits = context
-                .read<UnitListBloc>()
-                .state
-                .units
-                .where((unit) => unit.productId == product.id)
+            final unitState = context.read<UnitListBloc>().state;
+            final secondaryUnits = unitState.units //
+                .where((u) => u.productId == product.id)
                 .toList();
 
-            final bloc = ProductFormBloc(product: product, units: secondaryUnits);
-
-            return bloc;
+            return ProductFormBloc(product: product, units: secondaryUnits);
           },
         ),
       ],
-      child: BlocListener<ProductFormBloc, ProductFormState>(
-        listener: (context, state) {
-          switch (state.formStatus) {
-            case FormStatus.initial:
-              break;
-            case FormStatus.submitting:
-              // Handle Category Search and Creation
-              final formCategory = state.categoryName;
-              final stateCategories = context.read<CategoryListBloc>().state.categories;
+      builder: (context, _) {
+        return MultiBlocListener(
+          listeners: [
+            BlocListener<UnitListBloc, UnitListState>(
+              listenWhen: (p, c) => p.units != c.units,
+              listener: (context, state) {
+                assert(product.id != null, 'Product ID must not be null');
 
-              final matchedCategory = stateCategories.firstWhere(
-                (category) => category.name == formCategory,
-                orElse: () {
-                  final newCategory = Category(name: formCategory, id: stateCategories.length + 1);
-                  context.read<CategoryListBloc>().add(AddCategoryEvent(newCategory));
-                  return newCategory;
-                },
-              );
-
-              final mappedProduct = state.toProduct().copyWith(
-                    categoryId: matchedCategory.id,
-                    categoryName: matchedCategory.name,
-                    id: state.productId,
+                final productFormBloc = context.read<ProductFormBloc>();
+                final allSecondaryUnits = state.units;
+                final unitsOfThisProduct = allSecondaryUnits //
+                    .where((u) => u.productId == product.id)
+                    .toList();
+                if (kDebugMode) {
+                  printBoxed(
+                    unitsOfThisProduct.map((u) => u.toMap()).join("\n").wrap,
+                    'Units of Product #${product.id}',
                   );
-
-              context.read<UserLogListBloc>().add(AddUpdateEvent(
-                    'Product #${state.productId}',
-                    context.read<AuthenticationBloc>().state.user!,
-                  ));
-
-              context.read<ProductListBloc>().add(UpdateProductEvent(mappedProduct));
-              final stateUnits = context.read<UnitListBloc>().state.units;
-              if (kDebugMode) {
-                printBoxed(stateUnits.join("\n").wrap, 'State Units');
-              }
-              final mappedUnits = state.secondaryUnits
-                  .map((u) => u.name.isNotEmpty ? u.toUnit(state.productId!) : null)
-                  .whereType<Unit>()
-                  .toList();
-
-              /// FIXME: this does not properly update the secondary units. A more advanced solution is needed to detect edits (Creation, Update, and Deletion).
-              final existingUnits = mappedUnits.where(stateUnits.contains).toList();
-              final newUnits = List<Unit>.from(mappedUnits);
-              mappedUnits.retainWhere(stateUnits.contains);
-
-              for (final unit in existingUnits) {
-                context.read<UnitListBloc>().add(UpdateUnitEvent(unit));
-              }
-              for (final unit in newUnits) {
-                context.read<UnitListBloc>().add(AddUnitEvent(unit));
-              }
-
-              context.read<ProductFormBloc>().add(FormSubmittedEvent());
-              break;
-            case FormStatus.submitted:
-              Future.delayed(Duration.zero, () {
-                if (context.mounted) {
-                  context.read<ProductFormBloc>().add(FormResetEvent());
-                  context.navigate(AppRoutes.admin.inventory);
                 }
-              });
-            case FormStatus.error:
-              if (kDebugMode) {
-                print("Error");
-              }
-              break;
-            default:
-              break;
-          }
-        },
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Padding(
-              padding: EdgeInsets.only(
-                top: AppPadding.panePadding.top,
-                left: AppPadding.panePadding.left,
-                right: AppPadding.panePadding.right,
-              ),
-              child: const PageHeader(),
+
+                productFormBloc.add(ProductLoadedEvent(product, unitsOfThisProduct));
+              },
             ),
-            const Expanded(child: ProductInformationFormContent()),
-          ].withSpacing(() => Spacing.v16),
-        ),
-      ),
+            BlocListener<ProductFormBloc, ProductFormState>(
+              listenWhen: (p, c) => p.formStatus != c.formStatus,
+              listener: (context, state) {
+                switch (state.formStatus) {
+                  case FormStatus.initial:
+                    break;
+                  case FormStatus.submitting:
+                    // Handle Category Search and Creation
+                    final formCategory = state.categoryName;
+                    final stateCategories = context.read<CategoryListBloc>().state.categories;
+
+                    final matchedCategory = stateCategories.firstWhere(
+                      (category) => category.name == formCategory,
+                      orElse: () {
+                        final newCategory = Category(
+                          name: formCategory,
+                          id: stateCategories.length + 1,
+                        );
+                        context.read<CategoryListBloc>().add(AddCategoryEvent(newCategory));
+                        return newCategory;
+                      },
+                    );
+
+                    final mappedProduct = state //
+                        .toProduct()
+                        .copyWith(
+                          categoryId: matchedCategory.id,
+                          categoryName: matchedCategory.name,
+                          id: state.productId,
+                        );
+
+                    final user = context.read<AuthenticationBloc>().state.user!;
+                    context //
+                        .read<UserLogListBloc>()
+                        .add(AddUpdateEvent('Product #${state.productId}', user));
+
+                    context //
+                        .read<ProductListBloc>()
+                        .add(UpdateProductEvent(mappedProduct));
+
+                    /// UPDATING UNITS IN DATABASE.
+
+                    final unitsExistingInDb = context.read<UnitListBloc>().state.units;
+                    if (kDebugMode) {
+                      printBoxed(unitsExistingInDb.join("\n").wrap, 'State Units');
+                    }
+
+                    final unitsExistingInDbForProduct = unitsExistingInDb //
+                        .where((u) => u.productId == state.productId)
+                        .toList();
+
+                    /// Convert each of the form units into actual [Unit] objects.
+                    final mappedUnitsInForm = state.secondaryUnits
+                        .map((u) => u.name.value.isNotEmpty ? u.toUnit(state.productId!) : null)
+                        .whereType<Unit>()
+                        .toList();
+
+                    assert(
+                      mappedUnitsInForm.every((u) => u.productId == state.productId),
+                      'All units in the form should have the same product ID as the current product.',
+                    );
+
+                    /// The units are added when they don't match any unit existing in the database
+                    ///   for the same product.
+                    final createdUnits = mappedUnitsInForm //
+                        /// Safety check
+                        .where((u) => u.productId == state.productId)
+
+                        /// A unit is only new for a product [p] if it does not match
+                        ///   with a unit in the database with the same name .
+                        .where((u) => u.id == null)
+                        .toList();
+
+                    assert(
+                      createdUnits.every((u) => u.id == null),
+                      'All added units should have a null ID.',
+                    );
+
+                    for (final unit in createdUnits) {
+                      context.read<UnitListBloc>().add(AddUnitEvent(unit));
+                    }
+
+                    /// Units are modified when they DO match a unit in the database.
+                    final modifiedExistingUnits = mappedUnitsInForm
+
+                        /// Safety check
+                        .where((u) => u.productId == state.productId)
+
+                        /// A unit is modified if it matches a unit in the database
+                        ///   with the same unit ID.
+                        .where((u) => unitsExistingInDbForProduct.any((m) => m.id == u.id))
+                        .toList();
+
+                    assert(
+                      modifiedExistingUnits.every((u) => u.id != null),
+                      'All existing units should have an ID assigned.',
+                    );
+
+                    /// Apply the changes to the database.
+                    for (final unit in modifiedExistingUnits) {
+                      context.read<UnitListBloc>().add(UpdateUnitEvent(unit));
+                    }
+
+                    /// Units are removed when they exist in the database but not in the form.
+                    /// We assert that all removed units have the same product
+                    ///   ID as the current product.
+                    final removedUnits = unitsExistingInDbForProduct //
+                        .where((m) => !mappedUnitsInForm.any((u) => m.id == u.id));
+
+                    assert(
+                      removedUnits.every((u) => u.productId == state.productId),
+                      'All removed units should have the same product ID as the current product.',
+                    );
+                    assert(
+                      removedUnits.every((u) => u.id != null),
+                      'All removed units should have a non-null ID.',
+                    );
+
+                    /// Apply the changes to the database.
+                    for (final unit in removedUnits) {
+                      if (unit.id case final id?) {
+                        context.read<UnitListBloc>().add(DeleteUnitEvent(id));
+                      }
+                    }
+
+                    context.read<ProductFormBloc>().add(FormSubmittedEvent());
+                    break;
+                  case FormStatus.submitted:
+                    Future.delayed(Duration.zero, () {
+                      if (context.mounted) {
+                        context.read<ProductFormBloc>().add(FormResetEvent());
+                        context.navigate(AppRoutes.admin.inventory);
+                      }
+                    });
+                  case FormStatus.error:
+                    if (kDebugMode) {
+                      print("Error");
+                    }
+                    break;
+                  default:
+                    break;
+                }
+              },
+            ),
+          ],
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Padding(
+                padding: EdgeInsets.only(
+                  top: AppPadding.panePadding.top,
+                  left: AppPadding.panePadding.left,
+                  right: AppPadding.panePadding.right,
+                ),
+                child: const PageHeader(),
+              ),
+              const Expanded(child: ProductInformationFormContent()),
+            ].withSpacing(() => Spacing.v16),
+          ),
+        );
+      },
     );
   }
 }
@@ -152,26 +247,40 @@ class PageHeader extends StatelessWidget {
           final previous = context.read<ProductFormBloc>().state.archivedStatus;
           final current = previous == 0 ? 1 : 0;
           context.read<ProductFormBloc>().add(ProductStatusChangedEvent(current));
+          if (kDebugMode) {
+            printBoxed(
+              'Product Status changed from $previous to $current',
+              'EditProductPage',
+            );
+          }
 
           // Update Product
           final productId = context.read<ProductFormBloc>().state.productId!;
           final creatorId = context.read<AuthenticationBloc>().state.user!.id!;
-          context.read<UserLogListBloc>().add(AddArchiveEvent(
-                'Product #${context.read<ProductFormBloc>().state.productId}',
-                context.read<AuthenticationBloc>().state.user!,
-              ));
-          context.read<ProductFormBloc>().add(FormButtonPressedEvent(
-                productId: productId,
-                creatorId: creatorId,
-              ));
+          context
+            ..read<UserLogListBloc>().add(AddArchiveEvent(
+              'Product #${context.read<ProductFormBloc>().state.productId}',
+              context.read<AuthenticationBloc>().state.user!,
+            ))
+            ..read<ProductFormBloc>().add(FormButtonPressedEvent(
+              productId: productId,
+              creatorId: creatorId,
+            ));
         }),
         TextButtonFilled('Update Product', onPressed: () {
           // Added 1 because SQLite has one-based indexing
           // Take actual productId
           // Add onUpdate Event
-          final productId = context.read<ProductFormBloc>().state.productId!;
-          final creatorId = context.read<ProductFormBloc>().state.creatorId!;
-          context.read<ProductFormBloc>().add(FormButtonPressedEvent(
+          final ProductFormState(:productId!, :creatorId!) = context.read<ProductFormBloc>().state;
+          if (kDebugMode) {
+            printBoxed(
+              'Product Status changed from $productId to $creatorId',
+              'EditProductPage',
+            );
+          }
+          context //
+              .read<ProductFormBloc>()
+              .add(FormButtonPressedEvent(
                 productId: productId,
                 creatorId: creatorId,
               ));

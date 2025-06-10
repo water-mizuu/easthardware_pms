@@ -5,6 +5,7 @@ import 'package:easthardware_pms/domain/constants/constants.dart';
 import 'package:easthardware_pms/domain/enums/enums.dart';
 import 'package:easthardware_pms/domain/models/product.dart';
 import 'package:easthardware_pms/domain/models/unit.dart';
+import 'package:easthardware_pms/domain/services/cryptography_service.dart';
 import 'package:easthardware_pms/presentation/models/form_unit.dart';
 import 'package:easthardware_pms/utils/boxed.dart';
 import 'package:easthardware_pms/utils/undefined.dart';
@@ -129,12 +130,15 @@ class ProductFormBloc extends Bloc<ProductFormEvent, ProductFormState> {
   }
 
   void _onSecondaryUnitNameChanged(
-      SecondaryUnitFieldNameChangedEvent event, Emitter<ProductFormState> emit) {
+    SecondaryUnitFieldNameChangedEvent event,
+    Emitter<ProductFormState> emit,
+  ) {
     final name = event.name;
     final index = event.index;
     final alternativeUnits = List<FormUnit>.from(state.secondaryUnits);
 
-    alternativeUnits[index] = alternativeUnits[index].copyWith(name: name);
+    alternativeUnits[index] = alternativeUnits[index] //
+        .copyWith(name: SecondaryUnitFormName(name));
     return emit(state.copyWith(secondaryUnits: alternativeUnits));
   }
 
@@ -146,8 +150,8 @@ class ProductFormBloc extends Bloc<ProductFormEvent, ProductFormState> {
     final alternativeUnits = List<FormUnit>.from(state.secondaryUnits);
 
     alternativeUnits[index] = alternativeUnits[index].copyWith(
-      mainQuantity: mainQuantity,
-      unitQuantity: unitQuantity,
+      mainQuantity: SecondaryUnitFormMainQuantity(mainQuantity),
+      unitQuantity: SecondaryUnitFormUnitQuantity(unitQuantity),
     );
 
     return emit(state.copyWith(secondaryUnits: alternativeUnits));
@@ -155,7 +159,7 @@ class ProductFormBloc extends Bloc<ProductFormEvent, ProductFormState> {
 
   void _onSecondaryUnitAdded(SecondaryUnitFieldAddedEvent event, Emitter<ProductFormState> emit) {
     final alternativeUnits = List<FormUnit>.from(state.secondaryUnits);
-    alternativeUnits.add(const FormUnit(name: '', mainQuantity: '', unitQuantity: ''));
+    alternativeUnits.add(const FormUnit.empty());
     emit(state.copyWith(secondaryUnits: alternativeUnits));
   }
 
@@ -196,10 +200,23 @@ class ProductFormBloc extends Bloc<ProductFormEvent, ProductFormState> {
   ) async {
     emit(state.copyWith(formStatus: FormStatus.validating));
     await Future.delayed(Duration.zero);
+    if (isClosed) return;
+
+    if (kDebugMode) {
+      printBoxed(event, 'ProductFormBloc: Button Pressed');
+    }
+
     try {
       if (formKey.currentState case final FormState formState when formState.validate()) {
         emit(state.copyWith(formStatus: FormStatus.valid));
-        Future.delayed(Duration.zero);
+        await Future.delayed(Duration.zero);
+
+        if (kDebugMode) {
+          printBoxed(event, 'ProductFormBloc: Button Pressed');
+        }
+
+        if (isClosed) return;
+
         emit(state.copyWith(
           formStatus: FormStatus.submitting,
           creatorId: event.creatorId,
@@ -210,6 +227,9 @@ class ProductFormBloc extends Bloc<ProductFormEvent, ProductFormState> {
         emit(state.copyWith(formStatus: FormStatus.invalid));
       }
     } catch (e) {
+      if (kDebugMode) {
+        printBoxed(e.toString().wrap, 'ProductFormBloc: Error on Button Pressed');
+      }
       emit(state.copyWith(formStatus: FormStatus.error));
     }
   }
@@ -234,7 +254,9 @@ class ProductFormBloc extends Bloc<ProductFormEvent, ProductFormState> {
         cost: event.product.orderCost.toString(),
         quantity: event.product.quantity.toString(),
         mainUnit: event.product.mainUnit,
-        secondaryUnits: event.secondaryUnits.map(FormUnit.fromUnit).toList(),
+        secondaryUnits: event.secondaryUnits.isEmpty
+            ? [const FormUnit.empty()]
+            : event.secondaryUnits.map(FormUnit.fromUnit).toList(),
         criticalLevel: event.product.criticalLevel.toString(),
         deadStockThreshold: event.product.deadStockThreshold.toString(),
         fastMovingThreshold: event.product.fastMovingStockThreshold.toString(),
@@ -242,6 +264,9 @@ class ProductFormBloc extends Bloc<ProductFormEvent, ProductFormState> {
         formStatus: FormStatus.initial,
       ));
     } catch (e) {
+      if (kDebugMode) {
+        printBoxed(e.toString().wrap, 'ProductFormBloc: Error on Product Loaded');
+      }
       emit(state.copyWith(formStatus: FormStatus.error));
     }
   }

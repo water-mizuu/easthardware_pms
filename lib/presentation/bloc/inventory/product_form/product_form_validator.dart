@@ -1,3 +1,5 @@
+import 'package:easthardware_pms/presentation/models/form_unit.dart';
+
 mixin ProductFormValidator {
   String? validateProductName(String? value) {
     if (value == null || value.trim().isEmpty) {
@@ -75,27 +77,55 @@ mixin ProductFormValidator {
     return null;
   }
 
-  String? validateSecondaryUnitName({required String? name, required List<String> existingNames}) {
-    if (existingNames.last == name) {
-      return "Secondary unit cannot be the same as the primary unit.";
+  String? validateSecondaryUnitName({
+    required SecondaryUnitFormName? name,
+    required SecondaryUnitFormUnitQuantity? unitQuantity,
+    required SecondaryUnitFormMainQuantity? mainQuantity,
+    required List<String> existingNames,
+  }) {
+    /// Basically, if the secondary name is empty, unit quantity is empty,
+    ///   and the main quantity is empty, we don't need to validate anything.
+    /// It means that the secondary unit is not being used.
+    if ((name == null || name.isEmpty) &&
+        (unitQuantity == null || unitQuantity.isEmpty) &&
+        (mainQuantity == null || mainQuantity.isEmpty)) {
+      return null;
     }
+
     if (name == null || name.isEmpty) {
       return "Alternate unit name cannot be empty.";
     }
 
-    if (existingNames.contains(name)) {
+    if (existingNames.last == name.value) {
+      return "Secondary unit cannot be the same as the primary unit.";
+    }
+
+    if (existingNames.contains(name.value)) {
       return "Secondary unit already exists.";
     }
+
     return null;
   }
 
-  String? validateMainUnitCount({
-    required String? count,
+  String? validateMainUnitQuantity({
+    required SecondaryUnitFormName? secondaryName,
+    required SecondaryUnitFormUnitQuantity? unitQuantity,
+    required SecondaryUnitFormMainQuantity? mainQuantity,
   }) {
-    if (count == null || count.trim().isEmpty) {
+    /// Basically, if the secondary name is empty, unit quantity is empty,
+    ///   and the main quantity is empty, we don't need to validate anything.
+    /// It means that the secondary unit is not being used.
+    if ((secondaryName == null || secondaryName.isEmpty) &&
+        (unitQuantity == null || unitQuantity.isEmpty) &&
+        (mainQuantity == null || mainQuantity.isEmpty)) {
+      return null;
+    }
+
+    if (mainQuantity == null || mainQuantity.trim().isEmpty) {
       return "Main equivalent cannot be empty.";
     }
-    final conversionFactor = double.tryParse(count);
+
+    final conversionFactor = double.tryParse(mainQuantity.value);
     if (conversionFactor == null || conversionFactor <= 0) {
       return "Main equivalent must be a positive number.";
     }
@@ -103,13 +133,23 @@ mixin ProductFormValidator {
     return null;
   }
 
-  String? validateSecondaryUnitCount({
-    required String? count,
+  String? validateSecondaryUnitQuantity({
+    required SecondaryUnitFormName? secondaryName,
+    required SecondaryUnitFormUnitQuantity? unitQuantity,
+    required SecondaryUnitFormMainQuantity? mainQuantity,
   }) {
-    if (count == null || count.trim().isEmpty) {
+    /// Basically, if the secondary name is empty,
+    if ((secondaryName == null || secondaryName.isEmpty) &&
+        (unitQuantity == null || unitQuantity.isEmpty) &&
+        (mainQuantity == null || mainQuantity.isEmpty)) {
+      return null;
+    }
+
+    if (unitQuantity == null || unitQuantity.trim().isEmpty) {
       return "Secondary unit cannot be empty.";
     }
-    final conversionFactor = int.tryParse(count);
+
+    final conversionFactor = int.tryParse(unitQuantity.value);
     if (conversionFactor == null || conversionFactor <= 0) {
       return "Secondary unit must be a positive number.";
     }

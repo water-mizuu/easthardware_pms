@@ -6,11 +6,11 @@ import 'package:flutter/foundation.dart';
 part 'new_password_form_event.dart';
 part 'new_password_form_state.dart';
 
-class NewPasswordFormBloc
-    extends Bloc<NewPasswordFormEvent, NewPasswordFormState> {
-  NewPasswordFormBloc({required this.userRepository})
-      : super(const NewPasswordFormState()) {
-    on<NewPasswordFormReset>(_onReset);
+class NewPasswordFormBloc extends Bloc<NewPasswordFormEvent, NewPasswordFormState> {
+  NewPasswordFormBloc({
+    required this.userRepository,
+    required NewPasswordFormState initialState,
+  }) : super(initialState) {
     on<NewPasswordChanged>(_onNewPasswordChanged);
     on<ConfirmPasswordChanged>(_onConfirmPasswordChanged);
     on<NewPasswordFormSubmitted>(_onFormSubmitted);
@@ -63,8 +63,7 @@ class NewPasswordFormBloc
     emit(state.copyWith(status: FormStatus.loading));
 
     if (kDebugMode) {
-      print(
-          'Submitting new password for ${state.username}: ${state.newPassword}');
+      print('Submitting new password for ${state.username}: ${state.newPassword}');
     }
 
     try {
@@ -72,6 +71,8 @@ class NewPasswordFormBloc
       await userRepository.updatePassword(state.username, state.newPassword);
 
       emit(state.copyWith(status: FormStatus.success, errorMessage: ''));
+      await Future.delayed(Duration.zero);
+      emit(const NewPasswordFormState());
     } catch (_) {
       if (kDebugMode) {
         print('Error updating password: rawr');

@@ -5,6 +5,7 @@ import 'package:easthardware_pms/presentation/bloc/authentication/login_form/log
 import 'package:easthardware_pms/presentation/widgets/layout/spacing.dart';
 import 'package:easthardware_pms/presentation/widgets/text.dart';
 import 'package:fluent_ui/fluent_ui.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class LoginForm extends StatelessWidget {
@@ -35,6 +36,12 @@ class LoginForm extends StatelessWidget {
                   const _FormUsernameField(),
                   const _FormPasswordField(),
                   const _FormButton(),
+                  if (kDebugMode)
+                    BlocBuilder<AuthenticationBloc, AuthenticationState>(
+                      builder: (context, state) {
+                        return Text(state.loginAttempts.toString());
+                      },
+                    )
                 ].withSpacing(() => Spacing.v16),
               ),
             );

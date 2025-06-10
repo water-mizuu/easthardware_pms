@@ -53,7 +53,7 @@ class UnitRepositoryImpl implements UnitRepository {
     // Validate the unit before updating
     _validateUnit(unit);
     try {
-      return _unitsDao.insertUnit(unit);
+      return _unitsDao.updateUnit(unit);
     } catch (e) {
       throw DatabaseException("Failed to update unit: $e");
     }

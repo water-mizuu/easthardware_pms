@@ -1,7 +1,8 @@
 import 'dart:async';
 
 import 'package:easthardware_pms/app/app.dart';
-import 'package:easthardware_pms/presentation/bloc/authentication/authentication/authentication_bloc.dart';
+import 'package:easthardware_pms/presentation/bloc/authentication/'
+    'authentication/authentication_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/security/user_log_list/user_log_list_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/server/server_bloc.dart';
 import 'package:easthardware_pms/presentation/router/app_router.dart';
@@ -60,8 +61,8 @@ class _AppWindowState extends State<AppWindow> with WindowListener {
 
       /// Now, we only want to proceed if the user has not set the
       ///   prevent close option to true.
-      final isPreventClose = await WindowManagerPlus.current.isPreventClose();
-      if (!isPreventClose || !mounted || !innerContext.mounted) _exit();
+      final (isPreventClose, err) = await WindowManagerPlus.current.isPreventClose().tryCatch();
+      if (isPreventClose == false || err != null || !mounted || !innerContext.mounted) _exit();
 
       /// If there is no user authenticated, we can safely exit the application.
       final currentUser = innerContext.read<AuthenticationBloc>().state.user;

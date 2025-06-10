@@ -18,13 +18,15 @@ class ErrorMessage {
 }
 
 class AuthenticationState with EquatableMixin {
-  AuthenticationState({
+  const AuthenticationState({
     this.status = AuthenticationStatus.unknown,
     this.user,
     this.loginAttempts = 0,
     this.lastUsername,
     this.errors = const [],
     this.previousUser,
+    this.repository,
+    this.updateFuture,
   });
 
   final AuthenticationStatus status;
@@ -40,6 +42,9 @@ class AuthenticationState with EquatableMixin {
   final String? lastUsername;
   final List<ErrorMessage> errors;
 
+  final AuthenticationRepository? repository;
+  final Future<void>? updateFuture;
+
   AuthenticationState Function({
     AuthenticationStatus status,
     User? user,
@@ -47,6 +52,8 @@ class AuthenticationState with EquatableMixin {
     String? lastUsername,
     List<ErrorMessage> errors,
     User? previousUser,
+    AuthenticationRepository? repository,
+    Future<void>? updateFuture,
   }) get copyWith {
     return ({
       Object? status = undefined,
@@ -55,6 +62,8 @@ class AuthenticationState with EquatableMixin {
       Object? lastUsername = undefined,
       Object? errors = undefined,
       Object? previousUser = undefined,
+      Object? repository = undefined,
+      Object? updateFuture = undefined,
     }) {
       return AuthenticationState(
         status: status.or(this.status),
@@ -62,7 +71,9 @@ class AuthenticationState with EquatableMixin {
         loginAttempts: loginAttempts.or(this.loginAttempts),
         lastUsername: lastUsername.or(this.lastUsername),
         errors: errors.or(this.errors),
-        previousUser: previousUser is User ? previousUser : null,
+        previousUser: previousUser.or(this.previousUser),
+        repository: repository.or(this.repository),
+        updateFuture: updateFuture.or(this.updateFuture),
       );
     };
   }

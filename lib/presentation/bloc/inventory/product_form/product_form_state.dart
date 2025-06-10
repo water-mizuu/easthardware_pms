@@ -22,8 +22,7 @@ class ProductFormState extends Equatable {
     this.archivedStatus,
     this.formStatus = FormStatus.initial,
   })  : sku = sku ?? const Uuid().v4().toString(),
-        secondaryUnits =
-            secondaryUnits ?? [const FormUnit(name: '', mainQuantity: '', unitQuantity: '')],
+        secondaryUnits = secondaryUnits ?? [const FormUnit.empty()],
         creationDate = creationDate ?? DateTime.now(),
         deadStockThreshold = deadStockThreshold ?? DEFAULT_DEAD_STOCK_THRESHOLD.toString(),
         fastMovingThreshold = fastMovingThreshold ?? DEFAULT_FAST_MOVING_STOCK_THRESHOLD.toString();
@@ -42,8 +41,8 @@ class ProductFormState extends Equatable {
       criticalLevel: product.criticalLevel.toString(),
       deadStockThreshold: product.deadStockThreshold.toString(),
       fastMovingThreshold: product.fastMovingStockThreshold.toString(),
-      secondaryUnits: units.isEmpty
-          ? [const FormUnit(name: '', mainQuantity: '', unitQuantity: '')]
+      secondaryUnits: units.isEmpty //
+          ? [const FormUnit.empty()]
           : units.map(FormUnit.fromUnit).toList(),
       creationDate: DateTime.parse(product.creationDate),
       creatorId: product.creatorId,

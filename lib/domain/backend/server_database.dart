@@ -303,91 +303,104 @@ Future<Database> _getDatabase() async {
     }
 
     final path = join(await getDatabasesPath(), 'database.db');
-    _databaseInstance = await openDatabase(path, version: 4, onCreate: (db, version) {
-      CategoriesTable.createTable(db);
-      ExpenseTypesTable.createTable(db);
-      PaymentMethodsTable.createTable(db);
-      UsersTable.createTable(db);
-      UserLogsTable.createTable(db);
-      ProductsTable.createTable(db);
-      UnitsTable.createTable(db);
-      OrdersTable.createTable(db);
-      OrderProductsTable.createTable(db);
-      InvoicesTable.createTable(db);
-      InvoiceProductsTable.createTable(db);
-      SecurityQuestionsTable.createTable(db);
-      ProductFlagsView.createView(db);
-    }, onDowngrade: (db, _, __) async {
-      // Drop all tables
-      CategoriesTable.dropTable(db);
-      ExpenseTypesTable.dropTable(db);
-      PaymentMethodsTable.dropTable(db);
-      UsersTable.dropTable(db);
-      UserLogsTable.dropTable(db);
-      ProductsTable.dropTable(db);
-      UnitsTable.dropTable(db);
-      OrdersTable.dropTable(db);
-      OrderProductsTable.dropTable(db);
-      InvoicesTable.dropTable(db);
-      InvoiceProductsTable.dropTable(db);
-      SecurityQuestionsTable.dropTable(db);
-      ProductFlagsView.dropView(db);
-      // Recreate all tables
-      CategoriesTable.createTable(db);
-      ExpenseTypesTable.createTable(db);
-      PaymentMethodsTable.createTable(db);
-      UsersTable.createTable(db);
-      UserLogsTable.createTable(db);
-      ProductsTable.createTable(db);
-      UnitsTable.createTable(db);
-      OrdersTable.createTable(db);
-      OrderProductsTable.createTable(db);
-      InvoicesTable.createTable(db);
-      InvoiceProductsTable.createTable(db);
-      SecurityQuestionsTable.createTable(db);
-      ProductFlagsView.createView(db);
-      // You can also add any additional migration logic here if needed
-      // For example, if you want to migrate data from old tables to new tables, you can do it here
-    }, onUpgrade: (db, _, __) async {
-      // Drop all tables
-      CategoriesTable.dropTable(db);
-      ExpenseTypesTable.dropTable(db);
-      PaymentMethodsTable.dropTable(db);
-      UsersTable.dropTable(db);
-      UserLogsTable.dropTable(db);
-      ProductsTable.dropTable(db);
-      UnitsTable.dropTable(db);
-      OrdersTable.dropTable(db);
-      OrderProductsTable.dropTable(db);
-      InvoicesTable.dropTable(db);
-      InvoiceProductsTable.dropTable(db);
-      SecurityQuestionsTable.dropTable(db);
-      ProductFlagsView.dropView(db);
-      // Recreate all tables
-      CategoriesTable.createTable(db);
-      ExpenseTypesTable.createTable(db);
-      PaymentMethodsTable.createTable(db);
-      UsersTable.createTable(db);
-      UserLogsTable.createTable(db);
-      ProductsTable.createTable(db);
-      UnitsTable.createTable(db);
-      OrdersTable.createTable(db);
-      OrderProductsTable.createTable(db);
-      InvoicesTable.createTable(db);
-      InvoiceProductsTable.createTable(db);
-      SecurityQuestionsTable.createTable(db);
-      ProductFlagsView.createView(db);
-      // You can also add any additional migration logic here if needed
-      // For example, if you want to migrate data from old tables to new tables, you can do it here
-    }, onOpen: (db) async {
-      /// Regardless of the database version, we reset the login status for all users.
-      await db.update(
-        UsersTable.USERS_TABLE_NAME,
-        {UsersTable.USERS_LOGIN_STATUS: 0}, // Reset login status for all users
-        where: '${UsersTable.USERS_LOGIN_STATUS} = ?',
-        whereArgs: [1], // Assuming 1 is the logged-in status
+    if (kDebugMode) {
+      printBoxed(
+        "Database path: \n${path.wrap120}",
+        "Database Initialization",
       );
-    });
+    }
+    _databaseInstance = await openDatabase(
+      path,
+      version: 5,
+      onCreate: (db, version) {
+        CategoriesTable.createTable(db);
+        ExpenseTypesTable.createTable(db);
+        PaymentMethodsTable.createTable(db);
+        UsersTable.createTable(db);
+        UserLogsTable.createTable(db);
+        ProductsTable.createTable(db);
+        UnitsTable.createTable(db);
+        OrdersTable.createTable(db);
+        OrderProductsTable.createTable(db);
+        InvoicesTable.createTable(db);
+        InvoiceProductsTable.createTable(db);
+        SecurityQuestionsTable.createTable(db);
+        ProductFlagsView.createView(db);
+      },
+      onDowngrade: (db, _, __) async {
+        // Drop all tables
+        CategoriesTable.dropTable(db);
+        ExpenseTypesTable.dropTable(db);
+        PaymentMethodsTable.dropTable(db);
+        UsersTable.dropTable(db);
+        UserLogsTable.dropTable(db);
+        ProductsTable.dropTable(db);
+        UnitsTable.dropTable(db);
+        OrdersTable.dropTable(db);
+        OrderProductsTable.dropTable(db);
+        InvoicesTable.dropTable(db);
+        InvoiceProductsTable.dropTable(db);
+        SecurityQuestionsTable.dropTable(db);
+        ProductFlagsView.dropView(db);
+        // Recreate all tables
+        CategoriesTable.createTable(db);
+        ExpenseTypesTable.createTable(db);
+        PaymentMethodsTable.createTable(db);
+        UsersTable.createTable(db);
+        UserLogsTable.createTable(db);
+        ProductsTable.createTable(db);
+        UnitsTable.createTable(db);
+        OrdersTable.createTable(db);
+        OrderProductsTable.createTable(db);
+        InvoicesTable.createTable(db);
+        InvoiceProductsTable.createTable(db);
+        SecurityQuestionsTable.createTable(db);
+        ProductFlagsView.createView(db);
+        // You can also add any additional migration logic here if needed
+        // For example, if you want to migrate data from old tables to new tables, you can do it here
+      },
+      onUpgrade: (db, _, __) async {
+        // Drop all tables
+        CategoriesTable.dropTable(db);
+        ExpenseTypesTable.dropTable(db);
+        PaymentMethodsTable.dropTable(db);
+        UsersTable.dropTable(db);
+        UserLogsTable.dropTable(db);
+        ProductsTable.dropTable(db);
+        UnitsTable.dropTable(db);
+        OrdersTable.dropTable(db);
+        OrderProductsTable.dropTable(db);
+        InvoicesTable.dropTable(db);
+        InvoiceProductsTable.dropTable(db);
+        SecurityQuestionsTable.dropTable(db);
+        ProductFlagsView.dropView(db);
+        // Recreate all tables
+        CategoriesTable.createTable(db);
+        ExpenseTypesTable.createTable(db);
+        PaymentMethodsTable.createTable(db);
+        UsersTable.createTable(db);
+        UserLogsTable.createTable(db);
+        ProductsTable.createTable(db);
+        UnitsTable.createTable(db);
+        OrdersTable.createTable(db);
+        OrderProductsTable.createTable(db);
+        InvoicesTable.createTable(db);
+        InvoiceProductsTable.createTable(db);
+        SecurityQuestionsTable.createTable(db);
+        ProductFlagsView.createView(db);
+        // You can also add any additional migration logic here if needed
+        // For example, if you want to migrate data from old tables to new tables, you can do it here
+      },
+      onOpen: (db) async {
+        /// Regardless of the database version, we reset the login status for all users.
+        await db.update(
+          UsersTable.USERS_TABLE_NAME,
+          {UsersTable.USERS_LOGIN_STATUS: 0}, // Reset login status for all users
+          where: '${UsersTable.USERS_LOGIN_STATUS} = ?',
+          whereArgs: [1], // Assuming 1 is the logged-in status
+        );
+      },
+    );
   }
   return _databaseInstance!;
 }

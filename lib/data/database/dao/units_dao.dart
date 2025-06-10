@@ -24,7 +24,7 @@ final class UnitsDaoImpl extends DaoBase implements UnitsDao {
     final database = databaseHelper.database;
     await database.delete(
       UnitsTable.UNITS_TABLE_NAME,
-      where: "${UnitsTable.UNITS_TABLE_NAME} = ?",
+      where: "${UnitsTable.UNITS_ID} = ?",
       whereArgs: [id],
     );
   }

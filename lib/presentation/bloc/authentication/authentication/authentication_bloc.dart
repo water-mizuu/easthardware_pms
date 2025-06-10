@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:easthardware_pms/domain/errors/exceptions.dart';
 import 'package:easthardware_pms/domain/models/user.dart';
 import 'package:easthardware_pms/domain/repository/authentication_repository.dart';
+import 'package:easthardware_pms/utils/boxed.dart';
 import 'package:easthardware_pms/utils/undefined.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter/foundation.dart';
@@ -11,9 +12,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 part 'authentication_event.dart';
 part 'authentication_state.dart';
 
-class AuthenticationBloc
-    extends Bloc<AuthenticationEvent, AuthenticationState> {
-  AuthenticationBloc(this._repository) : super(AuthenticationState()) {
+class AuthenticationBloc extends Bloc<AuthenticationEvent, AuthenticationState> {
+  AuthenticationBloc(this._repository, AuthenticationState initialState) : super(initialState) {
     on<AuthenticationLoginEvent>(_onLogin);
     on<AuthenticationLogoutEvent>(_onLogout);
     on<AuthenticationPostLogoutEvent>(_onPostLogout);
@@ -22,12 +22,30 @@ class AuthenticationBloc
   final AuthenticationRepository _repository;
 
   @override
-  void onEvent(AuthenticationEvent event) {
-    super.onEvent(event);
+  Future<void> close() async {
+    if (kDebugMode) {
+      printBoxed("Closed the authentication bloc.", "AuthenticationBloc");
+    }
 
+    super.close();
+  }
+
+  @override
+  void onEvent(AuthenticationEvent event) {
     if (kDebugMode) {
       print("[$AuthenticationBloc] $event");
     }
+
+    switch (event) {
+      case AuthenticationLoginEvent():
+        break;
+      case AuthenticationLogoutEvent():
+        break;
+      case AuthenticationPostLogoutEvent():
+        break;
+    }
+
+    super.onEvent(event);
   }
 
   Future<void> _onLogin(AuthenticationLoginEvent event, Emitter emit) async {
@@ -36,8 +54,7 @@ class AuthenticationBloc
     if (isClosed) return;
 
     try {
-      final user = await _repository.logIn(
-          username: event.username, password: event.password);
+      final user = await _repository.logIn(username: event.username, password: event.password);
       emit(state.copyWith(
         status: AuthenticationStatus.success,
         user: user,
@@ -55,9 +72,7 @@ class AuthenticationBloc
       emit(
         state.copyWith(
           status: AuthenticationStatus.failure,
-          loginAttempts: state.lastUsername == event.username
-              ? state.loginAttempts + 1
-              : 1,
+          loginAttempts: state.lastUsername == event.username ? state.loginAttempts + 1 : 1,
           lastUsername: event.username,
         ),
       );

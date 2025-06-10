@@ -5,69 +5,71 @@ import 'package:easthardware_pms/presentation/models/form_unit.dart';
 import 'package:easthardware_pms/presentation/widgets/layout/spacing.dart';
 import 'package:easthardware_pms/presentation/widgets/layout_mode_provider.dart';
 import 'package:easthardware_pms/presentation/widgets/text.dart';
+import 'package:easthardware_pms/utils/boxed.dart';
 import 'package:fluent_ui/fluent_ui.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:provider/provider.dart';
 import 'package:scroll_animator/scroll_animator.dart';
 
 const spacingBetweenNameAndForm = Spacing.v4;
 
-class ProductInformationFormContent extends StatelessWidget {
+class ProductInformationFormContent extends StatefulWidget {
   const ProductInformationFormContent({super.key});
 
   @override
+  State<ProductInformationFormContent> createState() => _ProductInformationFormContentState();
+}
+
+class _ProductInformationFormContentState extends State<ProductInformationFormContent> {
+  late final AnimatedScrollController _scrollController;
+
+  @override
+  void initState() {
+    super.initState();
+    _scrollController = AnimatedScrollController(animationFactory: const ChromiumEaseInOut());
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return MultiProvider(
-      providers: [
-        InheritedProvider(
-          create: (_) => AnimatedScrollController(animationFactory: const ChromiumEaseInOut()),
-          dispose: (_, controller) => controller.dispose(),
-        )
-      ],
-      builder: (context, _) => Form(
-        key: context.read<ProductFormBloc>().formKey,
-        child: LayoutMode.builder(
-          (context, layoutMode) => switch (layoutMode) {
-            LayoutMode.wide => SingleChildScrollView(
-                controller: context.read<AnimatedScrollController>(),
-                child: Padding(
-                  padding: EdgeInsets.only(
-                    left: AppPadding.panePadding.left,
-                    right: AppPadding.panePadding.right,
-                    bottom: AppPadding.panePadding.bottom,
-                  ),
-                  child: const Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+    return Form(
+      key: context.read<ProductFormBloc>().formKey,
+      child: SingleChildScrollView(
+        controller: _scrollController,
+        child: Padding(
+          padding: EdgeInsets.only(
+            left: AppPadding.panePadding.left,
+            right: AppPadding.panePadding.right,
+            bottom: AppPadding.panePadding.bottom,
+          ),
+          child: LayoutMode.builder(
+            (context, layoutMode) => switch (layoutMode) {
+              LayoutMode.wide => const Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(child: LeftColumn()),
+                    Spacing.h16,
+                    Expanded(child: RightColumn()),
+                  ],
+                ),
+              LayoutMode.constrained || LayoutMode.compact => FocusTraversalGroup(
+                  child: const Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      Expanded(child: LeftColumn()),
-                      Spacing.h16,
-                      Expanded(child: RightColumn()),
+                      LeftColumn(),
+                      Spacing.v16,
+                      RightColumn(),
                     ],
                   ),
                 ),
-              ),
-            LayoutMode.constrained || LayoutMode.compact => SingleChildScrollView(
-                controller: context.read<AnimatedScrollController>(),
-                child: Padding(
-                  padding: EdgeInsets.only(
-                    left: AppPadding.panePadding.left,
-                    right: AppPadding.panePadding.right,
-                    bottom: AppPadding.panePadding.bottom,
-                  ),
-                  child: FocusTraversalGroup(
-                    child: const Column(
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        LeftColumn(),
-                        Spacing.v16,
-                        RightColumn(),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-          },
+            },
+          ),
         ),
       ),
     );
@@ -411,12 +413,12 @@ class SecondaryUnitsFormGroup extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final unitLength = context.select((ProductFormBloc b) => b.state.secondaryUnits.length);
+    final units = context.select((ProductFormBloc b) => b.state.secondaryUnits);
 
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        for (var i = 0; i < unitLength; ++i) ...[
+        for (var i = 0; i < units.length; ++i) ...[
           if (i > 0) Spacing.v8,
           SecondaryUnitField(index: i)
         ],
@@ -480,15 +482,52 @@ class AddNewUnitButton extends StatelessWidget {
   }
 }
 
-class SecondaryUnitField extends StatelessWidget with ProductFormValidator {
+class SecondaryUnitField extends StatefulWidget {
   const SecondaryUnitField({super.key, required this.index});
 
   final int index;
 
   @override
-  Widget build(BuildContext context) {
-    final startingUnit = context.read<ProductFormBloc>().state.secondaryUnits[index];
+  State<SecondaryUnitField> createState() => _SecondaryUnitFieldState();
+}
 
+class _SecondaryUnitFieldState extends State<SecondaryUnitField> with ProductFormValidator {
+  late final TextEditingController _unitQuantityController;
+  late final TextEditingController _nameController;
+  late final TextEditingController _mainQuantityController;
+
+  FormUnit? _formUnit;
+
+  @override
+  void initState() {
+    super.initState();
+
+    _unitQuantityController = TextEditingController();
+    _nameController = TextEditingController();
+    _mainQuantityController = TextEditingController();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
+    final inheritedFormUnit = context.watch<ProductFormBloc>().state.secondaryUnits[widget.index];
+    if (_formUnit != inheritedFormUnit) {
+      _formUnit = inheritedFormUnit;
+
+      /// When doing this as the widget is initially built, the framework throws.
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+
+        _unitQuantityController.text = inheritedFormUnit.unitQuantity.toString();
+        _nameController.text = inheritedFormUnit.name.value;
+        _mainQuantityController.text = inheritedFormUnit.mainQuantity.toString();
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -498,16 +537,30 @@ class SecondaryUnitField extends StatelessWidget with ProductFormValidator {
             children: [
               Expanded(
                 child: TextFormBox(
-                  initialValue: startingUnit.unitQuantity.toString(),
-                  validator: (v) => validateSecondaryUnitCount(count: v),
+                  controller: _unitQuantityController,
+                  validator: (rawUnitQuantity) {
+                    final state = context.read<ProductFormBloc>().state;
+                    final secondaryUnit = state.secondaryUnits[widget.index];
+                    final FormUnit(:name, :mainQuantity, :unitQuantity) = secondaryUnit;
+                    assert(
+                      unitQuantity.value == rawUnitQuantity,
+                      "Unit quantity must match the input.",
+                    );
+
+                    return validateSecondaryUnitQuantity(
+                      secondaryName: name,
+                      mainQuantity: mainQuantity,
+                      unitQuantity: unitQuantity,
+                    );
+                  },
                   placeholder: "Quantity",
                   onChanged: (value) {
                     final state = context.read<ProductFormBloc>().state;
-                    final secondaryUnit = state.secondaryUnits[index];
+                    final secondaryUnit = state.secondaryUnits[widget.index];
                     final FormUnit(:mainQuantity) = secondaryUnit;
                     final event = SecondaryUnitFieldFactorChangedEvent(
-                      index,
-                      mainQuantity: mainQuantity,
+                      widget.index,
+                      mainQuantity: mainQuantity.value,
                       unitQuantity: value,
                     );
 
@@ -517,20 +570,37 @@ class SecondaryUnitField extends StatelessWidget with ProductFormValidator {
               ),
               Expanded(
                 child: TextFormBox(
-                  initialValue: startingUnit.name,
-                  validator: (name) {
+                  controller: _nameController,
+                  validator: (rawName) {
                     final state = context.read<ProductFormBloc>().state;
-                    final existingNames = [
-                      ...state.secondaryUnits.map((u) => u.name),
-                      state.mainUnit
-                    ]..removeAt(index);
+                    final secondaryUnit = state.secondaryUnits[widget.index];
+                    final FormUnit(:name, :unitQuantity, :mainQuantity) = secondaryUnit;
+                    assert(name.value == rawName, "Unit name must match the input.");
 
-                    return validateSecondaryUnitName(name: name, existingNames: existingNames);
+                    final existingNames = [
+                      for (final (i, unit) in state.secondaryUnits.indexed.take(widget.index))
+                        if (i != widget.index) unit.name.value,
+                      state.mainUnit
+                    ];
+
+                    if (kDebugMode) {
+                      printBoxed(
+                        existingNames.join("\n"),
+                        "Unit names tested against [${widget.index}]",
+                      );
+                    }
+
+                    return validateSecondaryUnitName(
+                      name: name,
+                      mainQuantity: _formUnit!.mainQuantity,
+                      unitQuantity: _formUnit!.unitQuantity,
+                      existingNames: existingNames,
+                    );
                   },
                   onChanged: (value) {
-                    final event = SecondaryUnitFieldNameChangedEvent(index, name: value);
-
-                    context.read<ProductFormBloc>().add(event);
+                    context //
+                        .read<ProductFormBloc>()
+                        .add(SecondaryUnitFieldNameChangedEvent(widget.index, name: value));
                   },
                   placeholder: "Name (Singular)",
                 ),
@@ -545,17 +615,31 @@ class SecondaryUnitField extends StatelessWidget with ProductFormValidator {
             children: [
               Expanded(
                 child: TextFormBox(
-                  initialValue: startingUnit.mainQuantity.toString(),
-                  validator: (v) => validateMainUnitCount(count: v),
+                  controller: _mainQuantityController,
+                  validator: (mainQuantityRaw) {
+                    final state = context.read<ProductFormBloc>().state;
+                    final secondaryUnit = state.secondaryUnits[widget.index];
+                    final FormUnit(:name, :unitQuantity, :mainQuantity) = secondaryUnit;
+                    assert(
+                      mainQuantity.value == mainQuantityRaw,
+                      "Main quantity must match the input.",
+                    );
+
+                    return validateMainUnitQuantity(
+                      secondaryName: name,
+                      mainQuantity: mainQuantity,
+                      unitQuantity: unitQuantity,
+                    );
+                  },
                   placeholder: "Quantity",
                   onChanged: (value) {
                     final state = context.read<ProductFormBloc>().state;
-                    final secondaryUnit = state.secondaryUnits[index];
+                    final secondaryUnit = state.secondaryUnits[widget.index];
                     final FormUnit(:unitQuantity) = secondaryUnit;
                     final event = SecondaryUnitFieldFactorChangedEvent(
-                      index,
+                      widget.index,
                       mainQuantity: value,
-                      unitQuantity: unitQuantity,
+                      unitQuantity: unitQuantity.value,
                     );
 
                     context.read<ProductFormBloc>().add(event);
@@ -581,7 +665,7 @@ class SecondaryUnitField extends StatelessWidget with ProductFormValidator {
           icon: const Icon(FluentIcons.cancel),
           onPressed: () => context
               .read<ProductFormBloc>() //
-              .add(SecondaryUnitFieldDeletedEvent(index)),
+              .add(SecondaryUnitFieldDeletedEvent(widget.index)),
         ),
       ].withSpacing(() => Spacing.h16),
     );
