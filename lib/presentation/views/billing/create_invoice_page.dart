@@ -16,7 +16,6 @@ import 'package:easthardware_pms/presentation/widgets/ui/text_button.dart';
 import 'package:easthardware_pms/utils/typed_routes.dart';
 import 'package:fluent_ui/fluent_ui.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:path/path.dart';
 import 'package:scroll_animator/scroll_animator.dart';
 
 import '../../widgets/ui/text_form_boxes.dart';
@@ -524,17 +523,7 @@ class _FormTableRowState extends State<FormTableRow> {
                               ],
                               buttonBuilder: (context, onOpen) {
                                 return Button(
-                                    style: ButtonStyle(
-                                      padding: const WidgetStatePropertyAll(
-                                        EdgeInsetsDirectional.fromSTEB(0, 5, 0, 6),
-                                      ),
-                                      shape: WidgetStatePropertyAll(
-                                        RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(4.0),
-                                          side: const BorderSide(color: Colors.transparent),
-                                        ),
-                                      ),
-                                    ),
+                                    style: ButtonStyles.ghost,
                                     onPressed: onOpen,
                                     child: Row(
                                       mainAxisSize: MainAxisSize.min,
@@ -609,8 +598,9 @@ class InvoiceSummary extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<InvoiceFormBloc, InvoiceFormState>(builder: (context, state) {
-      final total = state.products
-          .fold<double>(0.0, (previousValue, element) => previousValue + (element.amount));
+      final subtotal = state.subtotal ?? 0.0;
+      final discount = state.discount ?? 0.0;
+      final total = state.amountDue ?? 0.0;
 
       return Row(
         children: [
@@ -625,7 +615,7 @@ class InvoiceSummary extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       const Text("Subtotal"),
-                      Text("\$${state.subtotal?.toStringAsFixed(2)}"),
+                      Text("Php. ${subtotal.toStringAsFixed(2)}", style: TextStyles.active),
                     ],
                   ),
                   Spacing.v16,
@@ -633,37 +623,67 @@ class InvoiceSummary extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
                       const Text("Discount"),
-                      const Spacer(),
+                      Spacing.h12,
                       Expanded(
                         child: IntrinsicHeight(
                           child: Row(
                             crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: [
-                              Expanded(flex: 2, child: TextFormBox()),
                               Expanded(
                                 flex: 2,
-                                child: ComboBox(
-                                  elevation: 2,
-                                  isExpanded: true,
-                                  value: state.discountType,
-                                  onChanged: (value) => context
-                                      .read<InvoiceFormBloc>()
-                                      .add(DiscountTypeChangedEvent(value!)),
-                                  items: const [
-                                    ComboBoxItem(
-                                      value: DiscountType.percentage,
-                                      child: Text(
-                                        "Percentage",
+                                child: TextFormBox(
+                                  onChanged: (value) => context.read<InvoiceFormBloc>().add(
+                                        DiscountChangedEvent(double.tryParse(value) ?? 0.0),
                                       ),
-                                    ),
-                                    ComboBoxItem(
-                                      value: DiscountType.value,
-                                      child: Text(
-                                        "Amount",
-                                      ),
-                                    ),
-                                  ],
                                 ),
+                              ),
+                              Spacing.h4,
+                              Button(
+                                style: state.discountType == DiscountType.value
+                                    ? ButtonStyles.filled
+                                    : ButtonStyles.outlined,
+                                onPressed: () {
+                                  context.read<InvoiceFormBloc>().add(
+                                        const DiscountTypeChangedEvent(
+                                          DiscountType.value,
+                                        ),
+                                      );
+                                },
+                                child: const SizedBox(
+                                  width: 16,
+                                  height: 16,
+                                  child: Text("."),
+                                ),
+                              ),
+                              Spacing.h4,
+                              Button(
+                                style: state.discountType == DiscountType.percentage
+                                    ? ButtonStyles.filled
+                                    : ButtonStyles.outlined,
+                                onPressed: () {
+                                  context.read<InvoiceFormBloc>().add(
+                                        const DiscountTypeChangedEvent(
+                                          DiscountType.percentage,
+                                        ),
+                                      );
+                                },
+                                child: const SizedBox(
+                                  width: 16,
+                                  height: 16,
+                                  child: Text("%"),
+                                ),
+                              ),
+                              const Spacer(flex: 3),
+                              Center(
+                                child: state.discountType == DiscountType.percentage
+                                    ? Text(
+                                        "Php. - ${(discount / 100 * subtotal).toStringAsFixed(2)}",
+                                        style: TextStyles.active,
+                                      )
+                                    : Text(
+                                        "Php. - ${discount.toStringAsFixed(2)}",
+                                        style: TextStyles.active,
+                                      ),
                               ),
                             ],
                           ),

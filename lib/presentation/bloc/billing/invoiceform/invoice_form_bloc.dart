@@ -18,6 +18,7 @@ class InvoiceFormBloc extends Bloc<InvoiceFormEvent, InvoiceFormState> {
     on<DueDateChangedEvent>(_onDueDateChanged);
     on<MemoChangedEvent>(_onMemoChanged);
     on<DiscountChangedEvent>(_onDiscountChanged);
+    on<DiscountTypeChangedEvent>(_onDiscountTypeChanged);
     on<ProductAddedEvent>(_onProductAdded);
     on<ProductSelectedEvent>(_onProductSelected);
     on<ProductRemovedEvent>(_onProductRemoved);
@@ -43,7 +44,26 @@ class InvoiceFormBloc extends Bloc<InvoiceFormEvent, InvoiceFormState> {
   }
 
   void _onDiscountChanged(DiscountChangedEvent event, Emitter<InvoiceFormState> emit) {
-    emit(state.copyWith(discount: event.discount));
+    final subtotal = state.subtotal ?? 0.0;
+    final amountDue = (subtotal) -
+        (state.discountType == DiscountType.percentage
+            ? (subtotal * event.discount / 100)
+            : event.discount);
+
+    emit(state.copyWith(
+      discount: event.discount,
+      amountDue: amountDue,
+    ));
+  }
+
+  void _onDiscountTypeChanged(DiscountTypeChangedEvent event, Emitter<InvoiceFormState> emit) {
+    final subtotal = state.subtotal ?? 0.0;
+    final discountAmount = state.discount ?? 0.0;
+    final amountDue = (subtotal) -
+        (event.discountType == DiscountType.percentage
+            ? (subtotal * discountAmount / 100)
+            : discountAmount);
+    return emit(state.copyWith(discountType: event.discountType, amountDue: amountDue));
   }
 
   void _onProductAdded(ProductAddedEvent event, Emitter<InvoiceFormState> emit) {
@@ -109,7 +129,23 @@ class InvoiceFormBloc extends Bloc<InvoiceFormEvent, InvoiceFormState> {
     Amount: ${adjustedProduct.amount}
     ''', 'InvoiceFormBloc');
       updatedProducts[index] = adjustedProduct;
-      emit(state.copyWith(products: updatedProducts));
+
+      final subtotal = updatedProducts.fold<double>(
+        0.0,
+        (previousValue, element) => previousValue + (element.amount),
+      );
+      final discountAmount = state.discountType == DiscountType.percentage
+          ? (subtotal * (state.discount ?? 0.0) / 100)
+          : (state.discount ?? 0.0);
+      final amountDue = subtotal - discountAmount;
+
+      emit(
+        state.copyWith(
+          products: updatedProducts,
+          subtotal: subtotal,
+          amountDue: amountDue,
+        ),
+      );
     }
   }
 

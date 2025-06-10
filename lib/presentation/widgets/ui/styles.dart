@@ -8,3 +8,26 @@ class TextStyles {
     color: Color(0xFF000000),
   );
 }
+
+class ButtonStyles {
+  static ButtonStyle ghost = const ButtonStyle(
+    padding: WidgetStatePropertyAll(
+      EdgeInsetsDirectional.fromSTEB(0, 5, 0, 6),
+    ),
+    shape: WidgetStatePropertyAll(
+      RoundedRectangleBorder(
+        side: BorderSide(color: Colors.transparent),
+      ),
+    ),
+  );
+  // Filled
+  static ButtonStyle filled = ButtonStyle(
+    backgroundColor: WidgetStatePropertyAll(Colors.blue.dark),
+    foregroundColor: const WidgetStatePropertyAll(Colors.white),
+    textStyle: const WidgetStatePropertyAll(
+      TextStyle(color: Colors.white),
+    ),
+  );
+  // Outlined
+  static ButtonStyle outlined = const ButtonStyle();
+}
