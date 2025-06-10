@@ -1,4 +1,12 @@
 import 'package:easthardware_pms/domain/enums/enums.dart';
+import 'package:easthardware_pms/domain/models/product.dart';
+import 'package:easthardware_pms/presentation/bloc/authentication/authentication/'
+    'authentication_bloc.dart';
+import 'package:easthardware_pms/presentation/bloc/inventory/category_list/category_list_bloc.dart';
+import 'package:easthardware_pms/presentation/bloc/inventory/inventory_display/'
+    'inventory_display_bloc.dart';
+import 'package:easthardware_pms/presentation/bloc/inventory/inventory_display/'
+    'inventory_display_enum.dart';
 import 'package:easthardware_pms/presentation/bloc/inventory/product_list/product_list_bloc.dart';
 import 'package:easthardware_pms/presentation/router/app_routes.dart';
 import 'package:easthardware_pms/presentation/widgets/helper/data_row_mapper.dart';
@@ -23,51 +31,67 @@ class InventoryPanePage extends StatefulWidget {
 
 class _InventoryPanePageState extends State<InventoryPanePage> {
   late final AnimatedScrollController _scrollController;
+  late final InventoryDisplayBloc _inventoryDisplayBloc;
+  WeakReference<List<Product>>? _productListBlocRef;
 
   @override
   void initState() {
     super.initState();
 
-    _scrollController = AnimatedScrollController(
-      animationFactory: const ChromiumEaseInOut(),
-    );
+    _scrollController = AnimatedScrollController(animationFactory: const ChromiumEaseInOut());
+    _inventoryDisplayBloc = InventoryDisplayBloc();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
+    final productList = context.watch<ProductListBloc>().state.allProducts;
+    if (productList != _productListBlocRef?.target) {
+      _productListBlocRef = WeakReference(productList);
+      _inventoryDisplayBloc.add(InventoryDisplayItemsUpdatedEvent(_productListBlocRef!));
+    }
   }
 
   @override
   void dispose() {
     _scrollController.dispose();
+    _inventoryDisplayBloc.close();
 
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        const Padding(
-          padding: AppPadding.panePadding,
-          child: PageHeader(),
-        ),
-        Spacing.v4,
-        Expanded(
-          child: SingleChildScrollView(
-            controller: _scrollController,
-            child: Padding(
-              padding: EdgeInsets.symmetric(
-                horizontal: AppPadding.panePadding.horizontal / 2,
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: const [
-                  InventorySummary(),
-                  ProductListSection(),
-                ].withSpacing(() => Spacing.v16),
+    return BlocProvider.value(
+      value: _inventoryDisplayBloc,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          const Padding(
+            padding: AppPadding.panePadding,
+            child: PageHeader(),
+          ),
+          Spacing.v4,
+          Expanded(
+            child: SingleChildScrollView(
+              controller: _scrollController,
+              child: Padding(
+                padding: EdgeInsets.symmetric(
+                  horizontal: AppPadding.panePadding.horizontal / 2,
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: const [
+                    InventorySummary(),
+                    ProductListSection(),
+                  ].withSpacing(() => Spacing.v16),
+                ),
               ),
             ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }
@@ -77,6 +101,11 @@ class PageHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final access = context.select((AuthenticationBloc b) => b.state.user?.accessLevel);
+    if (access != AccessLevel.administrator) {
+      return const HeadingText('Products');
+    }
+
     return Row(
       children: [
         const HeadingText('Products'),
@@ -187,8 +216,15 @@ class SearchRow extends StatelessWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        const Expanded(
-          child: TextBox(placeholder: "Search"),
+        Expanded(
+          child: TextBox(
+            placeholder: "Search",
+            onChanged: (query) {
+              context
+                  .read<InventoryDisplayBloc>()
+                  .add(InventoryDisplaySearchEvent(query.trim().toLowerCase()));
+            },
+          ),
         ),
         const CategoryButton(),
         const SortByButton(),
@@ -198,21 +234,60 @@ class SearchRow extends StatelessWidget {
   }
 }
 
-class CategoryButton extends StatelessWidget {
+class CategoryButton extends StatefulWidget {
   const CategoryButton({super.key});
 
   @override
+  State<CategoryButton> createState() => _CategoryButtonState();
+}
+
+class _CategoryButtonState extends State<CategoryButton> {
+  double? width;
+
+  @override
+  void initState() {
+    super.initState();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final context = this.context;
+      if (context.mounted) {
+        setState(() {
+          width = context.size?.width;
+        });
+      }
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final categories = context.select((CategoryListBloc b) => b.state.categories);
+    final selectedCategory = context.select((InventoryDisplayBloc b) => b.state.category);
+
     return DropDownButton(
-      title: const Padding(
+      title: Padding(
         padding: AppPadding.a4,
-        child: ButtonText('Category'),
+        child: selectedCategory != null
+            ? ButtonText(selectedCategory.name, overflow: TextOverflow.fade)
+            : const ButtonText('Category'),
       ),
       items: [
         MenuFlyoutItem(
-          text: const BodyText('Category 1'),
-          onPressed: () {},
+          text: const BodyText('No Categories'),
+          onPressed: () {
+            context //
+                .read<InventoryDisplayBloc>()
+                .add(const InventoryDisplayCategoryEvent(null));
+          },
         ),
+        for (final category in categories)
+          MenuFlyoutItem(
+            text: BodyText(category.name),
+            onPressed: () {
+              context //
+                  .read<InventoryDisplayBloc>()
+                  .add(InventoryDisplayCategoryEvent(category));
+            },
+          ),
       ],
     );
   }
@@ -223,19 +298,47 @@ class SortByButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final selectedCategory = context.select((InventoryDisplayBloc b) => b.state.sortBy);
+
     return DropDownButton(
-      title: const Padding(
+      title: Padding(
         padding: AppPadding.a4,
-        child: ButtonText('Sort By'),
+        child: selectedCategory != null
+            ? ButtonText(selectedCategory.name, overflow: TextOverflow.fade)
+            : const ButtonText('Sort By'),
       ),
       items: [
-        MenuFlyoutItem(text: const BodyText('Name Ascending'), onPressed: () {}),
-        MenuFlyoutItem(text: const BodyText('Name Descending'), onPressed: () {}),
+        MenuFlyoutItem(
+          text: const BodyText('Name Ascending'),
+          onPressed: () {
+            _chooseSort(context, InventoryDisplaySortBy.nameAscending);
+          },
+        ),
+        MenuFlyoutItem(
+          text: const BodyText('Name Descending'),
+          onPressed: () {
+            _chooseSort(context, InventoryDisplaySortBy.nameDescending);
+          },
+        ),
         const MenuFlyoutSeparator(),
-        MenuFlyoutItem(text: const BodyText('Stock Ascending'), onPressed: () {}),
-        MenuFlyoutItem(text: const BodyText('Stock Descending'), onPressed: () {}),
+        MenuFlyoutItem(
+          text: const BodyText('Stock Ascending'),
+          onPressed: () {
+            _chooseSort(context, InventoryDisplaySortBy.stockAscending);
+          },
+        ),
+        MenuFlyoutItem(
+          text: const BodyText('Stock Descending'),
+          onPressed: () {
+            _chooseSort(context, InventoryDisplaySortBy.stockDescending);
+          },
+        ),
       ],
     );
+  }
+
+  void _chooseSort(BuildContext context, InventoryDisplaySortBy sortBy) {
+    context.read<InventoryDisplayBloc>().add(InventoryDisplaySortEvent(sortBy));
   }
 }
 
@@ -296,6 +399,8 @@ class _ProductsDataTableState extends State<ProductsDataTable> {
           }
 
           final allProducts = state.allProducts.where((p) => p.archivedStatus == 0).toList();
+          final displayProducts =
+              context.select((InventoryDisplayBloc b) => b.state.filteredProducts);
           if (allProducts.isEmpty) {
             return const DataTablePlaceHolder(FluentIcons.product_list, 'Products');
           }
@@ -316,7 +421,7 @@ class _ProductsDataTableState extends State<ProductsDataTable> {
                     DataColumn(label: Text(data)),
                 ],
                 rows: [
-                  for (final product in allProducts)
+                  for (final product in displayProducts ?? allProducts)
                     DataRowMapper.mapProductToRow(
                       product,
                       editAction: () {

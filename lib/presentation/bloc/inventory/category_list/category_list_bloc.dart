@@ -58,7 +58,7 @@ class CategoryListBloc extends Bloc<CategoryListEvent, CategoryListState> {
     emit(state.copyWith(status: DataStatus.loading));
     try {
       _repository.updateCategory(event.category);
-      final categories = state.categories;
+      final categories = state.categories.toList();
       final index = categories.indexWhere((category) => category.id == event.category.id);
       categories[index] = event.category;
       emit(state.copyWith(categories: categories, status: DataStatus.success));
@@ -71,7 +71,7 @@ class CategoryListBloc extends Bloc<CategoryListEvent, CategoryListState> {
     emit(state.copyWith(status: DataStatus.loading));
     try {
       _repository.deleteCategory(event.categoryId);
-      final categories = state.categories;
+      final categories = state.categories.toList();
       categories.removeWhere((category) => category.id == event.categoryId);
       emit(state.copyWith(categories: categories, status: DataStatus.success));
     } catch (e) {

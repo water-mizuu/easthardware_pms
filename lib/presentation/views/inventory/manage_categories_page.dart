@@ -100,7 +100,7 @@ class PageHeader extends StatelessWidget {
           icon: const Icon(FluentIcons.back),
           onPressed: () => context.navigate(AppRoutes.admin.inventory),
         ),
-        const HeadingText('Manage Categories'),
+        const DisplayText('Manage Categories'),
       ].withSpacing(() => Spacing.h16),
     );
   }

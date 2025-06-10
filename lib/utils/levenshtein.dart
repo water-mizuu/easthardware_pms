@@ -6,7 +6,9 @@ final class Levenshtein {
   const Levenshtein._();
 
   ///
-  static double distance(String a, String b, [double maximum = double.infinity]) {
+  static double distance(String a, String b, [double? maximum]) {
+    maximum = min(a.length.toDouble(), b.length.toDouble());
+
     if (a == b) return 0;
     if (a.isEmpty) return b.length.toDouble();
     if (b.isEmpty) return a.length.toDouble();
@@ -45,11 +47,13 @@ final class Levenshtein {
   static Future<List<T>> rankItems<T>(
     List<T> items,
     String query,
-    Iterable<String> Function(T) mapper,
-  ) {
+    Iterable<String> Function(T) mapper, [
+    int Function(T, T)? comparator,
+  ]) {
     return Isolate.run(() {
       if (items.isEmpty || query.isEmpty) {
-        return items; // Return the original list if empty or query is empty
+        // Return the original list if empty or query is empty
+        return items..sort((a, b) => comparator?.call(a, b) ?? 0);
       }
 
       /// This should contain the items that are being ranked.
@@ -66,7 +70,7 @@ final class Levenshtein {
         /// If any of the tokens have a direct match with the factor,
         ///   we reduce the score even more.
         if (tokens.any((token) => factor.any((f) => f.contains(token)))) {
-          score = sqrt(score);
+          score = 0;
         }
 
         // Skip if the score is not better than the existing one
@@ -81,7 +85,12 @@ final class Levenshtein {
       final results = (itemScoreMap.entries
               .where((entry) => entry.value < threshold) //
               .toList()
-            ..sort((a, b) => a.value.compareTo(b.value)))
+            ..sort((a, b) {
+              final result = a.value.compareTo(b.value);
+
+              if (result != 0) return result;
+              return comparator?.call(a.key, b.key) ?? result;
+            }))
           .map((entry) => entry.key)
           .toList();
 

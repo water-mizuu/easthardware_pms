@@ -1,6 +1,7 @@
 import 'package:easthardware_pms/domain/enums/enums.dart';
 import 'package:easthardware_pms/domain/models/user.dart';
 import 'package:easthardware_pms/domain/services/cryptography_service.dart';
+import 'package:flutter/foundation.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:uuid/uuid.dart';
 
@@ -44,38 +45,64 @@ class UsersTable {
   // private function: create initial admin
   static Future<void> _insertInitialAdmin(Database database) async {
     const password = 'Admin123';
-    final salt = CryptographyService.generateSalt();
-    final passwordHash = CryptographyService.generateHash(password, salt);
 
-    final admin = User(
-      id: 0,
-      uid: const Uuid().v4(),
-      archivedStatus: 0,
-      loginStatus: 0,
-      creationDate: DateTime.now().toIso8601String(),
-      firstName: 'System',
-      lastName: 'Administrator',
-      username: 'admin',
-      accessLevel: AccessLevel.administrator,
-      passwordHash: passwordHash,
-      salt: salt,
-    );
+    var id = 0;
+    {
+      final salt = CryptographyService.generateSalt();
+      final passwordHash = CryptographyService.generateHash(password, salt);
+      final admin = User(
+        id: id++,
+        uid: const Uuid().v4(),
+        archivedStatus: 0,
+        loginStatus: 0,
+        creationDate: DateTime.now().toIso8601String(),
+        firstName: 'System',
+        lastName: 'Administrator',
+        username: 'admin',
+        accessLevel: AccessLevel.administrator,
+        passwordHash: passwordHash,
+        salt: salt,
+      );
+      database.insert(UsersTable.USERS_TABLE_NAME, admin.toMap());
+    }
 
-    final staff = User(
-      id: 1,
-      uid: const Uuid().v4(),
-      archivedStatus: 0,
-      loginStatus: 0,
-      creationDate: DateTime.now().toIso8601String(),
-      firstName: 'System',
-      lastName: 'Staff',
-      username: 'staff',
-      accessLevel: AccessLevel.staff,
-      passwordHash: passwordHash,
-      salt: salt,
-    );
+    if (kDebugMode) {
+      final salt = CryptographyService.generateSalt();
+      final passwordHash = CryptographyService.generateHash(password, salt);
+      final admin = User(
+        id: id++,
+        uid: const Uuid().v4(),
+        archivedStatus: 0,
+        loginStatus: 0,
+        creationDate: DateTime.now().toIso8601String(),
+        firstName: 'System',
+        lastName: 'Administrator 2',
+        username: 'admin2',
+        accessLevel: AccessLevel.administrator,
+        passwordHash: passwordHash,
+        salt: salt,
+      );
+      database.insert(UsersTable.USERS_TABLE_NAME, admin.toMap());
+    }
 
-    database.insert(UsersTable.USERS_TABLE_NAME, admin.toMap());
-    database.insert(UsersTable.USERS_TABLE_NAME, staff.toMap());
+    if (kDebugMode) {
+      final salt = CryptographyService.generateSalt();
+      final passwordHash = CryptographyService.generateHash(password, salt);
+      final staff = User(
+        id: id++,
+        uid: const Uuid().v4(),
+        archivedStatus: 0,
+        loginStatus: 0,
+        creationDate: DateTime.now().toIso8601String(),
+        firstName: 'System',
+        lastName: 'Staff',
+        username: 'staff',
+        accessLevel: AccessLevel.staff,
+        passwordHash: passwordHash,
+        salt: salt,
+      );
+
+      database.insert(UsersTable.USERS_TABLE_NAME, staff.toMap());
+    }
   }
 }
