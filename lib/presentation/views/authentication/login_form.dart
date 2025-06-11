@@ -10,6 +10,9 @@ import 'package:easthardware_pms/presentation/widgets/text.dart';
 import 'package:fluent_ui/fluent_ui.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+const _isLoadingStates = {FormStatus.validating, FormStatus.submitting};
 
 class LoginForm extends StatelessWidget {
   const LoginForm({super.key});
@@ -18,7 +21,7 @@ class LoginForm extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocListener<LoginFormBloc, LoginFormState>(
       listener: (context, state) {
-        if (state.errors.isNotEmpty) {
+        if (state.formErrors.isNotEmpty) {
           WidgetsBinding.instance.addPostFrameCallback((_) {
             // Validate the form after the frame is drawn to ensure the UI is updated
             context.read<LoginFormBloc>().formKey.currentState?.validate();
@@ -41,6 +44,7 @@ class LoginForm extends StatelessWidget {
                 const _FormHeader(),
                 const _FormUsernameField(),
                 const _FormPasswordField(),
+                if (kDebugMode) const _PreserveDebugLogin(),
                 const _FormButton(),
                 if (kDebugMode)
                   BlocBuilder<AuthenticationBloc, AuthenticationState>(
@@ -130,9 +134,8 @@ class _FormButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final state = context.watch<LoginFormBloc>().state;
-    final isLoading = state.status == FormStatus.validating || //
-        state.status == FormStatus.submitting;
+    final status = context.select((LoginFormBloc b) => b.state.status);
+    final isLoading = _isLoadingStates.contains(status);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -143,37 +146,125 @@ class _FormButton extends StatelessWidget {
               return null;
             }
 
-            return () => context.read<LoginFormBloc>().add(LoginFormButtonPressed());
+            return () => context.read<LoginFormBloc>().add(const LoginFormButtonPressed());
           }(),
           child: Padding(
             padding: AppPadding.a8,
-            child: Builder(builder: (context) {
-              var child = const ButtonText("Login") as Widget;
-              if (isLoading) {
-                child = Center(
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const SizedBox(
-                        height: 16.0,
-                        width: 16.0,
-                        child: OverflowBox(
-                          maxHeight: 28.0,
-                          maxWidth: 28.0,
-                          child: ProgressRing(strokeWidth: 3.5),
-                        ),
-                      ),
-                      Spacing.h16,
-                      child
-                    ],
-                  ),
-                );
-              }
-              return child;
-            }),
+            child: Builder(
+              builder: (context) {
+                if (isLoading) {
+                  return const SizedBox(
+                    height: 16.0,
+                    width: 16.0,
+                    child: OverflowBox(
+                      maxHeight: 28.0,
+                      maxWidth: 28.0,
+                      child: ProgressRing(strokeWidth: 3.5),
+                    ),
+                  );
+                }
+                return const ButtonText("Login") as Widget;
+              },
+            ),
           ),
         ),
       ],
+    );
+  }
+}
+
+class _PreserveDebugLogin extends StatefulWidget {
+  const _PreserveDebugLogin()
+      : assert(kDebugMode, "This widget should only be used in debug mode.");
+
+  @override
+  State<_PreserveDebugLogin> createState() => _PreserveDebugLoginState();
+}
+
+class _PreserveDebugLoginState extends State<_PreserveDebugLogin> {
+  late final ValueNotifier<bool> _isLoginPreserved;
+  late final SharedPreferencesAsync _sharedPreferences;
+
+  String? _submittedUsername;
+  String? _submittedPassword;
+
+  @override
+  void initState() {
+    super.initState();
+
+    _sharedPreferences = SharedPreferencesAsync();
+    _isLoginPreserved = ValueNotifier<bool>(true);
+
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      /// Load the initial value from shared preferences.
+      final preservedUsername = await _sharedPreferences.getString("preserved_username");
+      final preservedPassword = await _sharedPreferences.getString("preserved_password");
+
+      if (preservedUsername == null || preservedPassword == null) {
+        return;
+      }
+
+      if (!mounted) return;
+      _submittedUsername = preservedUsername;
+      _submittedPassword = preservedPassword;
+      context //
+          .read<AuthenticationBloc>()
+          .add(
+            AuthenticationLoginEvent(
+              username: preservedUsername,
+              password: preservedPassword,
+            ),
+          );
+    });
+  }
+
+  @override
+  void dispose() {
+    _isLoginPreserved.dispose();
+
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocListener<LoginFormBloc, LoginFormState>(
+      listenWhen: (p, c) => c.status == FormStatus.submitting,
+      listener: (context, state) {
+        if (state.status == FormStatus.submitting) {
+          _submittedUsername = state.username;
+          _submittedPassword = state.password;
+        }
+      },
+      child: BlocListener<AuthenticationBloc, AuthenticationState>(
+        listenWhen: (p, c) => p.user == null && c.user != null,
+        listener: (context, state) {
+          assert(
+            _submittedUsername == state.user?.username,
+            "Submitted username does not match the authenticated user.",
+          );
+          if (_isLoginPreserved.value) {
+            _sharedPreferences.setString("preserved_username", _submittedUsername!);
+            _sharedPreferences.setString("preserved_password", _submittedPassword!);
+          }
+        },
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            const Text("(DEBUG) Preserve login: "),
+            ValueListenableBuilder(
+              valueListenable: _isLoginPreserved,
+              builder: (context, value, _) {
+                return ToggleSwitch(
+                  checked: _isLoginPreserved.value,
+                  onChanged: (value) {
+                    _isLoginPreserved.value = value;
+                  },
+                );
+              },
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

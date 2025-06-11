@@ -16,6 +16,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:provider/provider.dart';
 import 'package:provider/single_child_widget.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class App extends StatefulWidget {
   const App({super.key});
@@ -96,7 +97,7 @@ class _AppState extends State<App> {
           final didUserLogIn = state.user != null;
           if (didUserLogIn) {
             if (kDebugMode) {
-              printBoxed("User logged out.", "AuthenticationBloc");
+              printBoxed("User logged in.", "AuthenticationBloc");
             }
             // If the user logged in, we need to update the user log list.
             final user = state.user!;
@@ -105,6 +106,7 @@ class _AppState extends State<App> {
             if (kDebugMode) {
               printBoxed("User logged out.", "AuthenticationBloc");
             }
+
             // If the user logged out, we need to update the user log list.
             final user = context.read<AuthenticationBloc>().state.previousUser;
             assert(user != null, "Log out event must have saved a previousUser.");
@@ -114,6 +116,17 @@ class _AppState extends State<App> {
           }
         },
       ),
+
+      if (kDebugMode)
+        BlocListener<AuthenticationBloc, AuthenticationState>(
+          listenWhen: (p, c) => p.user != null && c.user == null,
+          listener: (context, state) {
+            /// Clear the preserved login credentials when the user logs out.
+            final sharedPreferences = SharedPreferencesAsync();
+            sharedPreferences.remove("preserved_username");
+            sharedPreferences.remove("preserved_password");
+          },
+        ),
     ];
   }
 
