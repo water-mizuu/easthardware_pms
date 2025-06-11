@@ -1,6 +1,14 @@
-class AuthenticationException implements Exception {
+import 'package:easthardware_pms/presentation/bloc/authentication/authentication/authentication_bloc.dart';
 
-  AuthenticationException(this.message);
+class LoginFormException implements Exception {
+  const LoginFormException(this.errors);
+  LoginFormException.single(FormElement target, String message) : errors = {target: message};
+
+  final Map<FormElement, String> errors;
+}
+
+class AuthenticationException implements Exception {
+  const AuthenticationException(this.message);
   final String message;
 
   @override
@@ -8,8 +16,7 @@ class AuthenticationException implements Exception {
 }
 
 class DatabaseException implements Exception {
-
-  DatabaseException(this.message);
+  const DatabaseException(this.message);
   final String message;
 
   @override
@@ -17,7 +24,6 @@ class DatabaseException implements Exception {
 }
 
 class NetworkException implements Exception {
-
   NetworkException(this.message);
   final String message;
 
@@ -26,7 +32,6 @@ class NetworkException implements Exception {
 }
 
 class ValidationException implements Exception {
-
   ValidationException(this.message);
   final String message;
 
@@ -35,7 +40,6 @@ class ValidationException implements Exception {
 }
 
 class ArgumentException implements Exception {
-
   ArgumentException(this.message);
   final String message;
 

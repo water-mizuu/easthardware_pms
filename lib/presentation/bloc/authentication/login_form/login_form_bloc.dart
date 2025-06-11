@@ -35,12 +35,18 @@ class LoginFormBloc extends Bloc<LoginFormEvent, LoginFormState> {
 
   void _onUsernameChanged(LoginFormUsernameChanged event, Emitter emit) {
     final username = event.username;
-    return emit(state.copyWith(username: username, usernameError: null));
+    final newErrors = {...state.errors};
+    newErrors.remove(FormElement.username);
+
+    return emit(state.copyWith(username: username, errors: newErrors));
   }
 
   void _onPasswordChanged(LoginFormPasswordChanged event, Emitter emit) {
     final password = event.password;
-    return emit(state.copyWith(password: password, passwordError: null));
+    final newErrors = {...state.errors};
+    newErrors.remove(FormElement.password);
+
+    return emit(state.copyWith(password: password, errors: newErrors));
   }
 
   Future<void> _onButtonPressed(LoginFormButtonPressed event, Emitter emit) async {
@@ -64,22 +70,10 @@ class LoginFormBloc extends Bloc<LoginFormEvent, LoginFormState> {
   }
 
   void _onSubmitFailed(LoginFormSubmitFailed event, Emitter<LoginFormState> emit) {
-    emit(state.copyWith(
-      usernameError: event.errors //
-          .where((error) => error.target == FormElement.username)
-          .firstOrNull
-          ?.message,
-      passwordError: event.errors //
-          .where((error) => error.target == FormElement.password)
-          .firstOrNull
-          ?.message,
-    ));
+    emit(state.copyWith(errors: event.errors));
   }
 
   Future<void> _onClearErrors(LoginFormClearErrors event, Emitter<LoginFormState> emit) async {
-    emit(state.copyWith(
-      usernameError: null,
-      passwordError: null,
-    ));
+    emit(state.copyWith(errors: const {}));
   }
 }

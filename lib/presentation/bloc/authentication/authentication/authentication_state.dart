@@ -1,5 +1,7 @@
 part of 'authentication_bloc.dart';
 
+typedef ErrorMessages = Map<FormElement, String>;
+
 enum AuthenticationStatus { unknown, loggingIn, loggingOut, success, failure }
 
 enum FormElement {
@@ -10,12 +12,12 @@ enum FormElement {
   securityAnswer,
 }
 
-class ErrorMessage {
-  const ErrorMessage({required this.message, required this.target});
+// class ErrorMessage {
+//   const ErrorMessage({required this.message, required this.target});
 
-  final String message;
-  final FormElement target;
-}
+//   final String message;
+//   final FormElement target;
+// }
 
 class AuthenticationState with EquatableMixin {
   const AuthenticationState({
@@ -23,10 +25,11 @@ class AuthenticationState with EquatableMixin {
     this.user,
     this.loginAttempts = 0,
     this.lastUsername,
-    this.errors = const [],
+    this.formErrors = const {},
     this.previousUser,
     this.repository,
     this.updateFuture,
+    this.errorMessage,
   });
 
   final AuthenticationStatus status;
@@ -40,7 +43,9 @@ class AuthenticationState with EquatableMixin {
 
   final int loginAttempts;
   final String? lastUsername;
-  final List<ErrorMessage> errors;
+  final ErrorMessages formErrors;
+
+  final String? errorMessage;
 
   final AuthenticationRepository? repository;
   final Future<void>? updateFuture;
@@ -50,10 +55,11 @@ class AuthenticationState with EquatableMixin {
     User? user,
     int loginAttempts,
     String? lastUsername,
-    List<ErrorMessage> errors,
+    ErrorMessages errors,
     User? previousUser,
     AuthenticationRepository? repository,
     Future<void>? updateFuture,
+    String? errorMessage,
   }) get copyWith {
     return ({
       Object? status = undefined,
@@ -64,21 +70,22 @@ class AuthenticationState with EquatableMixin {
       Object? previousUser = undefined,
       Object? repository = undefined,
       Object? updateFuture = undefined,
+      Object? errorMessage = undefined,
     }) {
       return AuthenticationState(
         status: status.or(this.status),
         user: user.or(this.user),
         loginAttempts: loginAttempts.or(this.loginAttempts),
         lastUsername: lastUsername.or(this.lastUsername),
-        errors: errors.or(this.errors),
+        formErrors: errors.or(formErrors),
         previousUser: previousUser.or(this.previousUser),
         repository: repository.or(this.repository),
         updateFuture: updateFuture.or(this.updateFuture),
+        errorMessage: errorMessage.or(this.errorMessage),
       );
     };
   }
 
   @override
-  List<Object?> get props =>
-      [status, user, loginAttempts, lastUsername, errors];
+  List<Object?> get props => [status, user, loginAttempts, lastUsername, formErrors, errorMessage];
 }

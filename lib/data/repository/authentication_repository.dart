@@ -7,6 +7,7 @@ import 'package:easthardware_pms/domain/models/user.dart';
 import 'package:easthardware_pms/domain/repository/authentication_repository.dart';
 import 'package:easthardware_pms/domain/repository/user_repository.dart';
 import 'package:easthardware_pms/domain/services/cryptography_service.dart';
+import 'package:easthardware_pms/presentation/bloc/authentication/authentication/authentication_bloc.dart';
 
 /// authentication_repository.dart
 /// This dart file includes the implementation of the authentication abstract class in the domain
@@ -33,18 +34,18 @@ class AuthenticationRepositoryImpl implements AuthenticationRepository {
     final user = await _userRepository.getUserByUsername(username);
 
     if (user == null) {
-      throw DatabaseException('Invalid username or password');
+      throw LoginFormException.single(FormElement.username, 'Username does not exist.');
     }
 
     if (user.loginStatus != 0) {
-      throw DatabaseException('User is currently logged in.');
+      throw LoginFormException.single(FormElement.username, 'User is currently logged in.');
     }
 
     // Hash the input password
     final hashedPassword = CryptographyService.generateHash(password, user.salt);
     // Compare the hashed password with the stored password
     if (user.passwordHash.toString() != hashedPassword.toString()) {
-      throw AuthenticationException('Invalid username or password');
+      throw LoginFormException.single(FormElement.password, 'Invalid password');
     }
 
     return user;

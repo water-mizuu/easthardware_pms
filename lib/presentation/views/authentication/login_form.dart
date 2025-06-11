@@ -1,8 +1,10 @@
 import 'package:easthardware_pms/domain/enums/enums.dart';
 import 'package:easthardware_pms/presentation/bloc/authentication/'
     'authentication/authentication_bloc.dart';
-import 'package:easthardware_pms/presentation/bloc/authentication/login_form/login_form_bloc.dart';
-import 'package:easthardware_pms/presentation/bloc/authentication/login_form/login_form_validator.dart';
+import 'package:easthardware_pms/presentation/bloc/authentication/'
+    'login_form/login_form_bloc.dart';
+import 'package:easthardware_pms/presentation/bloc/authentication/'
+    'login_form/login_form_validator.dart';
 import 'package:easthardware_pms/presentation/widgets/layout/spacing.dart';
 import 'package:easthardware_pms/presentation/widgets/text.dart';
 import 'package:fluent_ui/fluent_ui.dart';
@@ -16,14 +18,13 @@ class LoginForm extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocListener<LoginFormBloc, LoginFormState>(
       listener: (context, state) {
-        if (state.usernameError != null || state.passwordError != null) {
+        if (state.errors.isNotEmpty) {
           WidgetsBinding.instance.addPostFrameCallback((_) {
-            context.read<LoginFormBloc>()
-              // Validate the form after the frame is drawn to ensure the UI is updated
-              ..formKey.currentState?.validate()
+            // Validate the form after the frame is drawn to ensure the UI is updated
+            context.read<LoginFormBloc>().formKey.currentState?.validate();
 
-              /// After showing the errors, clear the errors in the state.
-              ..add(const LoginFormClearErrors());
+            /// After showing the errors, clear the errors in the state.
+            context.read<LoginFormBloc>().add(const LoginFormClearErrors());
           });
         }
       },
@@ -157,8 +158,8 @@ class _FormButton extends StatelessWidget {
                         height: 16.0,
                         width: 16.0,
                         child: OverflowBox(
-                          maxHeight: 24.0,
-                          maxWidth: 24.0,
+                          maxHeight: 28.0,
+                          maxWidth: 28.0,
                           child: ProgressRing(strokeWidth: 3.5),
                         ),
                       ),

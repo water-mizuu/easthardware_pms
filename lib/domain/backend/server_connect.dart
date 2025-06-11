@@ -11,7 +11,7 @@ import 'package:easthardware_pms/utils/try_future.dart';
 import 'package:flutter/foundation.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 
-const _websocketHandshakeTimeout = Duration(seconds: 2);
+const _websocketHandshakeTimeout = Duration(seconds: 30);
 
 Future<(WebSocketChannel, MessageChannel, Stream<ServerEvent>)> connectToWebSocketServer(
   String host,

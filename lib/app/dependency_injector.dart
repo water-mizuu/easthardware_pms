@@ -179,8 +179,10 @@ class DependencyInjector extends ChangeNotifier {
         create: (context) {
           final state = _newPasswordFormBloc?.state ?? const NewPasswordFormState();
 
-          return _newPasswordFormBloc =
-              NewPasswordFormBloc(userRepository: _userRepository, initialState: state);
+          return _newPasswordFormBloc = NewPasswordFormBloc(
+            userRepository: _userRepository,
+            initialState: state,
+          );
         },
       ),
       BlocProvider(
@@ -222,27 +224,6 @@ class DependencyInjector extends ChangeNotifier {
         },
       )
     ];
-  }
-
-  BlocProvider blocProvide<E, S, B extends Bloc<E, S>>({
-    required B? Function() getPrevious,
-    required B Function(S) constructor,
-    required void Function(B) setPrevious,
-    required S initialStateConstructor,
-    bool isLazy = true,
-    Key? key,
-  }) {
-    return BlocProvider<B>(
-      key: key,
-      lazy: isLazy,
-      create: (context) {
-        final state = getPrevious()?.state ?? initialStateConstructor;
-        final bloc = constructor(state);
-        setPrevious(bloc);
-
-        return bloc;
-      },
-    );
   }
 
   /// Tells the loaded blocs to refresh their data.

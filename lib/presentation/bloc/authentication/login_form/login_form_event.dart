@@ -21,7 +21,7 @@ class LoginFormResetEvent implements LoginFormEvent {}
 class LoginFormSubmitFailed implements LoginFormEvent {
   const LoginFormSubmitFailed(this.errors);
 
-  final List<ErrorMessage> errors;
+  final ErrorMessages errors;
 }
 
 class LoginFormClearErrors implements LoginFormEvent {

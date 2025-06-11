@@ -14,8 +14,7 @@ class ResetPasswordPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider.value(
-      value: context.read<ResetFormBloc>()
-        ..add(ResetFormUsernameChanged(username)),
+      value: context.read<ResetFormBloc>()..add(ResetFormUsernameChanged(username)),
       child: ColoredBox(
         color: FluentTheme.of(context).micaBackgroundColor,
         child: const Column(
@@ -67,8 +66,7 @@ class _FormHeader extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: const [
         HeadingText("Reset Password", textAlign: TextAlign.start),
-        GrayText("Verify your identity to reset your password",
-            textAlign: TextAlign.start),
+        GrayText("Verify your identity to reset your password", textAlign: TextAlign.start),
       ].withSpacing(() => Spacing.v8),
     );
   }
@@ -103,8 +101,7 @@ class _SecurityQuestionSection extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         const BodyText('Security Question'),
-        if (state.status == ResetFormStatus.loading &&
-            state.username.isNotEmpty)
+        if (state.status == ResetFormStatus.loading && state.username.isNotEmpty)
           const Row(
             children: [
               SizedBox(width: 16, height: 16, child: ProgressRing()),
@@ -115,13 +112,10 @@ class _SecurityQuestionSection extends StatelessWidget {
         else
           ComboBox<String>(
             placeholder: Text(
-              state.questions.isEmpty
-                  ? "Enter username first"
-                  : "Select a question",
+              state.questions.isEmpty ? "Enter username first" : "Select a question",
               style: TextStyle(color: Colors.grey[120]),
             ),
-            value:
-                state.selectedQuestion.isEmpty ? null : state.selectedQuestion,
+            value: state.selectedQuestion.isEmpty ? null : state.selectedQuestion,
             items: state.questions
                 .map((q) => ComboBoxItem<String>(
                       value: q.question,
@@ -131,9 +125,7 @@ class _SecurityQuestionSection extends StatelessWidget {
             onChanged: state.questions.isNotEmpty
                 ? (value) {
                     if (value != null) {
-                      context
-                          .read<ResetFormBloc>()
-                          .add(ResetFormSecurityQuestionSelected(value));
+                      context.read<ResetFormBloc>().add(ResetFormSecurityQuestionSelected(value));
                     }
                   }
                 : null,
@@ -155,9 +147,8 @@ class _AnswerInputSection extends StatelessWidget {
         const BodyText('Answer'),
         TextFormBox(
           placeholder: 'Enter your answer',
-          onChanged: (value) => context
-              .read<ResetFormBloc>()
-              .add(ResetFormAnswerChanged(value.trim())),
+          onChanged: (value) =>
+              context.read<ResetFormBloc>().add(ResetFormAnswerChanged(value.trim())),
         ),
       ].withSpacing(() => Spacing.v8),
     );
@@ -177,26 +168,31 @@ class _SubmitSection extends StatelessWidget {
         }
       },
       builder: (context, state) {
-        return Row(
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Expanded(
-              child: FilledButton(
-                onPressed:
-                    state.status == ResetFormStatus.loading || !state.isValid
-                        ? null
-                        : () {
-                            primaryFocus?.unfocus();
-                            context
-                                .read<ResetFormBloc>()
-                                .add(const ResetFormSubmitted());
-                          },
-                child: Padding(
-                  padding: AppPadding.a8,
-                  child: state.status == ResetFormStatus.loading
-                      ? const SizedBox(
-                          height: 16, width: 16, child: ProgressRing())
-                      : const ButtonText("Submit"),
-                ),
+            FilledButton(
+              onPressed: state.status == ResetFormStatus.loading || !state.isValid
+                  ? null
+                  : () {
+                      primaryFocus?.unfocus();
+                      context.read<ResetFormBloc>().add(const ResetFormSubmitted());
+                    },
+              child: Padding(
+                padding: AppPadding.a8,
+                child: state.status == ResetFormStatus.loading
+                    ? const SizedBox(height: 16, width: 16, child: ProgressRing())
+                    : const ButtonText("Submit"),
+              ),
+            ),
+            Spacing.v12,
+            Button(
+              onPressed: () {
+                context.navigate(AppRoutes.login);
+              },
+              child: const Padding(
+                padding: AppPadding.a8,
+                child: ButtonText("Return"),
               ),
             ),
           ],

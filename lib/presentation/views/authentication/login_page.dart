@@ -55,7 +55,7 @@ class LoginPage extends StatelessWidget {
                   );
                 }
 
-                context.read<LoginFormBloc>().add(LoginFormSubmitFailed(authState.errors));
+                context.read<LoginFormBloc>().add(LoginFormSubmitFailed(authState.formErrors));
                 return;
               }
 

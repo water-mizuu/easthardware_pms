@@ -61,12 +61,9 @@ class AuthenticationBloc extends Bloc<AuthenticationEvent, AuthenticationState> 
         loginAttempts: 0,
         lastUsername: null,
       ));
-    }
-
-    /// [AuthenticationException] is thrown when the password is invalid.
-    on AuthenticationException catch (e) {
+    } on LoginFormException catch (e) {
       if (kDebugMode) {
-        print(e);
+        print("LoginFormException: $e");
       }
 
       emit(
@@ -74,27 +71,52 @@ class AuthenticationBloc extends Bloc<AuthenticationEvent, AuthenticationState> 
           status: AuthenticationStatus.failure,
           loginAttempts: state.lastUsername == event.username ? state.loginAttempts + 1 : 1,
           lastUsername: event.username,
+          errors: e.errors,
         ),
       );
-    }
-
-    /// [DatabaseException] is thrown when the user is not found in the database.
-    ///   OR the user is not allowed.
-    on DatabaseException catch (e) {
+    } catch (e) {
       if (kDebugMode) {
-        print("DatabaseException: $e");
+        print("Unexpected error during login: $e");
       }
 
-      emit(
-        state.copyWith(
-          status: AuthenticationStatus.failure,
-          loginAttempts: 0,
-          errors: [
-            ErrorMessage(message: e.message, target: FormElement.username),
-          ],
-        ),
-      );
+      emit(state.copyWith(status: AuthenticationStatus.failure, errorMessage: e.toString()));
     }
+
+    // /// [AuthenticationException] is thrown when the password is invalid.
+    // on AuthenticationException catch (e) {
+    //   if (kDebugMode) {
+    //     print("AuthenticationException: $e");
+    //   }
+
+    //   emit(
+    //     state.copyWith(
+    //       status: AuthenticationStatus.failure,
+    //       loginAttempts: state.lastUsername == event.username ? state.loginAttempts + 1 : 1,
+    //       lastUsername: event.username,
+    //       errors: [
+    //         ErrorMessage(message: e.message, target: FormElement.password),
+    //       ],
+    //     ),
+    //   );
+    // }
+
+    // /// [DatabaseException] is thrown when the user is not found in the database.
+    // ///   OR the user is not allowed.
+    // on DatabaseException catch (e) {
+    //   if (kDebugMode) {
+    //     print("DatabaseException: $e");
+    //   }
+
+    //   emit(
+    //     state.copyWith(
+    //       status: AuthenticationStatus.failure,
+    //       loginAttempts: 0,
+    //       errors: [
+    //         ErrorMessage(message: e.message, target: FormElement.username),
+    //       ],
+    //     ),
+    //   );
+    // }
   }
 
   Future<void> _onLogout(

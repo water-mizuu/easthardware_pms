@@ -14,6 +14,7 @@ class NewPasswordFormBloc extends Bloc<NewPasswordFormEvent, NewPasswordFormStat
     on<NewPasswordChanged>(_onNewPasswordChanged);
     on<ConfirmPasswordChanged>(_onConfirmPasswordChanged);
     on<NewPasswordFormSubmitted>(_onFormSubmitted);
+    on<NewPasswordFormReset>(_onReset);
   }
 
   final UserRepository userRepository;
@@ -43,8 +44,7 @@ class NewPasswordFormBloc extends Bloc<NewPasswordFormEvent, NewPasswordFormStat
     NewPasswordFormSubmitted event,
     Emitter<NewPasswordFormState> emit,
   ) async {
-    print("Current State Username ${state.username}");
-    if (state.username.isEmpty) {
+    if (state.username.isEmpty || true) {
       emit(state.copyWith(
         status: FormStatus.error,
         errorMessage: 'User session expired. Please start over.',
