@@ -34,18 +34,30 @@ class AuthenticationRepositoryImpl implements AuthenticationRepository {
     final user = await _userRepository.getUserByUsername(username);
 
     if (user == null) {
-      throw LoginFormException.single(FormElement.username, 'Username does not exist.');
+      throw LoginFormException.single(
+        LoginFormExceptionCode.userDoesNotExist,
+        FormElement.username,
+        "Username '$username' does not exist.",
+      );
     }
 
     if (user.loginStatus != 0) {
-      throw LoginFormException.single(FormElement.username, 'User is currently logged in.');
+      throw LoginFormException.single(
+        LoginFormExceptionCode.userAlreadyLoggedIn,
+        FormElement.username,
+        "User '$username' is currently logged in.",
+      );
     }
 
     // Hash the input password
     final hashedPassword = CryptographyService.generateHash(password, user.salt);
     // Compare the hashed password with the stored password
     if (user.passwordHash.toString() != hashedPassword.toString()) {
-      throw LoginFormException.single(FormElement.password, 'Invalid password');
+      throw LoginFormException.single(
+        LoginFormExceptionCode.invalidPassword,
+        FormElement.password,
+        'Invalid password',
+      );
     }
 
     return user;

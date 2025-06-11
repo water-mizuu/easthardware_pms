@@ -12,7 +12,9 @@ class LoginFormPasswordChanged implements LoginFormEvent {
   final String password;
 }
 
-class LoginFormButtonPressed implements LoginFormEvent {}
+class LoginFormButtonPressed implements LoginFormEvent {
+  const LoginFormButtonPressed();
+}
 
 class LoginFormReturned implements LoginFormEvent {}
 

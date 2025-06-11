@@ -1,7 +1,10 @@
-import 'package:easthardware_pms/presentation/widgets/ui/kpi_card.dart';
+import 'package:easthardware_pms/presentation/bloc/inventory/product_list/product_list_bloc.dart';
 import 'package:easthardware_pms/presentation/widgets/layout/spacing.dart';
+import 'package:easthardware_pms/presentation/widgets/layout_mode_provider.dart';
 import 'package:easthardware_pms/presentation/widgets/text.dart';
+import 'package:easthardware_pms/presentation/widgets/ui/kpi_card.dart';
 import 'package:fluent_ui/fluent_ui.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 class AdminDashboardPanePage extends StatelessWidget {
   const AdminDashboardPanePage({super.key});
@@ -13,17 +16,17 @@ class AdminDashboardPanePage extends StatelessWidget {
         return SingleChildScrollView(
           child: ConstrainedBox(
             constraints: BoxConstraints(minHeight: constraints.maxHeight),
-            child: const IntrinsicHeight(
+            child: IntrinsicHeight(
               child: Padding(
                 padding: AppPadding.panePadding,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    PageHeader(),
-                    SummarySection(),
-                    GraphSection(),
-                    TableSection(),
-                  ],
+                    const PageHeader(),
+                    const SummarySection(),
+                    const GraphSection(),
+                    const TopProductsSection(),
+                  ].withSpacing(() => Spacing.v16),
                 ),
               ),
             ),
@@ -44,7 +47,7 @@ class PageHeader extends StatelessWidget {
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            HeadingText('Admin Dashboard'),
+            HeadingText('Dashboard'),
             GrayText('Overview of the system'),
           ],
         ),
@@ -58,7 +61,46 @@ class SummarySection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Row(children: []);
+    return LayoutMode.builder((context, mode) {
+      const productCount = ProductCountCard();
+      const saleCount = SaleCountCard();
+      const totalSales = TotalSalesCard(value: "Hi");
+      const totalOrders = TotalOrdersCard(value: "Hi");
+
+      return switch (mode) {
+        LayoutMode.wide => const Row(
+            children: [
+              productCount,
+              Spacing.h8,
+              saleCount,
+              Spacing.h8,
+              totalSales,
+              Spacing.h8,
+              totalOrders,
+            ],
+          ),
+        LayoutMode.constrained => const Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Row(children: [productCount, Spacing.h8, saleCount]),
+              Spacing.v8,
+              Row(children: [totalSales, Spacing.h8, totalOrders]),
+            ],
+          ),
+        LayoutMode.compact => const Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              productCount,
+              Spacing.v8,
+              saleCount,
+              Spacing.v8,
+              totalSales,
+              Spacing.v8,
+              totalOrders,
+            ],
+          ),
+      };
+    });
   }
 }
 
@@ -71,8 +113,8 @@ class GraphSection extends StatelessWidget {
   }
 }
 
-class TableSection extends StatelessWidget {
-  const TableSection({super.key});
+class TopProductsSection extends StatelessWidget {
+  const TopProductsSection({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -80,20 +122,35 @@ class TableSection extends StatelessWidget {
   }
 }
 
-class ProductCountCard extends KPICard {
-  const ProductCountCard({super.key, required super.value})
-      : super(
-          'Product Count',
-          icon: const Icon(FluentIcons.product),
-        );
+class ProductCountCard extends StatelessWidget {
+  const ProductCountCard({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final productCount = context.select((ProductListBloc b) => b.state.allProducts.length);
+
+    return KPICard(
+      'Product Count',
+      value: productCount.toString(),
+      icon: const Icon(FluentIcons.product),
+    );
+  }
 }
 
-class SaleCountCard extends KPICard {
-  const SaleCountCard({super.key, required super.value})
-      : super(
-          'Low Stock Products',
-          icon: const Icon(FluentIcons.product),
-        );
+class SaleCountCard extends StatelessWidget {
+  const SaleCountCard({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final products = context.select((ProductListBloc b) => b.state.allProducts);
+    final lowStockProducts = products.where((p) => p.quantity < p.deadStockThreshold).length;
+
+    return KPICard(
+      'Low Stock Products',
+      value: lowStockProducts.toString(),
+      icon: const Icon(FluentIcons.product),
+    );
+  }
 }
 
 class TotalSalesCard extends KPICard {

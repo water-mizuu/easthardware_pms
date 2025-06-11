@@ -1,9 +1,18 @@
-import 'package:easthardware_pms/presentation/bloc/authentication/authentication/authentication_bloc.dart';
+import 'package:easthardware_pms/presentation/bloc/authentication/'
+    'authentication/authentication_bloc.dart';
+
+enum LoginFormExceptionCode {
+  userDoesNotExist,
+  userAlreadyLoggedIn,
+  invalidPassword,
+}
 
 class LoginFormException implements Exception {
-  const LoginFormException(this.errors);
-  LoginFormException.single(FormElement target, String message) : errors = {target: message};
+  const LoginFormException(this.code, this.errors);
+  LoginFormException.single(this.code, FormElement target, String message)
+      : errors = {target: message};
 
+  final LoginFormExceptionCode code;
   final Map<FormElement, String> errors;
 }
 

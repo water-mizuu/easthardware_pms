@@ -21,6 +21,8 @@ Future<void> showNotification({
   }
   displayInfoBar(
     innerContext,
+    duration: duration,
+    alignment: Alignment.bottomCenter,
     builder: (context, close) {
       return InfoBar(
         title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),

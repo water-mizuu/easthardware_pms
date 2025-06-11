@@ -33,8 +33,8 @@ class AppPadding {
 extension SpacingList on List<Widget> {
   List<Widget> withSpacing(Widget Function() spacing) => [
         for (final (index, widget) in indexed) ...[
+          if (index > 0) spacing(),
           widget,
-          if (index < length - 1) spacing(),
         ]
       ];
 }

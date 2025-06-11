@@ -44,7 +44,7 @@ class NewPasswordFormBloc extends Bloc<NewPasswordFormEvent, NewPasswordFormStat
     NewPasswordFormSubmitted event,
     Emitter<NewPasswordFormState> emit,
   ) async {
-    if (state.username.isEmpty || true) {
+    if (state.username.isEmpty) {
       emit(state.copyWith(
         status: FormStatus.error,
         errorMessage: 'User session expired. Please start over.',

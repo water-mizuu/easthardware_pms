@@ -35,26 +35,35 @@ class LoginFormBloc extends Bloc<LoginFormEvent, LoginFormState> {
 
   void _onUsernameChanged(LoginFormUsernameChanged event, Emitter emit) {
     final username = event.username;
-    final newErrors = {...state.errors};
+    final newErrors = {...state.formErrors};
     newErrors.remove(FormElement.username);
 
-    return emit(state.copyWith(username: username, errors: newErrors));
+    return emit(state.copyWith(username: username, formErrors: newErrors));
   }
 
   void _onPasswordChanged(LoginFormPasswordChanged event, Emitter emit) {
     final password = event.password;
-    final newErrors = {...state.errors};
+    final newErrors = {...state.formErrors};
     newErrors.remove(FormElement.password);
 
-    return emit(state.copyWith(password: password, errors: newErrors));
+    return emit(state.copyWith(password: password, formErrors: newErrors));
   }
 
   Future<void> _onButtonPressed(LoginFormButtonPressed event, Emitter emit) async {
     emit(state.copyWith(status: FormStatus.validating));
 
     assert(formKey.currentState != null, 'Form key must be initialized before validation.');
+    final formState = formKey.currentState;
+    if (formState == null) {
+      emit(state.copyWith(
+        status: FormStatus.error,
+        errorMessage: 'Form state is null. Please ensure the form is properly initialized.',
+      ));
+      return;
+    }
+
     if (formKey.currentState case final FormState formState when formState.validate()) {
-      await Future.delayed(100.milliseconds);
+      await Future.delayed(200.milliseconds);
       emit(state.copyWith(status: FormStatus.submitting));
     } else {
       emit(state.copyWith(status: FormStatus.error));
@@ -70,10 +79,10 @@ class LoginFormBloc extends Bloc<LoginFormEvent, LoginFormState> {
   }
 
   void _onSubmitFailed(LoginFormSubmitFailed event, Emitter<LoginFormState> emit) {
-    emit(state.copyWith(errors: event.errors));
+    emit(state.copyWith(formErrors: event.errors));
   }
 
   Future<void> _onClearErrors(LoginFormClearErrors event, Emitter<LoginFormState> emit) async {
-    emit(state.copyWith(errors: const {}));
+    emit(state.copyWith(formErrors: const {}));
   }
 }

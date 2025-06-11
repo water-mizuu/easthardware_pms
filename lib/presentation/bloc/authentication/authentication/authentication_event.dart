@@ -1,32 +1,24 @@
 part of 'authentication_bloc.dart';
 
-sealed class AuthenticationEvent implements Equatable {
+sealed class AuthenticationEvent {
   const AuthenticationEvent();
-
-  @override
-  List<Object> get props => [];
 }
 
-class AuthenticationLoginEvent with EquatableMixin implements AuthenticationEvent {
+class AuthenticationLoginEvent implements AuthenticationEvent {
   const AuthenticationLoginEvent({required this.username, required this.password});
 
   final String username;
   final String password;
-
-  @override
-  List<Object> get props => [username, password];
 }
 
-class AuthenticationLogoutEvent with EquatableMixin implements AuthenticationEvent {
+class AuthenticationLogoutEvent implements AuthenticationEvent {
   const AuthenticationLogoutEvent();
-
-  @override
-  List<Object> get props => [];
 }
 
-class AuthenticationPostLogoutEvent with EquatableMixin implements AuthenticationEvent {
+class AuthenticationPostLogoutEvent implements AuthenticationEvent {
   const AuthenticationPostLogoutEvent();
+}
 
-  @override
-  List<Object> get props => [];
+class AuthenticationResetEvent implements AuthenticationEvent {
+  const AuthenticationResetEvent();
 }

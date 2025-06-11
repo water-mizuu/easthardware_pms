@@ -17,6 +17,7 @@ class AuthenticationBloc extends Bloc<AuthenticationEvent, AuthenticationState> 
     on<AuthenticationLoginEvent>(_onLogin);
     on<AuthenticationLogoutEvent>(_onLogout);
     on<AuthenticationPostLogoutEvent>(_onPostLogout);
+    on<AuthenticationResetEvent>(_onReset);
   }
 
   final AuthenticationRepository _repository;
@@ -43,6 +44,8 @@ class AuthenticationBloc extends Bloc<AuthenticationEvent, AuthenticationState> 
         break;
       case AuthenticationPostLogoutEvent():
         break;
+      case AuthenticationResetEvent():
+        break;
     }
 
     super.onEvent(event);
@@ -66,10 +69,27 @@ class AuthenticationBloc extends Bloc<AuthenticationEvent, AuthenticationState> 
         print("LoginFormException: $e");
       }
 
+      final newLoginAttempts = switch (e.code) {
+        /// If the user does not exist, we reset the login attempts.
+        ///   This is because we do not want to trigger the reset password.
+        LoginFormExceptionCode.userDoesNotExist => 0,
+
+        /// If the user is already logged in, we do not need to increment the login attempts.
+        ///   We actually reset it.
+        LoginFormExceptionCode.userAlreadyLoggedIn => 0,
+
+        /// If the last username is the same as the current one,
+        ///   increment the login attempts.
+        LoginFormExceptionCode.invalidPassword => //
+          state.lastUsername == event.username //
+              ? state.loginAttempts + 1
+              : 1,
+      };
+
       emit(
         state.copyWith(
           status: AuthenticationStatus.failure,
-          loginAttempts: state.lastUsername == event.username ? state.loginAttempts + 1 : 1,
+          loginAttempts: newLoginAttempts,
           lastUsername: event.username,
           errors: e.errors,
         ),
@@ -81,42 +101,6 @@ class AuthenticationBloc extends Bloc<AuthenticationEvent, AuthenticationState> 
 
       emit(state.copyWith(status: AuthenticationStatus.failure, errorMessage: e.toString()));
     }
-
-    // /// [AuthenticationException] is thrown when the password is invalid.
-    // on AuthenticationException catch (e) {
-    //   if (kDebugMode) {
-    //     print("AuthenticationException: $e");
-    //   }
-
-    //   emit(
-    //     state.copyWith(
-    //       status: AuthenticationStatus.failure,
-    //       loginAttempts: state.lastUsername == event.username ? state.loginAttempts + 1 : 1,
-    //       lastUsername: event.username,
-    //       errors: [
-    //         ErrorMessage(message: e.message, target: FormElement.password),
-    //       ],
-    //     ),
-    //   );
-    // }
-
-    // /// [DatabaseException] is thrown when the user is not found in the database.
-    // ///   OR the user is not allowed.
-    // on DatabaseException catch (e) {
-    //   if (kDebugMode) {
-    //     print("DatabaseException: $e");
-    //   }
-
-    //   emit(
-    //     state.copyWith(
-    //       status: AuthenticationStatus.failure,
-    //       loginAttempts: 0,
-    //       errors: [
-    //         ErrorMessage(message: e.message, target: FormElement.username),
-    //       ],
-    //     ),
-    //   );
-    // }
   }
 
   Future<void> _onLogout(
@@ -151,5 +135,14 @@ class AuthenticationBloc extends Bloc<AuthenticationEvent, AuthenticationState> 
     Emitter<AuthenticationState> emit,
   ) async {
     emit(state.copyWith(previousUser: null));
+  }
+
+  Future<void> _onReset(AuthenticationResetEvent event, Emitter<AuthenticationState> emit) async {
+    emit(state.copyWith(
+      loginAttempts: 0,
+      user: null,
+      previousUser: null,
+      errors: const {},
+    ));
   }
 }

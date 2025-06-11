@@ -93,6 +93,7 @@ class CreateProductPage extends StatelessWidget {
                 showNotification(
                   title: 'Error',
                   message: state.errorMessage ?? 'An error occurred while submitting the form.',
+                  severity: InfoBarSeverity.error,
                 );
               },
             ),
@@ -113,6 +114,7 @@ class CreateProductPage extends StatelessWidget {
                 showNotification(
                   title: 'Error',
                   message: state.errorMessage ?? 'An error occurred while submitting the form.',
+                  severity: InfoBarSeverity.error,
                 );
               },
             ),
@@ -133,6 +135,7 @@ class CreateProductPage extends StatelessWidget {
                 showNotification(
                   title: 'Error',
                   message: state.errorMessage ?? 'An error occurred while submitting the form.',
+                  severity: InfoBarSeverity.error,
                 );
               },
             ),

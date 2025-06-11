@@ -72,7 +72,7 @@ Future<void> spawnWebSocketIsolate((RootIsolateToken, NamedSendPort) payload) as
 
   // Set up the heartbeat timer. This will be used to detect unexpected crashes of the isolate.
   await _sharedPreferencesAsync.setInt("heartbeat", DateTime.now().millisecondsSinceEpoch);
-  _heartbeatTimer = Timer.periodic(30.seconds, (timer) async {
+  _heartbeatTimer = Timer.periodic(15.seconds, (timer) async {
     await _sharedPreferencesAsync.setInt("heartbeat", DateTime.now().millisecondsSinceEpoch);
   });
 

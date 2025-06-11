@@ -5,6 +5,7 @@ import 'package:easthardware_pms/presentation/widgets/text.dart';
 import 'package:easthardware_pms/utils/typed_routes.dart';
 import 'package:fluent_ui/fluent_ui.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:scroll_animator/scroll_animator.dart';
 
 class ResetPasswordPage extends StatelessWidget {
   const ResetPasswordPage({super.key, required this.username});
@@ -18,14 +19,17 @@ class ResetPasswordPage extends StatelessWidget {
       child: ColoredBox(
         color: FluentTheme.of(context).micaBackgroundColor,
         child: const Column(
+          mainAxisSize: MainAxisSize.min,
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Row(
-              children: [
-                Spacer(),
-                Expanded(child: _ResetPasswordForm()),
-                Spacer(),
-              ],
+            Flexible(
+              child: Row(
+                children: [
+                  Spacer(),
+                  Expanded(child: _ResetPasswordForm()),
+                  Spacer(),
+                ],
+              ),
             ),
           ],
         ),
@@ -34,25 +38,50 @@ class ResetPasswordPage extends StatelessWidget {
   }
 }
 
-class _ResetPasswordForm extends StatelessWidget {
+class _ResetPasswordForm extends StatefulWidget {
   const _ResetPasswordForm();
+
+  @override
+  State<_ResetPasswordForm> createState() => _ResetPasswordFormState();
+}
+
+class _ResetPasswordFormState extends State<_ResetPasswordForm> {
+  late final AnimatedScrollController _scrollController;
+
+  @override
+  void initState() {
+    super.initState();
+
+    _scrollController = AnimatedScrollController(animationFactory: const ChromiumEaseInOut());
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     return ColoredBox(
       color: Colors.white,
-      child: Padding(
-        padding: AppPadding.a32,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Image.asset("assets/icons/app.png", height: 24.0),
-            _FormHeader(),
-            const _UsernameInputSection(),
-            const _SecurityQuestionSection(),
-            const _AnswerInputSection(),
-            const _SubmitSection(),
-          ].withSpacing(() => Spacing.v16),
+      child: SingleChildScrollView(
+        controller: _scrollController,
+        child: Padding(
+          padding: AppPadding.a32,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Image.asset("assets/icons/app.png", height: 24.0),
+              _FormHeader(),
+              const _UsernameInputSection(),
+              const _SecurityQuestionSection(),
+              const _AnswerInputSection(),
+              const _SubmitSection(),
+            ].withSpacing(() => Spacing.v16),
+          ),
         ),
       ),
     );

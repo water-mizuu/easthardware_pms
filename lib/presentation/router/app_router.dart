@@ -6,6 +6,8 @@ import 'package:easthardware_pms/presentation/views/authentication/new_password_
 import 'package:easthardware_pms/presentation/views/authentication/reset_password_page.dart';
 import 'package:easthardware_pms/presentation/views/billing/create_invoice_page.dart';
 import 'package:easthardware_pms/presentation/views/billing/invoice_pane_page.dart';
+import 'package:easthardware_pms/presentation/views/dashboard/admin_dashboard_pane_page.dart';
+import 'package:easthardware_pms/presentation/views/dashboard/staff_dashboard_pane_page.dart';
 import 'package:easthardware_pms/presentation/views/inventory/create_product_page.dart';
 import 'package:easthardware_pms/presentation/views/inventory/edit_product_page.dart';
 import 'package:easthardware_pms/presentation/views/inventory/inventory_pane_page.dart';
@@ -66,7 +68,7 @@ final router = GoRouter(
               routes: [
                 TypedGoRoute(
                   route: AppRoutes.admin.dashboard,
-                  builder: (context, state) => const Text("Dashboard"),
+                  builder: (context, state) => const AdminDashboardPanePage(),
                 )
               ],
             ),
@@ -192,7 +194,7 @@ final router = GoRouter(
               routes: [
                 GoRoute(
                   path: AppRoutes.staff.dashboard.path,
-                  builder: (context, state) => const Text("Dashboard"),
+                  builder: (context, state) => const StaffDashboardPanePage(),
                 )
               ],
             ),

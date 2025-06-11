@@ -33,6 +33,7 @@ void main(List<String> args) async {
         await WindowManagerPlus.current.setAlwaysOnBottom(false);
       }
 
+      await WindowManagerPlus.current.setTitle("East Hardware PMS");
       await WindowManagerPlus.current.setTitleBarStyle(TitleBarStyle.hidden);
       await WindowManagerPlus.current.show();
       await WindowManagerPlus.current.focus();
