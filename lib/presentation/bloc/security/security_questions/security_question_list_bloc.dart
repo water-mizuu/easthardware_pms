@@ -10,7 +10,8 @@ part 'security_question_list_event.dart';
 part 'security_question_list_state.dart';
 
 class SecurityQuestionListBloc extends Bloc<SecurityQuestionListEvent, SecurityQuestionListState> {
-  SecurityQuestionListBloc(this._repository) : super(const SecurityQuestionListState()) {
+  SecurityQuestionListBloc(this._repository, SecurityQuestionListState initialState)
+      : super(initialState) {
     on<FetchSecurityQuestionsEvent>(_onFetchSecurityQuestions);
     on<FilterSecurityQuestionsEvent>(_onFilterSecurityQuestions);
     on<AddSecurityQuestionEvent>(_onAddSecurityQuestion);

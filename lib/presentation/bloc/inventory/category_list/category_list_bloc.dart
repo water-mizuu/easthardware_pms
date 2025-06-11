@@ -9,7 +9,7 @@ part 'category_list_event.dart';
 part 'category_list_state.dart';
 
 class CategoryListBloc extends Bloc<CategoryListEvent, CategoryListState> {
-  CategoryListBloc(this._repository) : super(CategoryListInitial()) {
+  CategoryListBloc(this._repository, CategoryListState initialState) : super(initialState) {
     on<LoadCategoriesEvent>(_onLoad);
     on<ReloadCategoriesEvent>(_onReload);
     on<AddCategoryEvent>(_onAdd);

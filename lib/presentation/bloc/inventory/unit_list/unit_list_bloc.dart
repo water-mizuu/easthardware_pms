@@ -10,7 +10,7 @@ part 'unit_list_event.dart';
 part 'unit_list_state.dart';
 
 class UnitListBloc extends Bloc<UnitListEvent, UnitListState> {
-  UnitListBloc(this._repository) : super(UnitListInitial()) {
+  UnitListBloc(this._repository, UnitListState initialState) : super(initialState) {
     on<LoadUnitsEvent>(_onLoad);
     on<ReloadUnitsEvent>(_onReload);
     on<AddUnitEvent>(_onAdd);

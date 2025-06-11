@@ -11,7 +11,7 @@ part 'user_log_list_event.dart';
 part 'user_log_list_state.dart';
 
 class UserLogListBloc extends Bloc<UserLogListEvent, UserLogListState> {
-  UserLogListBloc(this._repository) : super(const UserLogListState()) {
+  UserLogListBloc(this._repository, UserLogListState initialState) : super(initialState) {
     on<LoadUserLogsEvent>(_onLoadUserLogs);
     on<AddCreateEvent>(_onAddCreateLog);
     on<AddUpdateEvent>(_onAddUpdateLog);

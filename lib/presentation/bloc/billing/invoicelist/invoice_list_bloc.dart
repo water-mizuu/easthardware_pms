@@ -8,7 +8,7 @@ part 'invoice_list_event.dart';
 part 'invoice_list_state.dart';
 
 class InvoiceListBloc extends Bloc<InvoiceListEvent, InvoiceListState> {
-  InvoiceListBloc(this._repository) : super(const InvoiceListState()) {
+  InvoiceListBloc(this._repository, InvoiceListState initialState) : super(initialState) {
     on<FetchAllInvoicesEvent>(_onFetchInvoices);
     on<AddInvoiceEvent>(_onAddInvoice);
     on<UpdateInvoiceEvent>(_onUpdateInvoice);

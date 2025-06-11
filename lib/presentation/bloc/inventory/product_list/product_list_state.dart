@@ -9,6 +9,13 @@ class ProductListState with EquatableMixin {
     this.status = DataStatus.initial,
   });
 
+  const ProductListState.initial()
+      : allProducts = const [],
+        lowStockProducts = const [],
+        deadStockProducts = const [],
+        fastMovingProducts = const [],
+        status = DataStatus.initial;
+
   final List<Product> allProducts;
   final List<Product> lowStockProducts;
   final List<Product> deadStockProducts;
@@ -47,14 +54,4 @@ class ProductListState with EquatableMixin {
         fastMovingProducts,
         status,
       ];
-}
-
-class ProductsStateInitial extends ProductListState {
-  ProductsStateInitial()
-      : super(
-          allProducts: [],
-          lowStockProducts: [],
-          deadStockProducts: [],
-          fastMovingProducts: [],
-        );
 }

@@ -154,8 +154,15 @@ class _FormButton extends StatelessWidget {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       const SizedBox(
-                          height: 24.0, width: 24.0, child: ProgressRing(strokeWidth: 3.5)),
-                      Spacing.h8,
+                        height: 16.0,
+                        width: 16.0,
+                        child: OverflowBox(
+                          maxHeight: 24.0,
+                          maxWidth: 24.0,
+                          child: ProgressRing(strokeWidth: 3.5),
+                        ),
+                      ),
+                      Spacing.h16,
                       child
                     ],
                   ),

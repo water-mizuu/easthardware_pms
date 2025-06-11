@@ -10,7 +10,7 @@ part 'product_list_event.dart';
 part 'product_list_state.dart';
 
 class ProductListBloc extends Bloc<ProductListEvent, ProductListState> {
-  ProductListBloc(this._repository) : super(ProductsStateInitial()) {
+  ProductListBloc(this._repository, ProductListState initialState) : super(initialState) {
     on<LoadAllProductsEvent>(_onLoad);
     on<ReloadAllProductsEvent>(_onReloadAllProducts);
     on<AddProductEvent>(_onAdd);

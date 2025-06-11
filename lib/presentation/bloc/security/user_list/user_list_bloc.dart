@@ -18,7 +18,7 @@ part 'user_list_state.dart';
 const _levenshteinThreshold = 20.0;
 
 class UserListBloc extends Bloc<UserListEvent, UserListState> {
-  UserListBloc(this._repository) : super(const UserListState()) {
+  UserListBloc(this._repository, UserListState initialState) : super(initialState) {
     on<LoadAllUsersEvent>(_onLoadUsers);
     on<AddUserEvent>(_onAddUser);
     on<UpdateUserEvent>(_onUpdateUser);

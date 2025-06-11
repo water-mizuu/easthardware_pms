@@ -8,15 +8,14 @@ part 'order_list_event.dart';
 part 'order_list_state.dart';
 
 class OrderListBloc extends Bloc<OrderListEvent, OrderListState> {
-  final OrderRepository _repository;
-
-  OrderListBloc(this._repository) : super(const OrderListState()) {
+  OrderListBloc(this._repository, OrderListState initialState) : super(initialState) {
     on<FetchAllOrdersEvent>(_onFetchOrders);
     on<AddOrderEvent>(_onAddOrder);
     on<UpdateOrderEvent>(_onUpdateOrder);
     on<DeleteOrderEvent>(_onDeleteOrder);
     on<ChangeRowsPerPageEvent>(_onChangeRowsPerPage);
   }
+  final OrderRepository _repository;
 
   Future<void> _onFetchOrders(FetchAllOrdersEvent event, Emitter emit) async {
     emit(state.copyWith(status: DataStatus.loading));
@@ -39,8 +38,7 @@ class OrderListBloc extends Bloc<OrderListEvent, OrderListState> {
     }
   }
 
-  Future<void> _onChangeRowsPerPage(
-      ChangeRowsPerPageEvent event, Emitter emit) async {
+  Future<void> _onChangeRowsPerPage(ChangeRowsPerPageEvent event, Emitter emit) async {
     emit(state.copyWith(rowsPerPage: event.rowsPerPage));
   }
 
@@ -48,9 +46,7 @@ class OrderListBloc extends Bloc<OrderListEvent, OrderListState> {
     emit(state.copyWith(status: DataStatus.loading));
     try {
       await _repository.updateOrder(event.order);
-      final orders = state.allOrders
-          .map((o) => o.id == event.order.id ? event.order : o)
-          .toList();
+      final orders = state.allOrders.map((o) => o.id == event.order.id ? event.order : o).toList();
       emit(state.copyWith(allOrders: orders, status: DataStatus.success));
     } catch (e) {
       emit(state.copyWith(status: DataStatus.error));

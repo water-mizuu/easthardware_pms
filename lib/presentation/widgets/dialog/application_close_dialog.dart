@@ -43,7 +43,7 @@ class ApplicationCloseDialog extends StatelessWidget {
     required VoidCallback? onCancel,
   }) async {
     await showSingleDialog(
-      (context) => ApplicationCloseDialog(onSuccess: onSuccess, onCancel: onCancel),
+      (_) => ApplicationCloseDialog(onSuccess: onSuccess, onCancel: onCancel),
     );
   }
 }

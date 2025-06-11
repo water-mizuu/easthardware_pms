@@ -8,6 +8,12 @@ class UnitListState {
     this.errorMessage,
   });
 
+  const UnitListState.initial()
+      : status = DataStatus.initial,
+        units = const [],
+        filteredUnits = null,
+        errorMessage = null;
+
   final DataStatus status;
   final List<Unit> units;
   final List<Unit>? filteredUnits;
@@ -33,12 +39,4 @@ class UnitListState {
       );
     };
   }
-}
-
-final class UnitListInitial extends UnitListState {
-  UnitListInitial()
-      : super(
-          status: DataStatus.initial,
-          units: [],
-        );
 }

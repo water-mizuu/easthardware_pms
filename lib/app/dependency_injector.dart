@@ -104,130 +104,145 @@ class DependencyInjector extends ChangeNotifier {
         key: key(),
         create: (context) {
           final state = _authenticationBloc?.state ?? const AuthenticationState();
-          _authenticationBloc?.close();
 
           return _authenticationBloc = AuthenticationBloc(_authenticationRepository, state);
+        },
+      ),
+      BlocProvider(
+        key: key(),
+        create: (context) {
+          final state = _userListBloc?.state ?? const UserListState();
+
+          return _userListBloc = UserListBloc(_userRepository, state)
+            ..addIf(_databaseHelper != null, const LoadAllUsersEvent());
         },
       ),
       BlocProvider(
         lazy: false,
         key: key(),
         create: (context) {
-          // final state = _userListBloc?.state;
-          _userListBloc?.close();
+          final state = _userListBloc?.state ?? const UserListState();
 
-          final bloc = _userListBloc = UserListBloc(_userRepository);
-          if (_databaseHelper != null) {
-            bloc.add(const LoadAllUsersEvent());
-          }
-
-          return bloc;
+          return _userListBloc = UserListBloc(_userRepository, state)
+            ..addIf(_databaseHelper != null, const LoadAllUsersEvent());
         },
       ),
       BlocProvider(
         key: key(),
         create: (context) {
-          // final state = _productListBloc?.state;
-          _productListBloc?.close();
+          final state = _productListBloc?.state ?? const ProductListState.initial();
 
-          return _productListBloc = ProductListBloc(_productRepository)
-            ..add(const LoadAllProductsEvent());
+          return _productListBloc = ProductListBloc(_productRepository, state)
+            ..addIf(_databaseHelper != null, const LoadAllProductsEvent());
         },
       ),
       BlocProvider(
         key: key(),
         create: (context) {
-          // final state = _categoryListBloc?.state;
-          _categoryListBloc?.close();
+          final state = _categoryListBloc?.state ?? CategoryListInitial();
 
-          return _categoryListBloc = CategoryListBloc(_categoryRepository)
-            ..add(const LoadCategoriesEvent());
+          return _categoryListBloc = CategoryListBloc(_categoryRepository, state)
+            ..addIf(_databaseHelper != null, const LoadCategoriesEvent());
         },
       ),
       BlocProvider(
         key: key(),
         create: (context) {
-          // final state = _unitListBloc?.state;
-          _unitListBloc?.close();
+          final state = _unitListBloc?.state ?? const UnitListState.initial();
 
-          return _unitListBloc = UnitListBloc(_unitRepository) //
-            ..add(const LoadUnitsEvent());
+          return _unitListBloc = UnitListBloc(_unitRepository, state)
+            ..addIf(_databaseHelper != null, const LoadUnitsEvent());
         },
       ),
       BlocProvider(
         key: key(),
         create: (context) {
-          // final state = _userLogListBloc?.state;
+          final state = _userLogListBloc?.state ?? const UserLogListState();
           _userLogListBloc?.close();
 
-          return _userLogListBloc = UserLogListBloc(_userLogRepository)
-            ..add(const LoadUserLogsEvent());
+          return _userLogListBloc = UserLogListBloc(_userLogRepository, state)
+            ..addIf(_databaseHelper != null, const LoadUserLogsEvent());
         },
       ),
       BlocProvider(
         key: key(),
         create: (context) {
-          // final state = _securityQuestionListBloc?.state;
-          _securityQuestionListBloc?.close();
+          final state = _securityQuestionListBloc?.state ?? const SecurityQuestionListState();
 
-          return _securityQuestionListBloc = SecurityQuestionListBloc(_securityQuestionRepository)
-            ..add(const FetchSecurityQuestionsEvent());
+          return _securityQuestionListBloc =
+              SecurityQuestionListBloc(_securityQuestionRepository, state)
+                ..addIf(_databaseHelper != null, const FetchSecurityQuestionsEvent());
         },
       ),
       BlocProvider(
         key: key(),
         create: (context) {
-          final state = _newPasswordFormBloc?.state;
-          _newPasswordFormBloc?.close();
+          final state = _newPasswordFormBloc?.state ?? const NewPasswordFormState();
 
-          return _newPasswordFormBloc = NewPasswordFormBloc(
-            userRepository: _userRepository,
-            initialState: state ?? const NewPasswordFormState(),
-          );
+          return _newPasswordFormBloc =
+              NewPasswordFormBloc(userRepository: _userRepository, initialState: state);
         },
       ),
       BlocProvider(
         key: key(),
         create: (context) {
-          // final state = _invoiceListBloc?.state;
-          _invoiceListBloc?.close();
+          final state = _invoiceListBloc?.state ?? const InvoiceListState();
 
-          return _invoiceListBloc = InvoiceListBloc(_invoiceRepository)
-            ..add(const FetchAllInvoicesEvent());
+          return _invoiceListBloc = InvoiceListBloc(_invoiceRepository, state)
+            ..addIf(_databaseHelper != null, const FetchAllInvoicesEvent());
         },
       ),
       BlocProvider(
         key: key(),
         create: (context) {
-          // final state = _orderListBloc?.state;
-          _orderListBloc?.close();
+          final state = _orderListBloc?.state ?? const OrderListState();
 
-          return _orderListBloc = OrderListBloc(_orderRepository) //
-            ..add(const FetchAllOrdersEvent());
+          return _orderListBloc = OrderListBloc(_orderRepository, state)
+            ..addIf(_databaseHelper != null, const FetchAllOrdersEvent());
         },
       ),
       BlocProvider(
         key: key(),
         create: (context) {
-          final state = _resetFormBloc?.state;
-          _resetFormBloc?.close();
+          final state = _resetFormBloc?.state ?? const ResetFormState();
 
           return _resetFormBloc = ResetFormBloc(
             userRepository: _userRepository,
             securityQuestionRepository: _securityQuestionRepository,
-            initialState: state ?? const ResetFormState(),
+            initialState: state,
           );
         },
       ),
       BlocProvider(
         key: key(),
         create: (context) {
-          _loginFormBloc?.close();
+          final state = _loginFormBloc?.state ?? const LoginFormState();
 
-          return _loginFormBloc = LoginFormBloc();
+          return _loginFormBloc = LoginFormBloc(state);
         },
       )
     ];
+  }
+
+  BlocProvider blocProvide<E, S, B extends Bloc<E, S>>({
+    required B? Function() getPrevious,
+    required B Function(S) constructor,
+    required void Function(B) setPrevious,
+    required S initialStateConstructor,
+    bool isLazy = true,
+    Key? key,
+  }) {
+    return BlocProvider<B>(
+      key: key,
+      lazy: isLazy,
+      create: (context) {
+        final state = getPrevious()?.state ?? initialStateConstructor;
+        final bloc = constructor(state);
+        setPrevious(bloc);
+
+        return bloc;
+      },
+    );
   }
 
   /// Tells the loaded blocs to refresh their data.
@@ -238,5 +253,11 @@ class DependencyInjector extends ChangeNotifier {
 
     _lastUpdated = DateTime.now();
     notifyListeners();
+  }
+}
+
+extension<E, S> on Bloc<E, S> {
+  void addIf(bool condition, E event) {
+    if (condition) add(event);
   }
 }

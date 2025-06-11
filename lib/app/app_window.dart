@@ -71,10 +71,14 @@ class _AppWindowState extends State<AppWindow> with WindowListener {
       /// If the user is authenticated, we need to prep the context
       ///   for the dialog.
       final exitCompleter = Completer<bool>();
-      ApplicationCloseDialog.show(
+      await ApplicationCloseDialog.show(
         onSuccess: () => exitCompleter.complete(true),
         onCancel: () => exitCompleter.complete(false),
       );
+      if (!exitCompleter.isCompleted) {
+        /// If the dialog was not shown, we can exit the application.
+        _exit();
+      }
       final didUserConfirmExit = await exitCompleter.future;
       if (!didUserConfirmExit) return;
 

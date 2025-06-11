@@ -12,9 +12,7 @@ part 'login_form_event.dart';
 part 'login_form_state.dart';
 
 class LoginFormBloc extends Bloc<LoginFormEvent, LoginFormState> {
-  LoginFormBloc()
-      : formKey = GlobalKey<FormState>(),
-        super(const LoginFormState()) {
+  LoginFormBloc(super.initialState) : formKey = GlobalKey<FormState>() {
     on<LoginFormUsernameChanged>(_onUsernameChanged);
     on<LoginFormPasswordChanged>(_onPasswordChanged);
     on<LoginFormButtonPressed>(_onButtonPressed);
@@ -49,7 +47,7 @@ class LoginFormBloc extends Bloc<LoginFormEvent, LoginFormState> {
 
     assert(formKey.currentState != null, 'Form key must be initialized before validation.');
     if (formKey.currentState case final FormState formState when formState.validate()) {
-      await Future.delayed(1.seconds);
+      await Future.delayed(10.seconds);
       emit(state.copyWith(status: FormStatus.submitting));
     } else {
       emit(state.copyWith(status: FormStatus.error));
