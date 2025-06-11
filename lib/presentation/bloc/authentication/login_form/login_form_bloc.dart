@@ -4,6 +4,7 @@ import 'package:easthardware_pms/domain/enums/enums.dart';
 import 'package:easthardware_pms/presentation/bloc/authentication/authentication/authentication_bloc.dart';
 import 'package:easthardware_pms/utils/duration.dart';
 import 'package:easthardware_pms/utils/undefined.dart';
+import 'package:equatable/equatable.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -47,7 +48,7 @@ class LoginFormBloc extends Bloc<LoginFormEvent, LoginFormState> {
 
     assert(formKey.currentState != null, 'Form key must be initialized before validation.');
     if (formKey.currentState case final FormState formState when formState.validate()) {
-      await Future.delayed(10.seconds);
+      await Future.delayed(100.milliseconds);
       emit(state.copyWith(status: FormStatus.submitting));
     } else {
       emit(state.copyWith(status: FormStatus.error));
