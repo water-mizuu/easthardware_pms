@@ -27,7 +27,6 @@ void main(List<String> args) async {
     );
     final id = args.isEmpty ? 0 : int.tryParse(args[0]) ?? 0;
     final (_) = await WindowManagerPlus.ensureInitialized(id).tryCatch();
-
     WindowManagerPlus.current.waitUntilReadyToShow(options, () async {
       if (Platform.isWindows) {
         await WindowManagerPlus.current.setAlwaysOnBottom(false);

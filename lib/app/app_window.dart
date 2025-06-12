@@ -13,6 +13,7 @@ import 'package:easthardware_pms/utils/try_future.dart';
 import 'package:fluent_ui/fluent_ui.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:window_manager_plus/window_manager_plus.dart';
 
 class AppWindow extends StatefulWidget {
@@ -42,6 +43,20 @@ class _AppWindowState extends State<AppWindow> with WindowListener {
     WindowManagerPlus.current.removeListener(this);
 
     super.dispose();
+  }
+
+  @override
+  void onWindowMaximize([int? windowId]) {
+    if (!mounted) return;
+
+    SharedPreferencesAsync().setBool("isMaximized", true).tryCatch();
+  }
+
+  @override
+  void onWindowUnmaximize([int? windowId]) {
+    if (!mounted) return;
+
+    SharedPreferencesAsync().setBool("isMaximized", false).tryCatch();
   }
 
   @override

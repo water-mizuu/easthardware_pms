@@ -12,6 +12,7 @@ import 'package:easthardware_pms/domain/backend/server_database.dart';
 import 'package:easthardware_pms/domain/backend/utils/isolate_indicator.dart';
 import 'package:easthardware_pms/domain/models/user.dart';
 import 'package:easthardware_pms/domain/models/user_log.dart';
+import 'package:easthardware_pms/domain/services/cryptography_service.dart';
 import 'package:easthardware_pms/utils/boxed.dart';
 import 'package:easthardware_pms/utils/duration.dart';
 import 'package:easthardware_pms/utils/message_channel.dart';
@@ -126,7 +127,7 @@ Future<void> spawnWebSocketIsolate((RootIsolateToken, NamedSendPort) payload) as
       lastInvocation = current;
 
       printBoxed(
-        message,
+        message.toString().wrap160,
         "MAIN2WS:invocation (${timeSinceLastInvocation.inMicroseconds}μs since last invocation)",
       );
     }

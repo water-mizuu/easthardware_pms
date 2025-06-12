@@ -13,10 +13,6 @@ class NavRailRouteIndexMapper {
       final badge = items[i].infoBadge;
 
       if (badge case SizedBox(child: RouteText(:final AppRoute<Null> data))) {
-        if (kDebugMode) {
-          print('Mapping route: $data to index: $i');
-        }
-
         routeToIndex[data] = i;
         indexToRoute[i] = data;
       } else if (badge case SizedBox(child: RouteText(:final AppRoute<Object> data))) {

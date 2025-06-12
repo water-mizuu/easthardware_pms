@@ -156,10 +156,9 @@ packages:
   fl_chart:
     dependency: "direct main"
     description:
-      name: fl_chart
-      sha256: f2e9137f261d0f53a820f6b829c80ba570ac915284c8e32789d973834796eca0
-      url: "https://pub.dev"
-    source: hosted
+      path: "packages/fl_chart-0.71.0"
+      relative: true
+    source: path
     version: "0.71.0"
   fluent_ui:
     dependency: "direct main"

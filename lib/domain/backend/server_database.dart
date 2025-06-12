@@ -398,13 +398,6 @@ Future<Database> _getDatabase(int? savedHeartbeat) async {
       onOpen: (db) async {
         /// Regardless of the database version, we reset the login status for all users.
 
-        if (kDebugMode) {
-          printBoxed(
-            "Database opened with saved heartbeat: $savedHeartbeat\n${StackTrace.current}",
-            "Database Open",
-          );
-        }
-
         if (savedHeartbeat == null) {
           // Reset the login status for the user
           await db.update(

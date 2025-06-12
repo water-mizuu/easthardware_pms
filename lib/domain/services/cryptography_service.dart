@@ -678,9 +678,10 @@ extension StringWrapExtension on String {
     return buffer.toString();
   }
 
-  String get wrap => split('\n').map((l) => l._wrapLine(80)).join('\n');
-  String get wrap120 => split('\n').map((l) => l._wrapLine(120)).join('\n');
-  String get wrap160 => split('\n').map((l) => l._wrapLine(160)).join('\n');
+  String wrapCustom(int n) => split('\n').map((l) => l._wrapLine(n)).join('\n');
+  String get wrap => wrapCustom(80);
+  String get wrap120 => wrapCustom(120);
+  String get wrap160 => wrapCustom(160);
 
   String get indent {
     final lines = split('\n');

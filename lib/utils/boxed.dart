@@ -16,30 +16,56 @@ void printBoxed(Object? value, [String? label]) {
 }
 
 void _printBoxed(Object? value, [String? label]) {
-  const maxLength = 160;
+  const maxLength = 80;
+  const minContentWidth = 10; // Minimum content width inside the box
+
+  // Calculate the maximum content width (accounting for borders: | content |)
+  const maxContentWidth = maxLength - 4; // 2 for borders + 2 for spaces
 
   final lines = value.toString().split('\n');
-  final longestLength = max(label?.length ?? 0, lines.map((e) => e.length).fold(0, max));
-  final followedLength = min(longestLength + 2, maxLength);
+  final longestLineLength = lines.map((e) => e.length).fold(0, max);
+  final labelLength = label?.length ?? 0; // Determine the actual content width we'll use
+  final contentWidth = min(
+    max(max(longestLineLength, labelLength), minContentWidth),
+    maxContentWidth,
+  );
 
-  final truncatedLabel = label != null && label.isNotEmpty //
-      ? label.length > followedLength
-          ? ' ${label.substring(0, followedLength - 5)}... '
-          : " $label "
+  // Total box width (content + borders and spaces)
+  final boxWidth = contentWidth + 4;
+
+  // Prepare the label for the top border
+  final truncatedLabel = label != null && label.isNotEmpty
+      ? label.length > contentWidth
+          ? ' ${label.substring(0, contentWidth - 4)}... '
+          : ' $label '
       : '';
-
-  final truncatedLines = lines.map((e) => e.length > followedLength //
-      ? '${e.substring(0, followedLength - 5)}...'
-      : e);
-
-  final buffer = StringBuffer()
-    ..writeln(
-        '+$truncatedLabel${'-' * (followedLength - (truncatedLabel.isNotEmpty ? truncatedLabel.length + 2 : 0))}+');
-
-  for (final line in truncatedLines) {
-    buffer.writeln('| $line ${' ' * (followedLength - (line.length + 2))}|');
+  // Wrap content lines if they're too long
+  final wrappedLines = <String>[];
+  for (final line in lines) {
+    if (line.length <= contentWidth) {
+      wrappedLines.add(line);
+    } else {
+      // Wrap long lines
+      for (var i = 0; i < line.length; i += contentWidth) {
+        final end = min(i + contentWidth, line.length);
+        wrappedLines.add(line.substring(i, end));
+      }
+    }
   }
-  buffer.writeln('+${'-' * followedLength}+');
+
+  final buffer = StringBuffer();
+
+  // Top border with label
+  final labelPadding = boxWidth - 2 - truncatedLabel.length;
+  buffer.writeln('+$truncatedLabel${'-' * labelPadding}+');
+  // Content lines
+  for (final line in wrappedLines) {
+    final padding = contentWidth - line.length;
+    buffer.writeln('| $line${' ' * padding} |');
+  }
+
+  // Bottom border
+  buffer.writeln('+${'-' * (boxWidth - 2)}+');
 
   stdout.write(buffer);
 }
