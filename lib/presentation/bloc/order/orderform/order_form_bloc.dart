@@ -42,7 +42,29 @@ class OrderFormBloc extends Bloc<OrderFormEvent, OrderFormState> {
 
   void _onOrderDateChanged(
       OrderDateChangedEvent event, Emitter<OrderFormState> emit) {
-    emit(state.copyWith(orderDate: event.orderDate));
+    emit(state.copyWith(
+      orderDate: event.orderDate,
+      orderDateErrorMessage: event.orderDate.isAfter(DateTime.now())
+          ? 'Order date cannot be in the future.'
+          : null,
+      paymentDateErrorMessage: (state.paymentDate != null &&
+              event.orderDate != null &&
+              state.paymentDate!.isBefore(event.orderDate))
+          ? 'Payment date cannot be before order date.'
+          : null,
+    ));
+  }
+
+  void _onPaymentDateChanged(
+      PaymentDateChangedEvent event, Emitter<OrderFormState> emit) {
+    emit(state.copyWith(
+      paymentDate: event.paymentDate,
+      paymentDateErrorMessage: (event.paymentDate != null &&
+              state.orderDate != null &&
+              event.paymentDate!.isBefore(state.orderDate))
+          ? 'Payment date cannot be before order date.'
+          : null,
+    ));
   }
 
   void _onExpenseTypeChanged(
@@ -58,11 +80,6 @@ class OrderFormBloc extends Bloc<OrderFormEvent, OrderFormState> {
   void _onReferenceNumberChanged(
       ReferenceNumberChangedEvent event, Emitter<OrderFormState> emit) {
     emit(state.copyWith(referenceNumber: event.referenceNumber));
-  }
-
-  void _onPaymentDateChanged(
-      PaymentDateChangedEvent event, Emitter<OrderFormState> emit) {
-    emit(state.copyWith(paymentDate: event.paymentDate));
   }
 
   void _onMemoChanged(MemoChangedEvent event, Emitter<OrderFormState> emit) {

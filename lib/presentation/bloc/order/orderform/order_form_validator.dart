@@ -12,12 +12,18 @@ mixin OrderFormValidator on Widget {
     if (value == null) {
       return 'Order date is required';
     }
+    if (value.isAfter(DateTime.now())) {
+      return 'Order date cannot be in the future';
+    }
     return null;
   }
 
-  String? validatePaymentDate(DateTime? value) {
+  String? validatePaymentDate(DateTime? value, DateTime? orderDate) {
     if (value == null) {
       return 'Payment date is required';
+    }
+    if (orderDate != null && value.isBefore(orderDate)) {
+      return 'Payment date cannot be before order date';
     }
     return null;
   }

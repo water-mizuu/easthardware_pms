@@ -26,20 +26,24 @@ class CreateRestockOrderPage extends StatelessWidget {
         listener: (context, state) {
           // TODO: Add listener logic
         },
-        child: Container(
-          color: Colors.white,
+        child: Padding(
           padding: AppPadding.panePadding,
-          child: const SingleChildScrollView(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                OrderPageHeader(),
-                Spacing.v4,
-                OrderPageForm(),
-                Spacing.v64,
-                OrderSummary(),
-              ],
-            ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const OrderPageHeader(),
+              Spacing.v16,
+              Expanded(
+                child: Container(
+                  padding: const EdgeInsets.all(16.0),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(4.0),
+                  ),
+                  child: const OrderPageForm(),
+                ),
+              ),
+            ],
           ),
         ),
       ),
@@ -79,163 +83,226 @@ class OrderPageForm extends StatelessWidget with OrderFormValidator {
 
     return Form(
       key: formKey,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Spacing.v8,
-          const SectionHeader("Order Information"),
-          Row(
-            children: [
-              Expanded(
-                flex: 2,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    const BodyText('Payee Name *'),
-                    Spacing.v8,
-                    TextFormBox(
-                      initialValue: state.payeeName,
-                      validator: validatePayeeName,
-                      onChanged: (value) =>
-                          bloc.add(PayeeNameChangedEvent(value)),
-                    ),
-                  ],
+      child: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Container(
+              padding: const EdgeInsets.symmetric(vertical: 8.0),
+              decoration: BoxDecoration(
+                border: Border(
+                  bottom: BorderSide(color: Colors.grey[40], width: 1),
                 ),
               ),
-              Spacing.h16,
-              Expanded(
-                flex: 2,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const BodyText('Expense Type *'),
-                    Spacing.v8,
-                    ComboBox<int>(
-                      value: state.expenseType,
-                      items: const [
-                        ComboBoxItem<int>(
-                          value: 1,
-                          child: Align(
-                            alignment: Alignment.centerLeft,
-                            child: Text('Restock Order'),
+              child: Text(
+                "Order Information",
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.grey[150],
+                ),
+              ),
+            ),
+            Row(
+              children: [
+                Expanded(
+                  flex: 2,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      const BodyText('Payee Name'),
+                      Spacing.v8,
+                      TextFormBox(
+                        initialValue: state.payeeName,
+                        validator: validatePayeeName,
+                        onChanged: (value) =>
+                            bloc.add(PayeeNameChangedEvent(value)),
+                      ),
+                    ],
+                  ),
+                ),
+                Spacing.h12,
+                Expanded(
+                  flex: 2,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const BodyText('Expense Type'),
+                      Spacing.v8,
+                      ComboBox<int>(
+                        value: state.expenseType,
+                        items: const [
+                          ComboBoxItem<int>(
+                              value: 1, child: Text('Restock Order')),
+                          ComboBoxItem<int>(
+                              value: 2, child: Text('Expense Order')),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+                Spacing.h12,
+              ],
+            ),
+            Row(
+              children: [
+                Expanded(
+                  flex: 2,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      const BodyText('Reference Number'),
+                      Spacing.v8,
+                      TextFormBox(
+                        initialValue: state.referenceNumber,
+                        validator: validateReferenceNumber,
+                        onChanged: (value) =>
+                            bloc.add(ReferenceNumberChangedEvent(value)),
+                      ),
+                    ],
+                  ),
+                ),
+                Spacing.h12,
+                Expanded(
+                  flex: 2,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const BodyText('Payment Method'),
+                      Spacing.v8,
+                      ComboBox<int>(
+                        placeholder: const Text('Select Payment Method'),
+                        value: state.paymentMethod,
+                        items: const [
+                          ComboBoxItem<int>(value: 1, child: Text('Cash')),
+                          ComboBoxItem<int>(
+                              value: 2, child: Text('Installment')),
+                          ComboBoxItem<int>(value: 3, child: Text('Card')),
+                        ],
+                        onChanged: (value) {
+                          if (value != null) {
+                            bloc.add(PaymentMethodChangedEvent(value));
+                          }
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+                Spacing.h12,
+              ],
+            ),
+            Row(
+              children: [
+                Expanded(
+                  flex: 2,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      const BodyText('Payment Date'),
+                      Spacing.v8,
+                      DatePicker(
+                        selected: state.paymentDate,
+                        onChanged: (date) =>
+                            bloc.add(PaymentDateChangedEvent(date)),
+                      ),
+                      if (state.paymentDateErrorMessage != null)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 4.0),
+                          child: Text(
+                            state.paymentDateErrorMessage!,
+                            style: TextStyle(color: Colors.red, fontSize: 12),
                           ),
                         ),
-                        ComboBoxItem<int>(
-                            value: 2, child: Text('Expense Order')),
-                      ],
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-              ),
-              Spacing.h16,
-            ],
-          ),
-          Row(
-            children: [
-              Expanded(
-                flex: 2,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    const BodyText('Reference Number'),
-                    Spacing.v8,
-                    TextFormBox(
-                      initialValue: state.referenceNumber,
-                      validator: validateReferenceNumber,
-                      onChanged: (value) =>
-                          bloc.add(ReferenceNumberChangedEvent(value)),
-                    ),
-                  ],
+                Spacing.h12,
+                Expanded(
+                  flex: 2,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      const BodyText('Order Date'),
+                      Spacing.v8,
+                      DatePicker(
+                        selected: state.orderDate,
+                        onChanged: (date) =>
+                            bloc.add(OrderDateChangedEvent(date)),
+                      ),
+                      if (state.orderDateErrorMessage != null)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 4.0),
+                          child: Text(
+                            state.orderDateErrorMessage!,
+                            style: TextStyle(color: Colors.red, fontSize: 12),
+                          ),
+                        ),
+                    ],
+                  ),
                 ),
-              ),
-              Spacing.h16,
-              Expanded(
-                flex: 2,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const BodyText('Payment Method *'),
-                    Spacing.v8,
-                    ComboBox<int>(
-                      placeholder: const Text('Select Payment Method'),
-                      value: state.paymentMethod,
-                      items: const [
-                        ComboBoxItem<int>(value: 1, child: Text('Cash')),
-                        ComboBoxItem<int>(value: 2, child: Text('Installment')),
-                        ComboBoxItem<int>(value: 3, child: Text('Card')),
-                      ],
-                      onChanged: (value) {
-                        if (value != null) {
-                          bloc.add(PaymentMethodChangedEvent(value));
-                        }
-                      },
-                    ),
-                  ],
-                ),
-              ),
-              Spacing.h16,
-            ],
-          ),
-          Row(
-            children: [
-              Expanded(
-                flex: 2,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    const BodyText('Payment Date'),
-                    Spacing.v8,
-                    DatePicker(
-                      selected: state.paymentDate,
-                      onChanged: (date) =>
-                          bloc.add(PaymentDateChangedEvent(date)),
-                    ),
-                  ],
-                ),
-              ),
-              Spacing.h16,
-              Expanded(
-                flex: 2,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    const BodyText('Order Date *'),
-                    Spacing.v8,
-                    DatePicker(
-                      selected: state.orderDate,
-                      onChanged: (date) =>
-                          bloc.add(OrderDateChangedEvent(date)),
-                    ),
-                  ],
-                ),
-              ),
-              Spacing.h16,
-            ],
-          ),
-          Row(
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    const BodyText('Memo'),
-                    Spacing.v8,
-                    TextBox(
-                      minLines: 3,
-                      maxLines: 3,
-                      onChanged: (value) => bloc.add(MemoChangedEvent(value)),
-                    ),
-                  ],
-                ),
-              ),
-              Spacing.h16,
-            ],
-          ),
-          const _OrderTableActions(),
-          const OrderProductDataTable(),
-        ].withSpacing(() => Spacing.v16),
+                Spacing.h12,
+              ],
+            ),
+            Spacing.v12,
+            const _OrderTableActions(),
+            Spacing.v4,
+            const OrderProductDataTable(),
+            Spacing.v12,
+            const _OrderSummaryAndMemo(),
+          ].withSpacing(() => Spacing.v12),
+        ),
       ),
+    );
+  }
+}
+
+class _OrderSummaryAndMemo extends StatelessWidget {
+  const _OrderSummaryAndMemo();
+
+  @override
+  Widget build(BuildContext context) {
+    final state = context.watch<OrderFormBloc>().state;
+    final bloc = context.read<OrderFormBloc>();
+    final total = state.products.fold<double>(
+        0.0, (previousValue, element) => previousValue + (element.amount));
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const BodyText('Memo'),
+              Spacing.v8,
+              TextBox(
+                minLines: 3,
+                maxLines: 3,
+                onChanged: (value) => bloc.add(MemoChangedEvent(value)),
+              ),
+            ],
+          ),
+        ),
+        Spacing.h8,
+        Expanded(
+          child: Container(
+            padding: const EdgeInsets.all(12.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text("Total"),
+                    Text("Php. " + total.toStringAsFixed(2),
+                        style: const TextStyle(fontWeight: FontWeight.bold)),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
     );
   }
 }
@@ -417,12 +484,12 @@ class _OrderFormTableRowState extends State<_OrderFormTableRow> {
   @override
   Widget build(BuildContext context) {
     final bloc = context.read<OrderFormBloc>();
-    final products = context.read<ProductListBloc>().state.allProducts;
+    final products = context.watch<ProductListBloc>().state.allProducts;
     final currentProduct = bloc.state.products[widget.index];
     final units = [
       Unit(name: currentProduct.unit, mainQuantity: 1, unitQuantity: 1),
       ...context
-          .read<UnitListBloc>()
+          .watch<UnitListBloc>()
           .state
           .units
           .where((u) => u.productId == currentProduct.productId)

@@ -15,6 +15,8 @@ class OrderFormState extends Equatable {
     this.creatorId = 0,
     this.products = const [],
     this.status = FormStatus.initial,
+    this.orderDateErrorMessage,
+    this.paymentDateErrorMessage,
   })  : orderDate = orderDate ?? DateTime.now(),
         creationDate = creationDate ?? DateTime.now();
 
@@ -30,7 +32,9 @@ class OrderFormState extends Equatable {
   final DateTime creationDate;
   final int creatorId;
   final List<FormProduct> products;
-  final FormStatus status; // Add a status field to track form submission state
+  final FormStatus status;
+  final String? orderDateErrorMessage;
+  final String? paymentDateErrorMessage;
 
   OrderFormState Function({
     String payeeName,
@@ -46,6 +50,8 @@ class OrderFormState extends Equatable {
     int creatorId,
     List<FormProduct> products,
     FormStatus status,
+    String? orderDateErrorMessage,
+    String? paymentDateErrorMessage,
   }) get copyWith {
     return ({
       Object? payeeName = undefined,
@@ -61,6 +67,8 @@ class OrderFormState extends Equatable {
       Object? creatorId = undefined,
       Object? products = undefined,
       Object? status = undefined,
+      Object? orderDateErrorMessage = undefined,
+      Object? paymentDateErrorMessage = undefined,
     }) {
       return OrderFormState(
         payeeName: payeeName.or(this.payeeName),
@@ -77,6 +85,10 @@ class OrderFormState extends Equatable {
         creatorId: creatorId.or(this.creatorId),
         products: products.or(this.products),
         status: status.or(this.status),
+        orderDateErrorMessage:
+            orderDateErrorMessage.or(this.orderDateErrorMessage),
+        paymentDateErrorMessage:
+            paymentDateErrorMessage.or(this.paymentDateErrorMessage),
       );
     };
   }
@@ -100,6 +112,8 @@ class OrderFormState extends Equatable {
         creatorId,
         products,
         status,
+        orderDateErrorMessage,
+        paymentDateErrorMessage,
       ];
 
   Order toOrder() {
