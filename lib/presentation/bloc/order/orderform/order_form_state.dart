@@ -14,6 +14,7 @@ class OrderFormState extends Equatable {
     DateTime? creationDate,
     this.creatorId = 0,
     this.products = const [],
+    this.status = FormStatus.initial,
   })  : orderDate = orderDate ?? DateTime.now(),
         creationDate = creationDate ?? DateTime.now();
 
@@ -29,6 +30,7 @@ class OrderFormState extends Equatable {
   final DateTime creationDate;
   final int creatorId;
   final List<FormProduct> products;
+  final FormStatus status; // Add a status field to track form submission state
 
   OrderFormState Function({
     String payeeName,
@@ -43,6 +45,7 @@ class OrderFormState extends Equatable {
     DateTime creationDate,
     int creatorId,
     List<FormProduct> products,
+    FormStatus status,
   }) get copyWith {
     return ({
       Object? payeeName = undefined,
@@ -57,6 +60,7 @@ class OrderFormState extends Equatable {
       Object? creationDate = undefined,
       Object? creatorId = undefined,
       Object? products = undefined,
+      Object? status = undefined,
     }) {
       return OrderFormState(
         payeeName: payeeName.or(this.payeeName),
@@ -65,12 +69,14 @@ class OrderFormState extends Equatable {
         paymentMethod: paymentMethod.or(this.paymentMethod),
         referenceNumber: referenceNumber.or(this.referenceNumber),
         memo: memo.or(this.memo),
-        amountDue: amountDue.or(_calculateAmountDue(products.or(this.products))),
+        amountDue:
+            amountDue.or(_calculateAmountDue(products.or(this.products))),
         amountPaid: amountPaid.or(this.amountPaid),
         paymentDate: paymentDate.or(this.paymentDate),
         creationDate: creationDate.or(this.creationDate),
         creatorId: creatorId.or(this.creatorId),
         products: products.or(this.products),
+        status: status.or(this.status),
       );
     };
   }
@@ -93,5 +99,22 @@ class OrderFormState extends Equatable {
         creationDate,
         creatorId,
         products,
+        status,
       ];
+
+  Order toOrder() {
+    return Order(
+      payeeName: payeeName,
+      expenseType: expenseType,
+      orderDate: orderDate,
+      paymentMethod: paymentMethod,
+      referenceNumber: referenceNumber,
+      memo: memo,
+      amountDue: amountDue,
+      amountPaid: amountPaid,
+      paymentDate: paymentDate,
+      creationDate: creationDate,
+      creatorId: creatorId,
+    );
+  }
 }

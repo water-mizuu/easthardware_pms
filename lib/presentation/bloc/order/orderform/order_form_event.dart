@@ -100,3 +100,7 @@ class ProductSelectedEvent extends OrderFormEvent {
 }
 
 class FormButtonPressedEvent extends OrderFormEvent {}
+
+class ClearProductsEvent extends OrderFormEvent {}
+
+class FormSubmittedEvent extends OrderFormEvent {}

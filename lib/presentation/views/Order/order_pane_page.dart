@@ -51,9 +51,15 @@ class PageHeader extends StatelessWidget {
         const HeadingText('Orders'),
         const Spacer(flex: 1),
         TextButtonFilled(
-          "Create Order",
+          "Create Restock Order",
           onPressed: () {
-            context.navigate(AppRoutes.admin.createOrder);
+            context.navigateWithExtra(AppRoutes.admin.createRestockOrder, 1);
+          },
+        ),
+        TextButtonFilled(
+          "Create Expense Order",
+          onPressed: () {
+            context.navigateWithExtra(AppRoutes.admin.createExpenseOrder, 2);
           },
         ),
       ].withSpacing(() => Spacing.h16),
