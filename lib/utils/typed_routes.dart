@@ -1,7 +1,6 @@
 import 'package:easthardware_pms/presentation/bloc/navigation/navigation_cubit.dart';
 import 'package:easthardware_pms/utils/boxed.dart';
 import 'package:fluent_ui/fluent_ui.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
@@ -52,9 +51,7 @@ extension SafeNavigationExtension on BuildContext {
     if (cubit.state.route != route) {
       cubit.navigateTo(route, extra: null);
     } else {
-      if (kDebugMode) {
-        printBoxed("Already on the route: $route", "context.navigate");
-      }
+      printBoxed("Already on the route: $route", "context.navigate");
     }
   }
 
@@ -66,12 +63,10 @@ extension SafeNavigationExtension on BuildContext {
     if (cubit.state.route != route || cubit.state.extra != extra) {
       cubit.navigateTo(route, extra: extra);
     } else {
-      if (kDebugMode) {
-        printBoxed(
-          "Already on the route with the same extra: $extra",
-          "context.navigateWithExtra",
-        );
-      }
+      printBoxed(
+        "Already on the route with the same extra: $extra",
+        "context.navigateWithExtra",
+      );
     }
   }
 }

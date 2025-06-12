@@ -1,7 +1,6 @@
 import 'package:easthardware_pms/presentation/router/app_router.dart';
 import 'package:easthardware_pms/utils/boxed.dart';
 import 'package:fluent_ui/fluent_ui.dart';
-import 'package:flutter/foundation.dart';
 
 Future<void> showNotification({
   required String title,
@@ -11,12 +10,10 @@ Future<void> showNotification({
 }) async {
   final innerContext = overlayWidgetKey.currentContext;
   if (innerContext == null) {
-    if (kDebugMode) {
-      printBoxed(
-        "Cannot show notification: No context available.",
-        "showNotification",
-      );
-    }
+    printBoxed(
+      "Cannot show notification: No context available.",
+      "showNotification",
+    );
     return; // No context available, cannot show notification
   }
   displayInfoBar(
