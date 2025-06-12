@@ -182,7 +182,7 @@ class OrderPageForm extends StatelessWidget with OrderFormValidator {
                     const BodyText('Payment Date'),
                     Spacing.v8,
                     DatePicker(
-                      selected: DateTime.now(),
+                      selected: state.paymentDate,
                       onChanged: (date) =>
                           bloc.add(PaymentDateChangedEvent(date)),
                     ),
@@ -198,7 +198,7 @@ class OrderPageForm extends StatelessWidget with OrderFormValidator {
                     const BodyText('Order Date *'),
                     Spacing.v8,
                     DatePicker(
-                      selected: DateTime.now(),
+                      selected: state.orderDate,
                       onChanged: (date) =>
                           bloc.add(OrderDateChangedEvent(date)),
                     ),
