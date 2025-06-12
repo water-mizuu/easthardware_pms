@@ -26,6 +26,7 @@ class FormProduct {
     required this.amount,
     this.discount,
     required this.discountType,
+    this.errorMessage,
   });
   final int? productId;
   final String productName;
@@ -37,6 +38,7 @@ class FormProduct {
   final double amount;
   final double? discount;
   final DiscountType discountType;
+  final String? errorMessage;
 
   FormProduct copyWith({
     int? productId,
@@ -49,6 +51,7 @@ class FormProduct {
     double? amount,
     double? discount,
     DiscountType? discountType,
+    String? errorMessage,
   }) {
     return FormProduct(
       productId: productId ?? this.productId,
@@ -61,6 +64,7 @@ class FormProduct {
       amount: amount ?? this.amount,
       discount: discount ?? this.discount,
       discountType: discountType ?? this.discountType,
+      errorMessage: errorMessage,
     );
   }
 }

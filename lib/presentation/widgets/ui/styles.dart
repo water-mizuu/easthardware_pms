@@ -10,6 +10,26 @@ class TextStyles {
   static const TextStyle error = TextStyle(
     color: Colors.errorPrimaryColor,
   );
+  static const TextStyle title = TextStyle(
+    fontSize: 20,
+    fontWeight: FontWeight.w600,
+  );
+  static const TextStyle subtitle = TextStyle(
+    fontSize: 16,
+    fontWeight: FontWeight.w500,
+  );
+  static const TextStyle body = TextStyle(
+    fontSize: 14,
+    fontWeight: FontWeight.w400,
+  );
+  static const TextStyle caption = TextStyle(
+    fontSize: 10,
+    fontWeight: FontWeight.w400,
+  );
+  static const TextStyle button = TextStyle(
+    fontSize: 14,
+    fontWeight: FontWeight.w600,
+  );
 }
 
 class ButtonStyles {

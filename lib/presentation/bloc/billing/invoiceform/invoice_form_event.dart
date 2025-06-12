@@ -87,7 +87,8 @@ class ProductSelectedEvent extends InvoiceFormEvent {
 }
 
 class ProductUpdatedEvent extends InvoiceFormEvent {
-  const ProductUpdatedEvent(this.product, this.index);
+  const ProductUpdatedEvent({this.reference, required this.product, required this.index});
+  final Product? reference;
   final FormProduct product;
   final int index;
 

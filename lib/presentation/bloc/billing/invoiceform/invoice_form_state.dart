@@ -23,7 +23,7 @@ class InvoiceFormState extends Equatable {
     this.invoiceTableErrorMessage,
   })  : invoiceDate = invoiceDate ?? DateTime.now(),
         products = products ?? [EmptyFormProduct()],
-        dueDate = dueDate ?? DateTime.now().add(const Duration(days: 30));
+        dueDate = dueDate ?? DateTime.now();
 
   final int? invoiceId;
   final String customerName;

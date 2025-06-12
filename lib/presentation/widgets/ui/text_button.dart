@@ -10,7 +10,7 @@ class TextButton extends StatelessWidget {
   });
 
   final String text;
-  final void Function() onPressed;
+  final Function()? onPressed;
 
   @override
   Widget build(BuildContext context) {

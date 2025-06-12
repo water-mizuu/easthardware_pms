@@ -15,11 +15,16 @@ import 'package:easthardware_pms/presentation/widgets/ui/styles.dart';
 import 'package:easthardware_pms/presentation/widgets/ui/text_button.dart';
 import 'package:easthardware_pms/utils/typed_routes.dart';
 import 'package:fluent_ui/fluent_ui.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:scroll_animator/scroll_animator.dart';
 
 import '../../widgets/ui/text_form_boxes.dart';
 
+/// Spacing Guidelines
+/// - Spacing between fields: 12.0
+/// - Spacing between sections: 16.0
+/// - Horizonral spacing between elements: 8.0
 class CreateInvoicePage extends StatelessWidget {
   const CreateInvoicePage({super.key});
 
@@ -31,14 +36,13 @@ class CreateInvoicePage extends StatelessWidget {
         listener: (context, state) {
           // TODO: implement listener
         },
-        child: Container(
-          color: Colors.white,
+        child: const Padding(
           padding: AppPadding.panePadding,
-          child: const Column(
+          child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               PageHeader(),
-              Spacing.v12,
+              Spacing.v16,
               PageForm(),
             ],
           ),
@@ -60,178 +64,115 @@ class PageForm extends StatelessWidget {
     return Form(
       key: formKey,
       child: Expanded(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Spacing.v8,
-            Text(
-              "Billing Information",
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-                color: Colors.grey[150],
+        child: Container(
+          padding: const EdgeInsets.all(16.0),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(4.0),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(vertical: 8.0),
+                decoration: BoxDecoration(
+                  border: Border(
+                    bottom: BorderSide(color: Colors.grey[40], width: 1),
+                  ),
+                ),
+                child: Text(
+                  "Billing Information",
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.grey[150],
+                  ),
+                ),
               ),
-            ),
-            // Form Row 1 - Customer Name
-            Row(
-              children: [
-                Expanded(
-                  flex: 2,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      const BodyText('Customer Name'),
-                      Spacing.v8,
-                      TextFormBox(
-                        onChanged: (value) =>
-                            context.read<InvoiceFormBloc>().add(
-                                  CustomerNameChangedEvent(value),
-                                ),
-                      ),
-                    ],
-                  ),
-                ),
-                Spacing.h12,
-                const Spacer(flex: 3),
-                Spacing.h12,
-              ],
-            ),
-            // Form Row 2 - Invoice and Due Date
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  flex: 2,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      const BodyText('Invoice Date'),
-                      Spacing.v8,
-                      DatePicker(
-                        selected: DateTime.now(),
-                        onChanged: (value) =>
-                            context.read<InvoiceFormBloc>().add(
-                                  InvoiceDateChangedEvent(value),
-                                ),
-                      ),
-                      if (context
-                              .watch<InvoiceFormBloc>()
-                              .state
-                              .invoiceDateErrorMessage !=
-                          null)
-                        Text(
-                          context
-                              .watch<InvoiceFormBloc>()
-                              .state
-                              .invoiceDateErrorMessage!,
-                          style: TextStyles.error,
+              // Form Row 1 - Customer Name
+              Row(
+                children: [
+                  Expanded(
+                    flex: 2,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        const BodyText('Customer Name'),
+                        Spacing.v8,
+                        TextFormBox(
+                          onChanged: (value) => context.read<InvoiceFormBloc>().add(
+                                CustomerNameChangedEvent(value),
+                              ),
                         ),
-                    ],
+                      ],
+                    ),
                   ),
-                ),
-                Spacing.h12,
-                Expanded(
-                  flex: 2,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      const BodyText('Due Date'),
-                      Spacing.v8,
-                      DatePicker(
-                        selected: DateTime.now(),
-                        onChanged: (value) =>
-                            context.read<InvoiceFormBloc>().add(
-                                  DueDateChangedEvent(value),
-                                ),
-                      ),
-                      if (context
-                              .watch<InvoiceFormBloc>()
-                              .state
-                              .dueDateErrorMessage !=
-                          null)
-                        Text(
-                          context
-                              .watch<InvoiceFormBloc>()
-                              .state
-                              .dueDateErrorMessage!,
-                          style: TextStyles.error,
+                  Spacing.h12,
+                  const Spacer(flex: 3),
+                  Spacing.h12,
+                ],
+              ),
+              // Form Row 2 - Invoice and Due Date
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    flex: 2,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        const BodyText('Invoice Date'),
+                        Spacing.v8,
+                        DatePicker(
+                          selected:
+                              context.select((InvoiceFormBloc bloc) => bloc.state.invoiceDate),
+                          onChanged: (value) =>
+                              context.read<InvoiceFormBloc>().add(InvoiceDateChangedEvent(value)),
                         ),
-                    ],
+                        if (context.watch<InvoiceFormBloc>().state.invoiceDateErrorMessage != null)
+                          Text(
+                            context.watch<InvoiceFormBloc>().state.invoiceDateErrorMessage!,
+                            style: TextStyles.error,
+                          ),
+                      ],
+                    ),
                   ),
-                ),
-                const Spacer(),
-                Spacing.h12,
-              ],
-            ),
-            Row(
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      const BodyText('Memo'),
-                      Spacing.v8,
-                      TextBox(
-                        minLines: 3,
-                        maxLines: 3,
-                        onChanged: (value) => context
-                            .read<InvoiceFormBloc>()
-                            .add(MemoChangedEvent(value)),
-                      ),
-                    ],
+                  Spacing.h12,
+                  Expanded(
+                    flex: 2,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        const BodyText('Due Date'),
+                        Spacing.v8,
+                        DatePicker(
+                          selected: context.select((InvoiceFormBloc bloc) => bloc.state.dueDate),
+                          onChanged: (value) =>
+                              context.read<InvoiceFormBloc>().add(DueDateChangedEvent(value)),
+                        ),
+                        if (context.watch<InvoiceFormBloc>().state.dueDateErrorMessage != null)
+                          Text(
+                            context.watch<InvoiceFormBloc>().state.dueDateErrorMessage!,
+                            style: TextStyles.error,
+                          ),
+                      ],
+                    ),
                   ),
-                ),
-                Spacing.h8,
-              ],
-            ),
-            const TableActions(),
-            const InvoiceProductTable(),
-            const InvoiceSummary(),
-          ].withSpacing(() => Spacing.v12),
+                  const Spacer(),
+                  Spacing.h12,
+                ],
+              ),
+              Spacing.v12,
+              const TableActions(),
+              Spacing.v4,
+              const Expanded(flex: 3, child: InvoiceProductTable()),
+              const Expanded(flex: 2, child: InvoiceSummary()),
+            ].withSpacing(() => Spacing.v12),
+          ),
         ),
       ),
     );
-  }
-}
-
-class TableActions extends StatelessWidget {
-  const TableActions({
-    super.key,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-        padding: const EdgeInsets.symmetric(vertical: 12),
-        child: Row(
-          children: [
-            Text(
-              "Items",
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-                color: Colors.grey[150],
-              ),
-            ),
-            const Spacer(),
-            TextButton(
-              'Clear Items',
-              onPressed: () {
-                context
-                    .read<InvoiceFormBloc>()
-                    .add(const ProductsClearedEvent());
-              },
-            ),
-            Spacing.h12,
-            TextButtonFilled(
-              'Add Product',
-              onPressed: () {
-                context.read<InvoiceFormBloc>().add(const ProductAddedEvent());
-              },
-            ),
-          ],
-        ));
   }
 }
 
@@ -246,16 +187,68 @@ class PageHeader extends StatelessWidget {
       children: [
         IconButton(
             icon: const Icon(FluentIcons.back),
-            onPressed: () =>
-                context.read<AuthenticationBloc>().state.user!.accessLevel ==
-                        AccessLevel.administrator
-                    ? context.navigate(AppRoutes.admin.billing)
-                    : context.navigate(AppRoutes.staff.billing)),
+            onPressed: () => context.read<AuthenticationBloc>().state.user!.accessLevel ==
+                    AccessLevel.administrator
+                ? context.navigate(AppRoutes.admin.billing)
+                : context.navigate(AppRoutes.staff.billing)),
         const DisplayText("Create Invoice"),
         const Spacer(flex: 1),
-        TextButton('Save and Receive Payment', onPressed: () {}),
+        TextButton(
+          'Save and Receive Payment',
+          onPressed: context
+                  .read<InvoiceFormBloc>()
+                  .state
+                  .products
+                  .any((product) => product.errorMessage != null)
+              ? null
+              : () {},
+        ),
         TextButtonFilled('Save Invoice', onPressed: () {})
       ].withSpacing(() => Spacing.h12),
+    );
+  }
+}
+
+class TableActions extends StatelessWidget {
+  const TableActions({
+    super.key,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      decoration: BoxDecoration(
+        border: Border(
+          bottom: BorderSide(color: Colors.grey[40], width: 1),
+        ),
+      ),
+      child: Row(
+        children: [
+          Text(
+            "Items",
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+              color: Colors.grey[150],
+            ),
+          ),
+          const Spacer(),
+          TextButton(
+            'Clear Items',
+            onPressed: () {
+              context.read<InvoiceFormBloc>().add(const ProductsClearedEvent());
+            },
+          ),
+          Spacing.h12,
+          TextButtonFilled(
+            'Add Product',
+            onPressed: () {
+              context.read<InvoiceFormBloc>().add(const ProductAddedEvent());
+            },
+          ),
+        ],
+      ),
     );
   }
 }
@@ -273,8 +266,7 @@ class _InvoiceProductTableState extends State<InvoiceProductTable> {
   @override
   void initState() {
     super.initState();
-    _scrollController =
-        AnimatedScrollController(animationFactory: const ChromiumEaseInOut());
+    _scrollController = AnimatedScrollController(animationFactory: const ChromiumEaseInOut());
   }
 
   @override
@@ -286,10 +278,9 @@ class _InvoiceProductTableState extends State<InvoiceProductTable> {
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<InvoiceFormBloc, InvoiceFormState>(
-        builder: (context, state) {
-      final bloc = context.read<InvoiceFormBloc>();
-      return Expanded(
-        child: Column(
+      builder: (context, state) {
+        final bloc = context.read<InvoiceFormBloc>();
+        return Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
@@ -300,20 +291,13 @@ class _InvoiceProductTableState extends State<InvoiceProductTable> {
               child: Row(
                 children: [
                   FormTableColumn(
-                      child: const SizedBox(
-                          width: 32.0, child: Center(child: Text("#")))),
-                  Expanded(
-                      flex: 2,
-                      child: FormTableColumn(child: const Text("Product"))),
-                  Expanded(
-                      flex: 2,
-                      child: FormTableColumn(child: const Text("Description"))),
-                  Expanded(
-                      child: FormTableColumn(child: const Text("Quantity"))),
+                      child: const SizedBox(width: 32.0, child: Center(child: Text("#")))),
+                  Expanded(flex: 2, child: FormTableColumn(child: const Text("Product"))),
+                  Expanded(flex: 2, child: FormTableColumn(child: const Text("Description"))),
+                  Expanded(child: FormTableColumn(child: const Text("Quantity"))),
                   Expanded(child: FormTableColumn(child: const Text("Rate"))),
                   Expanded(child: FormTableColumn(child: const Text("Amount"))),
-                  const SizedBox(
-                      width: 82.0, child: Center(child: Text("Actions"))),
+                  const SizedBox(width: 82.0, child: Center(child: Text("Actions"))),
                 ],
               ),
             ),
@@ -332,9 +316,9 @@ class _InvoiceProductTableState extends State<InvoiceProductTable> {
               ),
             ),
           ],
-        ),
-      );
-    });
+        );
+      },
+    );
   }
 }
 
@@ -361,8 +345,8 @@ class _FormTableRowState extends State<FormTableRow> {
   void initState() {
     super.initState();
     _descriptionController = TextEditingController();
-    _quantityController = TextEditingController();
-    _rateController = TextEditingController();
+    _quantityController = TextEditingController(text: '');
+    _rateController = TextEditingController(text: '');
   }
 
   @override
@@ -381,8 +365,9 @@ class _FormTableRowState extends State<FormTableRow> {
         _lastProduct!.rate != currentProduct.rate;
     if (isProductChanged) {
       _descriptionController.text = currentProduct.description ?? '';
-      _quantityController.text = currentProduct.quantity.toString();
-      _rateController.text = currentProduct.rate.toString();
+      _quantityController.text =
+          currentProduct.quantity > 0 ? currentProduct.quantity.toString() : '';
+      _rateController.text = currentProduct.rate > 0 ? currentProduct.rate.toString() : '';
       _lastProduct = currentProduct;
     }
   }
@@ -402,287 +387,341 @@ class _FormTableRowState extends State<FormTableRow> {
 
         return Container(
           decoration: BoxDecoration(
+            color: currentProduct.errorMessage != null
+                ? Colors.errorSecondaryColor
+                : Colors.transparent,
             border: Border(bottom: BorderSide(color: Colors.grey[40])),
           ),
-          child: Row(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              FormTableCell(
-                child: SizedBox(
-                  height: 32.0,
-                  width: 32.0,
-                  child: Center(
-                    child: Text(
-                      (widget.index + 1).toString(),
-                    ),
-                  ),
-                ),
-              ),
-              // Field 1 - Product
-              Expanded(
-                flex: 2,
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: state.invoiceTableErrorMessage != null
-                        ? Colors.errorSecondaryColor
-                        : Colors.transparent,
-                    border: const Border(
-                      right: BorderSide(width: 0.5, color: Colors.transparent),
-                    ),
-                  ),
-                  child: AutoSuggestBox.form(
-                    decoration: BoxDecorations.ghost,
-                    foregroundDecoration: BoxDecorations.ghost,
-                    items: [
-                      for (final product in products)
-                        AutoSuggestBoxItem<Product>(
-                          value: product,
-                          label: product.name,
+              Row(
+                children: [
+                  FormTableCell(
+                    child: SizedBox(
+                      height: 32.0,
+                      width: 32.0,
+                      child: Center(
+                        child: Text(
+                          (widget.index + 1).toString(),
                         ),
-                    ],
-                    onChanged: (value, reason) {
-                      if (reason == TextChangedReason.cleared) {
-                        // Clear the controllers when product is cleared
-                        _descriptionController.clear();
-                        _quantityController.clear();
-                        _rateController.clear();
-                        return bloc.add(ProductUpdatedEvent(
-                          EmptyFormProduct().copyWith(
-                            productId: null,
-                          ),
-                          widget.index,
-                        ));
-                      }
-                      if (reason == TextChangedReason.userInput) {
-                        for (final product in products) {
-                          if (product.name.toLowerCase() ==
-                              value.toLowerCase()) {
-                            final formProduct = FormProduct.fromProduct(product)
-                                .copyWith(quantity: currentProduct.quantity);
-                            return bloc.add(
-                                ProductUpdatedEvent(formProduct, widget.index));
-                          }
-                        }
-                        bloc.add(ProductUpdatedEvent(
-                          EmptyFormProduct().copyWith(
-                            productName: value,
-                            productId: null,
-                            description: currentProduct.description,
-                            quantity: currentProduct.quantity,
-                          ),
-                          widget.index,
-                        ));
-                      }
-                    },
-                    onSelected: (value) {
-                      if (currentProduct.productId == null) {
-                        final formProduct =
-                            FormProduct.fromProduct(value.value!);
-                        bloc.add(
-                            ProductSelectedEvent(formProduct, widget.index));
-                      } else if (currentProduct.productId != value.value!.id) {
-                        bloc.add(ProductUpdatedEvent(
-                          FormProduct.fromProduct(value.value!).copyWith(
-                            description: currentProduct.description,
-                            quantity: currentProduct.quantity,
-                          ),
-                          widget.index,
-                        ));
-                      }
-                    },
-                    placeholder: 'Select Product',
-                  ),
-                ),
-              ),
-              // Field 2 - Description
-              Expanded(
-                  flex: 2,
-                  child: FormTableCell(
-                    child: TextFormBoxes.ghost(
-                      controller: _descriptionController,
-                      placeholder: 'Sale Description',
-                      onChanged: (value) {
-                        bloc.add(ProductUpdatedEvent(
-                          currentProduct.copyWith(description: value),
-                          widget.index,
-                        ));
-                      },
-                    ),
-                  )),
-              // Field 3 - Quantity
-              Expanded(
-                child: Container(
-                  padding: const EdgeInsets.fromLTRB(8.0, 8.0, 0.0, 8.0),
-                  decoration: const BoxDecoration(
-                    border: Border(
-                      right: BorderSide(
-                        width: 0.5,
-                        color: Colors.transparent,
                       ),
                     ),
                   ),
-                  child: IntrinsicHeight(
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        Expanded(
-                            flex: 1,
-                            child: TextFormBoxes.ghost(
-                              controller: _quantityController,
-                              placeholder: '0',
-                              placeholderStyle: currentProduct.productId == null
-                                  ? TextStyles.inactive
-                                  : TextStyles.active,
-                              onChanged: (value) {
-                                final quantity = double.tryParse(value) ?? 0;
-                                bloc.add(
+                  // Field 1 - Product
+                  Expanded(
+                    flex: 2,
+                    child: Container(
+                      decoration: const BoxDecoration(
+                        border: Border(
+                          right: BorderSide(width: 0.5, color: Colors.transparent),
+                        ),
+                      ),
+                      child: AutoSuggestBox.form(
+                        decoration: BoxDecorations.ghost,
+                        foregroundDecoration: BoxDecorations.ghost,
+                        items: [
+                          for (final product in products)
+                            AutoSuggestBoxItem<Product>(
+                              value: product,
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text(product.name),
+                                    Text(
+                                      '${product.quantity.toString()} ${product.mainUnit}',
+                                      style: product.quantity < product.criticalLevel
+                                          ? TextStyles.error.merge(TextStyles.caption)
+                                          : TextStyles.active.merge(TextStyles.caption),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              label: product.name,
+                            ),
+                        ],
+                        onChanged: (value, reason) {
+                          if (reason == TextChangedReason.cleared) {
+                            // Clear the controllers when product is cleared
+                            _descriptionController.clear();
+                            _quantityController.clear();
+                            _rateController.clear();
+                            return bloc.add(
+                              ProductUpdatedEvent(
+                                product: EmptyFormProduct().copyWith(
+                                  productId: null,
+                                ),
+                                index: widget.index,
+                              ),
+                            );
+                          }
+                          if (reason == TextChangedReason.userInput) {
+                            for (final product in products) {
+                              if (product.name.toLowerCase() == value.toLowerCase()) {
+                                final formProduct = FormProduct.fromProduct(product)
+                                    .copyWith(quantity: currentProduct.quantity);
+                                return bloc.add(
                                   ProductUpdatedEvent(
-                                    currentProduct.copyWith(quantity: quantity),
-                                    widget.index,
+                                    product: formProduct,
+                                    index: widget.index,
+                                    reference: product,
                                   ),
                                 );
-                              },
-                            )),
-                        if (currentProduct.productId == null)
-                          const Spacer(flex: 2)
-                        else
-                          Expanded(
-                            flex: 2,
-                            child: DropDownButton(
-                              items: [
-                                MenuFlyoutItem(
-                                    text: Text(context
-                                        .read<ProductListBloc>()
-                                        .state
-                                        .allProducts
-                                        .firstWhere((product) =>
-                                            product.id ==
-                                            currentProduct.productId)
-                                        .mainUnit),
-                                    onPressed: () {
-                                      bloc.add(ProductUpdatedEvent(
-                                          currentProduct.copyWith(
-                                            // Primitive Solution to get correct amount computation
-                                            rate: context
-                                                .read<ProductListBloc>()
-                                                .state
-                                                .allProducts
-                                                .firstWhere((product) =>
-                                                    product.id ==
-                                                    currentProduct.productId)
-                                                .salePrice,
-                                            unit: context
-                                                .read<ProductListBloc>()
-                                                .state
-                                                .allProducts
-                                                .firstWhere((product) =>
-                                                    product.id ==
-                                                    currentProduct.productId)
-                                                .mainUnit,
-                                            conversionFactor: 1.0,
-                                          ),
-                                          widget.index));
-                                    }),
-                                for (final unit in context
-                                    .read<UnitListBloc>()
-                                    .state
-                                    .units
-                                    .where((u) =>
-                                        u.productId ==
-                                        currentProduct.productId))
-                                  MenuFlyoutItem(
-                                    text: Text(unit.name),
-                                    onPressed: () {
-                                      bloc.add(
-                                        ProductUpdatedEvent(
-                                          currentProduct.copyWith(
-                                            unit: unit.name,
-                                            // Primitive Solution to get correct amount computation
-                                            rate: context
-                                                .read<ProductListBloc>()
-                                                .state
-                                                .allProducts
-                                                .firstWhere((product) =>
-                                                    product.id ==
-                                                    currentProduct.productId)
-                                                .salePrice,
-                                            conversionFactor:
-                                                unit.mainQuantity /
-                                                    unit.unitQuantity,
-                                          ),
-                                          widget.index,
-                                        ),
-                                      );
-                                    },
-                                  ),
-                              ],
-                              buttonBuilder: (context, onOpen) {
-                                return Button(
-                                    style: ButtonStyles.ghost,
-                                    onPressed: onOpen,
-                                    child: Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.center,
-                                      children: [
-                                        Text(currentProduct.unit),
-                                        Spacing.h8,
-                                        const Icon(FluentIcons.chevron_down,
-                                            size: 8.0),
-                                      ],
-                                    ));
-                              },
-                            ),
-                          ),
-                      ],
+                              }
+                            }
+                            bloc.add(
+                              ProductUpdatedEvent(
+                                product: EmptyFormProduct().copyWith(
+                                  productName: value,
+                                  productId: null,
+                                  description: currentProduct.description,
+                                  quantity: currentProduct.quantity,
+                                ),
+                                index: widget.index,
+                              ),
+                            );
+                          }
+                        },
+                        onSelected: (value) {
+                          if (currentProduct.productId == null) {
+                            final formProduct = FormProduct.fromProduct(value.value!);
+                            bloc.add(ProductSelectedEvent(formProduct, widget.index));
+                          } else if (currentProduct.productId != value.value!.id) {
+                            bloc.add(
+                              ProductUpdatedEvent(
+                                product: FormProduct.fromProduct(value.value!).copyWith(
+                                  description: currentProduct.description,
+                                  quantity: currentProduct.quantity,
+                                ),
+                                index: widget.index,
+                              ),
+                            );
+                          }
+                        },
+                        placeholder: 'Select Product',
+                      ),
                     ),
                   ),
-                ),
-              ),
-              // Field 4 - Rate
-              Expanded(
-                child: FormTableCell(
-                  child: TextFormBoxes.ghost(
-                    controller: _rateController,
-                    placeholder: '0.0',
-                    placeholderStyle: currentProduct.productId == null
-                        ? TextStyles.inactive
-                        : TextStyles.active,
-                    onChanged: (value) {
-                      final rate = double.tryParse(value) ?? 0.0;
-                      bloc.add(
-                        ProductUpdatedEvent(
-                          currentProduct.copyWith(rate: rate),
-                          widget.index,
+                  // Field 2 - Description
+                  Expanded(
+                      flex: 2,
+                      child: FormTableCell(
+                        child: TextFormBoxes.ghost(
+                          controller: _descriptionController,
+                          placeholder: 'Sale Description',
+                          onChanged: (value) {
+                            bloc.add(
+                              ProductUpdatedEvent(
+                                product: currentProduct.copyWith(description: value),
+                                index: widget.index,
+                              ),
+                            );
+                          },
                         ),
-                      );
-                    },
-                  ),
-                ),
-              ),
-              // Field 5 - Amount (read-only, calculated field)
-              Expanded(
-                child: FormTableCell(
-                  child: TextFormBoxes.ghost(
-                    enabled: false,
-                    placeholder: currentProduct.amount.toStringAsFixed(2),
-                    placeholderStyle: currentProduct.productId == null
-                        ? TextStyles.inactive
-                        : TextStyles.active,
-                    onChanged: null,
-                  ),
-                ),
-              ),
-              widget.index > 0
-                  ? SizedBox(
-                      width: 82.0,
-                      child: Center(
-                        child: IconButton(
-                            icon: const Icon(FluentIcons.cancel),
-                            onPressed: () =>
-                                bloc.add(ProductRemovedEvent(widget.index))),
+                      )),
+                  // Field 3 - Quantity
+                  Expanded(
+                    child: Container(
+                      padding: const EdgeInsets.fromLTRB(8.0, 8.0, 0.0, 8.0),
+                      decoration: const BoxDecoration(
+                        border: Border(
+                          right: BorderSide(
+                            width: 0.5,
+                            color: Colors.transparent,
+                          ),
+                        ),
                       ),
-                    )
-                  : const SizedBox(width: 82.0)
+                      child: IntrinsicHeight(
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            Expanded(
+                                flex: 1,
+                                child: TextFormBoxes.ghost(
+                                  inputFormatters: [
+                                    FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}')),
+                                  ],
+                                  style: TextStyles.active,
+                                  controller: _quantityController,
+                                  placeholder: '0',
+                                  placeholderStyle: currentProduct.productId == null
+                                      ? TextStyles.inactive
+                                      : TextStyles.active,
+                                  onChanged: (value) {
+                                    final quantity = double.tryParse(value) ?? 0;
+                                    bloc.add(
+                                      ProductUpdatedEvent(
+                                        product: currentProduct.copyWith(quantity: quantity),
+                                        index: widget.index,
+                                        reference: currentProduct.productId == null
+                                            ? null
+                                            : products.firstWhere(
+                                                (p) => p.id == currentProduct.productId,
+                                              ),
+                                      ),
+                                    );
+                                  },
+                                )),
+                            if (currentProduct.productId == null)
+                              const Spacer(flex: 2)
+                            else
+                              Expanded(
+                                flex: 2,
+                                child: DropDownButton(
+                                  items: [
+                                    MenuFlyoutItem(
+                                        text: Text(
+                                          context
+                                              .read<ProductListBloc>()
+                                              .state
+                                              .allProducts
+                                              .firstWhere((product) =>
+                                                  product.id == currentProduct.productId)
+                                              .mainUnit,
+                                        ),
+                                        onPressed: () {
+                                          bloc.add(
+                                            ProductUpdatedEvent(
+                                              product: currentProduct.copyWith(
+                                                // Primitive Solution to get correct amount computation
+                                                rate: context
+                                                    .read<ProductListBloc>()
+                                                    .state
+                                                    .allProducts
+                                                    .firstWhere((product) =>
+                                                        product.id == currentProduct.productId)
+                                                    .salePrice,
+                                                unit: context
+                                                    .read<ProductListBloc>()
+                                                    .state
+                                                    .allProducts
+                                                    .firstWhere((product) =>
+                                                        product.id == currentProduct.productId)
+                                                    .mainUnit,
+                                                conversionFactor: 1.0,
+                                              ),
+                                              index: widget.index,
+                                              reference: products.firstWhere(
+                                                  (p) => p.id == currentProduct.productId),
+                                            ),
+                                          );
+                                        }),
+                                    for (final unit in context
+                                        .read<UnitListBloc>()
+                                        .state
+                                        .units
+                                        .where((u) => u.productId == currentProduct.productId))
+                                      MenuFlyoutItem(
+                                        text: Text(unit.name),
+                                        onPressed: () {
+                                          bloc.add(
+                                            ProductUpdatedEvent(
+                                              product: currentProduct.copyWith(
+                                                unit: unit.name,
+                                                // Primitive Solution to get correct amount computation
+                                                rate: context
+                                                    .read<ProductListBloc>()
+                                                    .state
+                                                    .allProducts
+                                                    .firstWhere((product) =>
+                                                        product.id == currentProduct.productId)
+                                                    .salePrice,
+                                                conversionFactor:
+                                                    unit.mainQuantity / unit.unitQuantity,
+                                              ),
+                                              index: widget.index,
+                                              reference: products.firstWhere(
+                                                  (p) => p.id == currentProduct.productId),
+                                            ),
+                                          );
+                                        },
+                                      ),
+                                  ],
+                                  buttonBuilder: (context, onOpen) {
+                                    return Button(
+                                      style: ButtonStyles.ghost,
+                                      onPressed: onOpen,
+                                      child: Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        crossAxisAlignment: CrossAxisAlignment.center,
+                                        children: [
+                                          Text(
+                                            currentProduct.unit,
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                          Spacing.h12,
+                                          const Icon(FluentIcons.chevron_down, size: 8.0),
+                                        ],
+                                      ),
+                                    );
+                                  },
+                                ),
+                              ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                  // Field 4 - Rate
+                  Expanded(
+                    child: FormTableCell(
+                      child: TextFormBoxes.ghost(
+                        inputFormatters: [
+                          FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}')),
+                        ],
+                        style: TextStyles.active,
+                        controller: _rateController,
+                        placeholder: '0.0',
+                        placeholderStyle: currentProduct.productId == null
+                            ? TextStyles.inactive
+                            : TextStyles.active,
+                        onChanged: (value) {
+                          final rate = double.tryParse(value) ?? 0;
+                          bloc.add(
+                            ProductUpdatedEvent(
+                              product: currentProduct.copyWith(rate: rate),
+                              index: widget.index,
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                  ),
+                  // Field 5 - Amount (read-only, calculated field)
+                  Expanded(
+                    child: FormTableCell(
+                      child: TextFormBoxes.ghost(
+                        enabled: false,
+                        placeholder: currentProduct.amount.toStringAsFixed(2),
+                        placeholderStyle: currentProduct.productId == null
+                            ? TextStyles.inactive
+                            : TextStyles.active,
+                        onChanged: null,
+                      ),
+                    ),
+                  ),
+                  widget.index > 0
+                      ? SizedBox(
+                          width: 82.0,
+                          child: Center(
+                            child: IconButton(
+                                icon: const Icon(FluentIcons.cancel),
+                                onPressed: () => bloc.add(ProductRemovedEvent(widget.index))),
+                          ),
+                        )
+                      : const SizedBox(width: 82.0)
+                ],
+              ),
+              if (currentProduct.errorMessage != null)
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 4.0, horizontal: 48.0),
+                  child: Text(
+                    state.invoiceTableErrorMessage!,
+                    style: TextStyles.error,
+                  ),
+                ),
             ],
           ),
         );
@@ -693,18 +732,32 @@ class _FormTableRowState extends State<FormTableRow> {
 
 class InvoiceSummary extends StatelessWidget {
   const InvoiceSummary({super.key});
-
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<InvoiceFormBloc, InvoiceFormState>(
-        builder: (context, state) {
+    return BlocBuilder<InvoiceFormBloc, InvoiceFormState>(builder: (context, state) {
       final subtotal = state.subtotal ?? 0.0;
       final discount = state.discount ?? 0.0;
       final total = state.amountDue ?? 0.0;
 
       return Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Spacer(),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                const BodyText('Memo'),
+                Spacing.v8,
+                TextBox(
+                  minLines: 3,
+                  maxLines: 3,
+                  onChanged: (value) =>
+                      context.read<InvoiceFormBloc>().add(MemoChangedEvent(value)),
+                ),
+              ],
+            ),
+          ),
+          Spacing.h8,
           Expanded(
             child: Container(
               padding: const EdgeInsets.all(12.0),
@@ -715,8 +768,7 @@ class InvoiceSummary extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       const Text("Subtotal"),
-                      Text("Php. ${subtotal.toStringAsFixed(2)}",
-                          style: TextStyles.active),
+                      Text("Php. ${subtotal.toStringAsFixed(2)}", style: TextStyles.active),
                     ],
                   ),
                   Spacing.v16,
@@ -733,11 +785,12 @@ class InvoiceSummary extends StatelessWidget {
                               Expanded(
                                 flex: 2,
                                 child: TextFormBox(
-                                  onChanged: (value) =>
-                                      context.read<InvoiceFormBloc>().add(
-                                            DiscountChangedEvent(
-                                                double.tryParse(value) ?? 0.0),
-                                          ),
+                                  inputFormatters: [
+                                    FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}')),
+                                  ],
+                                  onChanged: (value) => context.read<InvoiceFormBloc>().add(
+                                        DiscountChangedEvent(double.tryParse(value) ?? 0.0),
+                                      ),
                                 ),
                               ),
                               Spacing.h4,
@@ -760,8 +813,7 @@ class InvoiceSummary extends StatelessWidget {
                               ),
                               Spacing.h4,
                               Button(
-                                style: state.discountType ==
-                                        DiscountType.percentage
+                                style: state.discountType == DiscountType.percentage
                                     ? ButtonStyles.filled
                                     : ButtonStyles.outlined,
                                 onPressed: () {
@@ -779,14 +831,13 @@ class InvoiceSummary extends StatelessWidget {
                               ),
                               const Spacer(flex: 3),
                               Center(
-                                child: state.discountType ==
-                                        DiscountType.percentage
+                                child: state.discountType == DiscountType.percentage
                                     ? Text(
-                                        "Php. - ${(discount / 100 * subtotal).toStringAsFixed(2)}",
+                                        "${discount > 0 ? '-' : ''} Php. ${(discount / 100 * subtotal).toStringAsFixed(2)}",
                                         style: TextStyles.active,
                                       )
                                     : Text(
-                                        "Php. - ${discount.toStringAsFixed(2)}",
+                                        "${discount > 0 ? '-' : ''} Php. ${discount.toStringAsFixed(2)}",
                                         style: TextStyles.active,
                                       ),
                               ),
