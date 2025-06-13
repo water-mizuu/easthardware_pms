@@ -5,7 +5,7 @@ class ExpenseTypesTable {
   static const String EXPENSE_TYPE_ID = 'id';
   static const String EXPENSE_TYPE_NAME = 'name';
 
-  static void createTable(Database database) {
+  static void createTable(DatabaseExecutor database) {
     database.execute('''
       CREATE TABLE $EXPENSE_TYPE_TABLE_NAME (
         $EXPENSE_TYPE_ID INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -14,7 +14,7 @@ class ExpenseTypesTable {
     ''');
   }
 
-  static Future<void> dropTable(Database database) async {
+  static Future<void> dropTable(DatabaseExecutor database) async {
     await database.execute('DROP TABLE IF EXISTS $EXPENSE_TYPE_TABLE_NAME');
   }
 }

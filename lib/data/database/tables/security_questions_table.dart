@@ -8,7 +8,7 @@ class SecurityQuestionsTable {
   static const String SECURITY_QUESTIONS_QUESTION = 'question';
   static const String SECURITY_QUESTIONS_ANSWER = 'answer';
 
-  static void createTable(Database database) {
+  static void createTable(DatabaseExecutor database) {
     database.execute('''
       CREATE TABLE IF NOT EXISTS $SECURITY_QUESTIONS_TABLE (
         $SECURITY_QUESTIONS_ID INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -20,7 +20,7 @@ class SecurityQuestionsTable {
     ''');
   }
 
-  static void dropTable(Database database) {
+  static void dropTable(DatabaseExecutor database) {
     database.execute('''
       DROP TABLE IF EXISTS $SECURITY_QUESTIONS_TABLE
     ''');

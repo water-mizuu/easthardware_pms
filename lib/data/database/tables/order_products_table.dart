@@ -19,7 +19,7 @@ class OrderProductsTable {
   static const String ORDER_PRODUCTS_RATE = 'rate';
   static const String ORDER_PRODUCTS_AMOUNT = 'amount';
 
-  static Future<void> createTable(Database database) async {
+  static Future<void> createTable(DatabaseExecutor database) async {
     await database.execute('''
   CREATE TABLE $ORDER_PRODUCTS_TABLE_NAME (
   $ORDER_PRODUCTS_ID INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -39,7 +39,7 @@ class OrderProductsTable {
 ''');
   }
 
-  static void dropTable(Database database) {
+  static void dropTable(DatabaseExecutor database) {
     database.execute('DROP TABLE IF EXISTS $ORDER_PRODUCTS_TABLE_NAME');
   }
 }

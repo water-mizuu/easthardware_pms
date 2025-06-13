@@ -96,6 +96,10 @@ class _ServerResetBottomText extends ServerEvent {
   const _ServerResetBottomText();
 }
 
+class ServerDatabaseCleared extends ServerEvent {
+  const ServerDatabaseCleared();
+}
+
 class ServerMockDataAdded extends ServerEvent {
   const ServerMockDataAdded();
 }

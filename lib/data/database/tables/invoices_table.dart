@@ -28,7 +28,7 @@ class InvoicesTable {
   static const String INVOICES_AMOUNT_PAID = "amount_paid";
   static const String INVOICES_CREATOR_ID = "creator_id";
 
-  static Future<void> createTable(Database database) async {
+  static Future<void> createTable(DatabaseExecutor database) async {
     await database.execute('''
       CREATE TABLE $INVOICES_TABLE_NAME(
       $INVOICES_ID INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -52,7 +52,7 @@ class InvoicesTable {
 ''');
   }
 
-  static Future<void> dropTable(Database database) async {
+  static Future<void> dropTable(DatabaseExecutor database) async {
     await database.execute('DROP TABLE IF EXISTS $INVOICES_TABLE_NAME');
   }
 }

@@ -9,7 +9,7 @@ class UnitsTable {
   static const String UNITS_MAIN_QUANTITY = 'main_quantity';
   static const String UNITS_UNIT_QUANTITY = 'unit_quantity';
 
-  static Future<void> createTable(Database database) async {
+  static Future<void> createTable(DatabaseExecutor database) async {
     await database.execute('''
     CREATE TABLE $UNITS_TABLE_NAME (
     $UNITS_ID INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -22,7 +22,7 @@ class UnitsTable {
     ''');
   }
 
-  static Future<void> dropTable(Database database) async {
+  static Future<void> dropTable(DatabaseExecutor database) async {
     await database.execute('DROP TABLE IF EXISTS $UNITS_TABLE_NAME');
   }
 }

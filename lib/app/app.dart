@@ -154,15 +154,13 @@ class _AppState extends State<App> {
       builder: (context, child) {
         return MultiBlocListener(
           listeners: blocListeners,
-          child: FluentTheme(
-            data: theme,
-            child: IsFullScreen.provider(
-              child: TitleBar(
-                child: FluentApp.router(
-                  debugShowCheckedModeBanner: false,
-                  routerConfig: router,
-                  themeMode: ThemeMode.dark,
-                ),
+          child: IsFullScreen.provider(
+            child: TitleBar(
+              child: FluentApp.router(
+                debugShowCheckedModeBanner: false,
+                routerConfig: router,
+                themeMode: ThemeMode.dark,
+                theme: theme,
               ),
             ),
           ),

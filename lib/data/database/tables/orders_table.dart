@@ -19,7 +19,7 @@ class OrdersTable {
   static const String ORDERS_CREATION_DATE = 'creation_date';
   static const String ORDERS_CREATOR_ID = 'creator_id';
 
-  static void createTable(Database database) {
+  static void createTable(DatabaseExecutor database) {
     database.execute('''
       CREATE TABLE IF NOT EXISTS $ORDERS_TABLE_NAME (
         $ORDERS_ID INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -42,7 +42,7 @@ class OrdersTable {
     ''');
   }
 
-  static void dropTable(Database database) {
+  static void dropTable(DatabaseExecutor database) {
     database.execute('DROP TABLE IF EXISTS $ORDERS_TABLE_NAME');
   }
 }

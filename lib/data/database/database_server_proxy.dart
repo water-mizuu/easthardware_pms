@@ -11,35 +11,50 @@ class Server {
 
   bool get isOpen => !channel.receivePort.isClosed;
 
-  Future<dynamic> invokeDatabaseMethod(String method, List<Object?> arguments) async {
+  Future<dynamic> invokeDatabaseMethod(String method, [List<Object?>? arguments]) async {
     return await channel!.invoke("db", [method, arguments]);
   }
 
-  Future<dynamic> invokeMethod(String method, List<Object?> arguments) async {
+  Future<dynamic> invokeMethod(String method, [List<Object?>? arguments]) async {
     return await channel!.invoke(method, arguments);
+  }
+}
+
+mixin ServerRedirect {
+  abstract final Server server;
+}
+
+mixin ResettableDatabase on ServerRedirect {
+  Future<void> reset() async {
+    if (kDebugMode) {
+      print("Restarting database connection...");
+    }
+
+    await server.invokeMethod("resetDb");
   }
 }
 
 /// This class is a proxy for the server class.
 ///   It implements the Database interface and delegates all calls to the server class.
 ///   This allows us to use the same interface for both the server and client classes.
-class DatabaseServerProxy implements Database {
-  DatabaseServerProxy(this._server);
-
-  final Server _server;
+class DatabaseServerProxy with ServerRedirect, ResettableDatabase implements Database {
+  DatabaseServerProxy(this.server);
 
   @override
-  Batch batch() => ServerBatch(_server);
+  final Server server;
+
+  @override
+  Batch batch() => ServerBatch(server);
 
   @override
   Database get database => this;
 
   @override
-  bool get isOpen => _server.isOpen;
+  bool get isOpen => server.isOpen;
 
   @override
   Future<int> delete(String table, {String? where, List<Object?>? whereArgs}) {
-    return _server.invokeDatabaseMethod('delete', [
+    return server.invokeDatabaseMethod('delete', [
       table,
       {'where': where, 'whereArgs': whereArgs}
     ]).cast<int>();
@@ -47,7 +62,7 @@ class DatabaseServerProxy implements Database {
 
   @override
   Future<void> execute(String sql, [List<Object?>? arguments]) {
-    return _server.invokeDatabaseMethod('execute', [sql, arguments]);
+    return server.invokeDatabaseMethod('execute', [sql, arguments]);
   }
 
   @override
@@ -57,7 +72,7 @@ class DatabaseServerProxy implements Database {
     String? nullColumnHack,
     ConflictAlgorithm? conflictAlgorithm,
   }) {
-    return _server.invokeDatabaseMethod(
+    return server.invokeDatabaseMethod(
       'insert',
       [
         table,
@@ -80,7 +95,7 @@ class DatabaseServerProxy implements Database {
     int? limit,
     int? offset,
   }) async {
-    final result = await _server.invokeDatabaseMethod(
+    final result = await server.invokeDatabaseMethod(
       'query',
       [
         table,
@@ -106,17 +121,17 @@ class DatabaseServerProxy implements Database {
 
   @override
   Future<int> rawDelete(String sql, [List<Object?>? arguments]) {
-    return _server.invokeDatabaseMethod('rawDelete', [sql, arguments]).cast<int>();
+    return server.invokeDatabaseMethod('rawDelete', [sql, arguments]).cast<int>();
   }
 
   @override
   Future<int> rawInsert(String sql, [List<Object?>? arguments]) {
-    return _server.invokeDatabaseMethod('rawInsert', [sql, arguments]).cast<int>();
+    return server.invokeDatabaseMethod('rawInsert', [sql, arguments]).cast<int>();
   }
 
   @override
   Future<List<Map<String, Object?>>> rawQuery(String sql, [List<Object?>? arguments]) async {
-    final result = await _server.invokeDatabaseMethod('rawQuery', [sql, arguments]);
+    final result = await server.invokeDatabaseMethod('rawQuery', [sql, arguments]);
 
     return [
       for (final entry in result as List<dynamic>)
@@ -129,7 +144,7 @@ class DatabaseServerProxy implements Database {
     String sql, [
     List<Object?>? arguments,
   ]) {
-    return _server.invokeDatabaseMethod('rawUpdate', [sql, arguments]).cast<int>();
+    return server.invokeDatabaseMethod('rawUpdate', [sql, arguments]).cast<int>();
   }
 
   @override
@@ -140,7 +155,7 @@ class DatabaseServerProxy implements Database {
     List<Object?>? whereArgs,
     ConflictAlgorithm? conflictAlgorithm,
   }) {
-    return _server.invokeDatabaseMethod(
+    return server.invokeDatabaseMethod(
       'update',
       [
         table,

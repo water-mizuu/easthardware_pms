@@ -19,7 +19,7 @@ class UsersTable {
   static const String USERS_ARCHIVED_STATUS = 'archived_status';
   static const String USERS_LOGIN_STATUS = 'login_status';
 
-  static Future<void> createTable(Database database) async {
+  static Future<void> createTable(DatabaseExecutor database) async {
     await database.execute('''
       CREATE TABLE $USERS_TABLE_NAME (
       $USERS_ID INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -38,12 +38,12 @@ class UsersTable {
     _insertInitialAdmin(database);
   }
 
-  static Future<void> dropTable(Database database) async {
+  static Future<void> dropTable(DatabaseExecutor database) async {
     await database.execute('DROP TABLE IF EXISTS $USERS_TABLE_NAME');
   }
 
   // private function: create initial admin
-  static Future<void> _insertInitialAdmin(Database database) async {
+  static Future<void> _insertInitialAdmin(DatabaseExecutor database) async {
     const password = 'Admin123';
 
     var id = 0;

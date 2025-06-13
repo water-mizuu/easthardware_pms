@@ -19,7 +19,7 @@ class KPICard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final child = Container(
-      color: Colors.white,
+      color: FluentTheme.of(context).cardColor,
       padding: AppPadding.a16,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,

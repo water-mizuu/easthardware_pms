@@ -67,7 +67,15 @@ mixin CommonSidePanelMixin on NavigationPanelMixin {
 
   List<NavigationPaneItem> footerItems(BuildContext context) {
     return [
-      if (kDebugMode)
+      if (kDebugMode) ...[
+        navItem(
+          icon: FluentIcons.device_bug,
+          title: 'Clear database',
+          color: Colors.red,
+          onTap: () {
+            context.read<ServerBloc>().add(const ServerDatabaseCleared());
+          },
+        ),
         navItem(
           icon: FluentIcons.insert_rows_below,
           title: 'Add mock items',
@@ -76,6 +84,7 @@ mixin CommonSidePanelMixin on NavigationPanelMixin {
             context.read<ServerBloc>().add(const ServerMockDataAdded());
           },
         ),
+      ],
       navItem(
         icon: FluentIcons.leave,
         title: 'Log Out',

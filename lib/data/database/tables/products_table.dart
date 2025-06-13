@@ -20,7 +20,7 @@ class ProductsTable {
   static const String PRODUCTS_CREATOR_ID = 'creator_id';
   static const String PRODUCTS_ARCHIVE_STATUS = 'archived_status';
 
-  static Future<void> createTable(Database database) async {
+  static Future<void> createTable(DatabaseExecutor database) async {
     await database.execute('''
     CREATE TABLE $PRODUCTS_TABLE_NAME (
       $PRODUCTS_ID INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -44,7 +44,7 @@ class ProductsTable {
   ''');
   }
 
-  static Future<void> dropTable(Database database) async {
+  static Future<void> dropTable(DatabaseExecutor database) async {
     await database.execute('DROP TABLE IF EXISTS $PRODUCTS_TABLE_NAME');
   }
 }

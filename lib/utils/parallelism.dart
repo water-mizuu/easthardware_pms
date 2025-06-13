@@ -100,7 +100,7 @@ extension ReceivePortExtension on ReceivePort {
       ListenedReceivePort(this, fallbackListener);
 }
 
-extension type NamedSendPort(SendPort _port) implements SendPort {
+extension type const NamedSendPort(SendPort _port) implements SendPort {
   /// Sends a message to the send port.
   void send(String name, Object? message) {
     _port.send([name, message]);

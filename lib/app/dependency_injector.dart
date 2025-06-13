@@ -1,6 +1,7 @@
 import 'package:easthardware_pms/data/database/database_helper.dart';
 import 'package:easthardware_pms/domain/repository/authentication_repository.dart';
 import 'package:easthardware_pms/domain/repository/category_repository.dart';
+import 'package:easthardware_pms/domain/repository/invoice_product_repository.dart';
 import 'package:easthardware_pms/domain/repository/invoice_repository.dart';
 import 'package:easthardware_pms/domain/repository/order_repository.dart';
 import 'package:easthardware_pms/domain/repository/product_repository.dart';
@@ -43,6 +44,7 @@ class DependencyInjector extends ChangeNotifier {
   late AuthenticationRepository _authenticationRepository;
   late ProductRepository _productRepository;
   late InvoiceRepository _invoiceRepository;
+  late InvoiceProductRepository _invoiceProductRepository;
   late OrderRepository _orderRepository;
   late CategoryRepository _categoryRepository;
   late UnitRepository _unitRepository;
@@ -75,6 +77,7 @@ class DependencyInjector extends ChangeNotifier {
     _authenticationRepository = AuthenticationRepository(databaseHelper);
     _productRepository = ProductRepository(databaseHelper);
     _invoiceRepository = InvoiceRepository(databaseHelper);
+    _invoiceProductRepository = InvoiceProductRepository(databaseHelper);
     _orderRepository = OrderRepository(databaseHelper);
     _categoryRepository = CategoryRepository(databaseHelper);
     _unitRepository = UnitRepository(databaseHelper);
@@ -97,6 +100,9 @@ class DependencyInjector extends ChangeNotifier {
       Provider.value(value: BottomTextNotifier(bottomText)),
       BlocProvider.value(value: serverBloc),
       RepositoryProvider.value(value: _categoryRepository),
+      RepositoryProvider.value(value: _invoiceProductRepository),
+      RepositoryProvider.value(value: _invoiceRepository),
+      RepositoryProvider.value(value: _orderRepository),
       RepositoryProvider.value(value: _productRepository),
       RepositoryProvider.value(value: _unitRepository),
       RepositoryProvider.value(value: _userRepository),
@@ -106,15 +112,6 @@ class DependencyInjector extends ChangeNotifier {
           final state = _authenticationBloc?.state ?? const AuthenticationState();
 
           return _authenticationBloc = AuthenticationBloc(_authenticationRepository, state);
-        },
-      ),
-      BlocProvider(
-        key: key(),
-        create: (context) {
-          final state = _userListBloc?.state ?? const UserListState();
-
-          return _userListBloc = UserListBloc(_userRepository, state)
-            ..addIf(_databaseHelper != null, const LoadAllUsersEvent());
         },
       ),
       BlocProvider(

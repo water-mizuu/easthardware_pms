@@ -132,22 +132,27 @@ Future<void> spawnWebSocketIsolate((RootIsolateToken, NamedSendPort) payload) as
       );
     }
 
-    if (message case [final String returnName, final Object args]) {
+    if (message case [final String name, final Object args]) {
       switch (args) {
         case ["stop", _]:
-          closeIsolate(returnName);
+          closeIsolate(name);
+          break;
+        case ["resetDb", _]:
+          // // Restart the database connection.
+          await resetDatabase();
+          sendPort.send(name, 0);
           break;
         case ["db", [final String method, final List<Object?> arguments]]:
           // Handle each db method call.
-          final output = await serverHandleDatabaseMethod(method, arguments, _savedHeartbeat);
-          final (result, hasChanged) = output.record;
+          final hasChanged = await _handleDbMessage(method, arguments, sendPort, name);
 
-          // Send the result back to the client.
-          sendPort.send(returnName, result);
+          /// If the method was not successfully handled, ignore the rest of this body.
+          if (hasChanged == null) break;
           if (hasChanged) {
             _notifyEveryoneAboutDatabaseChange(from: null, isServerUpdated: false);
           }
 
+          /// Hook onto the database update that signifies that the user has logged in.
           if (method == "update") {
             _hookOntoUpdate(arguments);
           }
@@ -238,14 +243,16 @@ Future<void> _handleConnection(
     final [name as String, message] = object as List<Object?>;
 
     switch (message) {
+      case ["resetDb", _]:
+        await resetDatabase();
+        break;
       case ["db", [final String method, final List<Object?> arguments]]:
         // Handle each db method call.
+        final sendPort = messageChannel.sendPort;
+        final hasChanged = await _handleDbMessage(method, arguments, sendPort, name);
 
-        final output = await serverHandleDatabaseMethod(method, arguments, _savedHeartbeat);
-        final (result, hasChanged) = output.record;
-
-        // Send the result back to the client.
-        messageChannel.sendPort.send(name, result);
+        /// If the method was not successfully handled, ignore the rest of this body.
+        if (hasChanged == null) break;
         if (hasChanged) {
           _notifyEveryoneAboutDatabaseChange(from: webSocketChannel, isServerUpdated: true);
         }
@@ -269,6 +276,34 @@ Future<void> _handleConnection(
   }
 
   _clientChannels.add((webSocketChannel, messageChannel, null));
+}
+
+Future<bool?> _handleDbMessage(
+  String method,
+  List<Object?> arguments,
+  NamedSendPort sendPort,
+  String name,
+) async {
+  assertChildIsolate();
+
+  final (output, error) = await serverHandleDatabaseMethod(method, arguments, _savedHeartbeat) //
+      .tryCatch();
+
+  if (error case (final Object error, final StackTrace stackTrace)) {
+    sendPort.send(name, ["error", error, stackTrace.toString()]);
+    return null;
+  }
+  if (output == null) {
+    sendPort.send(name, ["error", "Output is null", StackTrace.current.toString()]);
+    return null;
+  }
+
+  final (result, hasChanged) = output.record;
+
+  // Send the result back to the client.
+  sendPort.send(name, result);
+
+  return hasChanged;
 }
 
 /// This timer is used to debounce the notifications of consequent

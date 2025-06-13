@@ -9,7 +9,7 @@ class UserLogsTable {
   static const String USER_LOGS_EVENT = 'event';
   static const String USER_LOGS_EVENT_TIME = 'event_time';
 
-  static Future<void> createTable(Database database) async {
+  static Future<void> createTable(DatabaseExecutor database) async {
     await database.execute('''
       CREATE TABLE $USER_LOGS_TABLE_NAME (
         $USER_LOGS_LOG_ID INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -22,7 +22,7 @@ class UserLogsTable {
     ''');
   }
 
-  static Future<void> dropTable(Database database) async {
+  static Future<void> dropTable(DatabaseExecutor database) async {
     await database.execute('DROP TABLE IF EXISTS $USER_LOGS_TABLE_NAME');
   }
 }

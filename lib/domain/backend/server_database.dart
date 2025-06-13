@@ -36,6 +36,45 @@ Future<DatabaseHelper> getWebSocketDatabaseHelper(int? savedHeartbeat) async {
   return DirectDatabaseHelper(database);
 }
 
+Future<void> resetDatabase() async {
+  assertChildIsolate();
+  if (kDebugMode) {
+    if (_databaseInstance case final db?) {
+      await db.transaction((txn) async {
+        // Drop all tables
+        CategoriesTable.dropTable(txn);
+        ExpenseTypesTable.dropTable(txn);
+        PaymentMethodsTable.dropTable(txn);
+        UsersTable.dropTable(txn);
+        UserLogsTable.dropTable(txn);
+        ProductsTable.dropTable(txn);
+        UnitsTable.dropTable(txn);
+        OrdersTable.dropTable(txn);
+        OrderProductsTable.dropTable(txn);
+        InvoicesTable.dropTable(txn);
+        InvoiceProductsTable.dropTable(txn);
+        SecurityQuestionsTable.dropTable(txn);
+        ProductFlagsView.dropView(txn);
+
+        // Recreate all tables
+        CategoriesTable.createTable(db);
+        ExpenseTypesTable.createTable(db);
+        PaymentMethodsTable.createTable(db);
+        UsersTable.createTable(db);
+        UserLogsTable.createTable(db);
+        ProductsTable.createTable(db);
+        UnitsTable.createTable(db);
+        OrdersTable.createTable(db);
+        OrderProductsTable.createTable(db);
+        InvoicesTable.createTable(db);
+        InvoiceProductsTable.createTable(db);
+        SecurityQuestionsTable.createTable(db);
+        ProductFlagsView.createView(db);
+      });
+    }
+  }
+}
+
 /// Handles JSON encoded database method calls.
 /// Each job is executed sequentially in calling order, backed by an [AsyncQueue].
 Future<DatabaseMethodResult> serverHandleDatabaseMethod(
@@ -52,217 +91,230 @@ Future<DatabaseMethodResult> serverHandleDatabaseMethod(
     final waitingDuration = DateTime.now().difference(start);
 
     DatabaseMethodResult? jobResult;
-    switch ((method, arguments)) {
-      case (
-          'delete',
-          [
-            final String table,
-            {'where': final String? where, 'whereArgs': final List<Object?>? whereArgs}
-          ]
-        ):
-        final result = await isolateDatabase.delete(table, where: where, whereArgs: whereArgs);
-        final hasChanged = result > 0;
-        jobResult = DatabaseMethodResult(result: result, hasChanged: hasChanged);
-        break;
+    try {
+      switch ((method, arguments)) {
+        case (
+            'delete',
+            [
+              final String table,
+              {'where': final String? where, 'whereArgs': final List<Object?>? whereArgs}
+            ]
+          ):
+          final result = await isolateDatabase.delete(table, where: where, whereArgs: whereArgs);
+          final hasChanged = result > 0;
+          jobResult = DatabaseMethodResult(result: result, hasChanged: hasChanged);
+          break;
 
-      case ('execute', [final String sql, final List<Object?>? sqlArgs]):
-        await isolateDatabase.execute(sql, sqlArgs);
-        // Execute doesn't return a count, but we assume it modified the database
-        jobResult = const DatabaseMethodResult(result: null, hasChanged: true);
-        break;
+        case ('execute', [final String sql, final List<Object?>? sqlArgs]):
+          await isolateDatabase.execute(sql, sqlArgs);
+          // Execute doesn't return a count, but we assume it modified the database
+          jobResult = const DatabaseMethodResult(result: null, hasChanged: true);
+          break;
 
-      case (
-          'insert',
-          [
-            final String table,
-            final Map<String, Object?> values,
-            {
-              'nullColumnHack': final String? nullColumnHack,
-              'conflictAlgorithm': final int? conflictAlgorithm
-            }
-          ]
-        ):
-        final result = await isolateDatabase.insert(
-          table,
-          values,
-          nullColumnHack: nullColumnHack,
-          conflictAlgorithm: conflictAlgorithm != null //
-              ? ConflictAlgorithm.values[conflictAlgorithm]
-              : null,
+        case (
+            'insert',
+            [
+              final String table,
+              final Map<String, Object?> values,
+              {
+                'nullColumnHack': final String? nullColumnHack,
+                'conflictAlgorithm': final int? conflictAlgorithm
+              }
+            ]
+          ):
+          final result = await isolateDatabase.insert(
+            table,
+            values,
+            nullColumnHack: nullColumnHack,
+            conflictAlgorithm: conflictAlgorithm != null //
+                ? ConflictAlgorithm.values[conflictAlgorithm]
+                : null,
+          );
+          final hasChanged = result > 0;
+          jobResult = DatabaseMethodResult(result: result, hasChanged: hasChanged);
+          break;
+
+        case (
+            'query',
+            [
+              final String table,
+              {
+                'distinct': final bool? distinct,
+                'columns': final List<String>? columns,
+                'where': final String? where,
+                'whereArgs': final List<Object?>? whereArgs,
+                'groupBy': final String? groupBy,
+                'having': final String? having,
+                'orderBy': final String? orderBy,
+                'limit': final int? limit,
+                'offset': final int? offset,
+              }
+            ]
+          ):
+          final result = await isolateDatabase.query(
+            table,
+            distinct: distinct,
+            columns: columns,
+            where: where,
+            whereArgs: whereArgs,
+            groupBy: groupBy,
+            having: having,
+            orderBy: orderBy,
+            limit: limit,
+            offset: offset,
+          );
+          // Query operations don't modify the database
+          jobResult = DatabaseMethodResult(result: result, hasChanged: false);
+          break;
+
+        case (
+            'queryCursor',
+            [
+              final String table,
+              {
+                'distinct': final bool? distinct,
+                'columns': final List<String>? columns,
+                'where': final String? where,
+                'whereArgs': final List<Object?>? whereArgs,
+                'groupBy': final String? groupBy,
+                'having': final String? having,
+                'orderBy': final String? orderBy,
+                'limit': final int? limit,
+                'offset': final int? offset,
+                'bufferSize': final int? bufferSize,
+              }
+            ]
+          ):
+          final result = await isolateDatabase.queryCursor(
+            table,
+            distinct: distinct,
+            columns: columns,
+            where: where,
+            whereArgs: whereArgs,
+            groupBy: groupBy,
+            having: having,
+            orderBy: orderBy,
+            limit: limit,
+            offset: offset,
+            bufferSize: bufferSize,
+          );
+          // Query operations don't modify the database
+          jobResult = DatabaseMethodResult(result: result, hasChanged: false);
+          break;
+
+        case ('rawDelete', [final String sql, final List<Object?>? args]):
+          final result = await isolateDatabase.rawDelete(sql, args);
+          final hasChanged = result > 0;
+          jobResult = DatabaseMethodResult(result: result, hasChanged: hasChanged);
+          break;
+
+        case ('rawInsert', [final String sql, final List<Object?>? args]):
+          final result = await isolateDatabase.rawInsert(sql, args);
+          final hasChanged = result > 0;
+          jobResult = DatabaseMethodResult(result: result, hasChanged: hasChanged);
+          break;
+
+        case ('rawQuery', [final String sql, final List<Object?>? args]):
+          final result = await isolateDatabase.rawQuery(sql, args);
+          // Query operations don't modify the database
+          jobResult = DatabaseMethodResult(result: result, hasChanged: false);
+          break;
+
+        case (
+            'rawQueryCursor',
+            [final String sql, final List<Object?>? args, {'bufferSize': final int? bufferSize}]
+          ):
+          final result = await isolateDatabase.rawQueryCursor(sql, args, bufferSize: bufferSize);
+          // Query operations don't modify the database
+          jobResult = DatabaseMethodResult(result: result, hasChanged: false);
+          break;
+
+        case ('rawUpdate', [final String sql, final List<Object?>? args]):
+          final result = await isolateDatabase.rawUpdate(sql, args);
+          final hasChanged = result > 0;
+          jobResult = DatabaseMethodResult(result: result, hasChanged: hasChanged);
+          break;
+
+        case ('rawUpdate', [final String sql]):
+          final result = await isolateDatabase.rawUpdate(sql);
+          final hasChanged = result > 0;
+          jobResult = DatabaseMethodResult(result: result, hasChanged: hasChanged);
+          break;
+
+        case (
+            'update',
+            [
+              final String table,
+              final Map<String, Object?> values,
+              {
+                'where': final String? where,
+                'whereArgs': final List<Object?>? whereArgs,
+                'conflictAlgorithm': final int? conflictAlgorithm,
+              }
+            ]
+          ):
+          final result = await isolateDatabase.update(
+            table,
+            values,
+            where: where,
+            whereArgs: whereArgs,
+            conflictAlgorithm: conflictAlgorithm != null //
+                ? ConflictAlgorithm.values[conflictAlgorithm]
+                : null,
+          );
+          final hasChanged = result > 0;
+          jobResult = DatabaseMethodResult(result: result, hasChanged: hasChanged);
+          break;
+
+        case (
+            'batch.commit',
+            [
+              final List<Object> operations,
+              {
+                'exclusive': final bool? exclusive,
+                'noResult': final bool? noResult,
+                'continueOnError': final bool? continueOnError,
+              }
+            ]
+          ):
+          jobResult = await _executeBatch(
+            isolateDatabase,
+            operations,
+            exclusive,
+            noResult,
+            continueOnError,
+            isCommit: true,
+          );
+          break;
+
+        case (
+            'batch.apply',
+            [
+              final List<Object> operations,
+              {'noResult': final bool? noResult, 'continueOnError': final bool? continueOnError}
+            ]
+          ):
+          jobResult = await _executeBatch(
+            isolateDatabase,
+            operations,
+            null, // exclusive not used for apply
+            noResult,
+            continueOnError,
+            isCommit: false,
+          );
+          break;
+      }
+    } catch (e, stackTrace) {
+      if (kDebugMode) {
+        printBoxed(
+          "Error occurred while executing database method: $method\n"
+              "Error: $e\n"
+              "Stack Trace: $stackTrace",
+          "Database Method Call",
         );
-        final hasChanged = result > 0;
-        jobResult = DatabaseMethodResult(result: result, hasChanged: hasChanged);
-        break;
-
-      case (
-          'query',
-          [
-            final String table,
-            {
-              'distinct': final bool? distinct,
-              'columns': final List<String>? columns,
-              'where': final String? where,
-              'whereArgs': final List<Object?>? whereArgs,
-              'groupBy': final String? groupBy,
-              'having': final String? having,
-              'orderBy': final String? orderBy,
-              'limit': final int? limit,
-              'offset': final int? offset,
-            }
-          ]
-        ):
-        final result = await isolateDatabase.query(
-          table,
-          distinct: distinct,
-          columns: columns,
-          where: where,
-          whereArgs: whereArgs,
-          groupBy: groupBy,
-          having: having,
-          orderBy: orderBy,
-          limit: limit,
-          offset: offset,
-        );
-        // Query operations don't modify the database
-        jobResult = DatabaseMethodResult(result: result, hasChanged: false);
-        break;
-
-      case (
-          'queryCursor',
-          [
-            final String table,
-            {
-              'distinct': final bool? distinct,
-              'columns': final List<String>? columns,
-              'where': final String? where,
-              'whereArgs': final List<Object?>? whereArgs,
-              'groupBy': final String? groupBy,
-              'having': final String? having,
-              'orderBy': final String? orderBy,
-              'limit': final int? limit,
-              'offset': final int? offset,
-              'bufferSize': final int? bufferSize,
-            }
-          ]
-        ):
-        final result = await isolateDatabase.queryCursor(
-          table,
-          distinct: distinct,
-          columns: columns,
-          where: where,
-          whereArgs: whereArgs,
-          groupBy: groupBy,
-          having: having,
-          orderBy: orderBy,
-          limit: limit,
-          offset: offset,
-          bufferSize: bufferSize,
-        );
-        // Query operations don't modify the database
-        jobResult = DatabaseMethodResult(result: result, hasChanged: false);
-        break;
-
-      case ('rawDelete', [final String sql, final List<Object?>? args]):
-        final result = await isolateDatabase.rawDelete(sql, args);
-        final hasChanged = result > 0;
-        jobResult = DatabaseMethodResult(result: result, hasChanged: hasChanged);
-        break;
-
-      case ('rawInsert', [final String sql, final List<Object?>? args]):
-        final result = await isolateDatabase.rawInsert(sql, args);
-        final hasChanged = result > 0;
-        jobResult = DatabaseMethodResult(result: result, hasChanged: hasChanged);
-        break;
-
-      case ('rawQuery', [final String sql, final List<Object?>? args]):
-        final result = await isolateDatabase.rawQuery(sql, args);
-        // Query operations don't modify the database
-        jobResult = DatabaseMethodResult(result: result, hasChanged: false);
-        break;
-
-      case (
-          'rawQueryCursor',
-          [final String sql, final List<Object?>? args, {'bufferSize': final int? bufferSize}]
-        ):
-        final result = await isolateDatabase.rawQueryCursor(sql, args, bufferSize: bufferSize);
-        // Query operations don't modify the database
-        jobResult = DatabaseMethodResult(result: result, hasChanged: false);
-        break;
-
-      case ('rawUpdate', [final String sql, final List<Object?>? args]):
-        final result = await isolateDatabase.rawUpdate(sql, args);
-        final hasChanged = result > 0;
-        jobResult = DatabaseMethodResult(result: result, hasChanged: hasChanged);
-        break;
-
-      case ('rawUpdate', [final String sql]):
-        final result = await isolateDatabase.rawUpdate(sql);
-        final hasChanged = result > 0;
-        jobResult = DatabaseMethodResult(result: result, hasChanged: hasChanged);
-        break;
-
-      case (
-          'update',
-          [
-            final String table,
-            final Map<String, Object?> values,
-            {
-              'where': final String? where,
-              'whereArgs': final List<Object?>? whereArgs,
-              'conflictAlgorithm': final int? conflictAlgorithm,
-            }
-          ]
-        ):
-        final result = await isolateDatabase.update(
-          table,
-          values,
-          where: where,
-          whereArgs: whereArgs,
-          conflictAlgorithm: conflictAlgorithm != null //
-              ? ConflictAlgorithm.values[conflictAlgorithm]
-              : null,
-        );
-        final hasChanged = result > 0;
-        jobResult = DatabaseMethodResult(result: result, hasChanged: hasChanged);
-        break;
-
-      case (
-          'batch.commit',
-          [
-            final List<Object> operations,
-            {
-              'exclusive': final bool? exclusive,
-              'noResult': final bool? noResult,
-              'continueOnError': final bool? continueOnError,
-            }
-          ]
-        ):
-        jobResult = await _executeBatch(
-          isolateDatabase,
-          operations,
-          exclusive,
-          noResult,
-          continueOnError,
-          isCommit: true,
-        );
-        break;
-
-      case (
-          'batch.apply',
-          [
-            final List<Object> operations,
-            {'noResult': final bool? noResult, 'continueOnError': final bool? continueOnError}
-          ]
-        ):
-        jobResult = await _executeBatch(
-          isolateDatabase,
-          operations,
-          null, // exclusive not used for apply
-          noResult,
-          continueOnError,
-          isCommit: false,
-        );
-        break;
+      }
+      completer.completeError(e, stackTrace);
+      return;
     }
 
     final turnAroundDuration = DateTime.now().difference(start);
@@ -307,12 +359,6 @@ Future<Database> _getDatabase(int? savedHeartbeat) async {
     }
 
     final path = join(await getDatabasesPath(), 'database.db');
-    if (kDebugMode) {
-      printBoxed(
-        "Database path: \n${path.wrap120}",
-        "Database Initialization",
-      );
-    }
     _databaseInstance = await openDatabase(
       path,
       version: 2,
