@@ -10,6 +10,7 @@ class Invoice {
     this.id,
     required this.customerName,
     required this.invoiceDate,
+    required this.dueDate,
     required this.paymentMethod,
     this.referenceNumber,
     this.memo,
@@ -27,6 +28,7 @@ class Invoice {
       id: map['id'],
       customerName: map['customer_name'],
       invoiceDate: DateTime.parse(map['invoice_date']),
+      dueDate: DateTime.parse(map['due_date']),
       paymentMethod: map['payment_method'],
       referenceNumber: map['reference_number'],
       memo: map['memo'],
@@ -43,6 +45,7 @@ class Invoice {
   final String uid;
   final String customerName;
   final DateTime invoiceDate;
+  final DateTime dueDate;
   final int paymentMethod;
   final String? referenceNumber;
   final String? memo;
@@ -59,6 +62,7 @@ class Invoice {
     String uid,
     String customerName,
     DateTime invoiceDate,
+    DateTime dueDate,
     int paymentMethod,
     String? referenceNumber,
     String? memo,
@@ -75,6 +79,7 @@ class Invoice {
       Object? uid = undefined,
       Object? customerName = undefined,
       Object? invoiceDate = undefined,
+      Object? dueDate = undefined,
       Object? paymentMethod = undefined,
       Object? referenceNumber = undefined,
       Object? memo = undefined,
@@ -91,6 +96,7 @@ class Invoice {
         uid: uid.or(this.uid),
         customerName: customerName.or(this.customerName),
         invoiceDate: invoiceDate.or(this.invoiceDate),
+        dueDate: invoiceDate.or(this.dueDate), // Assuming dueDate is the same as invoiceDate
         paymentMethod: paymentMethod.or(this.paymentMethod),
         referenceNumber: referenceNumber.or(this.referenceNumber),
         memo: memo.or(this.memo),
@@ -110,6 +116,7 @@ class Invoice {
       'uid': uid,
       'customer_name': customerName,
       'invoice_date': invoiceDate.toIso8601String(),
+      'due_date': dueDate.toIso8601String(),
       'payment_method': paymentMethod,
       'reference_number': referenceNumber,
       'memo': memo,

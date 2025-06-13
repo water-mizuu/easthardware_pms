@@ -174,8 +174,7 @@ class _FormButton extends StatelessWidget {
 }
 
 class _PreserveDebugLogin extends StatefulWidget {
-  const _PreserveDebugLogin()
-      : assert(kDebugMode, "This widget should only be used in debug mode.");
+  const _PreserveDebugLogin();
 
   @override
   State<_PreserveDebugLogin> createState() => _PreserveDebugLoginState();

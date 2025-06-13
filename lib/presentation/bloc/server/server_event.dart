@@ -12,12 +12,12 @@ class ServerInit extends ServerEvent {
   const ServerInit();
 }
 
-class ServerPromptingUserFromNull extends ServerEvent {
-  const ServerPromptingUserFromNull();
+class _ServerPromptingUserFromNull extends ServerEvent {
+  const _ServerPromptingUserFromNull();
 }
 
-class ServerLoadingClientFromPreferences extends ServerEvent {
-  const ServerLoadingClientFromPreferences({
+class _ServerLoadingClientFromPreferences extends ServerEvent {
+  const _ServerLoadingClientFromPreferences({
     required this.address,
     required this.popupToUser,
     required this.saveToPreferences,
@@ -28,12 +28,12 @@ class ServerLoadingClientFromPreferences extends ServerEvent {
   final bool saveToPreferences;
 }
 
-class ServerPromptingClientInformation extends ServerEvent {
-  const ServerPromptingClientInformation();
+class _ServerPromptingClientInformation extends ServerEvent {
+  const _ServerPromptingClientInformation();
 }
 
-class ServerClientConnectionEstablished extends ServerEvent {
-  const ServerClientConnectionEstablished({
+class _ServerClientConnectionEstablished extends ServerEvent {
+  const _ServerClientConnectionEstablished({
     required this.args,
     required this.popupToUser,
     required this.saveToPreferences,
@@ -44,10 +44,12 @@ class ServerClientConnectionEstablished extends ServerEvent {
   final bool saveToPreferences;
 }
 
-class ServerLoadingServerFromPreferences extends ServerEvent {
-  const ServerLoadingServerFromPreferences({
+class _ServerLoadingServerFromPreferences extends ServerEvent {
+  const _ServerLoadingServerFromPreferences({
     required this.port,
+    // ignore: unused_element
     this.popupToUser = true,
+    // ignore: unused_element
     this.saveToPreferences = false,
   });
 
@@ -56,12 +58,12 @@ class ServerLoadingServerFromPreferences extends ServerEvent {
   final bool saveToPreferences;
 }
 
-class ServerPromptingServerInformation extends ServerEvent {
-  const ServerPromptingServerInformation();
+class _ServerPromptingServerInformation extends ServerEvent {
+  const _ServerPromptingServerInformation();
 }
 
-class ServerServerStarted extends ServerEvent {
-  const ServerServerStarted({
+class _ServerServerStarted extends ServerEvent {
+  const _ServerServerStarted({
     required this.args,
     required this.popupToUser,
     required this.saveToPreferences,
@@ -72,14 +74,14 @@ class ServerServerStarted extends ServerEvent {
   final bool saveToPreferences;
 }
 
-class ServerSaveClientInformation extends ServerEvent {
-  const ServerSaveClientInformation({required this.serverAddress});
+class _ServerSaveClientInformation extends ServerEvent {
+  const _ServerSaveClientInformation({required this.serverAddress});
 
   final String serverAddress;
 }
 
-class ServerSaveServerInformation extends ServerEvent {
-  const ServerSaveServerInformation({required this.port});
+class _ServerSaveServerInformation extends ServerEvent {
+  const _ServerSaveServerInformation({required this.port});
 
   final int port;
 }
@@ -90,6 +92,10 @@ class ServerDatabaseUpdated extends ServerEvent {
   final DateTime lastUpdated;
 }
 
-class ServerResetBottomText extends ServerEvent {
-  const ServerResetBottomText();
+class _ServerResetBottomText extends ServerEvent {
+  const _ServerResetBottomText();
+}
+
+class ServerMockDataAdded extends ServerEvent {
+  const ServerMockDataAdded();
 }

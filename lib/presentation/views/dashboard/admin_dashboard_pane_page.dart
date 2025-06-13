@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math';
 
 import 'package:easthardware_pms/domain/models/invoice.dart';
@@ -9,6 +10,7 @@ import 'package:easthardware_pms/presentation/widgets/layout/spacing.dart';
 import 'package:easthardware_pms/presentation/widgets/layout_mode_provider.dart';
 import 'package:easthardware_pms/presentation/widgets/text.dart';
 import 'package:easthardware_pms/presentation/widgets/ui/kpi_card.dart';
+import 'package:easthardware_pms/utils/boxed.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:fluent_ui/fluent_ui.dart';
 import 'package:provider/provider.dart';
@@ -32,7 +34,7 @@ class AdminDashboardPanePage extends StatelessWidget {
             const GraphsSection(),
             const RecentSales(),
             const MostUrgentProducts(),
-          ].withSpacing(() => Spacing.v16),
+          ].withSpacing(() => Spacing.v8),
         ),
       ),
     );
@@ -154,12 +156,14 @@ class SalesOverview extends StatefulWidget {
 
 class _SalesOverviewState extends State<SalesOverview> {
   late InvoiceListState? _invoices;
+  late BarChartData? _barChartData;
 
   @override
   void initState() {
     super.initState();
 
     _invoices = null;
+    _barChartData = null;
   }
 
   @override
@@ -169,6 +173,12 @@ class _SalesOverviewState extends State<SalesOverview> {
     final invoices = context.watch<InvoiceListBloc>().state;
     if (_invoices != invoices) {
       _invoices = invoices;
+
+      unawaited(() async {
+        final data = await _createBarChartData(invoices);
+        if (!mounted) return;
+        setState(() => _barChartData = data);
+      }());
     }
   }
 
@@ -202,22 +212,20 @@ class _SalesOverviewState extends State<SalesOverview> {
               ],
             ),
             Spacing.v32,
-            Expanded(child: LineChart(_createLineChartData(_invoices!))),
+            if (_barChartData == null)
+              const RecentSalesPlaceholder()
+            else
+              Expanded(child: BarChart(_barChartData!)),
           ],
         ),
       ),
     );
   }
 
-  LineChartData _createLineChartData(InvoiceListState invoices) {
-    /// To create a line chart data, there are multiple parameters to be generated
-    ///   from user decision.
-
-    /// [lineTouchData] configures the widgets shown as the mouse hovers over points
-    ///   in the data.
-    final lineTouchData = LineTouchData(
+  Future<BarChartData> _createBarChartData(InvoiceListState invoices) async {
+    final barTouchData = BarTouchData(
       handleBuiltInTouches: true,
-      touchTooltipData: LineTouchTooltipData(
+      touchTooltipData: BarTouchTooltipData(
         getTooltipColor: (touchedSpot) => Colors.grey[20],
       ),
     );
@@ -232,36 +240,76 @@ class _SalesOverviewState extends State<SalesOverview> {
       ),
     );
 
-    final linesData = [
-      LineChartBarData(
-        isCurved: true,
-        color: Colors.green,
-        barWidth: 2,
-        isStrokeCapRound: true,
-        dotData: const FlDotData(show: true),
-        belowBarData: BarAreaData(show: true),
-        spots: [
-          for (double i = 0; i + 0.5 < 7; i += 0.5) //
-            FlSpot(i.toDouble(), Random().nextInt(20).toDouble())
-        ],
-      )
+    final today = DateTime.now().copyWith(
+      hour: 0,
+      minute: 0,
+      second: 0,
+      millisecond: 0,
+      microsecond: 0,
+    );
+
+    final lastWeek = today.subtract(const Duration(days: 6));
+    final invoicesByDay = <DateTime, List<Invoice>>{};
+    final invoicesWithinTheWeek = invoices.allInvoices //
+        .where((i) => i.invoiceDate.isAfter(lastWeek));
+
+    for (var i = 0; i < 7; ++i) {
+      final date = today.subtract(Duration(days: 6 - i));
+      invoicesByDay[date] = <Invoice>[];
+    }
+
+    for (final invoice in invoicesWithinTheWeek) {
+      final date = invoice.invoiceDate.copyWith(hour: 0, minute: 0, second: 0, millisecond: 0);
+
+      if (!invoicesByDay.containsKey(date)) {
+        printBoxed(
+          "Tried to add an invoice for a date that is not in the last 7 days: $date\n${invoicesByDay.entries.join('\n')}",
+          "Invoice Date Error",
+        );
+      }
+      invoicesByDay[date]!.add(invoice);
+    }
+
+    assert(
+      invoicesByDay.length <= 7,
+      "There should be at most 7 days of invoices in the last week!",
+    );
+
+    final barGroups = [
+      for (final (index, invoices) in invoicesByDay.values.indexed)
+        () {
+          final maximum = invoices.map((i) => i.amountDue).fold(0.0, (a, b) => a + b);
+
+          return BarChartGroupData(
+            x: index,
+            barsSpace: 4,
+            barRods: [
+              BarChartRodData(
+                toY: maximum,
+                rodStackItems: [
+                  BarChartRodStackItem(0, maximum, Colors.red),
+                ],
+                borderRadius: BorderRadius.zero,
+                width: 12,
+              ),
+            ],
+          );
+        }(),
     ];
 
-    final maxY = linesData.expand((d) => d.spots.map((s) => s.y)).reduce(max);
+    final maxY = barGroups.expand((d) => d.barRods.map((s) => s.toY)).reduce(max);
 
     /// titlesData displays the labels around the graph.
-    const sideTitleCount = 5;
-    final sideTitleInterval = (maxY ~/ (sideTitleCount - 1)).toDouble();
-
     final titlesData = FlTitlesData(
       bottomTitles: AxisTitles(
         sideTitles: SideTitles(
           showTitles: true,
-          reservedSize: 32,
+          reservedSize: 96,
+          minIncluded: false,
+          maxIncluded: false,
           interval: 1,
           getTitlesWidget: (double value, TitleMeta meta) {
             const style = TextStyle(
-              fontWeight: FontWeight.bold,
               fontSize: 16,
             );
 
@@ -270,36 +318,35 @@ class _SalesOverviewState extends State<SalesOverview> {
               "Bottom title values should be integer-like.",
             );
 
-            final daysAgo = (7 - 1) - value.toInt();
-            final dateTimeThatDay = DateTime.now().subtract(Duration(days: daysAgo));
-            const weekdays = [
-              "Mon",
-              "Tue",
-              "Wed",
-              "Thu",
-              "Fri",
-              "Sat",
-              "Sun",
-            ];
+            final index = value.toInt();
+            assert(
+              0 <= index && index < 7,
+              "The value given should be a valid index for the product list!",
+            );
+            final weekday = invoicesByDay.keys.elementAt(index).weekday;
+            assert(
+              1 <= weekday && weekday <= 7,
+              "The day should be between 1 and 7, but got $weekday",
+            );
+            const daysOfWeek = ["", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
             return SideTitleWidget(
               meta: meta,
-              space: 10,
               child: Text(
-                weekdays[dateTimeThatDay.weekday - 1],
+                daysOfWeek[weekday],
                 style: style,
               ),
             );
           },
         ),
       ),
-      rightTitles: const AxisTitles(
+      leftTitles: const AxisTitles(
         sideTitles: SideTitles(showTitles: false),
       ),
       topTitles: const AxisTitles(
         sideTitles: SideTitles(showTitles: false),
       ),
-      leftTitles: AxisTitles(
+      rightTitles: AxisTitles(
         sideTitles: SideTitles(
           maxIncluded: false,
           getTitlesWidget: (double value, TitleMeta meta) {
@@ -311,28 +358,27 @@ class _SalesOverviewState extends State<SalesOverview> {
             return SideTitleWidget(
               meta: meta,
               child: Text(
-                '$value',
+                '${value ~/ 1}',
                 style: style,
                 textAlign: TextAlign.center,
               ),
             );
           },
           showTitles: true,
-          interval: sideTitleInterval,
-          reservedSize: 40,
+          interval: maxY > 0 ? (maxY ~/ 4).toDouble() : 1,
+          reservedSize: 72,
         ),
       ),
     );
 
-    return LineChartData(
-      lineTouchData: lineTouchData,
+    return BarChartData(
+      barTouchData: barTouchData,
       gridData: const FlGridData(show: true),
       titlesData: titlesData,
       borderData: borderData,
-      lineBarsData: linesData,
-      minX: 0,
-      maxX: 6,
+      barGroups: barGroups,
       minY: 0,
+      maxY: maxY + (maxY ~/ 4).toDouble(),
     );
   }
 }
@@ -534,6 +580,7 @@ class RecentSales extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final invoices = context.select((InvoiceListBloc b) => b.state.allInvoices);
+
     return ColoredBox(
       color: FluentTheme.of(context).cardColor,
       child: Padding(
@@ -595,7 +642,7 @@ class _RecentSalesTableState extends State<RecentSalesTable> {
         FixedSpanExtent(240.00),
         FractionalSpanExtent(0.33),
       ),
-      (i) => Text(i.customerName * 24),
+      (i) => Text(i.customerName),
     ),
     "Total": (const FixedSpanExtent(120), (i) => Text(i.amountDue.toString())),
     "Payment Method": (
@@ -687,7 +734,7 @@ class _MostUrgentProductsState extends State<MostUrgentProducts> {
         FixedSpanExtent(240.00),
         FractionalSpanExtent(0.33),
       ),
-      (p) => Text(p.name * 24),
+      (p) => Text(p.name),
     ),
     "Category": (
       const MaxSpanExtent(

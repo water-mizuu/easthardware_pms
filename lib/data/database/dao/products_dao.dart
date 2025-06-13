@@ -75,9 +75,8 @@ final class ProductsDaoImpl extends DaoBase implements ProductsDao {
       product.toMap(),
       conflictAlgorithm: ConflictAlgorithm.fail,
     );
-    assert(id == product.id);
 
-    return product;
+    return product.copyWith(id: id);
   }
 
   @override

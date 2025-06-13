@@ -1,8 +1,10 @@
 import 'package:easthardware_pms/presentation/bloc/authentication/'
     'authentication/authentication_bloc.dart';
+import 'package:easthardware_pms/presentation/bloc/server/server_bloc.dart';
 import 'package:easthardware_pms/presentation/widgets/dialog/log_out_dialog.dart';
 import 'package:easthardware_pms/utils/typed_routes.dart';
 import 'package:fluent_ui/fluent_ui.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 mixin NavigationPanelMixin {
@@ -65,6 +67,15 @@ mixin CommonSidePanelMixin on NavigationPanelMixin {
 
   List<NavigationPaneItem> footerItems(BuildContext context) {
     return [
+      if (kDebugMode)
+        navItem(
+          icon: FluentIcons.insert_rows_below,
+          title: 'Add mock items',
+          color: Colors.green,
+          onTap: () {
+            context.read<ServerBloc>().add(const ServerMockDataAdded());
+          },
+        ),
       navItem(
         icon: FluentIcons.leave,
         title: 'Log Out',

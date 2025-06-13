@@ -14,6 +14,7 @@ import 'package:easthardware_pms/presentation/widgets/layout/spacing.dart';
 import 'package:easthardware_pms/presentation/widgets/layout_mode_provider.dart';
 import 'package:easthardware_pms/presentation/widgets/text.dart';
 import 'package:easthardware_pms/presentation/widgets/ui/text_button.dart';
+import 'package:easthardware_pms/utils/notification.dart';
 import 'package:easthardware_pms/utils/typed_routes.dart';
 import 'package:fluent_ui/fluent_ui.dart';
 import 'package:flutter/foundation.dart';
@@ -59,6 +60,19 @@ class _CreateUserPageState extends State<CreateUserPage> {
               }
 
               final creator = context.read<AuthenticationBloc>().state.user;
+              if (creator == null) {
+                if (kDebugMode) {
+                  print('Tried to submit a user with no creator.');
+                }
+                showNotification(
+                  title: 'Error',
+                  message: 'Tried to submit a user whilst being logged out. '
+                      'If this is unexpected, please log in again.',
+                  severity: InfoBarSeverity.error,
+                );
+                break;
+              }
+
               final createdUser = state.mapStateToUser().copyWith(id: id);
 
               final securityQuestions = state.questions //
@@ -69,7 +83,7 @@ class _CreateUserPageState extends State<CreateUserPage> {
                 context.read<SecurityQuestionListBloc>().add(AddSecurityQuestionEvent(question));
               }
               context.read<UserListBloc>().add(AddUserEvent(createdUser));
-              context.read<UserLogListBloc>().add(AddCreateEvent('User #$id', creator!));
+              context.read<UserLogListBloc>().add(AddCreateEvent('User #$id', creator));
 
               /// This makes the form status be submitted.
               context.read<UserFormBloc>().add(FormResetEvent());

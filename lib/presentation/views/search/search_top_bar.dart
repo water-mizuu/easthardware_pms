@@ -128,7 +128,6 @@ class _SearchMenu extends StatelessWidget with NavigationPanelMixin {
                   displayMode: PaneDisplayMode.top,
                   selected: shell.currentIndex,
                   onItemPressed: (index) {
-                    /// TODO: Turn this into a mapper thing
                     shell.goBranch(index);
                   },
                   items: [

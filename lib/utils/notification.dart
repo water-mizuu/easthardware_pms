@@ -2,12 +2,12 @@ import 'package:easthardware_pms/presentation/router/app_router.dart';
 import 'package:easthardware_pms/utils/boxed.dart';
 import 'package:fluent_ui/fluent_ui.dart';
 
-Future<void> showNotification({
+void showNotification({
   required String title,
   required String message,
   InfoBarSeverity severity = InfoBarSeverity.info,
   Duration duration = const Duration(seconds: 3),
-}) async {
+}) {
   final innerContext = overlayWidgetKey.currentContext;
   if (innerContext == null) {
     printBoxed(

@@ -26,7 +26,7 @@ class InvoicesTable {
   static const String INVOICES_PAYMENT_DATE = "payment_date";
   static const String INVOICES_AMOUNT_DUE = "amount_due";
   static const String INVOICES_AMOUNT_PAID = "amount_paid";
-  static const String INVOICES_CREATOR_ID = "user_id";
+  static const String INVOICES_CREATOR_ID = "creator_id";
 
   static Future<void> createTable(Database database) async {
     await database.execute('''

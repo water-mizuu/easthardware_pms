@@ -1,8 +1,7 @@
 import 'package:easthardware_pms/utils/undefined.dart';
 
 class SecurityQuestion {
-
-  SecurityQuestion({
+  const SecurityQuestion({
     this.id,
     required this.userId,
     required this.question,
@@ -24,9 +23,9 @@ class SecurityQuestion {
 
   SecurityQuestion Function({
     int? id,
-    int? userId,
-    String? question,
-    String? answer,
+    int userId,
+    String question,
+    String answer,
   }) get copyWith {
     return ({
       Object? id = undefined,

@@ -315,7 +315,7 @@ Future<Database> _getDatabase(int? savedHeartbeat) async {
     }
     _databaseInstance = await openDatabase(
       path,
-      version: 5,
+      version: 2,
       onCreate: (db, version) {
         CategoriesTable.createTable(db);
         ExpenseTypesTable.createTable(db);
