@@ -1,7 +1,6 @@
 import 'package:easthardware_pms/data/database/dao/invoice_products_dao.dart';
 import 'package:easthardware_pms/data/database/database_helper.dart';
 import 'package:easthardware_pms/data/repository/product_repository.dart';
-import 'package:easthardware_pms/domain/enums/enums.dart';
 import 'package:easthardware_pms/domain/errors/exceptions.dart';
 import 'package:easthardware_pms/domain/models/invoice_product.dart';
 import 'package:easthardware_pms/domain/repository/invoice_product_repository.dart';
@@ -76,13 +75,6 @@ class InvoiceProductRepositoryImpl implements InvoiceProductRepository {
 
     if (invoiceProduct.quantity > product!.quantity) {
       throw ArgumentError('Quantity should be less than or equal to the available quantity');
-    }
-
-    if (invoiceProduct.discount! < 0) {
-      throw ArgumentError("Discount can not be negative");
-    }
-    if (100 < invoiceProduct.discount! && invoiceProduct.discountType == DiscountType.percentage) {
-      throw ArgumentError("Discount can not be greater than 100%");
     }
   }
 

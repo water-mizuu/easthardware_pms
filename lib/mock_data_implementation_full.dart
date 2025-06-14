@@ -733,14 +733,6 @@ Future<void> generateMockData(DatabaseHelper databaseHelper) async {
       final amount = rate * quantity;
       totalAmount += amount;
 
-      // Determine if product has individual discount
-      final hasProductDiscount = j == 0 && (invoiceId + customerIndex) % 6 == 0;
-      final productDiscountType =
-          (invoiceId + j) % 4 == 0 ? DiscountType.value : DiscountType.percentage;
-      final productDiscount = hasProductDiscount
-          ? (productDiscountType == DiscountType.percentage ? 5.0 + (j % 10) : 20.0 + (j * 5.0))
-          : null;
-
       // Create invoice product
       final invoiceProduct = InvoiceProduct(
         invoiceId: invoiceId,
@@ -750,8 +742,6 @@ Future<void> generateMockData(DatabaseHelper databaseHelper) async {
         quantity: quantity,
         rate: rate,
         amount: amount,
-        discount: productDiscount,
-        discountType: productDiscountType,
       );
 
       // Add to database

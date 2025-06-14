@@ -1220,15 +1220,6 @@ class ServerBloc extends Bloc<ServerEvent, ServerState> {
             final rate = product.salePrice;
             final amount = rate * quantity;
             totalAmount += amount;
-            // More varied discounts on products
-            final hasProductDiscount = j == 0 && (invoiceId + customerIndex) % 6 == 0;
-            final productDiscountType =
-                (invoiceId + j) % 4 == 0 ? DiscountType.value : DiscountType.percentage;
-            final productDiscount = hasProductDiscount
-                ? (productDiscountType == DiscountType.percentage
-                    ? 5.0 + (j % 10)
-                    : 20.0 + (j * 5.0))
-                : null;
 
             final invoiceProduct = InvoiceProduct(
               invoiceId: invoiceId,
@@ -1238,8 +1229,6 @@ class ServerBloc extends Bloc<ServerEvent, ServerState> {
               quantity: quantity,
               rate: rate,
               amount: amount,
-              discount: productDiscount,
-              discountType: productDiscountType,
             );
 
             await invoiceProductRepository.createInvoiceProduct(invoiceProduct);

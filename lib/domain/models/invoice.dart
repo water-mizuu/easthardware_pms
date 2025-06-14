@@ -11,7 +11,7 @@ class Invoice {
     required this.customerName,
     required this.invoiceDate,
     required this.dueDate,
-    required this.paymentMethod,
+    this.paymentMethod,
     this.referenceNumber,
     this.memo,
     this.discount,
@@ -46,7 +46,7 @@ class Invoice {
   final String customerName;
   final DateTime invoiceDate;
   final DateTime dueDate;
-  final int paymentMethod;
+  final int? paymentMethod;
   final String? referenceNumber;
   final String? memo;
   final double? discount;
@@ -96,7 +96,7 @@ class Invoice {
         uid: uid.or(this.uid),
         customerName: customerName.or(this.customerName),
         invoiceDate: invoiceDate.or(this.invoiceDate),
-        dueDate: invoiceDate.or(this.dueDate), // Assuming dueDate is the same as invoiceDate
+        dueDate: dueDate.or(this.dueDate),
         paymentMethod: paymentMethod.or(this.paymentMethod),
         referenceNumber: referenceNumber.or(this.referenceNumber),
         memo: memo.or(this.memo),
