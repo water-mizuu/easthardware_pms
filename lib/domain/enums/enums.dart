@@ -24,10 +24,9 @@ enum DataStatus {
 enum FormStatus {
   initial,
   validating,
-  invalid,
-  valid,
   submitting,
   submitted,
+  invalid,
   error,
   loading,
   success,
@@ -37,4 +36,10 @@ enum PaymentMethod {
   cash,
   credit,
   gcash,
+}
+
+enum InvoicePostAction {
+  payment,
+  create,
+  none,
 }

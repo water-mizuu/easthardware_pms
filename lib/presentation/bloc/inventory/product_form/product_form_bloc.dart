@@ -208,7 +208,6 @@ class ProductFormBloc extends Bloc<ProductFormEvent, ProductFormState> {
 
     try {
       if (formKey.currentState case final FormState formState when formState.validate()) {
-        emit(state.copyWith(formStatus: FormStatus.valid));
         await Future.delayed(Duration.zero);
 
         if (kDebugMode) {
