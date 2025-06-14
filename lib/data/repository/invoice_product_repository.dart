@@ -14,7 +14,7 @@ class InvoiceProductRepositoryImpl implements InvoiceProductRepository {
   final ProductRepositoryImpl _productRepository;
 
   @override
-  Future<InvoiceProduct> createInvoiceProduct(InvoiceProduct invoiceProduct) {
+  Future<InvoiceProduct> insertInvoiceProduct(InvoiceProduct invoiceProduct) {
     try {
       return _invoiceProductsDao.insertInvoiceProduct(invoiceProduct);
     } catch (e) {
@@ -35,7 +35,7 @@ class InvoiceProductRepositoryImpl implements InvoiceProductRepository {
   }
 
   @override
-  Future<List<InvoiceProduct>> getAllInvoiceProducts() async {
+  Future<List<InvoiceProduct>> fetchAllInvoiceProducts() async {
     try {
       return await _invoiceProductsDao.getAllInvoiceProducts();
     } catch (e) {
@@ -44,7 +44,7 @@ class InvoiceProductRepositoryImpl implements InvoiceProductRepository {
   }
 
   @override
-  Future<InvoiceProduct?> getInvoiceProductById(int id) async {
+  Future<InvoiceProduct?> fetchInvoiceProductById(int id) async {
     if (id <= 0) {
       throw ArgumentError('Invalid invoice product ID');
     }
@@ -79,7 +79,7 @@ class InvoiceProductRepositoryImpl implements InvoiceProductRepository {
   }
 
   @override
-  Future<List<InvoiceProduct?>> getInvoiceProductsByInvoiceId(int invoiceId) async {
+  Future<List<InvoiceProduct?>> fetchInvoiceProductByInvoice(int invoiceId) async {
     if (invoiceId <= 0) {
       throw ArgumentError('Invalid invoice ID');
     }

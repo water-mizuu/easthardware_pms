@@ -5,10 +5,10 @@ import 'package:easthardware_pms/domain/models/invoice_product.dart';
 abstract class InvoiceProductRepository {
   factory InvoiceProductRepository(DatabaseHelper? databaseHelper) = InvoiceProductRepositoryImpl;
 
-  Future<List<InvoiceProduct>> getAllInvoiceProducts();
-  Future<InvoiceProduct?> getInvoiceProductById(int id);
-  Future<List<InvoiceProduct?>> getInvoiceProductsByInvoiceId(int invoiceId);
-  Future<void> createInvoiceProduct(InvoiceProduct invoiceProduct);
+  Future<List<InvoiceProduct>> fetchAllInvoiceProducts();
+  Future<InvoiceProduct?> fetchInvoiceProductById(int id);
+  Future<List<InvoiceProduct?>> fetchInvoiceProductByInvoice(int invoiceId);
+  Future<void> insertInvoiceProduct(InvoiceProduct invoiceProduct);
   Future<void> updateInvoiceProduct(InvoiceProduct invoiceProduct);
   Future<void> deleteInvoiceProduct(int id);
 }
