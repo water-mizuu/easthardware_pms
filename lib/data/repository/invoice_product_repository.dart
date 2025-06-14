@@ -79,10 +79,7 @@ class InvoiceProductRepositoryImpl implements InvoiceProductRepository {
   }
 
   @override
-  Future<List<InvoiceProduct?>> fetchInvoiceProductByInvoice(int invoiceId) async {
-    if (invoiceId <= 0) {
-      throw ArgumentError('Invalid invoice ID');
-    }
+  Future<List<InvoiceProduct>> fetchInvoiceProductByInvoice(int invoiceId) async {
     try {
       return await _invoiceProductsDao.getInvoiceProductsByInvoiceId(invoiceId);
     } catch (e) {
