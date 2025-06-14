@@ -1,12 +1,10 @@
 import 'package:easthardware_pms/domain/enums/enums.dart';
 import 'package:easthardware_pms/utils/undefined.dart';
 import 'package:flutter/foundation.dart';
-import 'package:uuid/uuid.dart';
 
 @immutable
 class Invoice {
-  Invoice({
-    String? uid,
+  const Invoice({
     this.id,
     required this.customerName,
     required this.invoiceDate,
@@ -21,7 +19,7 @@ class Invoice {
     required this.amountDue,
     this.amountPaid,
     required this.creatorId,
-  }) : uid = const Uuid().v4();
+  });
 
   factory Invoice.fromMap(Map<String, dynamic> map) {
     return Invoice(
@@ -42,7 +40,6 @@ class Invoice {
     );
   }
   final int? id;
-  final String uid;
   final String customerName;
   final DateTime invoiceDate;
   final DateTime dueDate;
@@ -59,7 +56,6 @@ class Invoice {
 
   Invoice Function({
     int? id,
-    String uid,
     String customerName,
     DateTime invoiceDate,
     DateTime dueDate,
@@ -76,7 +72,6 @@ class Invoice {
   }) get copyWith {
     return ({
       Object? id = undefined,
-      Object? uid = undefined,
       Object? customerName = undefined,
       Object? invoiceDate = undefined,
       Object? dueDate = undefined,
@@ -93,7 +88,6 @@ class Invoice {
     }) {
       return Invoice(
         id: id.or(this.id),
-        uid: uid.or(this.uid),
         customerName: customerName.or(this.customerName),
         invoiceDate: invoiceDate.or(this.invoiceDate),
         dueDate: dueDate.or(this.dueDate),
@@ -113,7 +107,6 @@ class Invoice {
 
   Map<String, dynamic> toMap() {
     return {
-      'uid': uid,
       'customer_name': customerName,
       'invoice_date': invoiceDate.toIso8601String(),
       'due_date': dueDate.toIso8601String(),
