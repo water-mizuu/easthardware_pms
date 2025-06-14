@@ -4,12 +4,12 @@ class InvoiceListState extends Equatable {
   const InvoiceListState({
     this.invoices = const [],
     this.status = DataStatus.initial,
-    this.invoiceProducts,
+    this.invoiceProducts = const [],
   });
 
   final List<Invoice> invoices;
   final DataStatus status;
-  final List<InvoiceProduct>? invoiceProducts;
+  final List<InvoiceProduct> invoiceProducts;
 
   InvoiceListState copyWith({
     List<Invoice>? invoices,
