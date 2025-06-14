@@ -18,19 +18,9 @@ part 'product_form_event.dart';
 part 'product_form_state.dart';
 
 class ProductFormBloc extends Bloc<ProductFormEvent, ProductFormState> {
-  ProductFormBloc({
-    Product? product,
-    List<Unit>? units,
-  })  : assert(
-          (product == null) == (units == null),
-          "Either none of them should be provided, or both of them.",
-        ),
-        formKey = GlobalKey<FormState>(),
-        super(
-          product == null || units == null
-              ? ProductFormState()
-              : ProductFormState.fromProduct(product, units),
-        ) {
+  ProductFormBloc()
+      : formKey = GlobalKey<FormState>(),
+        super(ProductFormState()) {
     on<NameFieldChangedEvent>(_onNameChanged);
     on<SkuFieldChangedEvent>(_onSkuChanged);
     on<CategoryFieldChangedEvent>(_onCategoryChanged);
@@ -53,6 +43,17 @@ class ProductFormBloc extends Bloc<ProductFormEvent, ProductFormState> {
     on<FormSubmittedEvent>(_onFormSubmitted);
     on<ProductLoadedEvent>(_onProductLoaded);
   }
+  static ProductFormBloc fromProduct(Product product, List<Unit> units) {
+    final bloc = ProductFormBloc();
+    final secondaryUnits = units.where((unit) => unit.productId == product.id).toList();
+    bloc.add(ProductLoadedEvent(
+      product,
+      secondaryUnits,
+    ));
+    bloc.formKey.currentState?.reset();
+    return bloc;
+  }
+
   final GlobalKey<FormState> formKey;
 
   @override

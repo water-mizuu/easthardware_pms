@@ -37,7 +37,7 @@ class EditProductPage extends StatelessWidget {
                 .where((u) => u.productId == product.id)
                 .toList();
 
-            return ProductFormBloc(product: product, units: secondaryUnits);
+            return ProductFormBloc.fromProduct(product, secondaryUnits);
           },
         ),
       ],
