@@ -20,7 +20,9 @@ class InvoiceFormState extends Equatable {
     this.creationDate,
     this.invoiceDateErrorMessage,
     this.dueDateErrorMessage,
-    this.invoiceTableErrorMessage,
+    this.errorMessage,
+    this.status = FormStatus.initial,
+    this.action = InvoicePostAction.none,
   })  : invoiceDate = invoiceDate ?? DateTime.now(),
         products = products ?? [EmptyFormProduct()],
         dueDate = dueDate ?? DateTime.now();
@@ -49,7 +51,10 @@ class InvoiceFormState extends Equatable {
   // For Form Validation for components with no validator support
   final String? invoiceDateErrorMessage;
   final String? dueDateErrorMessage;
-  final String? invoiceTableErrorMessage;
+
+  final FormStatus status;
+  final String? errorMessage;
+  final InvoicePostAction action;
 
   InvoiceFormState copyWith({
     int? invoiceId,
@@ -70,7 +75,9 @@ class InvoiceFormState extends Equatable {
     DateTime? creationDate,
     String? invoiceDateErrorMessage,
     String? dueDateErrorMessage,
-    String? invoiceTableErrorMessage,
+    FormStatus? status,
+    String? errorMessage,
+    InvoicePostAction? action,
   }) {
     return InvoiceFormState(
       invoiceId: invoiceId ?? this.invoiceId,
@@ -91,7 +98,27 @@ class InvoiceFormState extends Equatable {
       creationDate: creationDate ?? this.creationDate,
       invoiceDateErrorMessage: invoiceDateErrorMessage ?? this.invoiceDateErrorMessage,
       dueDateErrorMessage: dueDateErrorMessage ?? this.dueDateErrorMessage,
-      invoiceTableErrorMessage: invoiceTableErrorMessage ?? this.invoiceTableErrorMessage,
+      status: status ?? this.status,
+      errorMessage: errorMessage,
+      action: action ?? this.action,
+    );
+  }
+
+  Invoice toInvoice() {
+    return Invoice(
+      id: invoiceId,
+      customerName: customerName,
+      invoiceDate: invoiceDate,
+      dueDate: dueDate,
+      paymentMethod: paymentMethod?.index,
+      referenceNumber: referenceNumber,
+      memo: memo,
+      discount: discount,
+      discountType: discountType,
+      amountDue: amountDue!,
+      amountPaid: amountPaid,
+      creatorId: creatorId!,
+      creationDate: creationDate!,
     );
   }
 
@@ -113,5 +140,7 @@ class InvoiceFormState extends Equatable {
         referenceNumber ?? '',
         creatorId ?? 0,
         creationDate ?? DateTime.now(),
+        action,
+        invoiceDateErrorMessage ?? '',
       ];
 }
