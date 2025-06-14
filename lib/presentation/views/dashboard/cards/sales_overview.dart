@@ -114,7 +114,7 @@ class _SalesOverviewState extends State<SalesOverview> {
 
     final lastWeek = today.subtract(const Duration(days: 6));
     final invoicesByDay = <DateTime, List<Invoice>>{};
-    final invoicesWithinTheWeek = invoices.allInvoices //
+    final invoicesWithinTheWeek = invoices.invoices //
         .where((i) => i.invoiceDate.isAfter(lastWeek));
 
     for (var i = 0; i < 7; ++i) {

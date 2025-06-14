@@ -1231,7 +1231,7 @@ class ServerBloc extends Bloc<ServerEvent, ServerState> {
               amount: amount,
             );
 
-            await invoiceProductRepository.createInvoiceProduct(invoiceProduct);
+            await invoiceProductRepository.insertInvoiceProduct(invoiceProduct);
           }
 
           // Update invoice with total amount

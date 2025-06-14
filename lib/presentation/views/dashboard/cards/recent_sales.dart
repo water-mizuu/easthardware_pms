@@ -14,7 +14,7 @@ class RecentSales extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final invoices = context.select((InvoiceListBloc b) => b.state.allInvoices);
+    final invoices = context.select((InvoiceListBloc b) => b.state.invoices);
 
     return ColoredBox(
       color: FluentTheme.of(context).cardColor,
@@ -111,7 +111,7 @@ class _RecentSalesTableState extends State<RecentSalesTable> {
 
   @override
   Widget build(BuildContext context) {
-    final invoices = context.select((InvoiceListBloc b) => b.state.allInvoices);
+    final invoices = context.select((InvoiceListBloc b) => b.state.invoices);
     final matrix = [
       [
         for (final columnName in _rowExtents.keys)

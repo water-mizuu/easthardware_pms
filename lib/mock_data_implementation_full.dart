@@ -745,7 +745,7 @@ Future<void> generateMockData(DatabaseHelper databaseHelper) async {
       );
 
       // Add to database
-      await invoiceProductRepository.createInvoiceProduct(invoiceProduct);
+      await invoiceProductRepository.insertInvoiceProduct(invoiceProduct);
     }
 
     // Update invoice with total amount

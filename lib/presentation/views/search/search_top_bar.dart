@@ -61,7 +61,7 @@ class _SearchPageState extends State<SearchPage> {
       _searchBloc.add(
         SearchDependentsUpdated(
           products: productListBloc.state.allProducts,
-          invoices: invoiceListBloc.state.allInvoices,
+          invoices: invoiceListBloc.state.invoices,
           orders: orderListBloc.state.allOrders,
         ),
       );

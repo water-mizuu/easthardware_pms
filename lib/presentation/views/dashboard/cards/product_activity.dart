@@ -47,7 +47,7 @@ class _ProductActivityState extends State<ProductActivity> {
       _invoices = invoices;
       _requestCanceller = () => isCancelled = true;
       unawaited(() async {
-        final data = await _createBarChartData(invoices.allInvoices);
+        final data = await _createBarChartData(invoices.invoices);
         if (!mounted || isCancelled) return;
         setState(() => _barChartData = data);
       }());
@@ -103,7 +103,7 @@ class _ProductActivityState extends State<ProductActivity> {
     ///   and then map each invoice to its products.
     final products = await invoices
         .where((i) => i.creationDate.isAfter(DateTime.now().subtract(const Duration(days: 30))))
-        .map((i) => invoiceProductRepository.getInvoiceProductsByInvoiceId(i.id!))
+        .map((i) => invoiceProductRepository.fetchInvoiceProductByInvoice(i.id!))
         .wait;
 
     /// For each product in the filtered invoices,

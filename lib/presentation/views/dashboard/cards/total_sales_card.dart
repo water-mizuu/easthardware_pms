@@ -9,7 +9,7 @@ class TotalSalesCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final totalSales = context.select(
-      (InvoiceListBloc b) => b.state.allInvoices.fold<double>(
+      (InvoiceListBloc b) => b.state.invoices.fold<double>(
         0.0,
         (previousValue, invoice) => previousValue + (invoice.amountPaid ?? 0.0),
       ),

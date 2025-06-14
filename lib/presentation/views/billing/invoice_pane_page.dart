@@ -82,7 +82,7 @@ class InvoiceDataTable extends StatelessWidget {
         if (state.status == DataStatus.loading) {
           return const Center(child: ProgressRing());
         }
-        final invoices = state.allInvoices;
+        final invoices = state.invoices;
         return Theme(
           data: ThemeData(
             dataTableTheme: const DataTableThemeData(
