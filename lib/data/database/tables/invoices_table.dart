@@ -13,7 +13,6 @@ import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 class InvoicesTable {
   static const String INVOICES_TABLE_NAME = "invoices";
   static const String INVOICES_ID = 'id';
-  static const String INVOICES_UID = 'uid';
   static const String INVOICES_CUSTOMER_NAME = "customer_name";
   static const String INVOICES_DATE = "invoice_date";
   static const String INVOICES_DUE_DATE = "due_date";
@@ -32,7 +31,6 @@ class InvoicesTable {
     await database.execute('''
       CREATE TABLE $INVOICES_TABLE_NAME(
       $INVOICES_ID INTEGER PRIMARY KEY AUTOINCREMENT,
-      $INVOICES_UID TEXT NOT NULL,
       $INVOICES_CUSTOMER_NAME TEXT,
       $INVOICES_DATE TEXT NOT NULL,
       $INVOICES_DUE_DATE TEXT NOT NULL,

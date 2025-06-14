@@ -101,10 +101,9 @@ class PageForm extends StatelessWidget {
                         const BodyText('Customer Name'),
                         Spacing.v8,
                         TextFormBox(
-                          onChanged: (value) =>
-                              context.read<InvoiceFormBloc>().add(
-                                    CustomerNameChangedEvent(value),
-                                  ),
+                          onChanged: (value) => context.read<InvoiceFormBloc>().add(
+                                CustomerNameChangedEvent(value),
+                              ),
                         ),
                       ],
                     ),
@@ -126,22 +125,14 @@ class PageForm extends StatelessWidget {
                         const BodyText('Invoice Date'),
                         Spacing.v8,
                         DatePicker(
-                          selected: context.select(
-                              (InvoiceFormBloc bloc) => bloc.state.invoiceDate),
-                          onChanged: (value) => context
-                              .read<InvoiceFormBloc>()
-                              .add(InvoiceDateChangedEvent(value)),
+                          selected:
+                              context.select((InvoiceFormBloc bloc) => bloc.state.invoiceDate),
+                          onChanged: (value) =>
+                              context.read<InvoiceFormBloc>().add(InvoiceDateChangedEvent(value)),
                         ),
-                        if (context
-                                .watch<InvoiceFormBloc>()
-                                .state
-                                .invoiceDateErrorMessage !=
-                            null)
+                        if (context.watch<InvoiceFormBloc>().state.invoiceDateErrorMessage != null)
                           Text(
-                            context
-                                .watch<InvoiceFormBloc>()
-                                .state
-                                .invoiceDateErrorMessage!,
+                            context.watch<InvoiceFormBloc>().state.invoiceDateErrorMessage!,
                             style: TextStyles.error,
                           ),
                       ],
@@ -156,22 +147,13 @@ class PageForm extends StatelessWidget {
                         const BodyText('Due Date'),
                         Spacing.v8,
                         DatePicker(
-                          selected: context.select(
-                              (InvoiceFormBloc bloc) => bloc.state.dueDate),
-                          onChanged: (value) => context
-                              .read<InvoiceFormBloc>()
-                              .add(DueDateChangedEvent(value)),
+                          selected: context.select((InvoiceFormBloc bloc) => bloc.state.dueDate),
+                          onChanged: (value) =>
+                              context.read<InvoiceFormBloc>().add(DueDateChangedEvent(value)),
                         ),
-                        if (context
-                                .watch<InvoiceFormBloc>()
-                                .state
-                                .dueDateErrorMessage !=
-                            null)
+                        if (context.watch<InvoiceFormBloc>().state.dueDateErrorMessage != null)
                           Text(
-                            context
-                                .watch<InvoiceFormBloc>()
-                                .state
-                                .dueDateErrorMessage!,
+                            context.watch<InvoiceFormBloc>().state.dueDateErrorMessage!,
                             style: TextStyles.error,
                           ),
                       ],
@@ -205,11 +187,10 @@ class PageHeader extends StatelessWidget {
       children: [
         IconButton(
             icon: const Icon(FluentIcons.back),
-            onPressed: () =>
-                context.read<AuthenticationBloc>().state.user!.accessLevel ==
-                        AccessLevel.administrator
-                    ? context.navigate(AppRoutes.admin.billing)
-                    : context.navigate(AppRoutes.staff.billing)),
+            onPressed: () => context.read<AuthenticationBloc>().state.user!.accessLevel ==
+                    AccessLevel.administrator
+                ? context.navigate(AppRoutes.admin.billing)
+                : context.navigate(AppRoutes.staff.billing)),
         const DisplayText("Create Invoice"),
         const Spacer(flex: 1),
         TextButton(
@@ -285,8 +266,7 @@ class _InvoiceProductTableState extends State<InvoiceProductTable> {
   @override
   void initState() {
     super.initState();
-    _scrollController =
-        AnimatedScrollController(animationFactory: const ChromiumEaseInOut());
+    _scrollController = AnimatedScrollController(animationFactory: const ChromiumEaseInOut());
   }
 
   @override
@@ -311,20 +291,13 @@ class _InvoiceProductTableState extends State<InvoiceProductTable> {
               child: Row(
                 children: [
                   FormTableColumn(
-                      child: const SizedBox(
-                          width: 32.0, child: Center(child: Text("#")))),
-                  Expanded(
-                      flex: 2,
-                      child: FormTableColumn(child: const Text("Product"))),
-                  Expanded(
-                      flex: 2,
-                      child: FormTableColumn(child: const Text("Description"))),
-                  Expanded(
-                      child: FormTableColumn(child: const Text("Quantity"))),
+                      child: const SizedBox(width: 32.0, child: Center(child: Text("#")))),
+                  Expanded(flex: 2, child: FormTableColumn(child: const Text("Product"))),
+                  Expanded(flex: 2, child: FormTableColumn(child: const Text("Description"))),
+                  Expanded(child: FormTableColumn(child: const Text("Quantity"))),
                   Expanded(child: FormTableColumn(child: const Text("Rate"))),
                   Expanded(child: FormTableColumn(child: const Text("Amount"))),
-                  const SizedBox(
-                      width: 82.0, child: Center(child: Text("Actions"))),
+                  const SizedBox(width: 82.0, child: Center(child: Text("Actions"))),
                 ],
               ),
             ),
@@ -394,8 +367,7 @@ class _FormTableRowState extends State<FormTableRow> {
       _descriptionController.text = currentProduct.description ?? '';
       _quantityController.text =
           currentProduct.quantity > 0 ? currentProduct.quantity.toString() : '';
-      _rateController.text =
-          currentProduct.rate > 0 ? currentProduct.rate.toString() : '';
+      _rateController.text = currentProduct.rate > 0 ? currentProduct.rate.toString() : '';
       _lastProduct = currentProduct;
     }
   }
@@ -442,8 +414,7 @@ class _FormTableRowState extends State<FormTableRow> {
                     child: Container(
                       decoration: const BoxDecoration(
                         border: Border(
-                          right:
-                              BorderSide(width: 0.5, color: Colors.transparent),
+                          right: BorderSide(width: 0.5, color: Colors.transparent),
                         ),
                       ),
                       child: AutoSuggestBox.form(
@@ -454,21 +425,16 @@ class _FormTableRowState extends State<FormTableRow> {
                             AutoSuggestBoxItem<Product>(
                               value: product,
                               child: Container(
-                                padding:
-                                    const EdgeInsets.symmetric(horizontal: 8.0),
+                                padding: const EdgeInsets.symmetric(horizontal: 8.0),
                                 child: Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                   children: [
                                     Text(product.name),
                                     Text(
                                       '${product.quantity.toString()} ${product.mainUnit}',
-                                      style: product.quantity <
-                                              product.criticalLevel
-                                          ? TextStyles.error
-                                              .merge(TextStyles.caption)
-                                          : TextStyles.active
-                                              .merge(TextStyles.caption),
+                                      style: product.quantity < product.criticalLevel
+                                          ? TextStyles.error.merge(TextStyles.caption)
+                                          : TextStyles.active.merge(TextStyles.caption),
                                     ),
                                   ],
                                 ),
@@ -493,11 +459,9 @@ class _FormTableRowState extends State<FormTableRow> {
                           }
                           if (reason == TextChangedReason.userInput) {
                             for (final product in products) {
-                              if (product.name.toLowerCase() ==
-                                  value.toLowerCase()) {
-                                final formProduct =
-                                    FormProduct.fromProduct(product).copyWith(
-                                        quantity: currentProduct.quantity);
+                              if (product.name.toLowerCase() == value.toLowerCase()) {
+                                final formProduct = FormProduct.fromProduct(product)
+                                    .copyWith(quantity: currentProduct.quantity);
                                 return bloc.add(
                                   ProductUpdatedEvent(
                                     product: formProduct,
@@ -522,16 +486,12 @@ class _FormTableRowState extends State<FormTableRow> {
                         },
                         onSelected: (value) {
                           if (currentProduct.productId == null) {
-                            final formProduct =
-                                FormProduct.fromProduct(value.value!);
-                            bloc.add(ProductSelectedEvent(
-                                formProduct, widget.index));
-                          } else if (currentProduct.productId !=
-                              value.value!.id) {
+                            final formProduct = FormProduct.fromProduct(value.value!);
+                            bloc.add(ProductSelectedEvent(formProduct, widget.index));
+                          } else if (currentProduct.productId != value.value!.id) {
                             bloc.add(
                               ProductUpdatedEvent(
-                                product: FormProduct.fromProduct(value.value!)
-                                    .copyWith(
+                                product: FormProduct.fromProduct(value.value!).copyWith(
                                   description: currentProduct.description,
                                   quantity: currentProduct.quantity,
                                 ),
@@ -554,8 +514,7 @@ class _FormTableRowState extends State<FormTableRow> {
                           onChanged: (value) {
                             bloc.add(
                               ProductUpdatedEvent(
-                                product:
-                                    currentProduct.copyWith(description: value),
+                                product: currentProduct.copyWith(description: value),
                                 index: widget.index,
                               ),
                             );
@@ -582,31 +541,24 @@ class _FormTableRowState extends State<FormTableRow> {
                                 flex: 1,
                                 child: TextFormBoxes.ghost(
                                   inputFormatters: [
-                                    FilteringTextInputFormatter.allow(
-                                        RegExp(r'^\d*\.?\d{0,2}')),
+                                    FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}')),
                                   ],
                                   style: TextStyles.active,
                                   controller: _quantityController,
                                   placeholder: '0',
-                                  placeholderStyle:
-                                      currentProduct.productId == null
-                                          ? TextStyles.inactive
-                                          : TextStyles.active,
+                                  placeholderStyle: currentProduct.productId == null
+                                      ? TextStyles.inactive
+                                      : TextStyles.active,
                                   onChanged: (value) {
-                                    final quantity =
-                                        double.tryParse(value) ?? 0;
+                                    final quantity = double.tryParse(value) ?? 0;
                                     bloc.add(
                                       ProductUpdatedEvent(
-                                        product: currentProduct.copyWith(
-                                            quantity: quantity),
+                                        product: currentProduct.copyWith(quantity: quantity),
                                         index: widget.index,
-                                        reference: currentProduct.productId ==
-                                                null
+                                        reference: currentProduct.productId == null
                                             ? null
                                             : products.firstWhere(
-                                                (p) =>
-                                                    p.id ==
-                                                    currentProduct.productId,
+                                                (p) => p.id == currentProduct.productId,
                                               ),
                                       ),
                                     );
@@ -626,8 +578,7 @@ class _FormTableRowState extends State<FormTableRow> {
                                               .state
                                               .allProducts
                                               .firstWhere((product) =>
-                                                  product.id ==
-                                                  currentProduct.productId)
+                                                  product.id == currentProduct.productId)
                                               .mainUnit,
                                         ),
                                         onPressed: () {
@@ -640,26 +591,20 @@ class _FormTableRowState extends State<FormTableRow> {
                                                     .state
                                                     .allProducts
                                                     .firstWhere((product) =>
-                                                        product.id ==
-                                                        currentProduct
-                                                            .productId)
+                                                        product.id == currentProduct.productId)
                                                     .salePrice,
                                                 unit: context
                                                     .read<ProductListBloc>()
                                                     .state
                                                     .allProducts
                                                     .firstWhere((product) =>
-                                                        product.id ==
-                                                        currentProduct
-                                                            .productId)
+                                                        product.id == currentProduct.productId)
                                                     .mainUnit,
                                                 conversionFactor: 1.0,
                                               ),
                                               index: widget.index,
                                               reference: products.firstWhere(
-                                                  (p) =>
-                                                      p.id ==
-                                                      currentProduct.productId),
+                                                  (p) => p.id == currentProduct.productId),
                                             ),
                                           );
                                         }),
@@ -667,9 +612,7 @@ class _FormTableRowState extends State<FormTableRow> {
                                         .read<UnitListBloc>()
                                         .state
                                         .units
-                                        .where((u) =>
-                                            u.productId ==
-                                            currentProduct.productId))
+                                        .where((u) => u.productId == currentProduct.productId))
                                       MenuFlyoutItem(
                                         text: Text(unit.name),
                                         onPressed: () {
@@ -683,19 +626,14 @@ class _FormTableRowState extends State<FormTableRow> {
                                                     .state
                                                     .allProducts
                                                     .firstWhere((product) =>
-                                                        product.id ==
-                                                        currentProduct
-                                                            .productId)
+                                                        product.id == currentProduct.productId)
                                                     .salePrice,
                                                 conversionFactor:
-                                                    unit.mainQuantity /
-                                                        unit.unitQuantity,
+                                                    unit.mainQuantity / unit.unitQuantity,
                                               ),
                                               index: widget.index,
                                               reference: products.firstWhere(
-                                                  (p) =>
-                                                      p.id ==
-                                                      currentProduct.productId),
+                                                  (p) => p.id == currentProduct.productId),
                                             ),
                                           );
                                         },
@@ -707,16 +645,14 @@ class _FormTableRowState extends State<FormTableRow> {
                                       onPressed: onOpen,
                                       child: Row(
                                         mainAxisSize: MainAxisSize.min,
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.center,
+                                        crossAxisAlignment: CrossAxisAlignment.center,
                                         children: [
                                           Text(
                                             currentProduct.unit,
                                             overflow: TextOverflow.ellipsis,
                                           ),
                                           Spacing.h12,
-                                          const Icon(FluentIcons.chevron_down,
-                                              size: 8.0),
+                                          const Icon(FluentIcons.chevron_down, size: 8.0),
                                         ],
                                       ),
                                     );
@@ -733,8 +669,7 @@ class _FormTableRowState extends State<FormTableRow> {
                     child: FormTableCell(
                       child: TextFormBoxes.ghost(
                         inputFormatters: [
-                          FilteringTextInputFormatter.allow(
-                              RegExp(r'^\d*\.?\d{0,2}')),
+                          FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}')),
                         ],
                         style: TextStyles.active,
                         controller: _rateController,
@@ -773,8 +708,7 @@ class _FormTableRowState extends State<FormTableRow> {
                           child: Center(
                             child: IconButton(
                                 icon: const Icon(FluentIcons.cancel),
-                                onPressed: () => bloc
-                                    .add(ProductRemovedEvent(widget.index))),
+                                onPressed: () => bloc.add(ProductRemovedEvent(widget.index))),
                           ),
                         )
                       : const SizedBox(width: 82.0)
@@ -782,10 +716,9 @@ class _FormTableRowState extends State<FormTableRow> {
               ),
               if (currentProduct.errorMessage != null)
                 Padding(
-                  padding: const EdgeInsets.symmetric(
-                      vertical: 4.0, horizontal: 48.0),
+                  padding: const EdgeInsets.symmetric(vertical: 4.0, horizontal: 48.0),
                   child: Text(
-                    state.invoiceTableErrorMessage!,
+                    currentProduct.errorMessage!,
                     style: TextStyles.error,
                   ),
                 ),
@@ -801,8 +734,7 @@ class InvoiceSummary extends StatelessWidget {
   const InvoiceSummary({super.key});
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<InvoiceFormBloc, InvoiceFormState>(
-        builder: (context, state) {
+    return BlocBuilder<InvoiceFormBloc, InvoiceFormState>(builder: (context, state) {
       final subtotal = state.subtotal ?? 0.0;
       final discount = state.discount ?? 0.0;
       final total = state.amountDue ?? 0.0;
@@ -819,9 +751,8 @@ class InvoiceSummary extends StatelessWidget {
                 TextBox(
                   minLines: 3,
                   maxLines: 3,
-                  onChanged: (value) => context
-                      .read<InvoiceFormBloc>()
-                      .add(MemoChangedEvent(value)),
+                  onChanged: (value) =>
+                      context.read<InvoiceFormBloc>().add(MemoChangedEvent(value)),
                 ),
               ],
             ),
@@ -837,8 +768,7 @@ class InvoiceSummary extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       const Text("Subtotal"),
-                      Text("Php. ${subtotal.toStringAsFixed(2)}",
-                          style: TextStyles.active),
+                      Text("Php. ${subtotal.toStringAsFixed(2)}", style: TextStyles.active),
                     ],
                   ),
                   Spacing.v16,
@@ -856,14 +786,11 @@ class InvoiceSummary extends StatelessWidget {
                                 flex: 2,
                                 child: TextFormBox(
                                   inputFormatters: [
-                                    FilteringTextInputFormatter.allow(
-                                        RegExp(r'^\d*\.?\d{0,2}')),
+                                    FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}')),
                                   ],
-                                  onChanged: (value) =>
-                                      context.read<InvoiceFormBloc>().add(
-                                            DiscountChangedEvent(
-                                                double.tryParse(value) ?? 0.0),
-                                          ),
+                                  onChanged: (value) => context.read<InvoiceFormBloc>().add(
+                                        DiscountChangedEvent(double.tryParse(value) ?? 0.0),
+                                      ),
                                 ),
                               ),
                               Spacing.h4,
@@ -886,8 +813,7 @@ class InvoiceSummary extends StatelessWidget {
                               ),
                               Spacing.h4,
                               Button(
-                                style: state.discountType ==
-                                        DiscountType.percentage
+                                style: state.discountType == DiscountType.percentage
                                     ? ButtonStyles.filled
                                     : ButtonStyles.outlined,
                                 onPressed: () {
@@ -905,8 +831,7 @@ class InvoiceSummary extends StatelessWidget {
                               ),
                               const Spacer(flex: 3),
                               Center(
-                                child: state.discountType ==
-                                        DiscountType.percentage
+                                child: state.discountType == DiscountType.percentage
                                     ? Text(
                                         "${discount > 0 ? '-' : ''} Php. ${(discount / 100 * subtotal).toStringAsFixed(2)}",
                                         style: TextStyles.active,

@@ -1,5 +1,6 @@
 import 'package:bloc/bloc.dart';
 import 'package:easthardware_pms/domain/enums/enums.dart';
+import 'package:easthardware_pms/domain/models/invoice.dart';
 import 'package:easthardware_pms/domain/models/product.dart';
 import 'package:easthardware_pms/presentation/models/form_product.dart';
 import 'package:easthardware_pms/utils/boxed.dart';
@@ -10,7 +11,6 @@ part 'invoice_form_event.dart';
 part 'invoice_form_state.dart';
 
 class InvoiceFormBloc extends Bloc<InvoiceFormEvent, InvoiceFormState> {
-  final GlobalKey<FormState> formKey;
   InvoiceFormBloc()
       : formKey = GlobalKey<FormState>(),
         super(InvoiceFormState()) {
@@ -27,6 +27,7 @@ class InvoiceFormBloc extends Bloc<InvoiceFormEvent, InvoiceFormState> {
     on<ProductUpdatedEvent>(_onProductUpdated);
     on<FormButtonPressedEvent>(_onFormButtonPressed);
   }
+  final GlobalKey<FormState> formKey;
 
   void _onCustomerNameChanged(CustomerNameChangedEvent event, Emitter<InvoiceFormState> emit) {
     emit(state.copyWith(customerName: event.customerName));
@@ -176,7 +177,7 @@ class InvoiceFormBloc extends Bloc<InvoiceFormEvent, InvoiceFormState> {
           products: updatedProducts,
           subtotal: subtotal,
           amountDue: amountDue,
-          invoiceTableErrorMessage: adjustedProduct.errorMessage,
+          errorMessage: adjustedProduct.errorMessage,
         ),
       );
     }
