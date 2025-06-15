@@ -103,4 +103,22 @@ class ProductRepositoryImpl implements ProductRepository {
       throw DatabaseException("Failed to fetch products by category ID: $e");
     }
   }
+
+  @override
+  Future<Product> updateProductStock(int id, double stock) async {
+    try {
+      final product = await _productsDao.getProductById(id);
+      if (product == null) {
+        throw DatabaseException("Product with ID $id not found");
+      }
+      final updatedQuantity = product.quantity + stock;
+      if (updatedQuantity < 0) {
+        throw DatabaseException("Insufficient stock for product ID $id");
+      }
+      final updatedProduct = product.copyWith(quantity: updatedQuantity);
+      return await _productsDao.updateProduct(updatedProduct);
+    } catch (e) {
+      throw DatabaseException("Failed to update product stock: $e");
+    }
+  }
 }

@@ -5,6 +5,7 @@ import 'package:easthardware_pms/presentation/bloc/billing/invoiceform/invoice_f
 import 'package:easthardware_pms/presentation/bloc/billing/invoicelist/invoice_list_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/inventory/product_list/product_list_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/inventory/unit_list/unit_list_bloc.dart';
+import 'package:easthardware_pms/presentation/bloc/security/user_log_list/user_log_list_bloc.dart';
 import 'package:easthardware_pms/presentation/models/form_product.dart';
 import 'package:easthardware_pms/presentation/router/app_routes.dart';
 import 'package:easthardware_pms/presentation/widgets/layout/spacing.dart';
@@ -35,63 +36,84 @@ class CreateInvoicePage extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (_) => InvoiceFormBloc(),
-      child: BlocConsumer<InvoiceFormBloc, InvoiceFormState>(
-        listener: (context, state) {
-          if (state.status == FormStatus.submitting) {
-            final invoice = state.copyWith().toInvoice();
-            final products = state.products.map((product) => product.toInvoiceProduct()).toList();
-            context.read<InvoiceListBloc>().add(AddInvoiceEvent(invoice, products));
-            context.read<InvoiceFormBloc>().add(const FormSubmittedEvent());
-          } else if (state.status == FormStatus.success) {
-            if (context.read<AuthenticationBloc>().state.user!.accessLevel ==
-                AccessLevel.administrator) {
-              context.navigate(AppRoutes.admin.billing);
-            } else {
-              context.navigate(AppRoutes.staff.billing);
-            }
-          } else if (state.status == FormStatus.error) {
-            final blocContext = context;
-            showDialog<String>(
-              context: blocContext,
-              builder: (dialogContext) => ContentDialog(
-                title: const Text('Incomplete Details', style: TextStyles.subtitle),
-                content: Text(state.errorMessage ?? ''),
-                actions: [
-                  FilledButton(
-                    child: const Text('OK'),
-                    onPressed: () {
-                      Navigator.pop(dialogContext);
-                      blocContext.read<InvoiceFormBloc>().add(const DialogBoxClosedEvent());
-                    },
-                  ),
-                ],
-              ),
-            );
-          }
-        },
-        builder: (context, state) => Stack(
-          children: [
-            const Padding(
-              padding: AppPadding.panePadding,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  PageHeader(),
-                  Spacing.v16,
-                  PageForm(),
-                ],
-              ),
+      child: Builder(builder: (context) {
+        return MultiBlocListener(
+          listeners: [
+            BlocListener<InvoiceFormBloc, InvoiceFormState>(
+              listener: (context, state) {
+                if (state.status == FormStatus.submitting) {
+                  final invoice = state.copyWith().toInvoice();
+                  final products =
+                      state.products.map((product) => product.toInvoiceProduct()).toList();
+                  context.read<InvoiceListBloc>().add(AddInvoiceEvent(invoice, products));
+                  context.read<InvoiceFormBloc>().add(const FormSubmittedEvent());
+                } else if (state.status == FormStatus.success) {
+                } else if (state.status == FormStatus.error) {
+                  final blocContext = context;
+                  showDialog<String>(
+                    context: blocContext,
+                    builder: (dialogContext) => ContentDialog(
+                      title: const Text('Incomplete Details', style: TextStyles.subtitle),
+                      content: Text(state.errorMessage ?? ''),
+                      actions: [
+                        FilledButton(
+                          child: const Text('OK'),
+                          onPressed: () {
+                            Navigator.pop(dialogContext);
+                            blocContext.read<InvoiceFormBloc>().add(const DialogBoxClosedEvent());
+                          },
+                        ),
+                      ],
+                    ),
+                  );
+                }
+              },
             ),
-            if (state.status == FormStatus.submitting)
-              Positioned.fill(
-                child: Container(
-                  color: Colors.black.withValues(alpha: 0.2),
-                  child: const LoadingPage(),
+            BlocListener<InvoiceListBloc, InvoiceListState>(
+              listenWhen: (previous, current) =>
+                  previous.latest != current.latest && current.latest != null,
+              listener: (context, state) {
+                context.read<ProductListBloc>().add(const ReloadAllProductsEvent());
+                final latest = state.latest!;
+                context.read<UserLogListBloc>().add(
+                      AddCreateEvent(
+                        'Invoice #${latest.id}',
+                        context.read<AuthenticationBloc>().state.user!,
+                      ),
+                    );
+                if (context.read<AuthenticationBloc>().state.user!.accessLevel ==
+                    AccessLevel.administrator) {
+                  context.navigate(AppRoutes.admin.billing);
+                } else {
+                  context.navigate(AppRoutes.staff.billing);
+                }
+              },
+            ),
+          ],
+          child: Stack(
+            children: [
+              const Padding(
+                padding: AppPadding.panePadding,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    PageHeader(),
+                    Spacing.v16,
+                    PageForm(),
+                  ],
                 ),
               ),
-          ],
-        ),
-      ),
+              if (context.read<InvoiceFormBloc>().state.status == FormStatus.submitting)
+                Positioned.fill(
+                  child: Container(
+                    color: Colors.black.withValues(alpha: 0.2),
+                    child: const LoadingPage(),
+                  ),
+                ),
+            ],
+          ),
+        );
+      }),
     );
   }
 }

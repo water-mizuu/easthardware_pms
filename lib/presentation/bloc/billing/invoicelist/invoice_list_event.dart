@@ -15,13 +15,13 @@ class FetchAllInvoicesEvent extends InvoiceListEvent {
 }
 
 class AddInvoiceEvent extends InvoiceListEvent {
-  const AddInvoiceEvent(this.invoice, this.products);
+  const AddInvoiceEvent(this.invoice, this.invoiceProducts);
 
   final Invoice invoice;
-  final List<InvoiceProduct> products;
+  final List<InvoiceProduct> invoiceProducts;
 
   @override
-  List<Object> get props => [invoice, products];
+  List<Object> get props => [invoice, invoiceProducts];
 }
 
 class UpdateInvoiceEvent extends InvoiceListEvent {

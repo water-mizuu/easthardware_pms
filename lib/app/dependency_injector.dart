@@ -190,6 +190,7 @@ class DependencyInjector extends ChangeNotifier {
           return _invoiceListBloc = InvoiceListBloc(
             _invoiceRepository,
             _invoiceProductRepository,
+            _productRepository,
             state,
           )..addIf(_databaseHelper != null, const FetchAllInvoicesEvent());
         },

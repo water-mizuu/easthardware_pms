@@ -12,6 +12,7 @@ abstract interface class ProductRepository {
   Future<Product?> getProductById(int id);
   Future<Product> insertProduct(Product product);
   Future<Product> updateProduct(Product product);
+  Future<Product> updateProductStock(int id, double stock);
   Future<void> deleteProduct(int id);
   Future<List<Product>> getProductsByCategoryId(int categoryId);
 }

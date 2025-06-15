@@ -4,6 +4,8 @@ import 'package:easthardware_pms/domain/models/invoice.dart';
 import 'package:easthardware_pms/domain/models/invoice_product.dart';
 import 'package:easthardware_pms/domain/repository/invoice_product_repository.dart';
 import 'package:easthardware_pms/domain/repository/invoice_repository.dart';
+import 'package:easthardware_pms/domain/repository/product_repository.dart';
+import 'package:easthardware_pms/utils/boxed.dart';
 import 'package:equatable/equatable.dart';
 
 part 'invoice_list_event.dart';
@@ -12,6 +14,7 @@ part 'invoice_list_state.dart';
 class InvoiceListBloc extends Bloc<InvoiceListEvent, InvoiceListState> {
   InvoiceListBloc(
     this._repository,
+    this._itemRepository,
     this._productRepository,
     InvoiceListState initialState,
   ) : super(initialState) {
@@ -21,7 +24,8 @@ class InvoiceListBloc extends Bloc<InvoiceListEvent, InvoiceListState> {
     on<DeleteInvoiceEvent>(_onDeleteInvoice);
   }
   final InvoiceRepository _repository;
-  final InvoiceProductRepository _productRepository;
+  final InvoiceProductRepository _itemRepository;
+  final ProductRepository _productRepository;
 
   Future<void> _onFetchInvoices(FetchAllInvoicesEvent event, Emitter emit) async {
     emit(state.copyWith(status: DataStatus.loading));
@@ -36,25 +40,37 @@ class InvoiceListBloc extends Bloc<InvoiceListEvent, InvoiceListState> {
   Future<void> _onAddInvoice(AddInvoiceEvent event, Emitter emit) async {
     emit(state.copyWith(status: DataStatus.loading));
     try {
+      // 1. Insert the invoice
       final invoice = await _repository.insertInvoice(event.invoice);
 
-      final products = event.products
+      // 2. Insert the invoice products
+      final products = event.invoiceProducts
           .map(
-            (product) => _productRepository.insertInvoiceProduct(
+            (product) => _itemRepository.insertInvoiceProduct(
               product.copyWith(invoiceId: invoice.id!),
             ),
           )
           .toList();
+
+      // 3. Update the product stock
+      for (final invoiceProduct in event.invoiceProducts) {
+        await _productRepository.updateProductStock(
+            invoiceProduct.productId, -invoiceProduct.quantity);
+      }
+
+      // 4. Resolve the products
       final resolvedProducts = await Future.wait(products);
       final invoices = List<Invoice>.from(state.invoices)..add(invoice);
       emit(
         state.copyWith(
           invoices: invoices,
+          latest: invoice,
           invoiceProducts: resolvedProducts,
           status: DataStatus.success,
         ),
       );
-    } catch (e) {
+    } catch (e, stackTrace) {
+      printBoxed('Error adding invoice: $e \n $stackTrace', 'InvoiceListBloc');
       emit(state.copyWith(status: DataStatus.error));
     }
   }
@@ -62,11 +78,15 @@ class InvoiceListBloc extends Bloc<InvoiceListEvent, InvoiceListState> {
   Future<void> _onUpdateInvoice(UpdateInvoiceEvent event, Emitter emit) async {
     emit(state.copyWith(status: DataStatus.loading));
     try {
-      await _repository.updateInvoice(event.invoice);
+      final invoice = await _repository.updateInvoice(event.invoice);
       final invoices = List<Invoice>.from(state.invoices)
         ..removeWhere((i) => i.id == event.invoice.id)
         ..add(event.invoice);
-      emit(state.copyWith(invoices: invoices, status: DataStatus.success));
+      emit(state.copyWith(
+        invoices: invoices,
+        latest: invoice,
+        status: DataStatus.success,
+      ));
     } catch (e) {
       emit(state.copyWith(status: DataStatus.error));
     }
