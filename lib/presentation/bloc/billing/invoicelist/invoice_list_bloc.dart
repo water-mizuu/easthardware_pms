@@ -55,7 +55,7 @@ class InvoiceListBloc extends Bloc<InvoiceListEvent, InvoiceListState> {
       // 3. Update the product stock
       for (final invoiceProduct in event.invoiceProducts) {
         await _productRepository.updateProductStock(
-            invoiceProduct.productId, -invoiceProduct.quantity);
+            invoiceProduct.productId, -invoiceProduct.quantity * invoiceProduct.conversionFactor!);
       }
 
       // 4. Resolve the products

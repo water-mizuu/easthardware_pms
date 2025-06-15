@@ -189,15 +189,23 @@ class InvoiceFormBloc extends Bloc<InvoiceFormEvent, InvoiceFormState> {
     ).toList();
 
     if (taggedProducts.any((product) => product.errorMessage == 'Item cannot be blank')) {
-      emit(
+      return emit(
         state.copyWith(
           status: FormStatus.error,
           products: taggedProducts,
           errorMessage: 'Please fill in all product details.',
         ),
       );
-      await Future.delayed(Duration.zero);
-      return emit(state.copyWith(status: FormStatus.initial));
+    }
+
+    if (taggedProducts
+        .any((product) => product.errorMessage == 'Item quantity exceeds available stock.')) {
+      return emit(
+        state.copyWith(
+          status: FormStatus.error,
+          errorMessage: 'Item quantity exceeds available stock.',
+        ),
+      );
     }
 
     if (state.invoiceDateErrorMessage != null || state.dueDateErrorMessage != null) {
