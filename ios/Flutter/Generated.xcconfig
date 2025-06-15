@@ -1,6 +1,6 @@
 // This is a generated file; do not edit or check into version control.
-FLUTTER_ROOT=C:\Users\micha\fvm\versions\3.24.3
-FLUTTER_APPLICATION_PATH=C:\Global\Programming\easthardware_pms
+FLUTTER_ROOT=/Users/mackenziecerenio/fvm/versions/3.24.3
+FLUTTER_APPLICATION_PATH=/Users/mackenziecerenio/Developer/Flutter/EastHardware-PMS
 COCOAPODS_PARALLEL_CODE_SIGN=true
 FLUTTER_TARGET=lib\main.dart
 FLUTTER_BUILD_DIR=build

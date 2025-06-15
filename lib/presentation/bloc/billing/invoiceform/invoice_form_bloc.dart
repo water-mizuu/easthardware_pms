@@ -3,17 +3,13 @@ import 'package:easthardware_pms/domain/enums/enums.dart';
 import 'package:easthardware_pms/domain/models/invoice.dart';
 import 'package:easthardware_pms/domain/models/product.dart';
 import 'package:easthardware_pms/presentation/models/form_product.dart';
-import 'package:easthardware_pms/utils/boxed.dart';
 import 'package:equatable/equatable.dart';
-import 'package:flutter/widgets.dart';
 
 part 'invoice_form_event.dart';
 part 'invoice_form_state.dart';
 
 class InvoiceFormBloc extends Bloc<InvoiceFormEvent, InvoiceFormState> {
-  InvoiceFormBloc()
-      : formKey = GlobalKey<FormState>(),
-        super(InvoiceFormState()) {
+  InvoiceFormBloc() : super(InvoiceFormState()) {
     on<CustomerNameChangedEvent>(_onCustomerNameChanged);
     on<InvoiceDateChangedEvent>(_onInvoiceDateChanged);
     on<DueDateChangedEvent>(_onDueDateChanged);
@@ -25,9 +21,10 @@ class InvoiceFormBloc extends Bloc<InvoiceFormEvent, InvoiceFormState> {
     on<ProductRemovedEvent>(_onProductRemoved);
     on<ProductsClearedEvent>(_onProductsCleared);
     on<ProductUpdatedEvent>(_onProductUpdated);
-    on<FormButtonPressedEvent>(_onFormButtonPressed);
+    on<SaveInvoiceRequestEvent>(_onFormButtonPressed);
+    on<FormSubmittedEvent>(_onFormSubmitted);
+    on<DialogBoxClosedEvent>(_onDialogBoxClosed);
   }
-  final GlobalKey<FormState> formKey;
 
   void _onCustomerNameChanged(CustomerNameChangedEvent event, Emitter<InvoiceFormState> emit) {
     emit(state.copyWith(customerName: event.customerName));
@@ -60,7 +57,7 @@ class InvoiceFormBloc extends Bloc<InvoiceFormEvent, InvoiceFormState> {
   }
 
   void _onDiscountChanged(DiscountChangedEvent event, Emitter<InvoiceFormState> emit) {
-    final subtotal = state.subtotal ?? 0.0;
+    final subtotal = state.subtotal ?? 0;
     final amountDue = (subtotal) -
         (state.discountType == DiscountType.percentage
             ? (subtotal * event.discount / 100)
@@ -101,17 +98,6 @@ class InvoiceFormBloc extends Bloc<InvoiceFormEvent, InvoiceFormState> {
   void _onProductSelected(ProductSelectedEvent event, Emitter<InvoiceFormState> emit) {
     final index = event.index;
     final updatedProducts = List<FormProduct>.from(state.products);
-    printBoxed('''
-    Product Selected:
-    Id: ${event.product.productId}
-    Name: ${event.product.productName}
-    Description: ${event.product.description}
-    Quantity: ${event.product.quantity}
-    Unit: ${event.product.unit}
-    Conversion Factor: ${event.product.conversionFactor}
-    Rate: ${event.product.rate}
-    Amount: ${event.product.amount}
-    ''', 'InvoiceFormBloc');
     if (index != -1) {
       updatedProducts[index] = event.product.copyWith(
         quantity: 0,
@@ -122,7 +108,7 @@ class InvoiceFormBloc extends Bloc<InvoiceFormEvent, InvoiceFormState> {
   }
 
   void _onProductUpdated(ProductUpdatedEvent event, Emitter<InvoiceFormState> emit) {
-    final adjustedRate = event.product.rate * (event.product.conversionFactor ?? 1.0);
+    final adjustedRate = event.product.rate * (event.product.conversionFactor ?? 1);
 
     final adjustedProduct = event.product.copyWith(
       rate: adjustedRate,
@@ -132,35 +118,10 @@ class InvoiceFormBloc extends Bloc<InvoiceFormEvent, InvoiceFormState> {
           : null,
     );
 
-    printBoxed('Error: ${adjustedProduct.errorMessage}', 'InvoiceFormBloc');
-
     final index = event.index;
     final updatedProducts = List<FormProduct>.from(state.products);
-    //print all fields in one box
 
     if (index != -1) {
-      // printBoxed('''
-      // Product Updated:
-      // Id: ${adjustedProduct.productId}
-      // Name: ${adjustedProduct.productName}
-      // Description: ${adjustedProduct.description}
-      // Quantity: ${adjustedProduct.quantity}
-      // Unit: ${adjustedProduct.unit}
-      // Conversion Factor: ${adjustedProduct.conversionFactor}
-      // Rate: ${adjustedProduct.rate}
-      // Amount: ${adjustedProduct.amount}
-      // ''', 'InvoiceFormBloc');
-
-      // printBoxed('''
-      // Reference Product:
-      // Id: ${event.reference?.id}
-      // Name: ${event.reference?.name}
-      // Description: ${event.reference?.description}
-      // Quantity: ${event.reference?.quantity}
-      // Unit: ${event.reference?.mainUnit}
-      // Rate: ${event.reference?.salePrice}
-      // ''', 'InvoiceFormBloc');
-
       updatedProducts[index] = adjustedProduct;
 
       final subtotal = updatedProducts.fold<double>(
@@ -177,13 +138,96 @@ class InvoiceFormBloc extends Bloc<InvoiceFormEvent, InvoiceFormState> {
           products: updatedProducts,
           subtotal: subtotal,
           amountDue: amountDue,
-          errorMessage: adjustedProduct.errorMessage,
         ),
       );
     }
   }
 
-  void _onFormButtonPressed(FormButtonPressedEvent event, Emitter<InvoiceFormState> emit) {
-    // TODO:
+  Future<void> _onFormButtonPressed(
+    SaveInvoiceRequestEvent event,
+    Emitter<InvoiceFormState> emit,
+  ) async {
+    await Future.delayed(Duration.zero);
+
+    /// Checks
+    /// - Products must not be empty
+    /// - All products must have Id
+    final products = state.products;
+    emit(state.copyWith(status: FormStatus.validating, errorMessage: null));
+    if (products.every(
+      (product) =>
+          product.productId == null &&
+          product.description == null &&
+          product.quantity <= 0 &&
+          product.rate <= 0,
+    )) {
+      emit(
+        state.copyWith(
+          errorMessage: 'Please add at least one product.',
+          status: FormStatus.error,
+          products: products
+              .map(
+                (product) => product.copyWith(
+                  errorMessage: 'Invoice items cannot be empty',
+                ),
+              )
+              .toList(),
+        ),
+      );
+      await Future.delayed(Duration.zero);
+      return emit(state.copyWith(status: FormStatus.initial));
+    }
+
+    final taggedProducts = products.map(
+      (product) {
+        if (product.productId == null &&
+            (product.quantity > 0 || product.description != null || product.rate > 0)) {
+          return product.copyWith(errorMessage: 'Item cannot be blank');
+        }
+        return product;
+      },
+    ).toList();
+
+    if (taggedProducts.any((product) => product.errorMessage == 'Item cannot be blank')) {
+      emit(
+        state.copyWith(
+          status: FormStatus.error,
+          products: taggedProducts,
+          errorMessage: 'Please fill in all product details.',
+        ),
+      );
+      await Future.delayed(Duration.zero);
+      return emit(state.copyWith(status: FormStatus.initial));
+    }
+
+    if (state.invoiceDateErrorMessage != null || state.dueDateErrorMessage != null) {
+      emit(
+        state.copyWith(
+          status: FormStatus.error,
+          errorMessage: 'Please select valid invoice and due dates.',
+        ),
+      );
+    }
+
+    return emit(
+      state.copyWith(
+        errorMessage: null,
+        creationDate: event.creationDate,
+        creatorId: event.creatorId,
+        invoiceId: event.invoiceId,
+        status: FormStatus.submitting,
+        action: event.action,
+      ),
+    );
+  }
+
+  void _onDialogBoxClosed(DialogBoxClosedEvent event, Emitter<InvoiceFormState> emit) {
+    emit(state.copyWith(status: FormStatus.initial));
+  }
+
+  Future<void> _onFormSubmitted(FormSubmittedEvent event, Emitter<InvoiceFormState> emit) async {
+    emit(state.copyWith(status: FormStatus.submitted));
+    await Future.delayed(Duration.zero);
+    return emit(InvoiceFormState());
   }
 }

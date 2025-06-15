@@ -2,6 +2,7 @@ import 'package:easthardware_pms/domain/enums/enums.dart';
 import 'package:easthardware_pms/domain/models/product.dart';
 import 'package:easthardware_pms/presentation/bloc/authentication/authentication/authentication_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/billing/invoiceform/invoice_form_bloc.dart';
+import 'package:easthardware_pms/presentation/bloc/billing/invoicelist/invoice_list_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/inventory/product_list/product_list_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/inventory/unit_list/unit_list_bloc.dart';
 import 'package:easthardware_pms/presentation/models/form_product.dart';
@@ -11,9 +12,11 @@ import 'package:easthardware_pms/presentation/widgets/text.dart';
 import 'package:easthardware_pms/presentation/widgets/ui/decorations.dart';
 import 'package:easthardware_pms/presentation/widgets/ui/form_table_cell.dart';
 import 'package:easthardware_pms/presentation/widgets/ui/form_table_column.dart';
+import 'package:easthardware_pms/presentation/widgets/ui/loading_page.dart';
 import 'package:easthardware_pms/presentation/widgets/ui/styles.dart';
 import 'package:easthardware_pms/presentation/widgets/ui/text_button.dart';
 import 'package:easthardware_pms/utils/typed_routes.dart';
+import 'package:fl_chart/fl_chart.dart';
 import 'package:fluent_ui/fluent_ui.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -32,20 +35,61 @@ class CreateInvoicePage extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (_) => InvoiceFormBloc(),
-      child: BlocListener<InvoiceFormBloc, InvoiceFormState>(
+      child: BlocConsumer<InvoiceFormBloc, InvoiceFormState>(
         listener: (context, state) {
-          // TODO: implement listener
+          if (state.status == FormStatus.submitting) {
+            final invoice = state.copyWith().toInvoice();
+            final products = state.products.map((product) => product.toInvoiceProduct()).toList();
+            context.read<InvoiceListBloc>().add(AddInvoiceEvent(invoice, products));
+            context.read<InvoiceFormBloc>().add(const FormSubmittedEvent());
+          } else if (state.status == FormStatus.success) {
+            if (context.read<AuthenticationBloc>().state.user!.accessLevel ==
+                AccessLevel.administrator) {
+              context.navigate(AppRoutes.admin.billing);
+            } else {
+              context.navigate(AppRoutes.staff.billing);
+            }
+          } else if (state.status == FormStatus.error) {
+            final blocContext = context;
+            showDialog<String>(
+              context: blocContext,
+              builder: (dialogContext) => ContentDialog(
+                title: const Text('Incomplete Details', style: TextStyles.subtitle),
+                content: Text(state.errorMessage ?? ''),
+                actions: [
+                  FilledButton(
+                    child: const Text('OK'),
+                    onPressed: () {
+                      Navigator.pop(dialogContext);
+                      blocContext.read<InvoiceFormBloc>().add(const DialogBoxClosedEvent());
+                    },
+                  ),
+                ],
+              ),
+            );
+          }
         },
-        child: const Padding(
-          padding: AppPadding.panePadding,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              PageHeader(),
-              Spacing.v16,
-              PageForm(),
-            ],
-          ),
+        builder: (context, state) => Stack(
+          children: [
+            const Padding(
+              padding: AppPadding.panePadding,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  PageHeader(),
+                  Spacing.v16,
+                  PageForm(),
+                ],
+              ),
+            ),
+            if (state.status == FormStatus.submitting)
+              Positioned.fill(
+                child: Container(
+                  color: Colors.black.withValues(alpha: 0.2),
+                  child: const LoadingPage(),
+                ),
+              ),
+          ],
         ),
       ),
     );
@@ -59,117 +103,111 @@ class PageForm extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final formKey = context.read<InvoiceFormBloc>().formKey;
-
-    return Form(
-      key: formKey,
-      child: Expanded(
-        child: Container(
-          padding: const EdgeInsets.all(16.0),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(4.0),
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Container(
-                padding: const EdgeInsets.symmetric(vertical: 8.0),
-                decoration: BoxDecoration(
-                  border: Border(
-                    bottom: BorderSide(color: Colors.grey[40], width: 1),
-                  ),
-                ),
-                child: Text(
-                  "Billing Information",
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.grey[150],
-                  ),
+    return Expanded(
+      child: Container(
+        padding: const EdgeInsets.all(16.0),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(4.0),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Container(
+              padding: const EdgeInsets.symmetric(vertical: 8.0),
+              decoration: BoxDecoration(
+                border: Border(
+                  bottom: BorderSide(color: Colors.grey[40], width: 1),
                 ),
               ),
-              // Form Row 1 - Customer Name
-              Row(
-                children: [
-                  Expanded(
-                    flex: 2,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        const BodyText('Customer Name'),
-                        Spacing.v8,
-                        TextFormBox(
-                          onChanged: (value) => context.read<InvoiceFormBloc>().add(
-                                CustomerNameChangedEvent(value),
-                              ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Spacing.h12,
-                  const Spacer(flex: 3),
-                  Spacing.h12,
-                ],
+              child: Text(
+                "Billing Information",
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.grey[150],
+                ),
               ),
-              // Form Row 2 - Invoice and Due Date
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Expanded(
-                    flex: 2,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        const BodyText('Invoice Date'),
-                        Spacing.v8,
-                        DatePicker(
-                          selected:
-                              context.select((InvoiceFormBloc bloc) => bloc.state.invoiceDate),
-                          onChanged: (value) =>
-                              context.read<InvoiceFormBloc>().add(InvoiceDateChangedEvent(value)),
-                        ),
-                        if (context.watch<InvoiceFormBloc>().state.invoiceDateErrorMessage != null)
-                          Text(
-                            context.watch<InvoiceFormBloc>().state.invoiceDateErrorMessage!,
-                            style: TextStyles.error,
-                          ),
-                      ],
-                    ),
+            ),
+            // Form Row 1 - Customer Name
+            Row(
+              children: [
+                Expanded(
+                  flex: 2,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      const BodyText('Customer Name'),
+                      Spacing.v8,
+                      TextFormBox(
+                        onChanged: (value) => context.read<InvoiceFormBloc>().add(
+                              CustomerNameChangedEvent(value),
+                            ),
+                      ),
+                    ],
                   ),
-                  Spacing.h12,
-                  Expanded(
-                    flex: 2,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        const BodyText('Due Date'),
-                        Spacing.v8,
-                        DatePicker(
-                          selected: context.select((InvoiceFormBloc bloc) => bloc.state.dueDate),
-                          onChanged: (value) =>
-                              context.read<InvoiceFormBloc>().add(DueDateChangedEvent(value)),
+                ),
+                Spacing.h12,
+                const Spacer(flex: 3),
+                Spacing.h12,
+              ],
+            ),
+            // Form Row 2 - Invoice and Due Date
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  flex: 2,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      const BodyText('Invoice Date'),
+                      Spacing.v8,
+                      DatePicker(
+                        selected: context.select((InvoiceFormBloc bloc) => bloc.state.invoiceDate),
+                        onChanged: (value) =>
+                            context.read<InvoiceFormBloc>().add(InvoiceDateChangedEvent(value)),
+                      ),
+                      if (context.watch<InvoiceFormBloc>().state.invoiceDateErrorMessage != null)
+                        Text(
+                          context.watch<InvoiceFormBloc>().state.invoiceDateErrorMessage!,
+                          style: TextStyles.error,
                         ),
-                        if (context.watch<InvoiceFormBloc>().state.dueDateErrorMessage != null)
-                          Text(
-                            context.watch<InvoiceFormBloc>().state.dueDateErrorMessage!,
-                            style: TextStyles.error,
-                          ),
-                      ],
-                    ),
+                    ],
                   ),
-                  const Spacer(),
-                  Spacing.h12,
-                ],
-              ),
-              Spacing.v12,
-              const TableActions(),
-              Spacing.v4,
-              const Expanded(flex: 3, child: InvoiceProductTable()),
-              const Expanded(flex: 2, child: InvoiceSummary()),
-            ].withSpacing(() => Spacing.v12),
-          ),
+                ),
+                Spacing.h12,
+                Expanded(
+                  flex: 2,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      const BodyText('Due Date'),
+                      Spacing.v8,
+                      DatePicker(
+                        selected: context.select((InvoiceFormBloc bloc) => bloc.state.dueDate),
+                        onChanged: (value) =>
+                            context.read<InvoiceFormBloc>().add(DueDateChangedEvent(value)),
+                      ),
+                      if (context.watch<InvoiceFormBloc>().state.dueDateErrorMessage != null)
+                        Text(
+                          context.watch<InvoiceFormBloc>().state.dueDateErrorMessage!,
+                          style: TextStyles.error,
+                        ),
+                    ],
+                  ),
+                ),
+                const Spacer(),
+                Spacing.h12,
+              ],
+            ),
+            Spacing.v12,
+            const TableActions(),
+            Spacing.v4,
+            const Expanded(flex: 3, child: InvoiceProductTable()),
+            const Expanded(flex: 2, child: InvoiceSummary()),
+          ].withSpacing(() => Spacing.v12),
         ),
       ),
     );
@@ -195,15 +233,36 @@ class PageHeader extends StatelessWidget {
         const Spacer(flex: 1),
         TextButton(
           'Save and Receive Payment',
-          onPressed: context
-                  .read<InvoiceFormBloc>()
-                  .state
-                  .products
-                  .any((product) => product.errorMessage != null)
-              ? null
-              : () {},
+          onPressed: () {
+            final creationDate = DateTime.now();
+            final creatorId = context.read<AuthenticationBloc>().state.user?.id;
+            final invoiceId = context.read<InvoiceListBloc>().state.invoices.length;
+            context.read<InvoiceFormBloc>().add(
+                  SaveInvoiceRequestEvent(
+                    creationDate: creationDate,
+                    creatorId: creatorId!,
+                    invoiceId: invoiceId,
+                    action: InvoicePostAction.payment,
+                  ),
+                );
+          },
         ),
-        TextButtonFilled('Save Invoice', onPressed: () {})
+        TextButtonFilled(
+          'Save Invoice',
+          onPressed: () {
+            final creationDate = DateTime.now();
+            final creatorId = context.read<AuthenticationBloc>().state.user?.id;
+            final invoiceId = context.read<InvoiceListBloc>().state.invoices.length;
+            context.read<InvoiceFormBloc>().add(
+                  SaveInvoiceRequestEvent(
+                    creationDate: creationDate,
+                    creatorId: creatorId!,
+                    invoiceId: invoiceId,
+                    action: InvoicePostAction.none,
+                  ),
+                );
+          },
+        ),
       ].withSpacing(() => Spacing.h12),
     );
   }
@@ -339,14 +398,64 @@ class _FormTableRowState extends State<FormTableRow> {
   late TextEditingController _quantityController;
   late TextEditingController _rateController;
 
-  FormProduct? _lastProduct;
-
   @override
   void initState() {
     super.initState();
-    _descriptionController = TextEditingController();
-    _quantityController = TextEditingController(text: '');
-    _rateController = TextEditingController(text: '');
+
+    final initialProduct = context.read<InvoiceFormBloc>().state.products[widget.index];
+
+    _descriptionController = TextEditingController(text: initialProduct.description ?? '');
+    _quantityController = TextEditingController(text: initialProduct.quantity.toString());
+    _rateController = TextEditingController(text: initialProduct.rate.toString());
+
+    _descriptionController.addListener(() {
+      final bloc = context.read<InvoiceFormBloc>();
+      final currentProduct = bloc.state.products[widget.index];
+
+      final newValue = _descriptionController.text;
+      if (currentProduct.description != newValue) {
+        bloc.add(ProductUpdatedEvent(
+          index: widget.index,
+          product: currentProduct.copyWith(description: newValue),
+        ));
+      }
+    });
+
+    _quantityController.addListener(() {
+      final bloc = context.read<InvoiceFormBloc>();
+      final currentProduct = bloc.state.products[widget.index];
+
+      final newValue = double.tryParse(_quantityController.text) ?? 0;
+      if (currentProduct.quantity != newValue) {
+        bloc.add(ProductUpdatedEvent(
+          index: widget.index,
+          product: currentProduct.copyWith(quantity: newValue),
+          reference: currentProduct.productId == null
+              ? null
+              : context.read<ProductListBloc>().state.allProducts.firstWhere(
+                    (p) => p.id == currentProduct.productId,
+                  ),
+        ));
+      }
+    });
+
+    _rateController.addListener(() {
+      final bloc = context.read<InvoiceFormBloc>();
+      final currentProduct = bloc.state.products[widget.index];
+
+      final newValue = double.tryParse(_rateController.text) ?? 0;
+      if (currentProduct.rate != newValue) {
+        bloc.add(ProductUpdatedEvent(
+          index: widget.index,
+          product: currentProduct.copyWith(rate: newValue),
+          reference: currentProduct.productId == null
+              ? null
+              : context.read<ProductListBloc>().state.allProducts.firstWhere(
+                    (p) => p.id == currentProduct.productId,
+                  ),
+        ));
+      }
+    });
   }
 
   @override
@@ -357,33 +466,39 @@ class _FormTableRowState extends State<FormTableRow> {
     super.dispose();
   }
 
-  void _updateControllersIfNeeded(FormProduct currentProduct) {
-    // Only update if the product has actually changed to avoid cursor issues
-    final isProductChanged = _lastProduct == null ||
-        _lastProduct!.productId != currentProduct.productId ||
-        _lastProduct!.description != currentProduct.description ||
-        _lastProduct!.rate != currentProduct.rate;
-    if (isProductChanged) {
-      _descriptionController.text = currentProduct.description ?? '';
-      _quantityController.text =
-          currentProduct.quantity > 0 ? currentProduct.quantity.toString() : '';
-      _rateController.text = currentProduct.rate > 0 ? currentProduct.rate.toString() : '';
-      _lastProduct = currentProduct;
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<InvoiceFormBloc, InvoiceFormState>(
+      buildWhen: (previous, current) {
+        return previous.products != current.products ||
+            previous.products[widget.index] != current.products[widget.index];
+      },
       builder: (context, state) {
         final products = context.read<ProductListBloc>().state.allProducts;
         final bloc = context.read<InvoiceFormBloc>();
-        final currentProduct = bloc.state.products[widget.index];
+        final currentProduct = state.products[widget.index];
 
-        // Update controllers when product changes
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          _updateControllersIfNeeded(currentProduct);
-        });
+        // Only update controller text if it has changed
+        final newDescription = currentProduct.description ?? '';
+        final newQuantity = currentProduct.quantity % 1 == 0
+            ? currentProduct.quantity.toInt().toString()
+            : currentProduct.quantity.toString();
+
+        final newRate = currentProduct.rate % 1 == 0
+            ? currentProduct.rate.toInt().toString()
+            : currentProduct.rate.toString();
+
+        if (_descriptionController.text != newDescription) {
+          _descriptionController.text = newDescription;
+        }
+
+        if (_quantityController.text != newQuantity) {
+          _quantityController.text = newQuantity;
+        }
+
+        if (_rateController.text != newRate) {
+          _rateController.text = newRate;
+        }
 
         return Container(
           decoration: BoxDecoration(
@@ -511,14 +626,6 @@ class _FormTableRowState extends State<FormTableRow> {
                         child: TextFormBoxes.ghost(
                           controller: _descriptionController,
                           placeholder: 'Sale Description',
-                          onChanged: (value) {
-                            bloc.add(
-                              ProductUpdatedEvent(
-                                product: currentProduct.copyWith(description: value),
-                                index: widget.index,
-                              ),
-                            );
-                          },
                         ),
                       )),
                   // Field 3 - Quantity
@@ -549,20 +656,6 @@ class _FormTableRowState extends State<FormTableRow> {
                                   placeholderStyle: currentProduct.productId == null
                                       ? TextStyles.inactive
                                       : TextStyles.active,
-                                  onChanged: (value) {
-                                    final quantity = double.tryParse(value) ?? 0;
-                                    bloc.add(
-                                      ProductUpdatedEvent(
-                                        product: currentProduct.copyWith(quantity: quantity),
-                                        index: widget.index,
-                                        reference: currentProduct.productId == null
-                                            ? null
-                                            : products.firstWhere(
-                                                (p) => p.id == currentProduct.productId,
-                                              ),
-                                      ),
-                                    );
-                                  },
                                 )),
                             if (currentProduct.productId == null)
                               const Spacer(flex: 2)
@@ -586,6 +679,7 @@ class _FormTableRowState extends State<FormTableRow> {
                                             ProductUpdatedEvent(
                                               product: currentProduct.copyWith(
                                                 // Primitive Solution to get correct amount computation
+                                                unitId: null,
                                                 rate: context
                                                     .read<ProductListBloc>()
                                                     .state
@@ -620,6 +714,7 @@ class _FormTableRowState extends State<FormTableRow> {
                                             ProductUpdatedEvent(
                                               product: currentProduct.copyWith(
                                                 unit: unit.name,
+                                                unitId: unit.id,
                                                 // Primitive Solution to get correct amount computation
                                                 rate: context
                                                     .read<ProductListBloc>()
@@ -677,15 +772,6 @@ class _FormTableRowState extends State<FormTableRow> {
                         placeholderStyle: currentProduct.productId == null
                             ? TextStyles.inactive
                             : TextStyles.active,
-                        onChanged: (value) {
-                          final rate = double.tryParse(value) ?? 0;
-                          bloc.add(
-                            ProductUpdatedEvent(
-                              product: currentProduct.copyWith(rate: rate),
-                              index: widget.index,
-                            ),
-                          );
-                        },
                       ),
                     ),
                   ),
@@ -716,7 +802,7 @@ class _FormTableRowState extends State<FormTableRow> {
               ),
               if (currentProduct.errorMessage != null)
                 Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 4.0, horizontal: 48.0),
+                  padding: const EdgeInsets.symmetric(horizontal: 48.0, vertical: 4.0),
                   child: Text(
                     currentProduct.errorMessage!,
                     style: TextStyles.error,

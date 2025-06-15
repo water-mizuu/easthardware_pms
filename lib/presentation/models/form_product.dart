@@ -1,4 +1,5 @@
 import 'package:easthardware_pms/domain/enums/enums.dart';
+import 'package:easthardware_pms/domain/models/invoice_product.dart';
 import 'package:easthardware_pms/domain/models/product.dart';
 
 class FormProduct {
@@ -21,6 +22,7 @@ class FormProduct {
     this.description,
     required this.quantity,
     required this.unit,
+    this.unitId,
     this.conversionFactor,
     required this.rate,
     required this.amount,
@@ -32,6 +34,7 @@ class FormProduct {
   final String productName;
   final String? description;
   final double quantity;
+  final int? unitId;
   final String unit;
   final double? conversionFactor;
   final double rate;
@@ -46,6 +49,7 @@ class FormProduct {
     String? description,
     double? quantity,
     String? unit,
+    int? unitId,
     double? conversionFactor,
     double? rate,
     double? amount,
@@ -59,12 +63,26 @@ class FormProduct {
       description: description ?? this.description,
       quantity: quantity ?? this.quantity,
       unit: unit ?? this.unit,
+      unitId: unitId ?? this.unitId,
       conversionFactor: conversionFactor ?? this.conversionFactor,
       rate: rate ?? this.rate,
       amount: amount ?? this.amount,
       discount: discount ?? this.discount,
       discountType: discountType ?? this.discountType,
       errorMessage: errorMessage,
+    );
+  }
+
+  InvoiceProduct toInvoiceProduct() {
+    return InvoiceProduct(
+      productId: productId!,
+      productName: productName,
+      description: description,
+      quantity: quantity,
+      secondaryUnit: unitId,
+      conversionFactor: conversionFactor,
+      rate: rate,
+      amount: amount,
     );
   }
 }

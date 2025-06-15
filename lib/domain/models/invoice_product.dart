@@ -4,7 +4,7 @@ import 'package:easthardware_pms/utils/undefined.dart';
 class InvoiceProduct {
   InvoiceProduct({
     this.id,
-    required this.invoiceId,
+    this.invoiceId,
     required this.productId,
     required this.productName,
     this.description,
@@ -30,7 +30,7 @@ class InvoiceProduct {
     );
   }
   final int? id;
-  final int invoiceId;
+  final int? invoiceId;
   final int productId;
   final String productName;
   final String? description;

@@ -19,9 +19,6 @@ class InvoiceListBloc extends Bloc<InvoiceListEvent, InvoiceListState> {
     on<AddInvoiceEvent>(_onAddInvoice);
     on<UpdateInvoiceEvent>(_onUpdateInvoice);
     on<DeleteInvoiceEvent>(_onDeleteInvoice);
-    on<FetchInvoiceProductsEvent>(_onFetchInvoiceProducts);
-    on<AddInvoiceProductEvent>(_onAddInvoiceProduct);
-    on<UpdateInvoiceProductEvent>(_onUpdateInvoiceProduct);
   }
   final InvoiceRepository _repository;
   final InvoiceProductRepository _productRepository;
@@ -40,8 +37,23 @@ class InvoiceListBloc extends Bloc<InvoiceListEvent, InvoiceListState> {
     emit(state.copyWith(status: DataStatus.loading));
     try {
       final invoice = await _repository.insertInvoice(event.invoice);
+
+      final products = event.products
+          .map(
+            (product) => _productRepository.insertInvoiceProduct(
+              product.copyWith(invoiceId: invoice.id!),
+            ),
+          )
+          .toList();
+      final resolvedProducts = await Future.wait(products);
       final invoices = List<Invoice>.from(state.invoices)..add(invoice);
-      emit(state.copyWith(invoices: invoices, status: DataStatus.success));
+      emit(
+        state.copyWith(
+          invoices: invoices,
+          invoiceProducts: resolvedProducts,
+          status: DataStatus.success,
+        ),
+      );
     } catch (e) {
       emit(state.copyWith(status: DataStatus.error));
     }
@@ -66,64 +78,6 @@ class InvoiceListBloc extends Bloc<InvoiceListEvent, InvoiceListState> {
       await _repository.deleteInvoice(event.invoice);
       final invoices = List<Invoice>.from(state.invoices)..remove(event.invoice);
       emit(state.copyWith(invoices: invoices, status: DataStatus.success));
-    } catch (e) {
-      emit(state.copyWith(status: DataStatus.error));
-    }
-  }
-
-  Future<void> _onFetchInvoiceProducts(
-    FetchInvoiceProductsEvent event,
-    Emitter<InvoiceListState> emit,
-  ) async {
-    emit(state.copyWith(status: DataStatus.loading));
-    try {
-      final products = await _productRepository.fetchInvoiceProductByInvoice(event.invoiceId);
-      emit(state.copyWith(invoiceProducts: products, status: DataStatus.success));
-    } catch (e) {
-      emit(state.copyWith(status: DataStatus.error));
-    }
-  }
-
-  Future<void> _onAddInvoiceProduct(
-    AddInvoiceProductEvent event,
-    Emitter<InvoiceListState> emit,
-  ) async {
-    emit(state.copyWith(status: DataStatus.loading));
-    try {
-      final product = await _productRepository.insertInvoiceProduct(event.product);
-      final products = List<InvoiceProduct>.from(state.invoiceProducts)..add(product);
-      emit(state.copyWith(invoiceProducts: products, status: DataStatus.success));
-    } catch (e) {
-      emit(state.copyWith(status: DataStatus.error));
-    }
-  }
-
-  Future<void> _onUpdateInvoiceProduct(
-    UpdateInvoiceProductEvent event,
-    Emitter<InvoiceListState> emit,
-  ) async {
-    emit(state.copyWith(status: DataStatus.loading));
-    try {
-      await _productRepository.updateInvoiceProduct(event.product);
-      final products = List<InvoiceProduct>.from(state.invoiceProducts)
-        ..removeWhere((p) => p.id == event.product.id)
-        ..add(event.product);
-      emit(state.copyWith(invoiceProducts: products, status: DataStatus.success));
-    } catch (e) {
-      emit(state.copyWith(status: DataStatus.error));
-    }
-  }
-
-  Future<void> _onDeleteInvoiceProduct(
-    DeleteInvoiceProductEvent event,
-    Emitter<InvoiceListState> emit,
-  ) async {
-    emit(state.copyWith(status: DataStatus.loading));
-    try {
-      await _productRepository.deleteInvoiceProduct(event.productId);
-      final products = List<InvoiceProduct>.from(state.invoiceProducts)
-        ..removeWhere((p) => p.id == event.productId);
-      emit(state.copyWith(invoiceProducts: products, status: DataStatus.success));
     } catch (e) {
       emit(state.copyWith(status: DataStatus.error));
     }

@@ -15,12 +15,13 @@ class FetchAllInvoicesEvent extends InvoiceListEvent {
 }
 
 class AddInvoiceEvent extends InvoiceListEvent {
-  const AddInvoiceEvent(this.invoice);
+  const AddInvoiceEvent(this.invoice, this.products);
 
   final Invoice invoice;
+  final List<InvoiceProduct> products;
 
   @override
-  List<Object> get props => [invoice];
+  List<Object> get props => [invoice, products];
 }
 
 class UpdateInvoiceEvent extends InvoiceListEvent {
@@ -39,43 +40,4 @@ class DeleteInvoiceEvent extends InvoiceListEvent {
 
   @override
   List<Object> get props => [invoice];
-}
-
-class FetchInvoiceProductsEvent extends InvoiceListEvent {
-  const FetchInvoiceProductsEvent(this.invoiceId);
-
-  final int invoiceId;
-
-  @override
-  List<Object> get props => [invoiceId];
-}
-
-class AddInvoiceProductEvent extends InvoiceListEvent {
-  const AddInvoiceProductEvent(this.invoiceId, this.product);
-
-  final int invoiceId;
-  final InvoiceProduct product;
-
-  @override
-  List<Object> get props => [invoiceId, product];
-}
-
-class UpdateInvoiceProductEvent extends InvoiceListEvent {
-  const UpdateInvoiceProductEvent(this.invoiceId, this.product);
-
-  final int invoiceId;
-  final InvoiceProduct product;
-
-  @override
-  List<Object> get props => [invoiceId, product];
-}
-
-class DeleteInvoiceProductEvent extends InvoiceListEvent {
-  const DeleteInvoiceProductEvent(this.invoiceId, this.productId);
-
-  final int invoiceId;
-  final int productId;
-
-  @override
-  List<Object> get props => [invoiceId, productId];
 }

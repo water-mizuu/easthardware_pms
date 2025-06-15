@@ -96,8 +96,24 @@ class ProductUpdatedEvent extends InvoiceFormEvent {
   List<Object> get props => [product];
 }
 
-class FormButtonPressedEvent extends InvoiceFormEvent {
-  const FormButtonPressedEvent();
+class SaveInvoiceRequestEvent extends InvoiceFormEvent {
+  const SaveInvoiceRequestEvent({
+    required this.creatorId,
+    required this.invoiceId,
+    required this.action,
+    required this.creationDate,
+  });
+  final int creatorId;
+  final int invoiceId;
+  final DateTime creationDate;
+  final InvoicePostAction action;
+
+  @override
+  List<Object> get props => [];
+}
+
+class DialogBoxClosedEvent extends InvoiceFormEvent {
+  const DialogBoxClosedEvent();
 
   @override
   List<Object> get props => [];
@@ -105,13 +121,6 @@ class FormButtonPressedEvent extends InvoiceFormEvent {
 
 class FormSubmittedEvent extends InvoiceFormEvent {
   const FormSubmittedEvent();
-
-  @override
-  List<Object> get props => [];
-}
-
-class FormResetEvent extends InvoiceFormEvent {
-  const FormResetEvent();
 
   @override
   List<Object> get props => [];
