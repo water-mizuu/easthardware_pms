@@ -202,9 +202,7 @@ class PageForm extends StatelessWidget {
                 Spacing.h12,
               ],
             ),
-            Spacing.v12,
             const TableActions(),
-            Spacing.v4,
             const Expanded(flex: 3, child: InvoiceProductTable()),
             const Expanded(flex: 2, child: InvoiceSummary()),
           ].withSpacing(() => Spacing.v12),
@@ -275,13 +273,8 @@ class TableActions extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
-      decoration: BoxDecoration(
-        border: Border(
-          bottom: BorderSide(color: Colors.grey[40], width: 1),
-        ),
-      ),
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 24.0),
       child: Row(
         children: [
           Text(
@@ -350,13 +343,42 @@ class _InvoiceProductTableState extends State<InvoiceProductTable> {
               child: Row(
                 children: [
                   FormTableColumn(
-                      child: const SizedBox(width: 32.0, child: Center(child: Text("#")))),
-                  Expanded(flex: 2, child: FormTableColumn(child: const Text("Product"))),
-                  Expanded(flex: 2, child: FormTableColumn(child: const Text("Description"))),
-                  Expanded(child: FormTableColumn(child: const Text("Quantity"))),
-                  Expanded(child: FormTableColumn(child: const Text("Rate"))),
-                  Expanded(child: FormTableColumn(child: const Text("Amount"))),
-                  const SizedBox(width: 82.0, child: Center(child: Text("Actions"))),
+                    child: const SizedBox(
+                      width: 32.0,
+                      child: Center(child: Text("#", style: TextStyles.tableHeader)),
+                    ),
+                  ),
+                  Expanded(
+                    flex: 2,
+                    child: FormTableColumn(
+                      child: const Text("PRODUCT", style: TextStyles.tableHeader),
+                    ),
+                  ),
+                  Expanded(
+                    flex: 2,
+                    child: FormTableColumn(
+                      child: const Text("DESCRIPTION", style: TextStyles.tableHeader),
+                    ),
+                  ),
+                  Expanded(
+                    child: FormTableColumn(
+                      child: const Text("QUANTITY", style: TextStyles.tableHeader),
+                    ),
+                  ),
+                  Expanded(
+                    child: FormTableColumn(
+                      child: const Text("RATE", style: TextStyles.tableHeader),
+                    ),
+                  ),
+                  Expanded(
+                    child: FormTableColumn(
+                      child: const Text("AMOUNT", style: TextStyles.tableHeader),
+                    ),
+                  ),
+                  const SizedBox(
+                    width: 82.0,
+                    child: Center(child: Text("ACTIONS", style: TextStyles.tableHeader)),
+                  ),
                 ],
               ),
             ),
@@ -504,7 +526,9 @@ class _FormTableRowState extends State<FormTableRow> {
           decoration: BoxDecoration(
             color: currentProduct.errorMessage != null
                 ? Colors.errorSecondaryColor
-                : Colors.transparent,
+                : widget.index % 2 == 0
+                    ? const Color(0xFFFAFAFA)
+                    : Colors.white,
             border: Border(bottom: BorderSide(color: Colors.grey[40])),
           ),
           child: Column(

@@ -1,11 +1,11 @@
 import 'package:fluent_ui/fluent_ui.dart';
 
 class TextStyles {
-  static const TextStyle inactive = TextStyle(
-    color: Color(0xFFB0B0B0),
+  static TextStyle inactive = TextStyle(
+    color: Colors.grey[120],
   );
-  static const TextStyle active = TextStyle(
-    color: Color(0xFF030303),
+  static TextStyle active = TextStyle(
+    color: Colors.grey[220],
   );
   static const TextStyle error = TextStyle(
     color: Colors.errorPrimaryColor,
@@ -29,6 +29,10 @@ class TextStyles {
   static const TextStyle button = TextStyle(
     fontSize: 14,
     fontWeight: FontWeight.w600,
+  );
+  static const TextStyle tableHeader = TextStyle(
+    fontSize: 12,
+    fontWeight: FontWeight.w500,
   );
 }
 
