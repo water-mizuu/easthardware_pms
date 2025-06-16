@@ -7,13 +7,13 @@ sealed class PaymentFormEvent extends Equatable {
   List<Object> get props => [];
 }
 
-class InvoiceIdChanged extends PaymentFormEvent {
-  const InvoiceIdChanged(this.invoiceId);
+class InvoiceChanged extends PaymentFormEvent {
+  const InvoiceChanged(this.invoice);
 
-  final int invoiceId;
+  final Invoice invoice;
 
   @override
-  List<Object> get props => [invoiceId];
+  List<Object> get props => [invoice];
 }
 
 class PaymentMethodChanged extends PaymentFormEvent {

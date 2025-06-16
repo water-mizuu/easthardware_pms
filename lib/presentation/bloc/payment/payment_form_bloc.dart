@@ -1,5 +1,6 @@
 import 'package:bloc/bloc.dart';
 import 'package:easthardware_pms/domain/enums/enums.dart';
+import 'package:easthardware_pms/domain/models/invoice.dart';
 import 'package:easthardware_pms/domain/models/payment.dart';
 import 'package:easthardware_pms/utils/undefined.dart';
 import 'package:equatable/equatable.dart';
@@ -9,7 +10,7 @@ part 'payment_form_state.dart';
 
 class PaymentFormBloc extends Bloc<PaymentFormEvent, PaymentFormState> {
   PaymentFormBloc() : super(PaymentFormState()) {
-    on<InvoiceIdChanged>(_onInvoiceIdChanged);
+    on<InvoiceChanged>(_onInvoiceChanged);
     on<PaymentMethodChanged>(_onPaymentMethodChanged);
     on<PaymentReferenceChanged>(_onPaymentReferenceChanged);
     on<AmountChanged>(_onAmountChanged);
@@ -17,8 +18,8 @@ class PaymentFormBloc extends Bloc<PaymentFormEvent, PaymentFormState> {
     on<SavePaymentRequestEvent>(_onSavePaymentRequestEvent);
   }
 
-  void _onInvoiceIdChanged(InvoiceIdChanged event, Emitter<PaymentFormState> emit) {
-    emit(state.copyWith(invoiceId: event.invoiceId));
+  void _onInvoiceChanged(InvoiceChanged event, Emitter<PaymentFormState> emit) {
+    emit(state.copyWith(invoice: event.invoice));
   }
 
   void _onPaymentMethodChanged(PaymentMethodChanged event, Emitter<PaymentFormState> emit) {

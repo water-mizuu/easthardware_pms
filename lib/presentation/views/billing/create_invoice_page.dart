@@ -46,8 +46,6 @@ class CreateInvoicePage extends StatelessWidget {
                   final products =
                       state.products.map((product) => product.toInvoiceProduct()).toList();
                   context.read<InvoiceListBloc>().add(AddInvoiceEvent(invoice, products));
-                  context.read<InvoiceFormBloc>().add(const FormSubmittedEvent());
-                } else if (state.status == FormStatus.success) {
                 } else if (state.status == FormStatus.error) {
                   final blocContext = context;
                   showDialog<String>(
@@ -73,19 +71,33 @@ class CreateInvoicePage extends StatelessWidget {
               listenWhen: (previous, current) =>
                   previous.latest != current.latest && current.latest != null,
               listener: (context, state) {
-                context.read<ProductListBloc>().add(const ReloadAllProductsEvent());
                 final latest = state.latest!;
+                final authState = context.read<AuthenticationBloc>().state;
+                final formState = context.read<InvoiceFormBloc>().state;
+
+                context.read<ProductListBloc>().add(const ReloadAllProductsEvent());
                 context.read<UserLogListBloc>().add(
-                      AddCreateEvent(
-                        'Invoice #${latest.id}',
-                        context.read<AuthenticationBloc>().state.user!,
-                      ),
+                      AddCreateEvent('Invoice #${latest.id}', authState.user!),
                     );
-                if (context.read<AuthenticationBloc>().state.user!.accessLevel ==
-                    AccessLevel.administrator) {
-                  context.navigate(AppRoutes.admin.billing);
-                } else {
-                  context.navigate(AppRoutes.staff.billing);
+                switch (formState.action) {
+                  case InvoicePostAction.create:
+                    context.read<InvoiceFormBloc>().add(const FormSubmittedEvent());
+                    break;
+
+                  case InvoicePostAction.payment:
+                    if (authState.user!.accessLevel == AccessLevel.administrator) {
+                      context.navigateWithExtra(AppRoutes.admin.createPayment, latest);
+                    } else {
+                      // context.navigateWithExtra(AppRoutes.staff.receivePayment, latest);
+                    }
+                    break;
+
+                  case InvoicePostAction.none:
+                    final route = authState.user!.accessLevel == AccessLevel.administrator
+                        ? AppRoutes.admin.billing
+                        : AppRoutes.staff.billing;
+                    context.navigate(route);
+                    break;
                 }
               },
             ),
@@ -590,8 +602,8 @@ class _FormTableRowState extends State<FormTableRow> {
                                     Text(
                                       '${product.quantity.toString()} ${product.mainUnit}',
                                       style: product.quantity < product.criticalLevel
-                                          ? TextStyles.error.merge(TextStyles.caption)
-                                          : TextStyles.active.merge(TextStyles.caption),
+                                          ? TextStyles.error.merge(TextStyles.tooltip)
+                                          : TextStyles.onSurface.merge(TextStyles.tooltip),
                                     ),
                                   ],
                                 ),
@@ -692,12 +704,12 @@ class _FormTableRowState extends State<FormTableRow> {
                                   inputFormatters: [
                                     FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}')),
                                   ],
-                                  style: TextStyles.active,
+                                  style: TextStyles.onSurface,
                                   controller: _quantityController,
                                   placeholder: '0',
                                   placeholderStyle: currentProduct.productId == null
-                                      ? TextStyles.OnSurfaceVariant
-                                      : TextStyles.active,
+                                      ? TextStyles.onSurfaceVariant
+                                      : TextStyles.onSurface,
                                 )),
                             if (currentProduct.productId == null)
                               const Spacer(flex: 2)
@@ -808,12 +820,12 @@ class _FormTableRowState extends State<FormTableRow> {
                         inputFormatters: [
                           FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}')),
                         ],
-                        style: TextStyles.active,
+                        style: TextStyles.onSurface,
                         controller: _rateController,
                         placeholder: '0.0',
                         placeholderStyle: currentProduct.productId == null
-                            ? TextStyles.OnSurfaceVariant
-                            : TextStyles.active,
+                            ? TextStyles.onSurfaceVariant
+                            : TextStyles.onSurface,
                       ),
                     ),
                   ),
@@ -824,8 +836,8 @@ class _FormTableRowState extends State<FormTableRow> {
                         enabled: false,
                         placeholder: currentProduct.amount.toStringAsFixed(2),
                         placeholderStyle: currentProduct.productId == null
-                            ? TextStyles.OnSurfaceVariant
-                            : TextStyles.active,
+                            ? TextStyles.onSurfaceVariant
+                            : TextStyles.onSurface,
                         onChanged: null,
                       ),
                     ),
@@ -896,7 +908,7 @@ class InvoiceSummary extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       const Text("Subtotal"),
-                      Text("Php. ${subtotal.toStringAsFixed(2)}", style: TextStyles.active),
+                      Text("Php. ${subtotal.toStringAsFixed(2)}", style: TextStyles.onSurface),
                     ],
                   ),
                   Spacing.v16,
@@ -962,11 +974,11 @@ class InvoiceSummary extends StatelessWidget {
                                 child: state.discountType == DiscountType.percentage
                                     ? Text(
                                         "${discount > 0 ? '-' : ''} Php. ${(discount / 100 * subtotal).toStringAsFixed(2)}",
-                                        style: TextStyles.active,
+                                        style: TextStyles.onSurface,
                                       )
                                     : Text(
                                         "${discount > 0 ? '-' : ''} Php. ${discount.toStringAsFixed(2)}",
-                                        style: TextStyles.active,
+                                        style: TextStyles.onSurface,
                                       ),
                               ),
                             ],

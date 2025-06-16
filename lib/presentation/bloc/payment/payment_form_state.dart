@@ -3,7 +3,7 @@ part of 'payment_form_bloc.dart';
 class PaymentFormState {
   PaymentFormState({
     this.id,
-    this.invoiceId,
+    this.invoice,
     this.paymentMethodId = 0,
     this.paymentMethodName = '',
     this.paymentReference = '',
@@ -15,7 +15,7 @@ class PaymentFormState {
   }) : paymentDate = paymentDate ?? DateTime.now();
 
   final int? id;
-  final int? invoiceId;
+  final Invoice? invoice;
   final int paymentMethodId;
   final String paymentMethodName;
   final String paymentReference;
@@ -27,7 +27,7 @@ class PaymentFormState {
 
   PaymentFormState copyWith({
     Object? id = undefined,
-    Object? invoiceId = undefined,
+    Object? invoice = undefined,
     Object? paymentMethodId = undefined,
     Object? paymentMethodName = undefined,
     Object? paymentReference = undefined,
@@ -39,7 +39,7 @@ class PaymentFormState {
   }) {
     return PaymentFormState(
       id: id == undefined ? this.id : id as int?,
-      invoiceId: invoiceId == undefined ? this.invoiceId : invoiceId as int?,
+      invoice: invoice == undefined ? this.invoice : invoice as Invoice?,
       paymentMethodId: paymentMethodId == undefined ? this.paymentMethodId : paymentMethodId as int,
       paymentMethodName:
           paymentMethodName == undefined ? this.paymentMethodName : paymentMethodName as String,
@@ -55,7 +55,7 @@ class PaymentFormState {
 
   Payment toPayment() {
     return Payment(
-      invoiceId: invoiceId!,
+      invoiceId: invoice!.id!,
       amount: amount,
       paymentDate: paymentDate,
       referenceNumber: paymentReference,
