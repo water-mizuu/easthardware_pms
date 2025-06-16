@@ -1,9 +1,9 @@
 import 'package:easthardware_pms/presentation/views/dashboard/cards/lower_stocked_products.dart';
-import 'package:easthardware_pms/presentation/views/dashboard/cards/product_activity.dart';
 import 'package:easthardware_pms/presentation/views/dashboard/cards/product_count_card.dart';
 import 'package:easthardware_pms/presentation/views/dashboard/cards/recent_sales.dart';
 import 'package:easthardware_pms/presentation/views/dashboard/cards/sale_count_card.dart';
 import 'package:easthardware_pms/presentation/views/dashboard/cards/sales_overview.dart';
+import 'package:easthardware_pms/presentation/views/dashboard/cards/top_product_activity.dart';
 import 'package:easthardware_pms/presentation/views/dashboard/cards/total_orders_card.dart';
 import 'package:easthardware_pms/presentation/views/dashboard/cards/total_sales_card.dart';
 import 'package:easthardware_pms/presentation/widgets/animated_single_child_scroll_view.dart';
@@ -65,7 +65,7 @@ class SummarySection extends StatelessWidget {
       const productCount = ProductCountCard();
       const saleCount = SaleCountCard();
       const totalSales = TotalSalesCard();
-      const totalOrders = TotalOrdersCard(value: "Hi");
+      const totalOrders = TotalOrdersCard();
 
       return switch (mode) {
         LayoutMode.wide => const Row(
@@ -120,7 +120,7 @@ class GraphsSection extends StatelessWidget {
             children: [
               Expanded(flex: 3, child: SalesOverview()),
               Spacing.h8,
-              Expanded(flex: 2, child: ProductActivity()),
+              Expanded(flex: 2, child: TopProductActivity()),
             ],
           ),
         );
@@ -135,7 +135,7 @@ class GraphsSection extends StatelessWidget {
             Spacing.v8,
             ConstrainedBox(
               constraints: const BoxConstraints(maxHeight: 320),
-              child: const ProductActivity(),
+              child: const TopProductActivity(),
             ),
           ],
         );

@@ -249,7 +249,13 @@ class _PreserveDebugLoginState extends State<_PreserveDebugLogin> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            const Text("(DEBUG) Preserve login: "),
+            const Flexible(
+              child: Text(
+                "(DEBUG) Preserve login: ",
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(fontSize: 12.0),
+              ),
+            ),
             ValueListenableBuilder(
               valueListenable: _isLoginPreserved,
               builder: (context, value, _) {

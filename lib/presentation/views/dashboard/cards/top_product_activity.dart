@@ -8,21 +8,86 @@ import 'package:easthardware_pms/presentation/views/dashboard/cards/recent_sales
 import 'package:easthardware_pms/presentation/widgets/layout/spacing.dart';
 import 'package:easthardware_pms/presentation/widgets/text.dart';
 import 'package:easthardware_pms/utils/boxed.dart';
+import 'package:easthardware_pms/utils/try_future.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:fluent_ui/fluent_ui.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
-class ProductActivity extends StatefulWidget {
-  const ProductActivity({super.key});
+class TopProductActivity extends StatefulWidget {
+  const TopProductActivity({super.key});
 
   @override
-  State<ProductActivity> createState() => _ProductActivityState();
+  State<TopProductActivity> createState() => _TopProductActivityState();
 }
 
-class _ProductActivityState extends State<ProductActivity> {
-  static const int productDisplayLimit = 6;
+enum TopProductActivityChoice {
+  today,
+  lastWeek,
+  last30Days,
+  currentMonth,
+  currentYear,
+  allTime;
 
-  late InvoiceListState? _invoices;
+  @override
+  String toString() {
+    switch (this) {
+      case today:
+        return "Today";
+      case lastWeek:
+        return "Last 7 Days";
+      case last30Days:
+        return "Last 30 Days";
+      case currentMonth:
+        return "Current Month";
+      case currentYear:
+        return "Current Year";
+      case allTime:
+        return "All Time";
+    }
+  }
+
+  String get description {
+    switch (this) {
+      case today:
+        return "today.";
+      case lastWeek:
+        return "last week.";
+      case last30Days:
+        return "last 30 days.";
+      case currentMonth:
+        return "this month.";
+      case currentYear:
+        return "this year.";
+      case allTime:
+        return "all time.";
+    }
+  }
+
+  bool check(DateTime date) {
+    switch (this) {
+      case today:
+        return date.isAfter(DateTime.now().subtract(const Duration(days: 1)));
+      case lastWeek:
+        return date.isAfter(DateTime.now().subtract(const Duration(days: 7)));
+      case last30Days:
+        return date.isAfter(DateTime.now().subtract(const Duration(days: 30)));
+      case currentMonth:
+        return date.month == DateTime.now().month && date.year == DateTime.now().year;
+      case currentYear:
+        return date.year == DateTime.now().year;
+      case allTime:
+        return true;
+    }
+  }
+}
+
+class _TopProductActivityState extends State<TopProductActivity> {
+  static const int productDisplayLimit = 5;
+
+  late final SharedPreferencesAsync _preferences = SharedPreferencesAsync();
+  late final ValueNotifier<TopProductActivityChoice> _productActivityChoice;
+  late List<Invoice>? _invoices;
   late BarChartData? _barChartData;
   late void Function()? _requestCanceller;
 
@@ -31,32 +96,37 @@ class _ProductActivityState extends State<ProductActivity> {
     super.initState();
 
     _invoices = null;
+    _productActivityChoice = ValueNotifier(TopProductActivityChoice.last30Days) //
+      ..addListener(() async {
+        if (_invoices == null) return;
+        _updateBarChartData(_invoices!);
+        _preferences.setInt('top_product_activity_choice', _productActivityChoice.value.index);
+      });
     _barChartData = null;
     _requestCanceller = null;
+
+    _invoices = null;
+    _barChartData = null;
+    _requestCanceller = null;
+
+    unawaited(() async {
+      final stored = await _preferences.getInt('top_product_activity_choice');
+      if (stored == null || !mounted) return;
+
+      setState(() => _productActivityChoice.value = TopProductActivityChoice.values[stored]);
+    }());
   }
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
 
-    final invoices = context.watch<InvoiceListBloc>().state;
+    /// If the invoices are not loaded yet, we need to trigger a fetch.
+    final invoices = context.watch<InvoiceListBloc>().state.invoices;
     if (_invoices != invoices) {
-      _requestCanceller?.call();
-      var isCancelled = false;
-
       _invoices = invoices;
-      _requestCanceller = () => isCancelled = true;
-      unawaited(() async {
-        final data = await _createBarChartData(invoices.invoices);
-        if (!mounted || isCancelled) return;
-        setState(() => _barChartData = data);
-      }());
+      _updateBarChartData(invoices);
     }
-  }
-
-  @override
-  void dispose() {
-    super.dispose();
   }
 
   @override
@@ -64,19 +134,36 @@ class _ProductActivityState extends State<ProductActivity> {
     return ColoredBox(
       color: FluentTheme.of(context).cardColor,
       child: Padding(
-        padding: const EdgeInsets.all(24.0),
+        padding: AppPadding.cardPadding,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const DisplayText('Top Product Activity'),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const DisplayText('Top Product Activity'),
+                    GrayText('Top sales ${_productActivityChoice.value.description}'),
+                  ],
+                ),
 
                 /// An example button to update the state of the product.
-                Button(
-                  child: const Text("Add product"),
-                  onPressed: () {},
+                ComboBox(
+                  value: _productActivityChoice.value,
+                  items: [
+                    for (final choice in TopProductActivityChoice.values)
+                      ComboBoxItem<TopProductActivityChoice>(
+                        value: choice,
+                        child: Text(choice.toString()),
+                      ),
+                  ],
+                  onChanged: (value) {
+                    if (value == null) return;
+
+                    _productActivityChoice.value = value;
+                  },
                 ),
               ],
             ),
@@ -91,6 +178,19 @@ class _ProductActivityState extends State<ProductActivity> {
     );
   }
 
+  void _updateBarChartData(List<Invoice> invoices) {
+    _requestCanceller?.call();
+    var isCancelled = false;
+
+    _requestCanceller = () => isCancelled = true;
+    unawaited(() async {
+      final data = await _createBarChartData(invoices);
+      if (!mounted || isCancelled) return;
+
+      setState(() => _barChartData = data);
+    }());
+  }
+
   Future<BarChartData> _createBarChartData(List<Invoice> invoices) async {
     /// This map counts the occurrences of each product in the last 30 days.
     ///   The key is a tuple of (productId, productName), and the value is the count.
@@ -101,15 +201,25 @@ class _ProductActivityState extends State<ProductActivity> {
 
     /// Filter the invoices to only include those created in the last 30 days,
     ///   and then map each invoice to its products.
-    final products = await invoices
-        .where((i) => i.creationDate.isAfter(DateTime.now().subtract(const Duration(days: 30))))
+    final (products, error) = await invoices
+        .where((i) => _productActivityChoice.value.check(i.creationDate))
         .map((i) => invoiceProductRepository.fetchInvoiceProductByInvoice(i.id!))
-        .wait;
+        .wait
+        .tryCatch();
+
+    if (error != null) {
+      printBoxed(
+        "Failed to fetch products for the last 30 days: $error",
+        "ProductActivity",
+      );
+      throw Exception("Failed to fetch products for the last 30 days");
+    }
+    assert(products != null, "Products should not be null after fetching.");
 
     /// For each product in the filtered invoices,
     ///   count the occurrences of each product by its ID and name.
-    for (final product in products.expand((l) => l)) {
-      final productId = product!.productId;
+    for (final product in products!.expand((l) => l)) {
+      final productId = product.productId;
       final name = product.productName;
       final compositeKey = (productId, name);
 
@@ -125,11 +235,6 @@ class _ProductActivityState extends State<ProductActivity> {
         .take(productDisplayLimit)
         .map((e) => (e.key.$2, e.value))
         .toList();
-
-    printBoxed(
-      "Product occurrences:\n${productOccurrences.entries.join('\n')}",
-      "Product Activity",
-    );
 
     /// [lineTouchData] configures the widgets shown as the mouse hovers over points
     ///   in the data.
@@ -187,15 +292,11 @@ class _ProductActivityState extends State<ProductActivity> {
       bottomTitles: AxisTitles(
         sideTitles: SideTitles(
           showTitles: true,
-          reservedSize: 192,
+          reservedSize: 160,
           minIncluded: false,
           maxIncluded: false,
           interval: 1,
           getTitlesWidget: (double value, TitleMeta meta) {
-            const style = TextStyle(
-              fontSize: 16,
-            );
-
             assert(
               value == value.floorToDouble(),
               "Bottom title values should be integer-like.",
@@ -207,11 +308,22 @@ class _ProductActivityState extends State<ProductActivity> {
               "The value given should be a valid index for the product list!",
             );
 
+            final (message, _) = topProducts[index];
+
             return SideTitleWidget(
               meta: meta,
-              child: Text(
-                topProducts[index].$1,
-                style: style,
+              child: Tooltip(
+                message: message,
+                triggerMode: TooltipTriggerMode.tap,
+                child: Text(
+                  message,
+                  textAlign: TextAlign.right,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    fontSize: 14,
+                    decoration: TextDecoration.underline,
+                  ),
+                ),
               ),
             );
           },

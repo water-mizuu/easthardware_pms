@@ -18,9 +18,9 @@ import 'package:easthardware_pms/presentation/widgets/ui/kpi_card.dart';
 import 'package:easthardware_pms/presentation/widgets/ui/text_button.dart';
 import 'package:easthardware_pms/utils/typed_routes.dart';
 import 'package:fluent_ui/fluent_ui.dart';
-import 'package:flutter/material.dart' show DataColumn, DataTable;
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:scroll_animator/scroll_animator.dart';
+import 'package:two_dimensional_scrollables/two_dimensional_scrollables.dart';
 
 class InventoryPanePage extends StatefulWidget {
   const InventoryPanePage({super.key});
@@ -353,7 +353,7 @@ class ProductListSection extends StatelessWidget {
       children: [
         const SubheadingText('List of Products'),
         const SearchRow(),
-        const Flexible(child: ProductsDataTable()),
+        const ProductsDataTable(),
 
         /// Blank space to allow space for scrolling past the table.
         Spacing.v12,
@@ -370,28 +370,42 @@ class ProductsDataTable extends StatefulWidget {
 }
 
 class _ProductsDataTableState extends State<ProductsDataTable> {
-  static const names = ['Name', 'Category', 'Price', 'Cost', 'Quantity', 'Actions'];
+  static const double cellHeight = 36.0;
+  static final Map<String, SpanExtent> _rowExtents = {
+    "Name": const MaxSpanExtent(FixedSpanExtent(240.00), FractionalSpanExtent(0.33)),
+    "Category": const MaxSpanExtent(FixedSpanExtent(80.00), FractionalSpanExtent(0.33)),
+    "Price": const FixedSpanExtent(120),
+    "Cost": const FixedSpanExtent(120),
+    "Quantity": const FixedSpanExtent(120),
+    "Actions": const MaxSpanExtent(FixedSpanExtent(80.00), RemainingSpanExtent()),
+  };
 
-  late final AnimatedScrollController _scrollController;
+  late final AnimatedScrollController _verticalScrollController;
+  late final AnimatedScrollController _horizontalScrollController;
 
   @override
   void initState() {
     super.initState();
 
-    _scrollController = AnimatedScrollController(animationFactory: const ChromiumEaseInOut());
+    _verticalScrollController =
+        AnimatedScrollController(animationFactory: const ChromiumEaseInOut());
+    _horizontalScrollController =
+        AnimatedScrollController(animationFactory: const ChromiumEaseInOut());
   }
 
   @override
   void dispose() {
-    _scrollController.dispose();
+    _verticalScrollController.dispose();
+    _horizontalScrollController.dispose();
 
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return ConstrainedBox(
-      constraints: const BoxConstraints(minHeight: 200),
+    return Container(
+      color: FluentTheme.of(context).cardColor,
+      padding: AppPadding.cardPadding,
       child: BlocBuilder<ProductListBloc, ProductListState>(
         builder: (context, state) {
           if (state.status == DataStatus.loading) {
@@ -401,35 +415,48 @@ class _ProductsDataTableState extends State<ProductsDataTable> {
           final allProducts = state.allProducts.where((p) => p.archivedStatus == 0).toList();
           final displayProducts =
               context.select((InventoryDisplayBloc b) => b.state.filteredProducts);
+
           if (allProducts.isEmpty) {
             return const DataTablePlaceHolder(FluentIcons.product_list, 'Products');
           }
 
-          return Container(
-            constraints: const BoxConstraints(minHeight: 200),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(4),
+          final matrix = [
+            [
+              for (final columnName in _rowExtents.keys)
+                Text(columnName, style: const TextStyle(fontWeight: FontWeight.w600)),
+            ],
+            for (final product in displayProducts ?? allProducts) //
+              if (DataRowMapper.mapProductToRow(product, editAction: () {
+                context.navigateWithExtra(AppRoutes.admin.editProduct, product);
+              })
+                  case final row)
+                [for (final cell in row.cells) cell.child]
+          ];
+
+          return ConstrainedBox(
+            constraints: BoxConstraints(
+              minHeight: cellHeight * 4,
+              maxHeight: matrix.length * cellHeight,
             ),
-            child: SingleChildScrollView(
-              controller: _scrollController,
-              scrollDirection: Axis.horizontal,
-              child: DataTable(
-                showCheckboxColumn: true,
-                columns: [
-                  for (final data in names) //
-                    DataColumn(label: Text(data)),
-                ],
-                rows: [
-                  for (final product in displayProducts ?? allProducts)
-                    DataRowMapper.mapProductToRow(
-                      product,
-                      editAction: () {
-                        context.navigateWithExtra(AppRoutes.admin.editProduct, product);
-                      },
-                    ),
-                ],
+            child: TableView.builder(
+              verticalDetails: ScrollableDetails.vertical(
+                controller: _verticalScrollController,
               ),
+              horizontalDetails: ScrollableDetails.horizontal(
+                controller: _horizontalScrollController,
+              ),
+
+              /// Fixed counts for easier rendering.
+              columnCount: _rowExtents.length,
+              rowCount: matrix.length,
+
+              /// Use the extents defined in _rowExtents.
+              columnBuilder: (index) => TableSpan(extent: _rowExtents.values.elementAt(index)),
+              rowBuilder: (index) => const TableSpan(extent: FixedSpanExtent(cellHeight)),
+
+              /// We refer to the matrix to get the cell content.
+              cellBuilder: (_, vicinity) =>
+                  TableViewCell(child: matrix[vicinity.row][vicinity.column]),
             ),
           );
         },

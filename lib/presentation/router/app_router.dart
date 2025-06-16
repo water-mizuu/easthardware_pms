@@ -1,3 +1,5 @@
+import 'package:easthardware_pms/domain/enums/enums.dart';
+import 'package:easthardware_pms/presentation/bloc/authentication/authentication/authentication_bloc.dart';
 import 'package:easthardware_pms/presentation/router/app_routes.dart';
 import 'package:easthardware_pms/presentation/views/Order/create_expense_order_page.dart';
 import 'package:easthardware_pms/presentation/views/Order/create_restock_order_page.dart';
@@ -23,8 +25,10 @@ import 'package:easthardware_pms/presentation/views/security/create_user_page.da
 import 'package:easthardware_pms/presentation/views/security/user_log_pane.dart';
 import 'package:easthardware_pms/presentation/views/security/users_pane_page.dart';
 import 'package:easthardware_pms/presentation/widgets/bottom_text.dart';
+import 'package:easthardware_pms/utils/boxed.dart';
 import 'package:easthardware_pms/utils/typed_routes.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart' hide TypedGoRoute;
 
 final keys = (searchKey: GlobalKey<NavigatorState>(),);
@@ -307,6 +311,126 @@ final router = GoRouter(
           ],
         ),
       ],
+    ),
+
+    // static const inventory = AppRoute<Null>('/inventory');
+    TypedGoRoute(
+      route: AppRoutes.inventory,
+      redirect: (context, state) {
+        final user = context.read<AuthenticationBloc>().state.user;
+
+        switch (user?.accessLevel) {
+          case AccessLevel.administrator:
+            return AppRoutes.admin.inventory.path;
+          case AccessLevel.staff:
+            return AppRoutes.staff.inventory.path;
+          case null:
+            return AppRoutes.login.path;
+        }
+      },
+    ),
+    // static const billing = AppRoute<Null>('/billing');
+    TypedGoRoute(
+      route: AppRoutes.billing,
+      redirect: (context, state) {
+        final user = context.read<AuthenticationBloc>().state.user;
+
+        switch (user?.accessLevel) {
+          case AccessLevel.administrator:
+            return AppRoutes.admin.billing.path;
+          case AccessLevel.staff:
+            return AppRoutes.staff.createInvoice.path;
+          case null:
+            return AppRoutes.login.path;
+        }
+      },
+    ),
+
+    // static const order = AppRoute<Null>('/order');
+    TypedGoRoute(
+      route: AppRoutes.order,
+      redirect: (context, state) {
+        final user = context.read<AuthenticationBloc>().state.user;
+
+        switch (user?.accessLevel) {
+          case AccessLevel.administrator:
+            return AppRoutes.admin.order.path;
+          case AccessLevel.staff:
+            return AppRoutes.staff.createInvoice.path;
+          case null:
+            return AppRoutes.login.path;
+        }
+      },
+    ),
+
+    // static const reports = AppRoute<Null>('/reports');
+    TypedGoRoute(
+      route: AppRoutes.reports,
+      redirect: (context, state) {
+        final user = context.read<AuthenticationBloc>().state.user;
+
+        switch (user?.accessLevel) {
+          case AccessLevel.administrator:
+            return AppRoutes.admin.reports.path;
+          case AccessLevel.staff:
+            printBoxed("Tried to access reports as staff", "AppRouter");
+            return AppRoutes.login.path;
+          case null:
+            return AppRoutes.login.path;
+        }
+      },
+    ),
+
+    // static const settings = AppRoute<Null>('/settings');
+    TypedGoRoute(
+      route: AppRoutes.settings,
+      redirect: (context, state) {
+        final user = context.read<AuthenticationBloc>().state.user;
+
+        switch (user?.accessLevel) {
+          case AccessLevel.administrator:
+            return AppRoutes.admin.settings.path;
+          case AccessLevel.staff:
+            printBoxed("Tried to access settings as staff", "AppRouter");
+            return AppRoutes.login.path;
+          case null:
+            return AppRoutes.login.path;
+        }
+      },
+    ),
+
+    // static const help = AppRoute<Null>('/help');
+    TypedGoRoute(
+      route: AppRoutes.help,
+      redirect: (context, state) {
+        final user = context.read<AuthenticationBloc>().state.user;
+
+        switch (user?.accessLevel) {
+          case AccessLevel.administrator:
+            return AppRoutes.admin.help.path;
+          case AccessLevel.staff:
+            return AppRoutes.staff.help.path;
+          case null:
+            return AppRoutes.login.path;
+        }
+      },
+    ),
+
+    // static const about = AppRoute<Null>('/about');
+    TypedGoRoute(
+      route: AppRoutes.about,
+      redirect: (context, state) {
+        final user = context.read<AuthenticationBloc>().state.user;
+
+        switch (user?.accessLevel) {
+          case AccessLevel.administrator:
+            return AppRoutes.admin.about.path;
+          case AccessLevel.staff:
+            return AppRoutes.staff.about.path;
+          case null:
+            return AppRoutes.login.path;
+        }
+      },
     ),
   ],
 );

@@ -23,6 +23,7 @@ import 'package:easthardware_pms/domain/backend/utils/isolate_indicator.dart';
 import 'package:easthardware_pms/domain/models/user.dart';
 import 'package:easthardware_pms/domain/models/user_log.dart';
 import 'package:easthardware_pms/domain/services/cryptography_service.dart';
+import 'package:easthardware_pms/main.dart';
 import 'package:easthardware_pms/utils/boxed.dart';
 import 'package:flutter/foundation.dart';
 import 'package:path/path.dart';
@@ -308,7 +309,7 @@ Future<DatabaseMethodResult> serverHandleDatabaseMethod(
           break;
       }
     } catch (e, stackTrace) {
-      if (kDebugMode) {
+      if (printDatabaseMessages) {
         printBoxed(
           "Error occurred while executing database method: $method\n"
               "Error: $e\n"
@@ -321,7 +322,7 @@ Future<DatabaseMethodResult> serverHandleDatabaseMethod(
     }
 
     final turnAroundDuration = DateTime.now().difference(start);
-    if (kDebugMode) {
+    if (printDatabaseMessages) {
       printBoxed(
         "Method: '$method'\n"
             "Waiting Time: ${waitingDuration.inMicroseconds}μs\n"

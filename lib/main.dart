@@ -10,7 +10,7 @@ import 'package:flutter/foundation.dart';
 import 'package:window_manager_plus/window_manager_plus.dart';
 
 const printWebSocketMessages = true;
-const printDatabaseMessages = true;
+const printDatabaseMessages = false;
 
 void main(List<String> args) async {
   WidgetsFlutterBinding.ensureInitialized();

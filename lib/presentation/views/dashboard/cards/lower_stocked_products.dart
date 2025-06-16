@@ -2,6 +2,7 @@ import 'dart:math';
 
 import 'package:easthardware_pms/domain/models/product.dart';
 import 'package:easthardware_pms/presentation/bloc/inventory/product_list/product_list_bloc.dart';
+import 'package:easthardware_pms/presentation/widgets/helper/data_row_mapper.dart';
 import 'package:easthardware_pms/presentation/widgets/layout/spacing.dart';
 import 'package:easthardware_pms/presentation/widgets/text.dart';
 import 'package:fluent_ui/fluent_ui.dart';
@@ -24,7 +25,6 @@ class _LowerStockedProductsState extends State<LowerStockedProducts> {
 
   static const double cellHeight = 36.0;
   static final Map<String, (SpanExtent, Widget Function(Product))> _rowExtents = {
-    "ID": (const FixedSpanExtent(60), (p) => Text(p.id.toString())),
     "Name": (
       const MaxSpanExtent(
         FixedSpanExtent(240.00),
@@ -79,7 +79,8 @@ class _LowerStockedProductsState extends State<LowerStockedProducts> {
           Text(columnName, style: const TextStyle(fontWeight: FontWeight.w600)),
       ],
       for (final product in products) //
-        [for (final (_, selector) in _rowExtents.values) selector(product)]
+        if (DataRowMapper.mapProductToRow(product, editAction: () {}) case final row)
+          [for (final cell in row.cells) cell.child]
     ];
 
     return ColoredBox(

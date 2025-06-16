@@ -1097,8 +1097,13 @@ class ServerBloc extends Bloc<ServerEvent, ServerState> {
         ];
         final today = DateTime(2025, 6, 13); // Current date is June 13, 2025
 
-        // Create 50 invoices with different dates spanning the last 90 days, with more concentration in recent weeks
+        // Create 62 invoices with different dates spanning the last 90 days, with more concentration in recent weeks
         final mockInvoices = <Invoice>[];
+
+        // Define the current date as June 16, 2025 (3 days after the previously defined 'today')
+        final currentDate = DateTime(2025, 6, 16);
+
+        // First add the original 50 invoices
         for (var i = 0; i < 50; i++) {
           // Date distribution logic:
           // - First 15 invoices: from last 7 days (higher density in the most recent week)
@@ -1213,6 +1218,162 @@ class ServerBloc extends Bloc<ServerEvent, ServerState> {
               quantity = 1.0 + (j % 3); // 1-3 for piece/set items
             } else if (product.mainUnit == "bag" || product.mainUnit == "gallon") {
               quantity = 1.0 + (j % 2); // 1-2 for heavy items
+            } else {
+              quantity = 1.0 + (j % 5); // 1-5 for other items
+            }
+
+            final rate = product.salePrice;
+            final amount = rate * quantity;
+            totalAmount += amount;
+
+            final invoiceProduct = InvoiceProduct(
+              invoiceId: invoiceId,
+              productId: productIds[productIndex],
+              productName: product.name,
+              description: product.description,
+              quantity: quantity,
+              rate: rate,
+              amount: amount,
+            );
+
+            await invoiceProductRepository.insertInvoiceProduct(invoiceProduct);
+          }
+
+          // Update invoice with total amount
+          final updatedInvoice = invoice.copyWith(
+            id: invoiceId,
+            amountDue: totalAmount,
+            amountPaid: invoice.paymentDate != null ? totalAmount : null,
+          );
+
+          await invoiceRepository.updateInvoice(updatedInvoice);
+        }
+
+        // Add 12 more recent invoices including today's date (June 16, 2025) with multiple invoices on the same days
+        // Additional customers for the new invoices
+        final additionalCustomers = [
+          "Lorenzo Villanueva",
+          "Beatrice Santos",
+          "Arturo Flores",
+          "Patricia Castro",
+          "Rolando De Leon",
+          "Natividad Reyes",
+          "Ernesto Bautista",
+          "Carmela Gonzalez",
+          "Danilo Cruz",
+          "Leticia Diaz",
+          "Benjamin Ramos",
+          "Lolita Torres"
+        ];
+
+        // Create distribution of dates:
+        // - 5 invoices today (June 16)
+        // - 3 invoices yesterday (June 15)
+        // - 2 invoices on June 14
+        // - 2 invoices in between today and June 13
+
+        final todaysDate = DateTime(2025, 6, 16); // Today's actual date (June 16, 2025)
+
+        final recentDates = [
+          todaysDate, // Today - June 16, 2025
+          todaysDate, // Today
+          todaysDate, // Today
+          todaysDate, // Today
+          todaysDate, // Today
+          todaysDate.subtract(const Duration(days: 1)), // June 15
+          todaysDate.subtract(const Duration(days: 1)), // June 15
+          todaysDate.subtract(const Duration(days: 1)), // June 15
+          todaysDate.subtract(const Duration(days: 2)), // June 14
+          todaysDate.subtract(const Duration(days: 2)), // June 14
+          todaysDate.subtract(const Duration(days: 3)), // June 13 (another one for this day)
+          todaysDate.subtract(const Duration(days: 3)), // June 13 (another one for this day)
+        ];
+
+        for (var i = 0; i < 12; i++) {
+          final invoiceDate = recentDates[i];
+
+          // For recent invoices, 60% paid on same day, 40% unpaid (higher unpaid rate for more recent)
+          final isPaidImmediately = i % 5 > 1; // 60% paid immediately
+          final isToday = invoiceDate.day == todaysDate.day;
+
+          // Most of today's invoices should be unpaid
+          final paymentDate = (isToday && i < 3) || !isPaidImmediately
+              ? null
+              : invoiceDate; // paid on same day if paid at all
+
+          final hasDiscount = i % 3 == 0; // 33% of invoices have discount
+          final discountType = i % 6 == 0 ? DiscountType.value : DiscountType.percentage;
+          final discountValue =
+              discountType == DiscountType.percentage ? 5.0 + (i % 6) : 50.0 + (i * 15.0 % 100);
+
+          final memos = [
+            "Rush order",
+            "Contractor materials",
+            "Home improvement project",
+            "Renovation supplies",
+            "Special customer discount",
+            "Large order with delivery"
+          ];
+
+          final memo = i % 2 == 0 ? memos[i % memos.length] : null;
+
+          // Create unique reference numbers continuing from previous series
+          final refNumber =
+              "INV-${2025}${invoiceDate.month.toString().padLeft(2, '0')}${(i + 50).toString().padLeft(3, '0')}";
+
+          final invoice = Invoice(
+            customerName: additionalCustomers[i],
+            invoiceDate: invoiceDate,
+            dueDate: invoiceDate.add(Duration(days: 15 + (i % 4) * 5)),
+            paymentMethod: i % 3,
+            referenceNumber: refNumber,
+            memo: memo,
+            discount: hasDiscount ? discountValue : null,
+            discountType: discountType,
+            creationDate: invoiceDate,
+            paymentDate: paymentDate,
+            amountDue: 0, // Will be calculated after adding products
+            amountPaid: paymentDate != null ? 0 : null,
+            creatorId: usersId + (i % users.length),
+          );
+
+          final insertedInvoice = await invoiceRepository.insertInvoice(invoice);
+          final invoiceId = insertedInvoice.id!;
+
+          // More products in these recent invoices for better testing
+          final numberOfProducts = 2 + (i % 4); // 2-5 products per invoice
+          var totalAmount = 0.0;
+
+          // Ensure we don't repeat products in the same invoice
+          final selectedProducts = <int>{};
+
+          for (var j = 0; j < numberOfProducts; j++) {
+            // Select product from appropriate category
+            final preferredCategoryIndex = (i + j) % 7; // Mix it up a bit
+
+            // Find a product that hasn't been added to this invoice yet
+            int productIndex;
+            do {
+              productIndex = mockProducts.indexWhere((p) =>
+                  !selectedProducts.contains(mockProducts.indexOf(p)) &&
+                  (j < 2 ? p.categoryId == categoryIds[preferredCategoryIndex] : true));
+
+              if (productIndex == -1) {
+                productIndex = ((i * 3) + j) % mockProducts.length;
+              }
+            } while (selectedProducts.contains(productIndex) &&
+                selectedProducts.length < mockProducts.length);
+
+            selectedProducts.add(productIndex);
+
+            final product = mockProducts[productIndex];
+
+            // Quantities - recent invoices tend to have higher quantities
+            double quantity;
+            if (product.mainUnit == "piece" || product.mainUnit == "set") {
+              quantity = 1.0 + (j % 4); // 1-4 for piece/set items
+            } else if (product.mainUnit == "bag" || product.mainUnit == "gallon") {
+              quantity = 1.0 + (j % 3); // 1-3 for heavy items
             } else {
               quantity = 1.0 + (j % 5); // 1-5 for other items
             }

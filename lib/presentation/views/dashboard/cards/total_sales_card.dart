@@ -22,11 +22,3 @@ class TotalSalesCard extends StatelessWidget {
     );
   }
 }
-
-// class TotalSalesCard extends KPICard {
-//   const TotalSalesCard({super.key, required super.value})
-//       : super(
-//           'Total Sales',
-//           icon: const Icon(FluentIcons.product_warning),
-//         );
-// }
