@@ -58,64 +58,62 @@ class InvoiceFormState extends Equatable {
   final String? dialogErrorMessage;
   final InvoicePostAction action;
 
-  static const unchanged = Object();
-
   InvoiceFormState copyWith({
-    Object? invoiceId = unchanged,
-    Object? customerName = unchanged,
-    Object? invoiceDate = unchanged,
-    Object? dueDate = unchanged,
-    Object? products = unchanged,
-    Object? memo = unchanged,
-    Object? subtotal = unchanged,
-    Object? discount = unchanged,
-    Object? discountType = unchanged,
-    Object? amountDue = unchanged,
-    Object? amountPaid = unchanged,
-    Object? paymentDate = unchanged,
-    Object? paymentMethod = unchanged,
-    Object? referenceNumber = unchanged,
-    Object? creatorId = unchanged,
-    Object? creationDate = unchanged,
-    Object? invoiceDateErrorMessage = unchanged,
-    Object? dueDateErrorMessage = unchanged,
-    Object? discountErrorMessage = unchanged,
-    Object? dialogErrorMessage = unchanged,
-    Object? status = unchanged,
-    Object? action = unchanged,
+    Object? invoiceId = undefined,
+    Object? customerName = undefined,
+    Object? invoiceDate = undefined,
+    Object? dueDate = undefined,
+    Object? products = undefined,
+    Object? memo = undefined,
+    Object? subtotal = undefined,
+    Object? discount = undefined,
+    Object? discountType = undefined,
+    Object? amountDue = undefined,
+    Object? amountPaid = undefined,
+    Object? paymentDate = undefined,
+    Object? paymentMethod = undefined,
+    Object? referenceNumber = undefined,
+    Object? creatorId = undefined,
+    Object? creationDate = undefined,
+    Object? invoiceDateErrorMessage = undefined,
+    Object? dueDateErrorMessage = undefined,
+    Object? discountErrorMessage = undefined,
+    Object? dialogErrorMessage = undefined,
+    Object? status = undefined,
+    Object? action = undefined,
   }) {
     return InvoiceFormState(
-      invoiceId: invoiceId == unchanged ? this.invoiceId : invoiceId as int?,
-      customerName: customerName == unchanged ? this.customerName : customerName as String,
-      invoiceDate: invoiceDate == unchanged ? this.invoiceDate : invoiceDate as DateTime,
-      dueDate: dueDate == unchanged ? this.dueDate : dueDate as DateTime,
-      products: products == unchanged ? this.products : products as List<FormProduct>,
-      memo: memo == unchanged ? this.memo : memo as String?,
-      subtotal: subtotal == unchanged ? this.subtotal : subtotal as double?,
-      discount: discount == unchanged ? this.discount : discount as double?,
-      discountType: discountType == unchanged ? this.discountType : discountType as DiscountType?,
-      amountDue: amountDue == unchanged ? this.amountDue : amountDue as double?,
-      amountPaid: amountPaid == unchanged ? this.amountPaid : amountPaid as double?,
-      paymentDate: paymentDate == unchanged ? this.paymentDate : paymentDate as DateTime?,
+      invoiceId: invoiceId == undefined ? this.invoiceId : invoiceId as int?,
+      customerName: customerName == undefined ? this.customerName : customerName as String,
+      invoiceDate: invoiceDate == undefined ? this.invoiceDate : invoiceDate as DateTime,
+      dueDate: dueDate == undefined ? this.dueDate : dueDate as DateTime,
+      products: products == undefined ? this.products : products as List<FormProduct>,
+      memo: memo == undefined ? this.memo : memo as String?,
+      subtotal: subtotal == undefined ? this.subtotal : subtotal as double?,
+      discount: discount == undefined ? this.discount : discount as double?,
+      discountType: discountType == undefined ? this.discountType : discountType as DiscountType?,
+      amountDue: amountDue == undefined ? this.amountDue : amountDue as double?,
+      amountPaid: amountPaid == undefined ? this.amountPaid : amountPaid as double?,
+      paymentDate: paymentDate == undefined ? this.paymentDate : paymentDate as DateTime?,
       paymentMethod:
-          paymentMethod == unchanged ? this.paymentMethod : paymentMethod as PaymentMethod?,
+          paymentMethod == undefined ? this.paymentMethod : paymentMethod as PaymentMethod?,
       referenceNumber:
-          referenceNumber == unchanged ? this.referenceNumber : referenceNumber as String?,
-      creatorId: creatorId == unchanged ? this.creatorId : creatorId as int?,
-      creationDate: creationDate == unchanged ? this.creationDate : creationDate as DateTime?,
-      invoiceDateErrorMessage: invoiceDateErrorMessage == unchanged
+          referenceNumber == undefined ? this.referenceNumber : referenceNumber as String?,
+      creatorId: creatorId == undefined ? this.creatorId : creatorId as int?,
+      creationDate: creationDate == undefined ? this.creationDate : creationDate as DateTime?,
+      invoiceDateErrorMessage: invoiceDateErrorMessage == undefined
           ? this.invoiceDateErrorMessage
           : invoiceDateErrorMessage as String?,
-      dueDateErrorMessage: dueDateErrorMessage == unchanged
+      dueDateErrorMessage: dueDateErrorMessage == undefined
           ? this.dueDateErrorMessage
           : dueDateErrorMessage as String?,
-      discountErrorMessage: discountErrorMessage == unchanged
+      discountErrorMessage: discountErrorMessage == undefined
           ? this.discountErrorMessage
           : discountErrorMessage as String?,
       dialogErrorMessage:
-          dialogErrorMessage == unchanged ? this.dialogErrorMessage : dialogErrorMessage as String?,
-      status: status == unchanged ? this.status : status as FormStatus,
-      action: action == unchanged ? this.action : action as InvoicePostAction,
+          dialogErrorMessage == undefined ? this.dialogErrorMessage : dialogErrorMessage as String?,
+      status: status == undefined ? this.status : status as FormStatus,
+      action: action == undefined ? this.action : action as InvoicePostAction,
     );
   }
 
