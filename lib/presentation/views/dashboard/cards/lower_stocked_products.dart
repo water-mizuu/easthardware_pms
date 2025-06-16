@@ -80,7 +80,13 @@ class _LowerStockedProductsState extends State<LowerStockedProducts> {
       ],
       for (final product in products) //
         if (DataRowMapper.mapProductToRow(product, editAction: () {}) case final row)
-          [for (final cell in row.cells) cell.child]
+          [
+            for (final cell in row.cells)
+              ColoredBox(
+                color: row.color?.resolve({}) ?? Colors.transparent,
+                child: cell.child,
+              )
+          ]
     ];
 
     return ColoredBox(

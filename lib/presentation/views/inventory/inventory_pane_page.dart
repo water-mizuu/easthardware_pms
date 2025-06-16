@@ -430,7 +430,13 @@ class _ProductsDataTableState extends State<ProductsDataTable> {
                 context.navigateWithExtra(AppRoutes.admin.editProduct, product);
               })
                   case final row)
-                [for (final cell in row.cells) cell.child]
+                [
+                  for (final cell in row.cells)
+                    ColoredBox(
+                      color: row.color?.resolve({}) ?? Colors.transparent,
+                      child: cell.child,
+                    )
+                ]
           ];
 
           return ConstrainedBox(

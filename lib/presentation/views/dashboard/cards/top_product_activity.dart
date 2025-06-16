@@ -171,7 +171,7 @@ class _TopProductActivityState extends State<TopProductActivity> {
             if (_barChartData case final barChartData?)
               Expanded(child: BarChart(barChartData))
             else
-              const RecentSalesPlaceholder(),
+              const Expanded(child: Center(child: RecentSalesPlaceholder())),
           ],
         ),
       ),
@@ -191,7 +191,7 @@ class _TopProductActivityState extends State<TopProductActivity> {
     }());
   }
 
-  Future<BarChartData> _createBarChartData(List<Invoice> invoices) async {
+  Future<BarChartData?> _createBarChartData(List<Invoice> invoices) async {
     /// This map counts the occurrences of each product in the last 30 days.
     ///   The key is a tuple of (productId, productName), and the value is the count.
     final productOccurrences = <(int, String), int>{};
@@ -216,9 +216,13 @@ class _TopProductActivityState extends State<TopProductActivity> {
     }
     assert(products != null, "Products should not be null after fetching.");
 
+    if (products!.isEmpty) {
+      return null;
+    }
+
     /// For each product in the filtered invoices,
     ///   count the occurrences of each product by its ID and name.
-    for (final product in products!.expand((l) => l)) {
+    for (final product in products.expand((l) => l)) {
       final productId = product.productId;
       final name = product.productName;
       final compositeKey = (productId, name);
