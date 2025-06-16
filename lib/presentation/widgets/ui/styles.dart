@@ -1,28 +1,36 @@
 import 'package:fluent_ui/fluent_ui.dart';
 
 class TextStyles {
-  static TextStyle inactive = TextStyle(
+  static TextStyle onSurfaceVariant = TextStyle(
     color: Colors.grey[120],
   );
-  static TextStyle active = TextStyle(
-    color: Colors.grey[220],
+  static TextStyle onSurface = TextStyle(
+    color: Colors.grey[200],
   );
   static const TextStyle error = TextStyle(
     color: Colors.errorPrimaryColor,
   );
-  static const TextStyle title = TextStyle(
-    fontSize: 20,
-    fontWeight: FontWeight.w600,
+  static const TextStyle strong = TextStyle(
+    fontWeight: FontWeight.w500,
   );
-  static const TextStyle subtitle = TextStyle(
+  static const TextStyle display = TextStyle(
+    fontSize: 20,
+  );
+  static const TextStyle title = TextStyle(
     fontSize: 16,
     fontWeight: FontWeight.w500,
   );
+  static const TextStyle subtitle = TextStyle(
+    fontSize: 16,
+  );
   static const TextStyle body = TextStyle(
-    fontSize: 14,
-    fontWeight: FontWeight.w400,
+    fontSize: 12,
   );
   static const TextStyle caption = TextStyle(
+    fontSize: 12,
+    fontWeight: FontWeight.w400,
+  );
+  static const TextStyle tooltip = TextStyle(
     fontSize: 10,
     fontWeight: FontWeight.w400,
   );

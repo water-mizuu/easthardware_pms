@@ -4,6 +4,7 @@ import 'package:easthardware_pms/domain/models/invoice.dart';
 import 'package:easthardware_pms/domain/models/product.dart';
 import 'package:easthardware_pms/presentation/models/form_product.dart';
 import 'package:easthardware_pms/utils/boxed.dart';
+import 'package:easthardware_pms/utils/undefined.dart';
 import 'package:equatable/equatable.dart';
 
 part 'invoice_form_event.dart';
@@ -268,16 +269,17 @@ class InvoiceFormBloc extends Bloc<InvoiceFormEvent, InvoiceFormState> {
       );
     }
 
-    return emit(
+    emit(
       state.copyWith(
         dialogErrorMessage: null,
         creationDate: event.creationDate,
         creatorId: event.creatorId,
-        invoiceId: event.invoiceId,
         status: FormStatus.submitting,
         action: event.action,
       ),
     );
+
+    return;
   }
 
   void _onDialogBoxClosed(DialogBoxClosedEvent event, Emitter<InvoiceFormState> emit) {

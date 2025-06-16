@@ -12,6 +12,7 @@ import 'package:easthardware_pms/data/database/tables/invoices_table.dart';
 import 'package:easthardware_pms/data/database/tables/order_products_table.dart';
 import 'package:easthardware_pms/data/database/tables/orders_table.dart';
 import 'package:easthardware_pms/data/database/tables/payment_methods_table.dart';
+import 'package:easthardware_pms/data/database/tables/payments_table.dart';
 import 'package:easthardware_pms/data/database/tables/products_table.dart';
 import 'package:easthardware_pms/data/database/tables/security_questions_table.dart';
 import 'package:easthardware_pms/data/database/tables/units_table.dart';
@@ -53,6 +54,7 @@ Future<void> resetDatabase() async {
         OrderProductsTable.dropTable(txn);
         InvoicesTable.dropTable(txn);
         InvoiceProductsTable.dropTable(txn);
+        PaymentsTable.dropTable(txn);
         SecurityQuestionsTable.dropTable(txn);
         ProductFlagsView.dropView(txn);
 
@@ -68,6 +70,7 @@ Future<void> resetDatabase() async {
         OrderProductsTable.createTable(db);
         InvoicesTable.createTable(db);
         InvoiceProductsTable.createTable(db);
+        PaymentsTable.createTable(db);
         SecurityQuestionsTable.createTable(db);
         ProductFlagsView.createView(db);
       });
@@ -374,6 +377,7 @@ Future<Database> _getDatabase(int? savedHeartbeat) async {
         OrderProductsTable.createTable(db);
         InvoicesTable.createTable(db);
         InvoiceProductsTable.createTable(db);
+        PaymentsTable.createTable(db);
         SecurityQuestionsTable.createTable(db);
         ProductFlagsView.createView(db);
       },
@@ -390,6 +394,7 @@ Future<Database> _getDatabase(int? savedHeartbeat) async {
         OrderProductsTable.dropTable(db);
         InvoicesTable.dropTable(db);
         InvoiceProductsTable.dropTable(db);
+        PaymentsTable.dropTable(db);
         SecurityQuestionsTable.dropTable(db);
         ProductFlagsView.dropView(db);
         // Recreate all tables
@@ -404,6 +409,7 @@ Future<Database> _getDatabase(int? savedHeartbeat) async {
         OrderProductsTable.createTable(db);
         InvoicesTable.createTable(db);
         InvoiceProductsTable.createTable(db);
+        PaymentsTable.createTable(db);
         SecurityQuestionsTable.createTable(db);
         ProductFlagsView.createView(db);
         // You can also add any additional migration logic here if needed
@@ -422,6 +428,7 @@ Future<Database> _getDatabase(int? savedHeartbeat) async {
         OrderProductsTable.dropTable(db);
         InvoicesTable.dropTable(db);
         InvoiceProductsTable.dropTable(db);
+        PaymentsTable.dropTable(db);
         SecurityQuestionsTable.dropTable(db);
         ProductFlagsView.dropView(db);
         // Recreate all tables
@@ -436,6 +443,7 @@ Future<Database> _getDatabase(int? savedHeartbeat) async {
         OrderProductsTable.createTable(db);
         InvoicesTable.createTable(db);
         InvoiceProductsTable.createTable(db);
+        PaymentsTable.createTable(db);
         SecurityQuestionsTable.createTable(db);
         ProductFlagsView.createView(db);
         // You can also add any additional migration logic here if needed
