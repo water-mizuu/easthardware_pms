@@ -130,7 +130,9 @@ class _SalesOverviewState extends State<SalesOverview> {
           "Tried to add an invoice for a date that is not in the last 7 days: $date\n${invoicesByDay.entries.join('\n')}",
           "Invoice Date Error",
         );
+        continue;
       }
+
       invoicesByDay[date]!.add(invoice);
     }
 

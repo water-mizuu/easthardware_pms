@@ -20,7 +20,8 @@ class InvoiceFormState extends Equatable {
     this.creationDate,
     this.invoiceDateErrorMessage,
     this.dueDateErrorMessage,
-    this.errorMessage,
+    this.discountErrorMessage,
+    this.dialogErrorMessage,
     this.status = FormStatus.initial,
     this.action = InvoicePostAction.none,
   })  : invoiceDate = invoiceDate ?? DateTime.now(),
@@ -51,56 +52,70 @@ class InvoiceFormState extends Equatable {
   // For Form Validation for components with no validator support
   final String? invoiceDateErrorMessage;
   final String? dueDateErrorMessage;
+  final String? discountErrorMessage;
 
   final FormStatus status;
-  final String? errorMessage;
+  final String? dialogErrorMessage;
   final InvoicePostAction action;
 
+  static const unchanged = Object();
+
   InvoiceFormState copyWith({
-    int? invoiceId,
-    String? customerName,
-    DateTime? invoiceDate,
-    DateTime? dueDate,
-    List<FormProduct>? products,
-    String? memo,
-    double? subtotal,
-    double? discount,
-    DiscountType? discountType,
-    double? amountDue,
-    double? amountPaid,
-    DateTime? paymentDate,
-    PaymentMethod? paymentMethod,
-    String? referenceNumber,
-    int? creatorId,
-    DateTime? creationDate,
-    String? invoiceDateErrorMessage,
-    String? dueDateErrorMessage,
-    FormStatus? status,
-    String? errorMessage,
-    InvoicePostAction? action,
+    Object? invoiceId = unchanged,
+    Object? customerName = unchanged,
+    Object? invoiceDate = unchanged,
+    Object? dueDate = unchanged,
+    Object? products = unchanged,
+    Object? memo = unchanged,
+    Object? subtotal = unchanged,
+    Object? discount = unchanged,
+    Object? discountType = unchanged,
+    Object? amountDue = unchanged,
+    Object? amountPaid = unchanged,
+    Object? paymentDate = unchanged,
+    Object? paymentMethod = unchanged,
+    Object? referenceNumber = unchanged,
+    Object? creatorId = unchanged,
+    Object? creationDate = unchanged,
+    Object? invoiceDateErrorMessage = unchanged,
+    Object? dueDateErrorMessage = unchanged,
+    Object? discountErrorMessage = unchanged,
+    Object? dialogErrorMessage = unchanged,
+    Object? status = unchanged,
+    Object? action = unchanged,
   }) {
     return InvoiceFormState(
-      invoiceId: invoiceId ?? this.invoiceId,
-      customerName: customerName ?? this.customerName,
-      invoiceDate: invoiceDate ?? this.invoiceDate,
-      dueDate: dueDate ?? this.dueDate,
-      products: products ?? this.products,
-      memo: memo ?? this.memo,
-      subtotal: subtotal ?? this.subtotal,
-      discount: discount ?? this.discount,
-      discountType: discountType ?? this.discountType,
-      amountDue: amountDue ?? this.amountDue,
-      amountPaid: amountPaid ?? this.amountPaid,
-      paymentDate: paymentDate ?? this.paymentDate,
-      paymentMethod: paymentMethod ?? this.paymentMethod,
-      referenceNumber: referenceNumber ?? this.referenceNumber,
-      creatorId: creatorId ?? this.creatorId,
-      creationDate: creationDate ?? this.creationDate,
-      invoiceDateErrorMessage: invoiceDateErrorMessage ?? this.invoiceDateErrorMessage,
-      dueDateErrorMessage: dueDateErrorMessage ?? this.dueDateErrorMessage,
-      status: status ?? this.status,
-      errorMessage: errorMessage,
-      action: action ?? this.action,
+      invoiceId: invoiceId == unchanged ? this.invoiceId : invoiceId as int?,
+      customerName: customerName == unchanged ? this.customerName : customerName as String,
+      invoiceDate: invoiceDate == unchanged ? this.invoiceDate : invoiceDate as DateTime,
+      dueDate: dueDate == unchanged ? this.dueDate : dueDate as DateTime,
+      products: products == unchanged ? this.products : products as List<FormProduct>,
+      memo: memo == unchanged ? this.memo : memo as String?,
+      subtotal: subtotal == unchanged ? this.subtotal : subtotal as double?,
+      discount: discount == unchanged ? this.discount : discount as double?,
+      discountType: discountType == unchanged ? this.discountType : discountType as DiscountType?,
+      amountDue: amountDue == unchanged ? this.amountDue : amountDue as double?,
+      amountPaid: amountPaid == unchanged ? this.amountPaid : amountPaid as double?,
+      paymentDate: paymentDate == unchanged ? this.paymentDate : paymentDate as DateTime?,
+      paymentMethod:
+          paymentMethod == unchanged ? this.paymentMethod : paymentMethod as PaymentMethod?,
+      referenceNumber:
+          referenceNumber == unchanged ? this.referenceNumber : referenceNumber as String?,
+      creatorId: creatorId == unchanged ? this.creatorId : creatorId as int?,
+      creationDate: creationDate == unchanged ? this.creationDate : creationDate as DateTime?,
+      invoiceDateErrorMessage: invoiceDateErrorMessage == unchanged
+          ? this.invoiceDateErrorMessage
+          : invoiceDateErrorMessage as String?,
+      dueDateErrorMessage: dueDateErrorMessage == unchanged
+          ? this.dueDateErrorMessage
+          : dueDateErrorMessage as String?,
+      discountErrorMessage: discountErrorMessage == unchanged
+          ? this.discountErrorMessage
+          : discountErrorMessage as String?,
+      dialogErrorMessage:
+          dialogErrorMessage == unchanged ? this.dialogErrorMessage : dialogErrorMessage as String?,
+      status: status == unchanged ? this.status : status as FormStatus,
+      action: action == unchanged ? this.action : action as InvoicePostAction,
     );
   }
 
@@ -141,6 +156,5 @@ class InvoiceFormState extends Equatable {
         creatorId ?? 0,
         creationDate ?? DateTime.now(),
         action,
-        invoiceDateErrorMessage ?? '',
       ];
 }

@@ -54,7 +54,7 @@ class CreateInvoicePage extends StatelessWidget {
                     context: blocContext,
                     builder: (dialogContext) => ContentDialog(
                       title: const Text('Incomplete Details', style: TextStyles.subtitle),
-                      content: Text(state.errorMessage ?? ''),
+                      content: Text(state.dialogErrorMessage ?? ''),
                       actions: [
                         FilledButton(
                           child: const Text('OK'),
@@ -979,6 +979,14 @@ class InvoiceSummary extends StatelessWidget {
                       ),
                     ],
                   ),
+                  if (state.discountErrorMessage != null)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 8.0),
+                      child: Text(
+                        state.discountErrorMessage!,
+                        style: TextStyles.error,
+                      ),
+                    ),
                   Spacing.v16,
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,

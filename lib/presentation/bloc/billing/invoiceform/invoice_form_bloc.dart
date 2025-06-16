@@ -3,6 +3,7 @@ import 'package:easthardware_pms/domain/enums/enums.dart';
 import 'package:easthardware_pms/domain/models/invoice.dart';
 import 'package:easthardware_pms/domain/models/product.dart';
 import 'package:easthardware_pms/presentation/models/form_product.dart';
+import 'package:easthardware_pms/utils/boxed.dart';
 import 'package:equatable/equatable.dart';
 
 part 'invoice_form_event.dart';
@@ -63,9 +64,27 @@ class InvoiceFormBloc extends Bloc<InvoiceFormEvent, InvoiceFormState> {
             ? (subtotal * event.discount / 100)
             : event.discount);
 
+    if (event.discount > 100 && state.discountType == DiscountType.percentage) {
+      emit(state.copyWith(
+        discount: event.discount,
+        discountErrorMessage: 'Discount percentage cannot exceed 100%.',
+      ));
+      printBoxed(state.discountErrorMessage);
+      return;
+    }
+    if (event.discount > subtotal && state.discountType == DiscountType.value) {
+      emit(state.copyWith(
+        discount: event.discount,
+        discountErrorMessage: 'Discount amount cannot exceed subtotal.',
+      ));
+      printBoxed(state.discountErrorMessage);
+      return;
+    }
+
     emit(state.copyWith(
       discount: event.discount,
       amountDue: amountDue,
+      discountErrorMessage: null,
     ));
   }
 
@@ -76,7 +95,28 @@ class InvoiceFormBloc extends Bloc<InvoiceFormEvent, InvoiceFormState> {
         (event.discountType == DiscountType.percentage
             ? (subtotal * discountAmount / 100)
             : discountAmount);
-    return emit(state.copyWith(discountType: event.discountType, amountDue: amountDue));
+    if (event.discountType == DiscountType.percentage && discountAmount > 100) {
+      emit(state.copyWith(
+        discountType: event.discountType,
+        discountErrorMessage: 'Discount percentage cannot exceed 100%.',
+      ));
+      printBoxed(state.discountErrorMessage);
+      return;
+    }
+    if (event.discountType == DiscountType.value && discountAmount > subtotal) {
+      emit(state.copyWith(
+        discountType: event.discountType,
+        discountErrorMessage: 'Discount amount cannot exceed subtotal.',
+      ));
+      printBoxed(state.discountErrorMessage);
+      return;
+    }
+
+    return emit(state.copyWith(
+      discountType: event.discountType,
+      amountDue: amountDue,
+      discountErrorMessage: null,
+    ));
   }
 
   void _onProductAdded(ProductAddedEvent event, Emitter<InvoiceFormState> emit) {
@@ -151,9 +191,12 @@ class InvoiceFormBloc extends Bloc<InvoiceFormEvent, InvoiceFormState> {
 
     /// Checks
     /// - Products must not be empty
-    /// - All products must have Id
     final products = state.products;
-    emit(state.copyWith(status: FormStatus.validating, errorMessage: null));
+    final invoiceDateErrorMessage = state.invoiceDateErrorMessage;
+    final dueDateErrorMessage = state.dueDateErrorMessage;
+    final discountErrorMessage = state.discountErrorMessage;
+
+    emit(state.copyWith(status: FormStatus.validating, dialogErrorMessage: null));
     if (products.every(
       (product) =>
           product.productId == null &&
@@ -163,7 +206,7 @@ class InvoiceFormBloc extends Bloc<InvoiceFormEvent, InvoiceFormState> {
     )) {
       emit(
         state.copyWith(
-          errorMessage: 'Please add at least one product.',
+          dialogErrorMessage: 'Please add at least one product.',
           status: FormStatus.error,
           products: products
               .map(
@@ -193,7 +236,24 @@ class InvoiceFormBloc extends Bloc<InvoiceFormEvent, InvoiceFormState> {
         state.copyWith(
           status: FormStatus.error,
           products: taggedProducts,
-          errorMessage: 'Please fill in all product details.',
+          dialogErrorMessage: 'Please fill in all product details.',
+        ),
+      );
+    }
+
+    if (invoiceDateErrorMessage != null || dueDateErrorMessage != null) {
+      return emit(
+        state.copyWith(
+          status: FormStatus.error,
+          dialogErrorMessage: 'Please select valid invoice and due dates.',
+        ),
+      );
+    }
+    if (discountErrorMessage != null) {
+      return emit(
+        state.copyWith(
+          status: FormStatus.error,
+          dialogErrorMessage: discountErrorMessage,
         ),
       );
     }
@@ -203,23 +263,14 @@ class InvoiceFormBloc extends Bloc<InvoiceFormEvent, InvoiceFormState> {
       return emit(
         state.copyWith(
           status: FormStatus.error,
-          errorMessage: 'Item quantity exceeds available stock.',
-        ),
-      );
-    }
-
-    if (state.invoiceDateErrorMessage != null || state.dueDateErrorMessage != null) {
-      emit(
-        state.copyWith(
-          status: FormStatus.error,
-          errorMessage: 'Please select valid invoice and due dates.',
+          dialogErrorMessage: 'Item quantity exceeds available stock.',
         ),
       );
     }
 
     return emit(
       state.copyWith(
-        errorMessage: null,
+        dialogErrorMessage: null,
         creationDate: event.creationDate,
         creatorId: event.creatorId,
         invoiceId: event.invoiceId,
@@ -230,7 +281,12 @@ class InvoiceFormBloc extends Bloc<InvoiceFormEvent, InvoiceFormState> {
   }
 
   void _onDialogBoxClosed(DialogBoxClosedEvent event, Emitter<InvoiceFormState> emit) {
-    emit(state.copyWith(status: FormStatus.initial));
+    emit(state.copyWith(
+      status: FormStatus.initial,
+      invoiceDateErrorMessage: state.invoiceDateErrorMessage,
+      dueDateErrorMessage: state.dueDateErrorMessage,
+      discountErrorMessage: state.discountErrorMessage,
+    ));
   }
 
   Future<void> _onFormSubmitted(FormSubmittedEvent event, Emitter<InvoiceFormState> emit) async {
