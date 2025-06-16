@@ -5,6 +5,7 @@ import 'package:easthardware_pms/domain/repository/invoice_product_repository.da
 import 'package:easthardware_pms/domain/repository/invoice_repository.dart';
 import 'package:easthardware_pms/domain/repository/order_product_repository.dart';
 import 'package:easthardware_pms/domain/repository/order_repository.dart';
+import 'package:easthardware_pms/domain/repository/payment_method_repository.dart';
 import 'package:easthardware_pms/domain/repository/product_repository.dart';
 import 'package:easthardware_pms/domain/repository/security_question_repository.dart';
 import 'package:easthardware_pms/domain/repository/unit_repository.dart';
@@ -23,6 +24,7 @@ import 'package:easthardware_pms/presentation/bloc/inventory/product_list/produc
 import 'package:easthardware_pms/presentation/bloc/inventory/unit_list/unit_list_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/navigation/navigation_cubit.dart';
 import 'package:easthardware_pms/presentation/bloc/order/orderlist/order_list_bloc.dart';
+import 'package:easthardware_pms/presentation/bloc/payment/payment_method_list/payment_method_list_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/security/security_questions/'
     'security_question_list_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/security/user_list/user_list_bloc.dart';
@@ -46,6 +48,7 @@ class DependencyInjector extends ChangeNotifier {
   late ProductRepository _productRepository;
   late InvoiceRepository _invoiceRepository;
   late InvoiceProductRepository _invoiceProductRepository;
+  late PaymentMethodRepository _paymentMethodRepository;
   late OrderProductRepository _orderProductRepository;
   late OrderRepository _orderRepository;
   late CategoryRepository _categoryRepository;
@@ -64,6 +67,7 @@ class DependencyInjector extends ChangeNotifier {
   SecurityQuestionListBloc? _securityQuestionListBloc;
   ResetFormBloc? _resetFormBloc;
   InvoiceListBloc? _invoiceListBloc;
+  PaymentMethodListBloc? _paymentMethodListBloc;
   OrderListBloc? _orderListBloc;
 
   NewPasswordFormBloc? _newPasswordFormBloc;
@@ -80,6 +84,7 @@ class DependencyInjector extends ChangeNotifier {
     _productRepository = ProductRepository(databaseHelper);
     _invoiceRepository = InvoiceRepository(databaseHelper);
     _invoiceProductRepository = InvoiceProductRepository(databaseHelper);
+    _paymentMethodRepository = PaymentMethodRepository(databaseHelper);
     _orderProductRepository = OrderProductRepository(databaseHelper);
     _orderRepository = OrderRepository(databaseHelper);
     _categoryRepository = CategoryRepository(databaseHelper);
@@ -105,6 +110,7 @@ class DependencyInjector extends ChangeNotifier {
       RepositoryProvider.value(value: _categoryRepository),
       RepositoryProvider.value(value: _invoiceProductRepository),
       RepositoryProvider.value(value: _invoiceRepository),
+      RepositoryProvider.value(value: _paymentMethodRepository),
       RepositoryProvider.value(value: _orderProductRepository),
       RepositoryProvider.value(value: _orderRepository),
       RepositoryProvider.value(value: _productRepository),
@@ -113,11 +119,9 @@ class DependencyInjector extends ChangeNotifier {
       BlocProvider(
         key: key(),
         create: (context) {
-          final state =
-              _authenticationBloc?.state ?? const AuthenticationState();
+          final state = _authenticationBloc?.state ?? const AuthenticationState();
 
-          return _authenticationBloc =
-              AuthenticationBloc(_authenticationRepository, state);
+          return _authenticationBloc = AuthenticationBloc(_authenticationRepository, state);
         },
       ),
       BlocProvider(
@@ -133,8 +137,7 @@ class DependencyInjector extends ChangeNotifier {
       BlocProvider(
         key: key(),
         create: (context) {
-          final state =
-              _productListBloc?.state ?? const ProductListState.initial();
+          final state = _productListBloc?.state ?? const ProductListState.initial();
 
           return _productListBloc = ProductListBloc(_productRepository, state)
             ..addIf(_databaseHelper != null, const LoadAllProductsEvent());
@@ -145,9 +148,8 @@ class DependencyInjector extends ChangeNotifier {
         create: (context) {
           final state = _categoryListBloc?.state ?? CategoryListInitial();
 
-          return _categoryListBloc =
-              CategoryListBloc(_categoryRepository, state)
-                ..addIf(_databaseHelper != null, const LoadCategoriesEvent());
+          return _categoryListBloc = CategoryListBloc(_categoryRepository, state)
+            ..addIf(_databaseHelper != null, const LoadCategoriesEvent());
         },
       ),
       BlocProvider(
@@ -172,20 +174,17 @@ class DependencyInjector extends ChangeNotifier {
       BlocProvider(
         key: key(),
         create: (context) {
-          final state = _securityQuestionListBloc?.state ??
-              const SecurityQuestionListState();
+          final state = _securityQuestionListBloc?.state ?? const SecurityQuestionListState();
 
-          return _securityQuestionListBloc = SecurityQuestionListBloc(
-              _securityQuestionRepository, state)
-            ..addIf(
-                _databaseHelper != null, const FetchSecurityQuestionsEvent());
+          return _securityQuestionListBloc =
+              SecurityQuestionListBloc(_securityQuestionRepository, state)
+                ..addIf(_databaseHelper != null, const FetchSecurityQuestionsEvent());
         },
       ),
       BlocProvider(
         key: key(),
         create: (context) {
-          final state =
-              _newPasswordFormBloc?.state ?? const NewPasswordFormState();
+          final state = _newPasswordFormBloc?.state ?? const NewPasswordFormState();
 
           return _newPasswordFormBloc = NewPasswordFormBloc(
             userRepository: _userRepository,
@@ -204,6 +203,13 @@ class DependencyInjector extends ChangeNotifier {
             _productRepository,
             state,
           )..addIf(_databaseHelper != null, const FetchAllInvoicesEvent());
+        },
+      ),
+      BlocProvider(
+        key: key(),
+        create: (context) {
+          final state = _paymentMethodListBloc?.state ?? const PaymentMethodListState();
+          return _paymentMethodListBloc = PaymentMethodListBloc(_paymentMethodRepository, state);
         },
       ),
       BlocProvider(

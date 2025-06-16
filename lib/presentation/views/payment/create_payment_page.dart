@@ -4,6 +4,7 @@ import 'package:easthardware_pms/presentation/bloc/authentication/authentication
 import 'package:easthardware_pms/presentation/bloc/payment/payment_form_bloc.dart';
 import 'package:easthardware_pms/presentation/router/app_routes.dart';
 import 'package:easthardware_pms/presentation/widgets/layout/spacing.dart';
+import 'package:easthardware_pms/presentation/widgets/ui/loading_page.dart';
 import 'package:easthardware_pms/presentation/widgets/ui/styles.dart';
 import 'package:easthardware_pms/utils/typed_routes.dart';
 import 'package:fluent_ui/fluent_ui.dart';
@@ -24,9 +25,15 @@ class CreatePaymentPage extends StatelessWidget {
     return BlocProvider(
       create: (context) => PaymentFormBloc(),
       child: Builder(builder: (context) {
-        return BlocBuilder<PaymentFormBloc, PaymentFormState>(
+        return BlocConsumer<PaymentFormBloc, PaymentFormState>(
+          listenWhen: (prev, curr) => prev.invoice == null && curr.invoice != null, // <-- FIXED
+          listener: (context, state) {},
+          buildWhen: (prev, curr) => prev.invoice != curr.invoice,
           builder: (context, state) {
-            context.read<PaymentFormBloc>().add(InvoiceChanged(invoice));
+            if (state.invoice == null) {
+              context.read<PaymentFormBloc>().add(InvoiceChanged(invoice));
+              return const LoadingPage();
+            }
             return const Padding(
               padding: AppPadding.panePadding,
               child: Column(
@@ -237,6 +244,8 @@ class PaymentForm extends StatelessWidget {
                             "Payment Method",
                             style: TextStyles.title.merge(TextStyles.onSurface),
                           ),
+                          Spacing.v4,
+                          ComboBox(items: [])
                         ],
                       ),
                     ),

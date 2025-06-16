@@ -5,7 +5,7 @@ class TextStyles {
     color: Colors.grey[120],
   );
   static TextStyle onSurface = TextStyle(
-    color: Colors.grey[200],
+    color: Colors.grey[160],
   );
   static const TextStyle error = TextStyle(
     color: Colors.errorPrimaryColor,
