@@ -273,7 +273,6 @@ class InvoiceFormBloc extends Bloc<InvoiceFormEvent, InvoiceFormState> {
         dialogErrorMessage: null,
         creationDate: event.creationDate,
         creatorId: event.creatorId,
-        invoiceId: event.invoiceId,
         status: FormStatus.submitting,
         action: event.action,
       ),

@@ -256,12 +256,10 @@ class PageHeader extends StatelessWidget {
           onPressed: () {
             final creationDate = DateTime.now();
             final creatorId = context.read<AuthenticationBloc>().state.user?.id;
-            final invoiceId = context.read<InvoiceListBloc>().state.invoices.length;
             context.read<InvoiceFormBloc>().add(
                   SaveInvoiceRequestEvent(
                     creationDate: creationDate,
                     creatorId: creatorId!,
-                    invoiceId: invoiceId,
                     action: InvoicePostAction.payment,
                   ),
                 );
@@ -272,12 +270,10 @@ class PageHeader extends StatelessWidget {
           onPressed: () {
             final creationDate = DateTime.now();
             final creatorId = context.read<AuthenticationBloc>().state.user?.id;
-            final invoiceId = context.read<InvoiceListBloc>().state.invoices.length;
             context.read<InvoiceFormBloc>().add(
                   SaveInvoiceRequestEvent(
                     creationDate: creationDate,
                     creatorId: creatorId!,
-                    invoiceId: invoiceId,
                     action: InvoicePostAction.none,
                   ),
                 );
@@ -700,7 +696,7 @@ class _FormTableRowState extends State<FormTableRow> {
                                   controller: _quantityController,
                                   placeholder: '0',
                                   placeholderStyle: currentProduct.productId == null
-                                      ? TextStyles.inactive
+                                      ? TextStyles.OnSurfaceVariant
                                       : TextStyles.active,
                                 )),
                             if (currentProduct.productId == null)
@@ -816,7 +812,7 @@ class _FormTableRowState extends State<FormTableRow> {
                         controller: _rateController,
                         placeholder: '0.0',
                         placeholderStyle: currentProduct.productId == null
-                            ? TextStyles.inactive
+                            ? TextStyles.OnSurfaceVariant
                             : TextStyles.active,
                       ),
                     ),
@@ -828,7 +824,7 @@ class _FormTableRowState extends State<FormTableRow> {
                         enabled: false,
                         placeholder: currentProduct.amount.toStringAsFixed(2),
                         placeholderStyle: currentProduct.productId == null
-                            ? TextStyles.inactive
+                            ? TextStyles.OnSurfaceVariant
                             : TextStyles.active,
                         onChanged: null,
                       ),

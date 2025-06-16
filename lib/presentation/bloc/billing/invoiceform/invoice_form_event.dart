@@ -99,12 +99,10 @@ class ProductUpdatedEvent extends InvoiceFormEvent {
 class SaveInvoiceRequestEvent extends InvoiceFormEvent {
   const SaveInvoiceRequestEvent({
     required this.creatorId,
-    required this.invoiceId,
     required this.action,
     required this.creationDate,
   });
   final int creatorId;
-  final int invoiceId;
   final DateTime creationDate;
   final InvoicePostAction action;
 
