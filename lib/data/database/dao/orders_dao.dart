@@ -16,7 +16,8 @@ abstract interface class OrdersDao {
 
   Future<List<Order>> getOrdersByPayeeName(String payeeName);
   Future<List<Order>> getOrdersByExpenseType(int expenseType);
-  Future<List<Order>> getOrdersByDateRange(DateTime startDate, DateTime endDate);
+  Future<List<Order>> getOrdersByDateRange(
+      DateTime startDate, DateTime endDate);
   Future<List<Order>> getOrdersByPaymentMethod(int paymentMethod);
   Future<List<Order>> getOrdersByAmountDue(double minAmount, double maxAmount);
   Future<List<Order>> getOrdersByCreatorId(int creatorId);
@@ -62,7 +63,8 @@ final class OrdersDaoImpl extends DaoBase implements OrdersDao {
   }
 
   @override
-  Future<List<Order>> getOrdersByAmountDue(double minAmount, double maxAmount) async {
+  Future<List<Order>> getOrdersByAmountDue(
+      double minAmount, double maxAmount) async {
     final db = databaseHelper.database;
     final List<Map<String, dynamic>> maps = await db.query(
       'orders',
@@ -88,7 +90,8 @@ final class OrdersDaoImpl extends DaoBase implements OrdersDao {
   }
 
   @override
-  Future<List<Order>> getOrdersByDateRange(DateTime startDate, DateTime endDate) async {
+  Future<List<Order>> getOrdersByDateRange(
+      DateTime startDate, DateTime endDate) async {
     final db = databaseHelper.database;
     final List<Map<String, dynamic>> maps = await db.query(
       'orders',
@@ -156,7 +159,7 @@ final class OrdersDaoImpl extends DaoBase implements OrdersDao {
   Future<Order> insertOrder(Order order) async {
     final db = databaseHelper.database;
     final id = await db.insert(
-      'insert',
+      'orders',
       order.toMap(),
       conflictAlgorithm: ConflictAlgorithm.fail,
     );

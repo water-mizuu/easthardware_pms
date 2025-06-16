@@ -1,5 +1,6 @@
 import 'package:easthardware_pms/domain/enums/enums.dart';
 import 'package:easthardware_pms/domain/models/invoice_product.dart';
+import 'package:easthardware_pms/domain/models/order_product.dart';
 import 'package:easthardware_pms/domain/models/product.dart';
 
 class FormProduct {
@@ -75,6 +76,20 @@ class FormProduct {
 
   InvoiceProduct toInvoiceProduct() {
     return InvoiceProduct(
+      productId: productId!,
+      productName: productName,
+      description: description,
+      quantity: quantity,
+      secondaryUnit: unitId,
+      conversionFactor: conversionFactor,
+      rate: rate,
+      amount: amount,
+    );
+  }
+
+  OrderProduct toOrderProduct(int orderId) {
+    return OrderProduct(
+      orderId: orderId,
       productId: productId!,
       productName: productName,
       description: description,

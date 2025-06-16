@@ -31,6 +31,7 @@ class OrderFormBloc extends Bloc<OrderFormEvent, OrderFormState> {
     on<FormButtonPressedEvent>(_onFormButtonPressed);
     on<FormSubmittedEvent>(_onFormSubmitted);
     on<ClearProductsEvent>(_onClearProducts);
+    on<SaveOrderRequestEvent>(_onSaveOrderRequest);
   }
 
   final GlobalKey<FormState> formKey;
@@ -48,7 +49,6 @@ class OrderFormBloc extends Bloc<OrderFormEvent, OrderFormState> {
           ? 'Order date cannot be in the future.'
           : null,
       paymentDateErrorMessage: (state.paymentDate != null &&
-              event.orderDate != null &&
               state.paymentDate!.isBefore(event.orderDate))
           ? 'Payment date cannot be before order date.'
           : null,
@@ -59,9 +59,7 @@ class OrderFormBloc extends Bloc<OrderFormEvent, OrderFormState> {
       PaymentDateChangedEvent event, Emitter<OrderFormState> emit) {
     emit(state.copyWith(
       paymentDate: event.paymentDate,
-      paymentDateErrorMessage: (event.paymentDate != null &&
-              state.orderDate != null &&
-              event.paymentDate!.isBefore(state.orderDate))
+      paymentDateErrorMessage: (event.paymentDate.isBefore(state.orderDate))
           ? 'Payment date cannot be before order date.'
           : null,
     ));
@@ -113,8 +111,18 @@ class OrderFormBloc extends Bloc<OrderFormEvent, OrderFormState> {
       ProductUpdatedEvent event, Emitter<OrderFormState> emit) {
     final updatedProducts = List<FormProduct>.from(state.products);
     if (event.index != -1) {
-      updatedProducts[event.index] = event.product;
-      emit(state.copyWith(products: updatedProducts));
+      final adjustedRate =
+          event.product.rate * (event.product.conversionFactor ?? 1);
+      final adjustedProduct = event.product.copyWith(
+        rate: adjustedRate,
+        amount: adjustedRate * event.product.quantity,
+      );
+      updatedProducts[event.index] = adjustedProduct;
+      final amountDue = updatedProducts.fold<double>(
+        0,
+        (previousValue, element) => previousValue + (element.amount),
+      );
+      emit(state.copyWith(products: updatedProducts, amountDue: amountDue));
     }
   }
 
@@ -134,8 +142,20 @@ class OrderFormBloc extends Bloc<OrderFormEvent, OrderFormState> {
 
   void _onClearProducts(
       ClearProductsEvent event, Emitter<OrderFormState> emit) {
-    if (state.products.isEmpty) return;
     final cleared = <FormProduct>[EmptyFormProduct()];
     emit(state.copyWith(products: cleared));
+  }
+
+  Future<void> _onSaveOrderRequest(
+    SaveOrderRequestEvent event,
+    Emitter<OrderFormState> emit,
+  ) async {
+    await Future.delayed(Duration.zero);
+    emit(state.copyWith(
+      creationDate: event.creationDate,
+      creatorId: event.creatorId,
+      id: event.id,
+      status: FormStatus.submitting,
+    ));
   }
 }

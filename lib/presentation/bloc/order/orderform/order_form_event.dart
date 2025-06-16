@@ -104,3 +104,17 @@ class FormButtonPressedEvent extends OrderFormEvent {}
 class ClearProductsEvent extends OrderFormEvent {}
 
 class FormSubmittedEvent extends OrderFormEvent {}
+
+class SaveOrderRequestEvent extends OrderFormEvent {
+  const SaveOrderRequestEvent({
+    required this.creationDate,
+    required this.creatorId,
+    required this.id,
+  });
+  final DateTime creationDate;
+  final dynamic creatorId;
+  final int? id;
+
+  @override
+  List<Object?> get props => [creationDate, creatorId, id];
+}

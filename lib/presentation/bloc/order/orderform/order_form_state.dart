@@ -10,15 +10,18 @@ class OrderFormState extends Equatable {
     this.memo = '',
     this.amountDue = 0.0,
     this.amountPaid,
-    this.paymentDate,
+    DateTime? paymentDate,
     DateTime? creationDate,
     this.creatorId = 0,
-    this.products = const [],
+    this.id,
+    List<FormProduct>? products,
     this.status = FormStatus.initial,
     this.orderDateErrorMessage,
     this.paymentDateErrorMessage,
   })  : orderDate = orderDate ?? DateTime.now(),
-        creationDate = creationDate ?? DateTime.now();
+        paymentDate = paymentDate ?? DateTime.now(),
+        creationDate = creationDate ?? DateTime.now(),
+        products = products ?? [EmptyFormProduct()];
 
   final String payeeName;
   final int expenseType;
@@ -31,6 +34,7 @@ class OrderFormState extends Equatable {
   final DateTime? paymentDate;
   final DateTime creationDate;
   final int creatorId;
+  final int? id;
   final List<FormProduct> products;
   final FormStatus status;
   final String? orderDateErrorMessage;
@@ -48,6 +52,7 @@ class OrderFormState extends Equatable {
     DateTime? paymentDate,
     DateTime creationDate,
     int creatorId,
+    int? id,
     List<FormProduct> products,
     FormStatus status,
     String? orderDateErrorMessage,
@@ -65,6 +70,7 @@ class OrderFormState extends Equatable {
       Object? paymentDate = undefined,
       Object? creationDate = undefined,
       Object? creatorId = undefined,
+      Object? id = undefined,
       Object? products = undefined,
       Object? status = undefined,
       Object? orderDateErrorMessage = undefined,
@@ -77,12 +83,12 @@ class OrderFormState extends Equatable {
         paymentMethod: paymentMethod.or(this.paymentMethod),
         referenceNumber: referenceNumber.or(this.referenceNumber),
         memo: memo.or(this.memo),
-        amountDue:
-            amountDue.or(_calculateAmountDue(products.or(this.products))),
+        amountDue: amountDue.or(this.amountDue),
         amountPaid: amountPaid.or(this.amountPaid),
         paymentDate: paymentDate.or(this.paymentDate),
         creationDate: creationDate.or(this.creationDate),
         creatorId: creatorId.or(this.creatorId),
+        id: id.or(this.id),
         products: products.or(this.products),
         status: status.or(this.status),
         orderDateErrorMessage:
@@ -91,10 +97,6 @@ class OrderFormState extends Equatable {
             paymentDateErrorMessage.or(this.paymentDateErrorMessage),
       );
     };
-  }
-
-  static double _calculateAmountDue(List<FormProduct> products) {
-    return products.fold(0, (sum, p) => sum + p.amount);
   }
 
   @override
@@ -110,6 +112,7 @@ class OrderFormState extends Equatable {
         paymentDate,
         creationDate,
         creatorId,
+        id,
         products,
         status,
         orderDateErrorMessage,
@@ -118,6 +121,7 @@ class OrderFormState extends Equatable {
 
   Order toOrder() {
     return Order(
+      id: id,
       payeeName: payeeName,
       expenseType: expenseType,
       orderDate: orderDate,

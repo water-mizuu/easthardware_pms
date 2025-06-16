@@ -12,11 +12,12 @@ class FetchAllOrdersEvent extends OrderListEvent {
 }
 
 class AddOrderEvent extends OrderListEvent {
-  const AddOrderEvent(this.order);
+  const AddOrderEvent(this.order, this.products);
   final Order order;
+  final List<OrderProduct> products;
 
   @override
-  List<Object> get props => [order];
+  List<Object> get props => [order, products];
 }
 
 class ChangeRowsPerPageEvent extends OrderListEvent {
@@ -33,9 +34,8 @@ class UpdateOrderEvent extends OrderListEvent {
 }
 
 class DeleteOrderEvent extends OrderListEvent {
-  final Order order;
-
   const DeleteOrderEvent(this.order);
+  final Order order;
 
   @override
   List<Object> get props => [order];

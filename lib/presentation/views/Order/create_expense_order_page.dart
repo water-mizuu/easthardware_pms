@@ -1,17 +1,18 @@
-import 'package:easthardware_pms/domain/models/unit.dart';
-import 'package:easthardware_pms/presentation/bloc/inventory/product_list/product_list_bloc.dart';
-import 'package:easthardware_pms/presentation/bloc/inventory/unit_list/unit_list_bloc.dart';
+import 'package:easthardware_pms/domain/enums/enums.dart';
 import 'package:easthardware_pms/presentation/bloc/order/orderform/order_form_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/order/orderform/order_form_validator.dart';
 import 'package:easthardware_pms/presentation/router/app_routes.dart';
 import 'package:easthardware_pms/presentation/widgets/layout/spacing.dart';
 import 'package:easthardware_pms/presentation/widgets/text.dart';
 import 'package:easthardware_pms/presentation/widgets/ui/text_button.dart';
+import 'package:easthardware_pms/presentation/widgets/ui/text_form_boxes.dart';
 import 'package:easthardware_pms/utils/typed_routes.dart';
 import 'package:fluent_ui/fluent_ui.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:easthardware_pms/presentation/widgets/ui/form_table_cell.dart';
 import 'package:easthardware_pms/presentation/widgets/ui/form_table_column.dart';
+import 'package:easthardware_pms/presentation/bloc/authentication/authentication/authentication_bloc.dart';
+import 'package:easthardware_pms/presentation/bloc/order/orderlist/order_list_bloc.dart';
 
 class CreateExpenseOrderPage extends StatelessWidget {
   const CreateExpenseOrderPage({super.key, required this.expenseType});
@@ -20,31 +21,92 @@ class CreateExpenseOrderPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (_) => OrderFormBloc(expenseType: expenseType)
-        ..add(ProductAddedEvent()), // Add a product row on creation
-      child: BlocListener<OrderFormBloc, OrderFormState>(
-        listener: (context, state) {
-          // TODO: Add listener logic
-        },
-        child: Padding(
-          padding: AppPadding.panePadding,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              const OrderPageHeader(),
-              Spacing.v16,
-              Expanded(
-                child: Container(
-                  padding: const EdgeInsets.all(16.0),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(4.0),
+      create: (_) => OrderFormBloc(expenseType: expenseType),
+      child: MultiBlocListener(
+        listeners: [
+          BlocListener<OrderFormBloc, OrderFormState>(
+            listener: (context, state) {
+              if (state.status == FormStatus.submitting) {
+                final order = state.copyWith().toOrder();
+                print('Order ID (Expense): ${order.id}');
+                final products = state.products
+                    .map((product) => product.toOrderProduct(order.id ?? 0))
+                    .toList();
+                context
+                    .read<OrderListBloc>()
+                    .add(AddOrderEvent(order, products));
+                context.read<OrderFormBloc>().add(FormSubmittedEvent());
+              } else if (state.status == FormStatus.error) {
+                showDialog<String>(
+                  context: context,
+                  builder: (dialogContext) => ContentDialog(
+                    title: const Text('Incomplete Details'),
+                    content: Text(state.orderDateErrorMessage ??
+                        state.paymentDateErrorMessage ??
+                        'Please check your order details.'),
+                    actions: [
+                      FilledButton(
+                        child: const Text('OK'),
+                        onPressed: () {
+                          Navigator.pop(dialogContext);
+                        },
+                      ),
+                    ],
                   ),
-                  child: const OrderPageForm(),
-                ),
-              ),
-            ],
+                );
+              }
+            },
           ),
+          BlocListener<OrderListBloc, OrderListState>(
+            listenWhen: (previous, current) =>
+                previous.allOrders.length != current.allOrders.length &&
+                current.status == DataStatus.success,
+            listener: (context, state) {
+              if (context.read<AuthenticationBloc>().state.user!.accessLevel ==
+                  AccessLevel.administrator) {
+                context.navigate(AppRoutes.admin.order);
+              } else {
+                //context.navigate(AppRoutes.staff.order);
+              }
+            },
+          ),
+        ],
+        child: Stack(
+          children: [
+            Padding(
+              padding: AppPadding.panePadding,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  const OrderPageHeader(),
+                  Spacing.v16,
+                  Expanded(
+                    child: Container(
+                      padding: const EdgeInsets.all(16.0),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(4.0),
+                      ),
+                      child: const OrderPageForm(),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            BlocBuilder<OrderFormBloc, OrderFormState>(
+              builder: (context, state) {
+                if (state.status == FormStatus.submitting) {
+                  return Positioned.fill(
+                    child: Container(
+                      color: Colors.black.withOpacity(0.2),
+                      child: const Center(child: ProgressRing()),
+                    ),
+                  );
+                }
+                return const SizedBox.shrink();
+              },
+            ),
+          ],
         ),
       ),
     );
@@ -65,7 +127,22 @@ class OrderPageHeader extends StatelessWidget {
             }),
         const DisplayText("Create Expense Order"),
         const Spacer(flex: 1),
-        TextButtonFilled('Save Order', onPressed: () {}),
+        TextButtonFilled(
+          'Save Order',
+          onPressed: () {
+            final creationDate = DateTime.now();
+            final creatorId = context.read<AuthenticationBloc>().state.user?.id;
+            final orderId =
+                context.read<OrderListBloc>().state.allOrders.length;
+            context.read<OrderFormBloc>().add(
+                  SaveOrderRequestEvent(
+                    creationDate: creationDate,
+                    creatorId: creatorId!,
+                    id: orderId,
+                  ),
+                );
+          },
+        ),
         Spacing.h4,
       ].withSpacing(() => Spacing.h16),
     );
@@ -373,47 +450,46 @@ class OrderProductDataTable extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final bloc = context.read<OrderFormBloc>();
-    return BlocBuilder<OrderFormBloc, OrderFormState>(
-      builder: (context, state) {
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Container(
-              decoration: BoxDecoration(
-                border: Border(bottom: BorderSide(color: Colors.grey[40])),
-              ),
-              child: Row(
-                children: [
-                  FormTableColumn(
-                      child: const SizedBox(
-                          width: 32.0, child: Center(child: Text("#")))),
-                  Expanded(
-                      flex: 2,
-                      child: FormTableColumn(child: const Text("Product"))),
-                  Expanded(
-                      flex: 2,
-                      child: FormTableColumn(child: const Text("Description"))),
-                  Expanded(
-                      child: FormTableColumn(child: const Text("Quantity"))),
-                  Expanded(child: FormTableColumn(child: const Text("Rate"))),
-                  Expanded(child: FormTableColumn(child: const Text("Amount"))),
-                  const SizedBox(
-                      width: 82.0, child: Center(child: Text("Actions"))),
-                ],
-              ),
-            ),
-            ListView.builder(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: bloc.state.products.length,
-              itemBuilder: (context, index) {
-                return _OrderFormTableRow(index: index);
-              },
-            ),
-          ],
-        );
-      },
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Container(
+          decoration: BoxDecoration(
+            border: Border(bottom: BorderSide(color: Colors.grey[40])),
+          ),
+          child: Row(
+            children: [
+              FormTableColumn(
+                  child: const SizedBox(
+                      width: 32.0, child: Center(child: Text("#")))),
+              Expanded(
+                  flex: 2,
+                  child: FormTableColumn(child: const Text("Product"))),
+              Expanded(
+                  flex: 2,
+                  child: FormTableColumn(child: const Text("Description"))),
+              Expanded(child: FormTableColumn(child: const Text("Quantity"))),
+              Expanded(child: FormTableColumn(child: const Text("Rate"))),
+              Expanded(child: FormTableColumn(child: const Text("Amount"))),
+              const SizedBox(
+                  width: 82.0, child: Center(child: Text("Actions"))),
+            ],
+          ),
+        ),
+        BlocBuilder<OrderFormBloc, OrderFormState>(
+            buildWhen: (previous, current) =>
+                previous.products != current.products,
+            builder: (context, state) {
+              return ListView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                itemCount: state.products.length,
+                itemBuilder: (context, index) {
+                  return _OrderFormTableRow(index: index);
+                },
+              );
+            }),
+      ],
     );
   }
 }
@@ -427,293 +503,188 @@ class _OrderFormTableRow extends StatefulWidget {
 }
 
 class _OrderFormTableRowState extends State<_OrderFormTableRow> {
-  TextEditingController? _descriptionController;
-  TextEditingController? _quantityController;
-  TextEditingController? _rateController;
-  TextEditingController? _amountController;
+  late final TextEditingController _descriptionController;
+  late final TextEditingController _quantityController;
+  late final TextEditingController _rateController;
+  late final TextEditingController _amountController;
 
   @override
   void initState() {
     super.initState();
-    final bloc = context.read<OrderFormBloc>();
-    final currentProduct = bloc.state.products[widget.index];
+    final initialProduct =
+        context.read<OrderFormBloc>().state.products[widget.index];
     _descriptionController =
-        TextEditingController(text: currentProduct.description ?? '');
+        TextEditingController(text: initialProduct.description ?? '');
     _quantityController =
-        TextEditingController(text: currentProduct.quantity.toString());
+        TextEditingController(text: initialProduct.quantity.toString());
     _rateController =
-        TextEditingController(text: currentProduct.rate.toString());
+        TextEditingController(text: initialProduct.rate.toString());
     _amountController =
-        TextEditingController(text: currentProduct.amount.toStringAsFixed(2));
-  }
+        TextEditingController(text: initialProduct.amount.toStringAsFixed(2));
 
-  @override
-  void didUpdateWidget(covariant _OrderFormTableRow oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    final bloc = context.read<OrderFormBloc>();
-    final currentProduct = bloc.state.products[widget.index];
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (_descriptionController != null &&
-          _descriptionController!.text != (currentProduct.description ?? '')) {
-        _descriptionController!.text = currentProduct.description ?? '';
+    _descriptionController.addListener(() {
+      final bloc = context.read<OrderFormBloc>();
+      final currentProduct = bloc.state.products[widget.index];
+      final newValue = _descriptionController.text;
+      if (currentProduct.description != newValue) {
+        bloc.add(ProductUpdatedEvent(
+          currentProduct.copyWith(description: newValue),
+          widget.index,
+        ));
       }
-      if (_quantityController != null &&
-          _quantityController!.text != currentProduct.quantity.toString()) {
-        _quantityController!.text = currentProduct.quantity.toString();
+    });
+
+    _quantityController.addListener(() {
+      final bloc = context.read<OrderFormBloc>();
+      final currentProduct = bloc.state.products[widget.index];
+      final newValue = double.tryParse(_quantityController.text) ?? 0;
+      if (currentProduct.quantity != newValue) {
+        bloc.add(ProductUpdatedEvent(
+          currentProduct.copyWith(
+              quantity: newValue, amount: newValue * currentProduct.rate),
+          widget.index,
+        ));
       }
-      if (_rateController != null &&
-          _rateController!.text != currentProduct.rate.toString()) {
-        _rateController!.text = currentProduct.rate.toString();
-      }
-      if (_amountController != null &&
-          _amountController!.text != currentProduct.amount.toStringAsFixed(2)) {
-        _amountController!.text = currentProduct.amount.toStringAsFixed(2);
+    });
+
+    _rateController.addListener(() {
+      final bloc = context.read<OrderFormBloc>();
+      final currentProduct = bloc.state.products[widget.index];
+      final newValue = double.tryParse(_rateController.text) ?? 0;
+      if (currentProduct.rate != newValue) {
+        bloc.add(ProductUpdatedEvent(
+          currentProduct.copyWith(
+              rate: newValue, amount: currentProduct.quantity * newValue),
+          widget.index,
+        ));
       }
     });
   }
 
   @override
   void dispose() {
-    _descriptionController?.dispose();
-    _quantityController?.dispose();
-    _rateController?.dispose();
-    _amountController?.dispose();
+    _descriptionController.dispose();
+    _quantityController.dispose();
+    _rateController.dispose();
+    _amountController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    final bloc = context.read<OrderFormBloc>();
-    final products = context.watch<ProductListBloc>().state.allProducts;
-    final currentProduct = bloc.state.products[widget.index];
-    final units = [
-      Unit(name: currentProduct.unit, mainQuantity: 1, unitQuantity: 1),
-      ...context
-          .watch<UnitListBloc>()
-          .state
-          .units
-          .where((u) => u.productId == currentProduct.productId)
-    ];
+    return BlocBuilder<OrderFormBloc, OrderFormState>(
+      buildWhen: (previous, current) {
+        return previous.products != current.products ||
+            previous.products[widget.index] != current.products[widget.index];
+      },
+      builder: (context, state) {
+        final bloc = context.read<OrderFormBloc>();
+        final currentProduct = state.products[widget.index];
 
-    return Container(
-      decoration: BoxDecoration(
-        border: Border(bottom: BorderSide(color: Colors.grey[40])),
-      ),
-      child: Row(
-        children: [
-          FormTableCell(
-              child: SizedBox(
-                  height: 32.0,
-                  width: 32.0,
-                  child: Center(child: Text((widget.index + 1).toString())))),
-          // Product
-          Expanded(
-            flex: 2,
-            child: Container(
-              decoration: const BoxDecoration(
-                  border: Border(
-                      right:
-                          BorderSide(width: 0.5, color: Colors.transparent))),
-              child: TextFormBox(
-                enabled: true,
-                placeholder: 'Enter Product Name',
-                onChanged: (value) {
-                  bloc.add(ProductUpdatedEvent(
-                    currentProduct.copyWith(productName: value),
-                    widget.index,
-                  ));
-                },
-              ),
-            ),
+        // Schedule controller updates for the next frame to avoid setState during build
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (_descriptionController.text !=
+              (currentProduct.description ?? '')) {
+            _descriptionController.text = currentProduct.description ?? '';
+          }
+          if (_quantityController.text !=
+              (currentProduct.quantity.toString())) {
+            _quantityController.text = currentProduct.quantity.toString();
+          }
+          if (_rateController.text != (currentProduct.rate.toString())) {
+            _rateController.text = currentProduct.rate.toString();
+          }
+          if (_amountController.text !=
+              (currentProduct.amount.toStringAsFixed(2))) {
+            _amountController.text = currentProduct.amount.toStringAsFixed(2);
+          }
+        });
+
+        return Container(
+          decoration: BoxDecoration(
+            color: currentProduct.errorMessage != null
+                ? Colors.errorSecondaryColor
+                : widget.index % 2 == 0
+                    ? const Color(0xFFFAFAFA)
+                    : Colors.white,
+            border: Border(bottom: BorderSide(color: Colors.grey[40])),
           ),
-          // Description
-          Expanded(
-            flex: 2,
-            child: FormTableCell(
-              child: TextFormBox(
-                controller: _descriptionController,
-                enabled: true,
-                placeholder: 'Sale Description',
-                onChanged: (value) {
-                  bloc.add(ProductUpdatedEvent(
-                    currentProduct.copyWith(description: value),
-                    widget.index,
-                  ));
-                },
-              ),
-            ),
-          ),
-          // Quantity + Unit
-          Expanded(
-            child: FormTableCell(
-              child: IntrinsicHeight(
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Expanded(
-                      flex: 1,
-                      child: TextFormBox(
-                        controller: _quantityController,
-                        placeholder: '0',
-                        onChanged: (value) {
-                          final quantity = double.tryParse(value) ?? 0.0;
-                          bloc.add(ProductUpdatedEvent(
-                            currentProduct.copyWith(
-                              quantity: quantity,
-                              amount: quantity * currentProduct.rate,
-                            ),
-                            widget.index,
-                          ));
-                        },
-                      ),
-                    ),
-                    if (currentProduct.productId != null)
-                      Expanded(
-                        flex: 2,
-                        child: DropDownButton(
-                          items: [
-                            MenuFlyoutItem(
-                                text: Text(products
-                                    .firstWhere(
-                                        (p) => p.id == currentProduct.productId)
-                                    .mainUnit),
-                                onPressed: () {
-                                  bloc.add(ProductUpdatedEvent(
-                                    currentProduct.copyWith(
-                                        unit: products
-                                            .firstWhere((p) =>
-                                                p.id ==
-                                                currentProduct.productId)
-                                            .mainUnit),
-                                    widget.index,
-                                  ));
-                                }),
-                            for (final unit in units)
-                              MenuFlyoutItem(
-                                text: Text(unit.name),
-                                onPressed: () {
-                                  bloc.add(ProductUpdatedEvent(
-                                    currentProduct.copyWith(unit: unit.name),
-                                    widget.index,
-                                  ));
-                                },
-                              ),
-                          ],
-                          buttonBuilder: (context, onOpen) {
-                            return Button(
-                                style: ButtonStyle(
-                                  padding: const WidgetStatePropertyAll(
-                                    EdgeInsetsDirectional.fromSTEB(0, 5, 0, 6),
-                                  ),
-                                  shape: WidgetStatePropertyAll(
-                                    RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(4.0),
-                                      side: const BorderSide(
-                                          color: Colors.transparent),
-                                    ),
-                                  ),
-                                ),
-                                onPressed: onOpen,
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Text(currentProduct.unit),
-                                    Spacing.h12,
-                                    const Icon(FluentIcons.chevron_down),
-                                  ],
-                                ));
-                          },
-                        ),
-                      ),
-                  ],
+          child: Row(
+            children: [
+              FormTableCell(
+                  child: SizedBox(
+                      height: 32.0,
+                      width: 32.0,
+                      child:
+                          Center(child: Text((widget.index + 1).toString())))),
+              // Product Name - Manually editable
+              Expanded(
+                flex: 2,
+                child: FormTableCell(
+                  child: TextFormBoxes.ghost(
+                    placeholder: 'Enter Product Name',
+                    onChanged: (value) {
+                      bloc.add(ProductUpdatedEvent(
+                        currentProduct.copyWith(productName: value),
+                        widget.index,
+                      ));
+                    },
+                  ),
                 ),
               ),
-            ),
-          ),
-          // Rate
-          Expanded(
-            child: FormTableCell(
-              child: TextFormBox(
-                controller: _rateController,
-                enabled: true,
-                placeholder: '0.0',
-                onChanged: (value) {
-                  final rate = double.tryParse(value) ?? 0.0;
-                  bloc.add(ProductUpdatedEvent(
-                    currentProduct.copyWith(rate: rate),
-                    widget.index,
-                  ));
-                },
-              ),
-            ),
-          ),
-          // Amount
-          Expanded(
-            child: FormTableCell(
-              child: TextFormBox(
-                enabled: false, // Make it read-only
-                controller: _amountController,
-                placeholder: '0.00',
-                onChanged: (value) {
-                  final amount = double.tryParse(value) ?? 0.0;
-                  bloc.add(ProductUpdatedEvent(
-                    currentProduct.copyWith(amount: amount),
-                    widget.index,
-                  ));
-                },
-              ),
-            ),
-          ),
-          widget.index > 0
-              ? SizedBox(
-                  width: 82.0,
-                  child: Center(
-                    child: IconButton(
-                        icon: const Icon(FluentIcons.cancel),
-                        onPressed: () =>
-                            bloc.add(ProductRemovedEvent(widget.index))),
+              // Description
+              Expanded(
+                flex: 2,
+                child: FormTableCell(
+                  child: TextFormBoxes.ghost(
+                    controller: _descriptionController,
+                    placeholder: 'Description',
                   ),
-                )
-              : const SizedBox(width: 82.0)
-        ],
-      ),
+                ),
+              ),
+              // Quantity
+              Expanded(
+                child: FormTableCell(
+                  child: TextFormBoxes.ghost(
+                    controller: _quantityController,
+                    placeholder: '0',
+                  ),
+                ),
+              ),
+              // Rate
+              Expanded(
+                child: FormTableCell(
+                  child: TextFormBoxes.ghost(
+                    controller: _rateController,
+                    placeholder: '0.0',
+                  ),
+                ),
+              ),
+              // Amount - Read only
+              Expanded(
+                child: FormTableCell(
+                  child: TextFormBoxes.ghost(
+                    controller: _amountController,
+                    enabled: false,
+                    placeholder: '0.00',
+                  ),
+                ),
+              ),
+              widget.index > 0
+                  ? SizedBox(
+                      width: 82.0,
+                      child: Center(
+                        child: IconButton(
+                            icon: const Icon(FluentIcons.cancel),
+                            onPressed: () =>
+                                bloc.add(ProductRemovedEvent(widget.index))),
+                      ),
+                    )
+                  : const SizedBox(width: 82.0)
+            ],
+          ),
+        );
+      },
     );
-  }
-}
-
-class OrderSummary extends StatelessWidget {
-  const OrderSummary({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return BlocBuilder<OrderFormBloc, OrderFormState>(
-        builder: (context, state) {
-      final total = state.products.fold<double>(
-          0.0, (previousValue, element) => previousValue + (element.amount));
-      return Row(
-        children: [
-          const Spacer(),
-          Expanded(
-            child: Container(
-              padding: const EdgeInsets.all(12.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      const Text("Total: ",
-                          style: TextStyle(fontWeight: FontWeight.bold)),
-                      Text("Php. ${total.toStringAsFixed(2)}",
-                          style: const TextStyle(fontWeight: FontWeight.bold)),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ],
-      );
-    });
   }
 }

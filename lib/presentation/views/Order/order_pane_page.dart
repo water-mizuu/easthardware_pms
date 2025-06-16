@@ -32,7 +32,6 @@ class OrderPanePage extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           const PageHeader(),
-          Spacing.v4,
           const PageActions(),
           const OrdersDataTable(),
         ].withSpacing(() => Spacing.v16),
@@ -111,17 +110,8 @@ class OrdersDataTable extends StatelessWidget {
           child: FractionallySizedBox(
             widthFactor: 1,
             child: PaginatedDataTable(
-              headingRowHeight: 36,
-              columnSpacing: 12,
-              rowsPerPage: state.rowsPerPage,
-              availableRowsPerPage: const [5, 10],
-              onRowsPerPageChanged: (value) {
-                if (value != null) {
-                  context
-                      .read<OrderListBloc>()
-                      .add(ChangeRowsPerPageEvent(value));
-                }
-              },
+              dataRowMaxHeight: 36,
+              dataRowMinHeight: 32,
               columns: const [
                 DataColumn(label: Text('ID')),
                 DataColumn(label: Text('Order Date')),
