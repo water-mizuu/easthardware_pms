@@ -131,6 +131,11 @@ class PageHeader extends StatelessWidget {
                 ),
               ],
             ),
+            const Spacer(),
+            TextButtonFilled(
+              'Save Payment',
+              onPressed: () {},
+            ),
           ],
         );
       },
@@ -309,16 +314,6 @@ class _PaymentFormState extends State<PaymentForm> {
               const Spacer(flex: 2)
             ],
           ),
-          // Spacing.v16,
-          // Container(
-          //   padding: const EdgeInsets.symmetric(vertical: 8.0),
-          //   decoration: BoxDecoration(
-          //     border: Border(
-          //       bottom: BorderSide(color: Colors.grey[40], width: 1),
-          //     ),
-          //   ),
-          //   child: const SizedBox.shrink(),
-          // ),
           Spacing.v16,
           Spacing.v16,
           Row(
@@ -458,7 +453,11 @@ class _PaymentFormState extends State<PaymentForm> {
                         FilteringTextInputFormatter.allow(RegExp(r'^\d+(\.\d{0,2})?$'))
                       ],
                       onChanged: (value) {
-                        context.read<PaymentFormBloc>().add(PaymentReferenceChanged(value));
+                        context //
+                            .read<PaymentFormBloc>()
+                            .add(
+                              AmountChanged(double.tryParse(value) ?? 0.0),
+                            );
                       },
                       validator: (value) {
                         if (value == null || value.isEmpty) {
@@ -525,6 +524,8 @@ class _InvoiceProductTableState extends State<InvoiceProductTable> {
   Widget build(BuildContext context) {
     return BlocBuilder<InvoiceListBloc, InvoiceListState>(
       bloc: context.read<InvoiceListBloc>(),
+      buildWhen: (previous, current) =>
+          previous.status != current.status || previous.invoiceProducts != current.invoiceProducts,
       builder: (context, state) {
         if (state.status == DataStatus.loading) {
           return const Center(child: ProgressRing());
@@ -645,8 +646,10 @@ class InvoiceProductSummary extends StatelessWidget {
         final invoice = context.read<PaymentFormBloc>().state.invoice!;
 
         final total = invoice.amountDue;
-        final discount = invoice.discount ?? 0.0;
-        final subtotal = total - discount;
+        final discount = invoice.discountType == DiscountType.percentage
+            ? (total * (invoice.discount ?? 0) / 100)
+            : invoice.discount;
+        final subtotal = total - (discount ?? 0);
 
         return Row(
           children: [
@@ -680,7 +683,7 @@ class InvoiceProductSummary extends StatelessWidget {
                         textAlign: TextAlign.end,
                       ),
                       Text(
-                        discount.toStringAsFixed(2),
+                        discount != null ? discount.toStringAsFixed(2) : '0.00',
                         style: TextStyles.body.merge(TextStyles.strong),
                       ),
                     ],
@@ -700,6 +703,24 @@ class InvoiceProductSummary extends StatelessWidget {
                       ),
                     ],
                   ),
+                  Spacing.v8,
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'AMOUNT RECEIVED:',
+                        style: TextStyles.body.merge(TextStyles.onSurfaceVariant),
+                        textAlign: TextAlign.end,
+                      ),
+                      Text(
+                        context.watch<PaymentFormBloc>().state.amount.abs() == 0
+                            ? '0.00'
+                            : '-${context.watch<PaymentFormBloc>().state.amount.abs().toStringAsFixed(2)}',
+                        style: TextStyles.body.merge(TextStyles.strong),
+                      ),
+                    ],
+                  ),
+                  Spacing.v8,
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
