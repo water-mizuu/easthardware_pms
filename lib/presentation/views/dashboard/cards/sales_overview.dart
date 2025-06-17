@@ -3,14 +3,12 @@ import 'dart:math';
 
 import 'package:easthardware_pms/domain/models/invoice.dart';
 import 'package:easthardware_pms/presentation/bloc/billing/invoicelist/invoice_list_bloc.dart';
-import 'package:easthardware_pms/presentation/views/dashboard/cards/recent_sales.dart';
 import 'package:easthardware_pms/presentation/widgets/layout/spacing.dart';
 import 'package:easthardware_pms/presentation/widgets/text.dart';
 import 'package:easthardware_pms/utils/boxed.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:fluent_ui/fluent_ui.dart';
 import 'package:provider/provider.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 enum SalesOverviewChoice {
   thisWeek,
@@ -18,8 +16,6 @@ enum SalesOverviewChoice {
   thisMonth,
   last30Days,
   lastMonth,
-  thisQuarter,
-  lastQuarter,
   thisYear;
 
   @override
@@ -35,10 +31,6 @@ enum SalesOverviewChoice {
         return "Last 30 Days";
       case lastMonth:
         return "Last Month";
-      case thisQuarter:
-        return "This Quarter";
-      case lastQuarter:
-        return "Last Quarter";
       case thisYear:
         return "This Year";
     }
@@ -56,10 +48,6 @@ enum SalesOverviewChoice {
         return "last 30 days.";
       case lastMonth:
         return "last month.";
-      case thisQuarter:
-        return "current quarter.";
-      case lastQuarter:
-        return "last quarter.";
       case thisYear:
         return "current year.";
     }
@@ -74,7 +62,6 @@ class SalesOverview extends StatefulWidget {
 }
 
 class _SalesOverviewState extends State<SalesOverview> {
-  late final SharedPreferencesAsync _preferences = SharedPreferencesAsync();
   late final ValueNotifier<SalesOverviewChoice> _salesOverviewChoice;
   late List<Invoice>? _invoices;
   late BarChartData? _barChartData;
@@ -87,20 +74,11 @@ class _SalesOverviewState extends State<SalesOverview> {
     _salesOverviewChoice = ValueNotifier(SalesOverviewChoice.last7Days)
       ..addListener(() {
         if (_invoices case final invoices?) _updateBarChartData(invoices);
-
-        _preferences.setInt('sales_overview_choice', _salesOverviewChoice.value.index);
       });
 
     _invoices = null;
     _barChartData = null;
     _requestCanceller = null;
-
-    unawaited(() async {
-      final stored = await _preferences.getInt('sales_overview_choice');
-      if (stored == null || !mounted) return;
-
-      setState(() => _salesOverviewChoice.value = SalesOverviewChoice.values[stored]);
-    }());
   }
 
   @override
@@ -165,7 +143,7 @@ class _SalesOverviewState extends State<SalesOverview> {
           if (_barChartData case final barChartData?)
             Expanded(child: BarChart(barChartData))
           else
-            const RecentSalesPlaceholder()
+            const _RecentSalesPlaceholder()
         ],
       ),
     );
@@ -207,8 +185,8 @@ class _SalesOverviewState extends State<SalesOverview> {
       SalesOverviewChoice.thisMonth => _computeThisMonthData(invoices),
       SalesOverviewChoice.last30Days => _computeLast30DaysData(invoices),
       SalesOverviewChoice.lastMonth => _computeLastMonthData(invoices),
-      SalesOverviewChoice.thisQuarter => _computeThisQuarterData(invoices),
-      SalesOverviewChoice.lastQuarter => _computeLastQuarterData(invoices),
+      // SalesOverviewChoice.thisQuarter => _computeThisQuarterData(invoices),
+      // SalesOverviewChoice.lastQuarter => _computeLastQuarterData(invoices),
       SalesOverviewChoice.thisYear => _computeThisYearData(invoices),
     };
 
@@ -220,6 +198,26 @@ class _SalesOverviewState extends State<SalesOverview> {
       barGroups: barGroups,
       minY: 0,
       maxY: maxY,
+    );
+  }
+}
+
+class _RecentSalesPlaceholder extends StatelessWidget {
+  const _RecentSalesPlaceholder();
+
+  @override
+  Widget build(BuildContext context) {
+    return const Padding(
+      padding: EdgeInsets.all(16.0),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(FluentIcons.report_alert, size: 42.0),
+          SubheadingText("No recent sales."),
+          Spacing.v8,
+          GrayText("Please add some sales to view them here."),
+        ],
+      ),
     );
   }
 }
@@ -422,11 +420,7 @@ class _ChartUtils {
             final dateKey = dateMap.keys.elementAt(index);
 
             // For interval-based labels, show if it matches the interval
-            final isFirst = index == 0;
-            final isLast = index == dateMap.keys.length - 1;
-            final isFirstOfTheMonth = dateKey.day == 1;
-
-            if (isFirst || isLast || isFirstOfTheMonth || index % intInterval == 0) {
+            if (index % intInterval == 0) {
               return SideTitleWidget(
                 meta: meta,
                 space: 4,
@@ -766,131 +760,6 @@ Future<(FlTitlesData, List<BarChartGroupData>, double)> _computeLastMonthData(
     maxY: maxY,
     interval: interval,
     formatLabel: (date) => date.toSimplifiedDateString(),
-  );
-
-  return (titlesData, barGroups, maxY);
-}
-
-Future<(FlTitlesData, List<BarChartGroupData>, double)> _computeThisQuarterData(
-  List<Invoice> invoices,
-) async {
-  final now = DateTime.now();
-  final currentQuarter = (now.month - 1) ~/ 3 + 1;
-  final startMonthOfQuarter = (currentQuarter - 1) * 3 + 1;
-
-  final startOfQuarter = DateTime(now.year, startMonthOfQuarter, 1).zeroedTime();
-  // End of quarter is the day before the start of the next quarter
-  final endOfQuarter =
-      DateTime(now.year, startMonthOfQuarter + 3, 1).subtract(const Duration(days: 1)).zeroedTime();
-
-  // Create monthly date map using utility
-  final invoicesByMonth = _ChartUtils.createMonthlyDateMap(
-    year: now.year,
-    startMonth: startMonthOfQuarter,
-    numberOfMonths: 3,
-  );
-
-  // Filter invoices for date range
-  final invoicesWithinRange = _ChartUtils.filterInvoicesInDateRange(
-    invoices,
-    startOfQuarter,
-    endOfQuarter,
-  );
-
-  // For quarterly data, we need to group by month
-  for (final invoice in invoicesWithinRange) {
-    final invDate = invoice.invoiceDate.zeroedTime();
-    final monthKey = DateTime(invDate.year, invDate.month, 1);
-
-    if (invoicesByMonth.containsKey(monthKey)) {
-      invoicesByMonth[monthKey]!.add(invoice);
-    } else {
-      printBoxed(
-        "Invoice date ${invoice.invoiceDate} (normalized: $invDate) not in current quarter's map. Map covers $startOfQuarter to $endOfQuarter.",
-        "Invoice Date Error (This Quarter)",
-      );
-    }
-  }
-
-  // Create summarized bar groups for quarterly view
-  final barGroups = _ChartUtils.createSummarizedMonthlyBarGroups(invoicesByMonth);
-
-  // Calculate maxY for the chart
-  final maxY = _ChartUtils.computeMaxY(barGroups);
-
-  // Create titles with consistent styling - for quarterly data, show month names with year
-  final titlesData = _ChartUtils.createTitlesData(
-    dateMap: invoicesByMonth,
-    maxY: maxY,
-    interval: 1, // Show all 3 months
-    showMonthNames: true,
-    showYearInLabel: true,
-    formatLabel: (date) => _ChartUtils.formatMonthLabel(date, true),
-  );
-
-  return (titlesData, barGroups, maxY);
-}
-
-Future<(FlTitlesData, List<BarChartGroupData>, double)> _computeLastQuarterData(
-  List<Invoice> invoices,
-) async {
-  final now = DateTime.now().zeroedTime();
-  final currentQuarter = (now.month - 1) ~/ 3 + 1;
-  final lastQuarter = currentQuarter > 1 ? currentQuarter - 1 : 4;
-  final yearOfLastQuarter = lastQuarter == 4 && currentQuarter == 1 ? now.year - 1 : now.year;
-
-  final startMonthOfLastQuarter = (lastQuarter - 1) * 3 + 1;
-
-  final startOfLastQuarter = DateTime(yearOfLastQuarter, startMonthOfLastQuarter, 1).zeroedTime();
-  // End of last quarter is the day before the start of the current quarter
-  final endOfLastQuarter = DateTime(yearOfLastQuarter, startMonthOfLastQuarter + 3, 1)
-      .subtract(const Duration(days: 1))
-      .zeroedTime();
-
-  // Create monthly date map using utility
-  final invoicesByMonth = _ChartUtils.createMonthlyDateMap(
-    year: yearOfLastQuarter,
-    startMonth: startMonthOfLastQuarter,
-    numberOfMonths: 3,
-  );
-
-  // Filter invoices for date range
-  final invoicesWithinRange = _ChartUtils.filterInvoicesInDateRange(
-    invoices,
-    startOfLastQuarter,
-    endOfLastQuarter,
-  );
-
-  // For quarterly data, we need to group by month
-  for (final invoice in invoicesWithinRange) {
-    final invDate = invoice.invoiceDate.zeroedTime();
-    final monthKey = DateTime(invDate.year, invDate.month, 1);
-
-    if (invoicesByMonth.containsKey(monthKey)) {
-      invoicesByMonth[monthKey]!.add(invoice);
-    } else {
-      printBoxed(
-        "Invoice date ${invoice.invoiceDate} (normalized: $invDate) not in last quarter's map. Map covers $startOfLastQuarter to $endOfLastQuarter.",
-        "Invoice Date Error (Last Quarter)",
-      );
-    }
-  }
-
-  // Create summarized bar groups for quarterly view
-  final barGroups = _ChartUtils.createSummarizedMonthlyBarGroups(invoicesByMonth);
-
-  // Calculate maxY for the chart
-  final maxY = _ChartUtils.computeMaxY(barGroups);
-
-  // Create titles with consistent styling - for quarterly data, show month names with year
-  // Always include year for last quarter as it might be from the previous year
-  final titlesData = _ChartUtils.createTitlesData(
-    dateMap: invoicesByMonth,
-    maxY: maxY,
-    interval: 1, // Show all 3 months
-    showMonthNames: true,
-    showYearInLabel: true, // Always show year for last quarter
-    formatLabel: (date) => _ChartUtils.formatMonthLabel(date, true),
   );
 
   return (titlesData, barGroups, maxY);

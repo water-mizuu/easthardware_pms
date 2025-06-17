@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:easthardware_pms/domain/constants/constants.dart';
 import 'package:easthardware_pms/domain/enums/enums.dart';
 import 'package:easthardware_pms/presentation/bloc/authentication/authentication/'
@@ -121,7 +123,7 @@ class _CreateUserPageState extends State<CreateUserPage> {
 
   @override
   void dispose() {
-    userFormBloc.close();
+    unawaited(userFormBloc.close());
     _scrollController.dispose();
 
     super.dispose();
@@ -138,17 +140,17 @@ class _CreateUserPageState extends State<CreateUserPage> {
         Expanded(
           child: Form(
             key: userFormBloc.formKey,
-            child: LayoutMode.builder((context, mode) {
+            child: LayoutMode.builder((context, mode, keys) {
               switch (mode) {
                 case LayoutMode.wide:
                   return Padding(
                     padding: AppPadding.panePadding.copyWith(top: 0.0),
-                    child: const Row(
+                    child: Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Expanded(child: UserCredentialsSection()),
+                        Expanded(child: UserCredentialsSection(key: keys['userCredentials'])),
                         Spacing.h16,
-                        Expanded(child: SecuritySection()),
+                        Expanded(child: SecuritySection(key: keys['securitySection'])),
                       ],
                     ),
                   );
@@ -158,11 +160,11 @@ class _CreateUserPageState extends State<CreateUserPage> {
                     controller: _scrollController,
                     child: Padding(
                       padding: AppPadding.panePadding.copyWith(top: 0.0),
-                      child: const Column(
+                      child: Column(
                         children: [
-                          UserCredentialsSection(),
+                          UserCredentialsSection(key: keys['userCredentials']),
                           Spacing.v16,
-                          SecuritySection(),
+                          SecuritySection(key: keys['securitySection']),
                         ],
                       ),
                     ),
@@ -281,6 +283,7 @@ class FirstNameLastNameFields extends StatelessWidget with UserFormValidator {
               TextFormBox(
                 validator: validateFirstName,
                 placeholder: 'First Name',
+                initialValue: context.read<UserFormBloc>().state.firstName,
                 onChanged: (value) {
                   context.read<UserFormBloc>().add(FirstNameFieldChangedEvent(value));
                 },
@@ -297,6 +300,7 @@ class FirstNameLastNameFields extends StatelessWidget with UserFormValidator {
               TextFormBox(
                 validator: validateLastName,
                 placeholder: 'Last Name',
+                initialValue: context.read<UserFormBloc>().state.lastName,
                 onChanged: (value) {
                   context.read<UserFormBloc>().add(LastNameFieldChangedEvent(value));
                 },
@@ -329,6 +333,7 @@ class UsernameField extends StatelessWidget with UserFormValidator {
         TextFormBox(
           validator: (value) => validateUsername(value, existingUsernames),
           placeholder: 'Username',
+          initialValue: context.read<UserFormBloc>().state.username,
           onChanged: (value) {
             context.read<UserFormBloc>().add(UsernameFieldChangedEvent(value));
           },
@@ -375,6 +380,7 @@ class _PasswordFieldState extends State<PasswordField> with UserFormValidator {
             validator: validatePassword,
             placeholder: 'Password',
             obscureText: isObscured,
+            initialValue: context.read<UserFormBloc>().state.password,
             suffix: Consumer<UserFormBloc>(
               builder: (context, bloc, _) {
                 final hasContent = bloc.state.password.isNotEmpty;
@@ -414,9 +420,11 @@ class ConfirmPasswordField extends StatelessWidget with UserFormValidator {
         TextFormBox(
           validator: (value) {
             final password = context.read<UserFormBloc>().state.password;
+
             return validateConfirmPassword(value, password);
           },
           placeholder: 'Confirm Password',
+          initialValue: context.read<UserFormBloc>().state.confirmPassword,
           onChanged: (value) {
             context.read<UserFormBloc>().add(ConfirmPasswordFieldChangedEvent(value));
           },
@@ -465,8 +473,40 @@ class AccessLevelField extends StatelessWidget with UserFormValidator {
   }
 }
 
-class SecurityQuestionFields extends StatelessWidget with UserFormValidator {
+class SecurityQuestionFields extends StatefulWidget {
   const SecurityQuestionFields({super.key});
+
+  @override
+  State<SecurityQuestionFields> createState() => _SecurityQuestionFieldsState();
+}
+
+class _SecurityQuestionFieldsState extends State<SecurityQuestionFields> with UserFormValidator {
+  late final List<TextEditingController> _questionControllers;
+  late final List<TextEditingController> _answerControllers;
+
+  @override
+  void initState() {
+    super.initState();
+
+    final userFormBloc = context.read<UserFormBloc>();
+    _questionControllers = List.generate(
+      userFormBloc.state.questions.length,
+      (i) => TextEditingController(text: userFormBloc.state.questions[i].question),
+    );
+    _answerControllers = List.generate(
+      userFormBloc.state.questions.length,
+      (i) => TextEditingController(text: userFormBloc.state.questions[i].answer),
+    );
+  }
+
+  @override
+  void dispose() {
+    for (final controller in _questionControllers.followedBy(_answerControllers)) {
+      controller.dispose();
+    }
+
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -490,6 +530,7 @@ class SecurityQuestionFields extends StatelessWidget with UserFormValidator {
                 children: [
                   BodyText('Security Question ${index + 1}'),
                   AutoSuggestBox.form(
+                    controller: _questionControllers[index],
                     placeholder: "Select or enter question ${index + 1}",
                     validator: (value) {
                       final copy = formQuestions.toList()..removeAt(index);
@@ -518,6 +559,7 @@ class SecurityQuestionFields extends StatelessWidget with UserFormValidator {
                   ),
                   TextFormBox(
                     placeholder: "Answer for question ${index + 1}",
+                    controller: _answerControllers[index],
                     validator: (value) => validateSecurityAnswer(value, index),
                     onChanged: (value) {
                       context.read<UserFormBloc>().add(AnswerFieldChangedEvent(value, index));

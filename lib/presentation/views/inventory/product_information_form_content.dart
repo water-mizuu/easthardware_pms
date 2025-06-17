@@ -3,6 +3,7 @@ import 'package:easthardware_pms/presentation/bloc/inventory/category_list/categ
 import 'package:easthardware_pms/presentation/bloc/inventory/product_form/product_form_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/inventory/product_form/product_form_validator.dart';
 import 'package:easthardware_pms/presentation/models/form_unit.dart';
+import 'package:easthardware_pms/presentation/widgets/animated_single_child_scroll_view.dart';
 import 'package:easthardware_pms/presentation/widgets/layout/spacing.dart';
 import 'package:easthardware_pms/presentation/widgets/layout_mode_provider.dart';
 import 'package:easthardware_pms/presentation/widgets/text.dart';
@@ -10,7 +11,6 @@ import 'package:easthardware_pms/utils/boxed.dart';
 import 'package:fluent_ui/fluent_ui.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:scroll_animator/scroll_animator.dart';
 
 const spacingBetweenNameAndForm = Spacing.v4;
 
@@ -18,28 +18,19 @@ class ProductInformationFormContent extends StatefulWidget {
   const ProductInformationFormContent({super.key});
 
   @override
-  State<ProductInformationFormContent> createState() =>
-      _ProductInformationFormContentState();
+  State<ProductInformationFormContent> createState() => _ProductInformationFormContentState();
 }
 
-class _ProductInformationFormContentState
-    extends State<ProductInformationFormContent> {
-  late final AnimatedScrollController _scrollController;
+class _ProductInformationFormContentState extends State<ProductInformationFormContent> {
+  /// Key to invalidate the form body when the form status is initial.
   late ValueKey<int> _bodyKey;
 
   @override
   void initState() {
     super.initState();
-    _scrollController =
-        AnimatedScrollController(animationFactory: const ChromiumEaseInOut());
 
+    /// Initialize the body key with the current form state hash code.
     _bodyKey = ValueKey(context.read<ProductFormBloc>().state.hashCode);
-  }
-
-  @override
-  void dispose() {
-    _scrollController.dispose();
-    super.dispose();
   }
 
   @override
@@ -47,14 +38,16 @@ class _ProductInformationFormContentState
     return BlocListener<ProductFormBloc, ProductFormState>(
       listenWhen: (p, c) => c.formStatus == FormStatus.initial,
       listener: (context, state) {
+        /// Invalidate the form when the form status is initial.
+        /// This is necessary to ensure that the form is rebuilt with the latest state.
+        /// This is useful when the form is reset or when the user navigates back to the form.
         setState(() {
           _bodyKey = ValueKey(state.hashCode);
         });
       },
       child: Form(
         key: context.read<ProductFormBloc>().formKey,
-        child: SingleChildScrollView(
-          controller: _scrollController,
+        child: AnimatedSingleChildScrollView(
           child: Padding(
             key: _bodyKey,
             padding: EdgeInsets.only(
@@ -63,25 +56,23 @@ class _ProductInformationFormContentState
               bottom: AppPadding.panePadding.bottom,
             ),
             child: LayoutMode.builder(
-              (context, layoutMode) => switch (layoutMode) {
-                LayoutMode.wide => const Row(
+              (context, layoutMode, keys) => switch (layoutMode) {
+                LayoutMode.wide => Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Expanded(child: LeftColumn()),
+                      Expanded(child: LeftColumn(key: keys['leftColumn'])),
                       Spacing.h16,
-                      Expanded(child: RightColumn()),
+                      Expanded(child: RightColumn(key: keys['rightColumn'])),
                     ],
                   ),
-                LayoutMode.constrained ||
-                LayoutMode.compact =>
-                  FocusTraversalGroup(
-                    child: const Column(
+                LayoutMode.constrained || LayoutMode.compact => FocusTraversalGroup(
+                    child: Column(
                       mainAxisSize: MainAxisSize.min,
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        LeftColumn(),
+                        LeftColumn(key: keys['leftColumn']),
                         Spacing.v16,
-                        RightColumn(),
+                        RightColumn(key: keys['rightColumn']),
                       ],
                     ),
                   ),
@@ -150,9 +141,7 @@ class SaleInformationSection extends StatelessWidget with ProductFormValidator {
             initialValue: context.read<ProductFormBloc>().state.price,
             validator: validateProductPrice,
             onChanged: (value) {
-              context
-                  .read<ProductFormBloc>()
-                  .add(PriceFieldChangedEvent(value));
+              context.read<ProductFormBloc>().add(PriceFieldChangedEvent(value));
             },
           ),
         ],
@@ -161,8 +150,7 @@ class SaleInformationSection extends StatelessWidget with ProductFormValidator {
   }
 }
 
-class OrderInformationSection extends StatelessWidget
-    with ProductFormValidator {
+class OrderInformationSection extends StatelessWidget with ProductFormValidator {
   const OrderInformationSection({super.key});
 
   @override
@@ -201,11 +189,7 @@ class BasicInformationSection extends StatelessWidget {
       color: Colors.white,
       child: const Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          SubheadingText('Basic Information'),
-          Spacing.v16,
-          BasicInformationFields()
-        ],
+        children: [SubheadingText('Basic Information'), Spacing.v16, BasicInformationFields()],
       ),
     );
   }
@@ -292,22 +276,18 @@ class CategoryField extends StatelessWidget with ProductFormValidator {
         Spacing.v4,
         BlocBuilder<CategoryListBloc, CategoryListState>(
           builder: (context, state) => AutoSuggestBox.form(
-            controller: TextEditingController(
-                text: context.read<ProductFormBloc>().state.categoryName),
+            controller:
+                TextEditingController(text: context.read<ProductFormBloc>().state.categoryName),
             validator: validateProductCategory,
             items: [
               for (final category in state.categories)
                 AutoSuggestBoxItem(value: category, label: category.name),
             ],
             onChanged: (value, reason) {
-              context
-                  .read<ProductFormBloc>()
-                  .add(CategoryFieldChangedEvent(value));
+              context.read<ProductFormBloc>().add(CategoryFieldChangedEvent(value));
             },
             onSelected: (value) {
-              context
-                  .read<ProductFormBloc>()
-                  .add(CategoryIdChangedEvent(value.value!.id!));
+              context.read<ProductFormBloc>().add(CategoryIdChangedEvent(value.value!.id!));
             },
           ),
         )
@@ -371,8 +351,7 @@ class _CriticalLevelFieldState extends State<CriticalLevelField> {
   Widget build(BuildContext context) {
     return BlocListener<ProductFormBloc, ProductFormState>(
       listenWhen: (prev, curr) {
-        return prev.criticalLevel != curr.criticalLevel &&
-            !curr.isCriticalLevelEdited;
+        return prev.criticalLevel != curr.criticalLevel && !curr.isCriticalLevelEdited;
       },
       listener: (context, state) {
         _controller.text = state.criticalLevel;
@@ -395,9 +374,7 @@ class _CriticalLevelFieldState extends State<CriticalLevelField> {
               return null;
             },
             onChanged: (value) {
-              context
-                  .read<ProductFormBloc>()
-                  .add(CriticalLevelFieldChangedEvent(value));
+              context.read<ProductFormBloc>().add(CriticalLevelFieldChangedEvent(value));
             },
           ),
         ].withSpacing(() => spacingBetweenNameAndForm),
@@ -508,10 +485,8 @@ class AddNewUnitButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Button(
-      onPressed: () =>
-          context.read<ProductFormBloc>().add(SecondaryUnitFieldAddedEvent()),
-      child: const Padding(
-          padding: AppPadding.a4, child: BodyText('Add New Unit')),
+      onPressed: () => context.read<ProductFormBloc>().add(SecondaryUnitFieldAddedEvent()),
+      child: const Padding(padding: AppPadding.a4, child: BodyText('Add New Unit')),
     );
   }
 }
@@ -525,8 +500,7 @@ class SecondaryUnitField extends StatefulWidget {
   State<SecondaryUnitField> createState() => _SecondaryUnitFieldState();
 }
 
-class _SecondaryUnitFieldState extends State<SecondaryUnitField>
-    with ProductFormValidator {
+class _SecondaryUnitFieldState extends State<SecondaryUnitField> with ProductFormValidator {
   late final TextEditingController _unitQuantityController;
   late final TextEditingController _nameController;
   late final TextEditingController _mainQuantityController;
@@ -546,8 +520,7 @@ class _SecondaryUnitFieldState extends State<SecondaryUnitField>
   void didChangeDependencies() {
     super.didChangeDependencies();
 
-    final inheritedFormUnit =
-        context.watch<ProductFormBloc>().state.secondaryUnits[widget.index];
+    final inheritedFormUnit = context.watch<ProductFormBloc>().state.secondaryUnits[widget.index];
     if (_formUnit != inheritedFormUnit) {
       _formUnit = inheritedFormUnit;
 
@@ -555,11 +528,9 @@ class _SecondaryUnitFieldState extends State<SecondaryUnitField>
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (!mounted) return;
 
-        _unitQuantityController.text =
-            inheritedFormUnit.unitQuantity.toString();
+        _unitQuantityController.text = inheritedFormUnit.unitQuantity.toString();
         _nameController.text = inheritedFormUnit.name.value;
-        _mainQuantityController.text =
-            inheritedFormUnit.mainQuantity.toString();
+        _mainQuantityController.text = inheritedFormUnit.mainQuantity.toString();
       });
     }
   }
@@ -579,8 +550,7 @@ class _SecondaryUnitFieldState extends State<SecondaryUnitField>
                   validator: (rawUnitQuantity) {
                     final state = context.read<ProductFormBloc>().state;
                     final secondaryUnit = state.secondaryUnits[widget.index];
-                    final FormUnit(:name, :mainQuantity, :unitQuantity) =
-                        secondaryUnit;
+                    final FormUnit(:name, :mainQuantity, :unitQuantity) = secondaryUnit;
                     assert(
                       unitQuantity.value == rawUnitQuantity,
                       "Unit quantity must match the input.",
@@ -613,14 +583,11 @@ class _SecondaryUnitFieldState extends State<SecondaryUnitField>
                   validator: (rawName) {
                     final state = context.read<ProductFormBloc>().state;
                     final secondaryUnit = state.secondaryUnits[widget.index];
-                    final FormUnit(:name, :unitQuantity, :mainQuantity) =
-                        secondaryUnit;
-                    assert(name.value == rawName,
-                        "Unit name must match the input.");
+                    final FormUnit(:name, :unitQuantity, :mainQuantity) = secondaryUnit;
+                    assert(name.value == rawName, "Unit name must match the input.");
 
                     final existingNames = [
-                      for (final (i, unit)
-                          in state.secondaryUnits.indexed.take(widget.index))
+                      for (final (i, unit) in state.secondaryUnits.indexed.take(widget.index))
                         if (i != widget.index) unit.name.value,
                       state.mainUnit
                     ];
@@ -642,8 +609,7 @@ class _SecondaryUnitFieldState extends State<SecondaryUnitField>
                   onChanged: (value) {
                     context //
                         .read<ProductFormBloc>()
-                        .add(SecondaryUnitFieldNameChangedEvent(widget.index,
-                            name: value));
+                        .add(SecondaryUnitFieldNameChangedEvent(widget.index, name: value));
                   },
                   placeholder: "Name (Singular)",
                 ),
@@ -662,8 +628,7 @@ class _SecondaryUnitFieldState extends State<SecondaryUnitField>
                   validator: (mainQuantityRaw) {
                     final state = context.read<ProductFormBloc>().state;
                     final secondaryUnit = state.secondaryUnits[widget.index];
-                    final FormUnit(:name, :unitQuantity, :mainQuantity) =
-                        secondaryUnit;
+                    final FormUnit(:name, :unitQuantity, :mainQuantity) = secondaryUnit;
                     assert(
                       mainQuantity.value == mainQuantityRaw,
                       "Main quantity must match the input.",
@@ -733,9 +698,7 @@ class QuantityUnitFields extends StatelessWidget with ProductFormValidator {
                 initialValue: context.read<ProductFormBloc>().state.quantity,
                 validator: validateProductQuantity,
                 onChanged: (value) {
-                  context
-                      .read<ProductFormBloc>()
-                      .add(QuantityFieldChangedEvent(value));
+                  context.read<ProductFormBloc>().add(QuantityFieldChangedEvent(value));
                 },
               ),
             ].withSpacing(() => spacingBetweenNameAndForm),
@@ -750,9 +713,7 @@ class QuantityUnitFields extends StatelessWidget with ProductFormValidator {
                 initialValue: context.read<ProductFormBloc>().state.mainUnit,
                 validator: validateProductUnitName,
                 onChanged: (value) {
-                  context
-                      .read<ProductFormBloc>()
-                      .add(MainUnitFieldChangedEvent(value));
+                  context.read<ProductFormBloc>().add(MainUnitFieldChangedEvent(value));
                 },
               ),
             ].withSpacing(() => spacingBetweenNameAndForm),
@@ -777,17 +738,12 @@ class DeadFastStockFields extends StatelessWidget with ProductFormValidator {
             children: [
               const BodyText('Dead Stock Threshold'),
               TextFormBox(
-                initialValue:
-                    context.read<ProductFormBloc>().state.deadStockThreshold,
-                placeholder:
-                    context.read<ProductFormBloc>().state.deadStockThreshold,
+                initialValue: context.read<ProductFormBloc>().state.deadStockThreshold,
+                placeholder: context.read<ProductFormBloc>().state.deadStockThreshold,
                 validator: validateDeadStockThreshold,
-                suffix: const Padding(
-                    padding: AppPadding.a4, child: GrayText('Days')),
+                suffix: const Padding(padding: AppPadding.a4, child: GrayText('Days')),
                 onChanged: (value) {
-                  context
-                      .read<ProductFormBloc>()
-                      .add(DeadstockFieldChangedEvent(value));
+                  context.read<ProductFormBloc>().add(DeadstockFieldChangedEvent(value));
                 },
               ),
             ].withSpacing(() => spacingBetweenNameAndForm),
@@ -799,17 +755,12 @@ class DeadFastStockFields extends StatelessWidget with ProductFormValidator {
             children: [
               const BodyText('Moving Stock Threshold'),
               TextFormBox(
-                initialValue:
-                    context.read<ProductFormBloc>().state.fastMovingThreshold,
-                placeholder:
-                    context.read<ProductFormBloc>().state.fastMovingThreshold,
+                initialValue: context.read<ProductFormBloc>().state.fastMovingThreshold,
+                placeholder: context.read<ProductFormBloc>().state.fastMovingThreshold,
                 validator: validateFastMovingThreshold,
-                suffix: const Padding(
-                    padding: AppPadding.a4, child: GrayText('Days')),
+                suffix: const Padding(padding: AppPadding.a4, child: GrayText('Days')),
                 onChanged: (value) {
-                  context
-                      .read<ProductFormBloc>()
-                      .add(FastMovingStockFieldChangedEvent(value));
+                  context.read<ProductFormBloc>().add(FastMovingStockFieldChangedEvent(value));
                 },
               ),
             ].withSpacing(() => spacingBetweenNameAndForm),

@@ -1,6 +1,10 @@
 import 'package:easthardware_pms/utils/undefined.dart';
 import 'package:uuid/uuid.dart';
 
+enum ExpenseType {
+  restock,
+}
+
 class Order {
   Order({
     String? uid,
@@ -30,9 +34,7 @@ class Order {
       memo: map['memo'],
       amountDue: map['amount_due'],
       amountPaid: map['amount_paid'],
-      paymentDate: map['payment_date'] != null
-          ? DateTime.parse(map['payment_date'])
-          : null,
+      paymentDate: map['payment_date'] != null ? DateTime.parse(map['payment_date']) : null,
       creationDate: DateTime.parse(map['creation_date']),
       creatorId: map['creator_id'],
     );

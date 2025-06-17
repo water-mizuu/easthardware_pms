@@ -1,6 +1,7 @@
+import 'dart:async';
+
 import 'package:easthardware_pms/domain/enums/enums.dart' show AccessLevel, DataStatus;
 import 'package:easthardware_pms/domain/models/invoice.dart';
-import 'package:easthardware_pms/domain/models/invoice_product.dart';
 import 'package:easthardware_pms/domain/models/payment_method.dart';
 import 'package:easthardware_pms/presentation/bloc/authentication/authentication/authentication_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/billing/invoicelist/invoice_list_bloc.dart';
@@ -52,7 +53,7 @@ class _CreatePaymentPageState extends State<CreatePaymentPage> {
 
   @override
   void dispose() {
-    _paymentFormBloc.close();
+    unawaited(_paymentFormBloc.close());
     super.dispose();
   }
 
@@ -345,11 +346,11 @@ class _PaymentFormState extends State<PaymentForm> {
                               .read<PaymentFormBloc>()
                               .add(PaymentMethodChanged(value.id!, value.name));
                         } else {
-                          _flyoutController.showFlyout(
+                          unawaited(_flyoutController.showFlyout(
                             autoModeConfiguration: FlyoutAutoConfiguration(
                               preferredMode: FlyoutPlacementMode.bottomRight,
                             ),
-                            builder: (flyoutOontext) {
+                            builder: (flyoutContext) {
                               return FlyoutContent(
                                 child: ConstrainedBox(
                                   constraints: const BoxConstraints(maxWidth: 400.0),
@@ -406,7 +407,7 @@ class _PaymentFormState extends State<PaymentForm> {
                                 ),
                               );
                             },
-                          );
+                          ));
                         }
                       },
                     )

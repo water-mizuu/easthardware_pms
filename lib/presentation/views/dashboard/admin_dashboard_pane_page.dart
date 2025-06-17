@@ -1,5 +1,7 @@
+import 'package:easthardware_pms/presentation/views/dashboard/cards/expense_breakdown_card.dart';
 import 'package:easthardware_pms/presentation/views/dashboard/cards/lower_stocked_products.dart';
 import 'package:easthardware_pms/presentation/views/dashboard/cards/product_count_card.dart';
+import 'package:easthardware_pms/presentation/views/dashboard/cards/profit_and_loss_card.dart';
 import 'package:easthardware_pms/presentation/views/dashboard/cards/recent_sales.dart';
 import 'package:easthardware_pms/presentation/views/dashboard/cards/sale_count_card.dart';
 import 'package:easthardware_pms/presentation/views/dashboard/cards/sales_overview.dart';
@@ -11,7 +13,6 @@ import 'package:easthardware_pms/presentation/widgets/layout/spacing.dart';
 import 'package:easthardware_pms/presentation/widgets/layout_mode_provider.dart';
 import 'package:easthardware_pms/presentation/widgets/text.dart';
 import 'package:fluent_ui/fluent_ui.dart';
-import 'package:provider/provider.dart';
 
 class AdminDashboardPanePage extends StatelessWidget {
   const AdminDashboardPanePage({super.key});
@@ -61,14 +62,14 @@ class SummarySection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return LayoutMode.builder((context, mode) {
-      const productCount = ProductCountCard();
-      const saleCount = SaleCountCard();
-      const totalSales = TotalSalesCard();
-      const totalOrders = TotalOrdersCard();
+    return LayoutMode.builder((context, mode, keys) {
+      final productCount = ProductCountCard(key: keys['productCount']);
+      final saleCount = SaleCountCard(key: keys['saleCount']);
+      final totalSales = TotalSalesCard(key: keys['totalSales']);
+      final totalOrders = TotalOrdersCard(key: keys['totalOrders']);
 
       return switch (mode) {
-        LayoutMode.wide => const Row(
+        LayoutMode.wide => Row(
             children: [
               productCount,
               Spacing.h8,
@@ -79,7 +80,7 @@ class SummarySection extends StatelessWidget {
               totalOrders,
             ],
           ),
-        LayoutMode.constrained => const Column(
+        LayoutMode.constrained => Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Row(children: [productCount, Spacing.h8, saleCount]),
@@ -87,7 +88,7 @@ class SummarySection extends StatelessWidget {
               Row(children: [totalSales, Spacing.h8, totalOrders]),
             ],
           ),
-        LayoutMode.compact => const Column(
+        LayoutMode.compact => Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               productCount,
@@ -109,37 +110,43 @@ class GraphsSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final layoutMode = context.watch<LayoutMode>();
-
-    switch (layoutMode) {
-      case LayoutMode.wide:
-        return ConstrainedBox(
-          constraints: const BoxConstraints(maxHeight: 320),
-          child: const Row(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
+    return LayoutMode.builder((context, layoutMode, keys) {
+      switch (layoutMode) {
+        case LayoutMode.wide:
+          return ConstrainedBox(
+            constraints: const BoxConstraints(maxHeight: 320),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Expanded(
+                  flex: 3,
+                  child: SalesOverview(key: keys["salesOverview"]),
+                ),
+                Spacing.h8,
+                Expanded(
+                  flex: 2,
+                  child: TopProductActivity(key: keys["topProductActivity"]),
+                ),
+              ],
+            ),
+          );
+        case LayoutMode.compact || LayoutMode.constrained:
+          return Column(
+            mainAxisSize: MainAxisSize.min,
             children: [
-              Expanded(flex: 3, child: SalesOverview()),
-              Spacing.h8,
-              Expanded(flex: 2, child: TopProductActivity()),
+              ConstrainedBox(
+                constraints: const BoxConstraints(maxHeight: 320),
+                child: SalesOverview(key: keys["salesOverview"]),
+              ),
+              Spacing.v8,
+              ConstrainedBox(
+                constraints: const BoxConstraints(maxHeight: 320),
+                child: TopProductActivity(key: keys["topProductActivity"]),
+              ),
             ],
-          ),
-        );
-      case LayoutMode.compact || LayoutMode.constrained:
-        return Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ConstrainedBox(
-              constraints: const BoxConstraints(maxHeight: 320),
-              child: const SalesOverview(),
-            ),
-            Spacing.v8,
-            ConstrainedBox(
-              constraints: const BoxConstraints(maxHeight: 320),
-              child: const TopProductActivity(),
-            ),
-          ],
-        );
-    }
+          );
+      }
+    });
   }
 }
 
@@ -148,24 +155,37 @@ class SectionAlpha extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final mode = context.watch<LayoutMode>();
-
-    return switch (mode) {
-      LayoutMode.wide => const Row(
-          children: [
-            Expanded(child: LowerStockedProducts()),
-            Spacing.h8,
-            Expanded(child: LowerStockedProducts()),
-          ],
-        ),
-      LayoutMode.constrained || LayoutMode.compact => const Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            LowerStockedProducts(),
-            Spacing.v8,
-            LowerStockedProducts(),
-          ],
-        ),
-    };
+    return LayoutMode.builder((context, mode, keys) {
+      return switch (mode) {
+        LayoutMode.wide => ConstrainedBox(
+            constraints: const BoxConstraints(maxHeight: 280),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Expanded(child: ExpenseBreakdownCard(key: keys['expensesBreakdown'])),
+                Expanded(child: ProfitAndLossCard(key: keys['profitAndLoss'])),
+                Expanded(child: LowerStockedProducts(key: keys['lowerStockedProducts'])),
+              ].withSpacing(() => Spacing.h8),
+            ),
+          ),
+        LayoutMode.constrained || LayoutMode.compact => Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              ConstrainedBox(
+                constraints: const BoxConstraints(maxHeight: 280),
+                child: ExpenseBreakdownCard(key: keys['expensesBreakdown']),
+              ),
+              ConstrainedBox(
+                constraints: const BoxConstraints(maxHeight: 280),
+                child: ProfitAndLossCard(key: keys['profitAndLoss']),
+              ),
+              ConstrainedBox(
+                constraints: const BoxConstraints(maxHeight: 280),
+                child: LowerStockedProducts(key: keys['lowerStockedProducts']),
+              ),
+            ].withSpacing(() => Spacing.v8),
+          ),
+      };
+    });
   }
 }

@@ -28,7 +28,7 @@ class AuthenticationBloc extends Bloc<AuthenticationEvent, AuthenticationState> 
       printBoxed("Closed the authentication bloc.", "AuthenticationBloc");
     }
 
-    super.close();
+    await super.close();
   }
 
   @override

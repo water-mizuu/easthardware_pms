@@ -64,9 +64,9 @@ class AuthenticationRepositoryImpl implements AuthenticationRepository {
   }
 
   @override
-  void logOut({required int userId}) {
+  Future<void> logOut({required int userId}) async {
     /// Set the user as inactive.
-    _userRepository.setUserAsInactive(userId);
+    await _userRepository.setUserAsInactive(userId);
   }
 
   @override

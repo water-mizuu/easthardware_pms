@@ -33,11 +33,38 @@ enum LayoutMode {
     );
   }
 
-  static Widget builder(Widget Function(BuildContext context, LayoutMode mode) builder) {
-    return Builder(builder: (context) {
-      final layoutMode = context.watch<LayoutMode>();
+  // ignore: library_private_types_in_public_api
+  static Widget builder(_LayoutModeBuilder builder) {
+    return InheritedProvider(
+      create: (_) => GlobalKeyGenerator(),
+      dispose: (_, value) => value.dispose(),
+      child: Builder(builder: (context) {
+        final layoutMode = context.watch<LayoutMode>();
 
-      return builder(context, layoutMode);
-    });
+        return builder(context, layoutMode, context.read<GlobalKeyGenerator>());
+      }),
+    );
+  }
+}
+
+typedef _LayoutModeBuilder = Widget Function(
+  BuildContext context,
+  LayoutMode mode,
+  GlobalKeyGenerator keys,
+);
+
+class GlobalKeyGenerator {
+  GlobalKeyGenerator() : _keys = {};
+  late final Map<String, GlobalKey> _keys;
+
+  GlobalKey operator [](String name) {
+    if (!_keys.containsKey(name)) {
+      _keys[name] = GlobalKey();
+    }
+    return _keys[name]!;
+  }
+
+  void dispose() {
+    _keys.clear();
   }
 }

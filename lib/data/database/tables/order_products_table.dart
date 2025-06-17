@@ -39,7 +39,7 @@ class OrderProductsTable {
 ''');
   }
 
-  static void dropTable(DatabaseExecutor database) {
-    database.execute('DROP TABLE IF EXISTS $ORDER_PRODUCTS_TABLE_NAME');
+  static Future<void> dropTable(DatabaseExecutor database) async {
+    await database.execute('DROP TABLE IF EXISTS $ORDER_PRODUCTS_TABLE_NAME');
   }
 }

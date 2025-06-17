@@ -80,6 +80,7 @@ class AuthenticationState with EquatableMixin {
         formErrors: errors.or(formErrors),
         previousUser: previousUser.or(this.previousUser),
         repository: repository.or(this.repository),
+        // ignore: discarded_futures
         updateFuture: updateFuture.or(this.updateFuture),
         errorMessage: errorMessage.or(this.errorMessage),
       );

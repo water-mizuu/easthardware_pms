@@ -19,8 +19,8 @@ class OrdersTable {
   static const String ORDERS_CREATION_DATE = 'creation_date';
   static const String ORDERS_CREATOR_ID = 'creator_id';
 
-  static void createTable(DatabaseExecutor database) {
-    database.execute('''
+  static Future<void> createTable(DatabaseExecutor database) async {
+    await database.execute('''
       CREATE TABLE IF NOT EXISTS $ORDERS_TABLE_NAME (
         $ORDERS_ID INTEGER PRIMARY KEY AUTOINCREMENT,
         $ORDERS_UID TEXT NOT NULL,
@@ -42,7 +42,7 @@ class OrdersTable {
     ''');
   }
 
-  static void dropTable(DatabaseExecutor database) {
-    database.execute('DROP TABLE IF EXISTS $ORDERS_TABLE_NAME');
+  static Future<void> dropTable(DatabaseExecutor database) async {
+    await database.execute('DROP TABLE IF EXISTS $ORDERS_TABLE_NAME');
   }
 }

@@ -8,9 +8,7 @@ class TotalOrdersCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final totalOrders = context.select(
-      (OrderListBloc b) => b.state.allOrders.length,
-    );
+    final totalOrders = context.select((OrderListBloc b) => b.state.allOrders.length);
 
     return KPICard(
       'Total Orders',

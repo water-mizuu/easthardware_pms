@@ -381,7 +381,7 @@ class ServerBloc extends Bloc<ServerEvent, ServerState> {
     if (event.popupToUser) {
       final didUserCancelCompleter = Completer<bool>();
 
-      ClientConnectionSuccessDialog.show(
+      await ClientConnectionSuccessDialog.show(
         context: rootWidgetKey.currentContext!,
         onCancel: () async {
           if (isClosed) return;
@@ -430,7 +430,7 @@ class ServerBloc extends Bloc<ServerEvent, ServerState> {
 
     if (event.popupToUser) {
       final didUserCancelCompleter = Completer<bool>();
-      ServerStartedSuccessDialog.show(
+      await ServerStartedSuccessDialog.show(
         serverIp: event.args.ip,
         port: event.args.port,
         onGoBack: () async {

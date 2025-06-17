@@ -29,7 +29,7 @@ class RecentSales extends StatelessWidget {
             if (invoices.isNotEmpty)
               const RecentSalesTable() //
             else
-              const RecentSalesPlaceholder()
+              const _RecentSalesPlaceholder()
           ],
         ),
       ),
@@ -37,8 +37,8 @@ class RecentSales extends StatelessWidget {
   }
 }
 
-class RecentSalesPlaceholder extends StatelessWidget {
-  const RecentSalesPlaceholder({super.key});
+class _RecentSalesPlaceholder extends StatelessWidget {
+  const _RecentSalesPlaceholder();
 
   @override
   Widget build(BuildContext context) {

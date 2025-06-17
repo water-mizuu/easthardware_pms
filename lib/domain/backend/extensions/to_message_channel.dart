@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:isolate';
 import 'dart:math';
@@ -44,7 +45,7 @@ extension MessageChannelExtension on WebSocketChannel {
       }
       internalReceivePort.close();
       receivePort.close();
-      sink.close();
+      unawaited(sink.close());
       dispose?.call();
     }
 
@@ -61,7 +62,7 @@ extension MessageChannelExtension on WebSocketChannel {
       },
     );
 
-    sink.done.whenComplete(() => close());
+    unawaited(sink.done.whenComplete(() => close()));
 
     return messageChannel;
   }
@@ -111,7 +112,7 @@ extension MessageChannelExtension on WebSocketChannel {
       }
       internalReceivePort.close();
       receivePort.close();
-      sink.close();
+      unawaited(sink.close());
       dispose?.call();
     }
 
@@ -138,7 +139,7 @@ extension MessageChannelExtension on WebSocketChannel {
       },
     );
 
-    sink.done.whenComplete(() => close());
+    unawaited(sink.done.whenComplete(() => close()));
 
     return messageChannel;
   }

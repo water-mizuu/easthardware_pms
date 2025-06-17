@@ -37,6 +37,7 @@ class EditProductPage extends StatelessWidget {
                 .where((u) => u.productId == product.id)
                 .toList();
 
+            printBoxed(product.toMap(), 'Editing Product');
             return ProductFormBloc.fromProduct(product, secondaryUnits);
           },
         ),

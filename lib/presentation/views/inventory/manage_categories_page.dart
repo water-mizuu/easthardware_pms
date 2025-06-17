@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:easthardware_pms/domain/enums/enums.dart';
 import 'package:easthardware_pms/domain/models/category.dart';
 import 'package:easthardware_pms/presentation/bloc/inventory/category_list/category_list_bloc.dart';
@@ -74,7 +76,7 @@ class PageTable extends StatelessWidget {
                           category,
                           categoryRowMap[category.id] ?? 0,
                           () {
-                            showContentDialog(context, category);
+                            unawaited(showContentDialog(context, category));
                           },
                         ),
                       )

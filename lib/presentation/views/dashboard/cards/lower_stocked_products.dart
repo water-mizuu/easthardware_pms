@@ -1,10 +1,8 @@
-import 'dart:math';
-
 import 'package:easthardware_pms/domain/models/product.dart';
 import 'package:easthardware_pms/presentation/bloc/inventory/product_list/product_list_bloc.dart';
-import 'package:easthardware_pms/presentation/widgets/helper/data_row_mapper.dart';
 import 'package:easthardware_pms/presentation/widgets/layout/spacing.dart';
 import 'package:easthardware_pms/presentation/widgets/text.dart';
+import 'package:easthardware_pms/utils/boxed.dart';
 import 'package:fluent_ui/fluent_ui.dart';
 import 'package:provider/provider.dart';
 import 'package:scroll_animator/scroll_animator.dart';
@@ -26,28 +24,39 @@ class _LowerStockedProductsState extends State<LowerStockedProducts> {
   static const double cellHeight = 36.0;
   static final Map<String, (SpanExtent, Widget Function(Product))> _rowExtents = {
     "Name": (
-      const MaxSpanExtent(
-        FixedSpanExtent(240.00),
-        FractionalSpanExtent(0.33),
-      ),
+      const MaxSpanExtent(FixedSpanExtent(180.00), FractionalSpanExtent(0.50)),
       (p) => Text(p.name),
     ),
-    "Category": (
-      const MaxSpanExtent(
-        FixedSpanExtent(80.00),
-        FractionalSpanExtent(0.33),
-      ),
-      (p) => Text(p.categoryName ?? ""),
+    "Quantity": (
+      const MaxSpanExtent(FixedSpanExtent(120.00), FractionalSpanExtent(0.25)),
+      (p) => Text("${p.quantity} ${p.mainUnit}"),
     ),
-    "Price": (const FixedSpanExtent(120), (p) => Text(p.salePrice.toString())),
-    "Cost": (const FixedSpanExtent(120), (p) => Text(p.orderCost.toString())),
-    "Quantity": (const FixedSpanExtent(120), (p) => Text(p.quantity.toString())),
     "Actions": (
-      const MaxSpanExtent(
-        FixedSpanExtent(80.00),
-        RemainingSpanExtent(),
-      ),
-      (p) => const Text("Edit"),
+      const MaxSpanExtent(FixedSpanExtent(80.00), RemainingSpanExtent()),
+      (p) {
+        return Builder(builder: (context) {
+          return Align(
+            alignment: Alignment.topLeft,
+            child: HyperlinkButton(
+              onPressed: () {
+                /// FIXME: This is a placeholder for the actual navigation logic.
+                ///   Ideally, the createRestockOrder should accept a product that
+                ///     needs to be restocked, to allow the user to order automatically.
+                //
+                // context.navigateWithExtra(
+                //   AppRoutes.admin.createRestockOrder,
+                //   extra,
+                // );
+                printBoxed(
+                  "Tried to create order, but there is no implementation yet.",
+                  "LowerStockedProducts:Actions",
+                );
+              },
+              child: const Text('Order'),
+            ),
+          );
+        });
+      },
     ),
   };
 
@@ -79,56 +88,46 @@ class _LowerStockedProductsState extends State<LowerStockedProducts> {
           Text(columnName, style: const TextStyle(fontWeight: FontWeight.w600)),
       ],
       for (final product in products) //
-        if (DataRowMapper.mapProductToRow(product, editAction: () {}) case final row)
-          [
-            for (final cell in row.cells)
-              ColoredBox(
-                color: row.color?.resolve({}) ?? Colors.transparent,
-                child: cell.child,
-              )
-          ]
+        [for (final (_, selector) in _rowExtents.values) selector(product)]
     ];
 
-    return ColoredBox(
+    return Container(
       color: FluentTheme.of(context).cardColor,
-      child: Padding(
-        padding: AppPadding.cardPadding,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            const DisplayText('Lower Stocked Products'),
-            Spacing.v16,
-            ConstrainedBox(
-              constraints: BoxConstraints(maxHeight: cellHeight * min(1 + maxRows, matrix.length)),
-              child: TableView.builder(
-                verticalDetails: ScrollableDetails.vertical(
-                  controller: verticalScrollController,
-                ),
-                horizontalDetails: ScrollableDetails.horizontal(
-                  controller: horizontalScrollController,
-                ),
-                rowCount: matrix.length,
-                columnCount: matrix.first.length,
-                pinnedRowCount: 1,
-                columnBuilder: (int index) => TableSpan(
-                  extent: _rowExtents.values.elementAt(index).$1,
-                ),
-                rowBuilder: (int index) => const TableSpan(extent: FixedSpanExtent(cellHeight)),
-                cellBuilder: (BuildContext context, TableVicinity vicinity) {
-                  final (y, x) = (vicinity.row, vicinity.column);
-
-                  return TableViewCell(
-                    child: Padding(
-                      padding: const EdgeInsets.only(right: 8.0),
-                      child: matrix[y][x],
-                    ),
-                  );
-                },
+      padding: AppPadding.cardPadding,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          const DisplayText('Lower Stocked Products'),
+          Spacing.v16,
+          Expanded(
+            child: TableView.builder(
+              verticalDetails: ScrollableDetails.vertical(
+                controller: verticalScrollController,
               ),
+              horizontalDetails: ScrollableDetails.horizontal(
+                controller: horizontalScrollController,
+              ),
+              rowCount: matrix.length,
+              columnCount: matrix.first.length,
+              pinnedRowCount: 1,
+              columnBuilder: (int index) => TableSpan(
+                extent: _rowExtents.values.elementAt(index).$1,
+              ),
+              rowBuilder: (int index) => const TableSpan(extent: FixedSpanExtent(cellHeight)),
+              cellBuilder: (BuildContext context, TableVicinity vicinity) {
+                final (y, x) = (vicinity.row, vicinity.column);
+
+                return TableViewCell(
+                  child: Padding(
+                    padding: const EdgeInsets.only(right: 8.0),
+                    child: matrix[y][x],
+                  ),
+                );
+              },
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

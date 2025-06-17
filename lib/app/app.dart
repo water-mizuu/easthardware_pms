@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:easthardware_pms/app/dependency_injector.dart';
 import 'package:easthardware_pms/domain/enums/enums.dart';
 import 'package:easthardware_pms/presentation/bloc/authentication/'
@@ -37,7 +39,7 @@ class _AppState extends State<App> {
       BlocListener<ServerBloc, ServerState>(
         listenWhen: (p, c) => p.databaseHelper != c.databaseHelper,
         listener: (context, state) {
-          di.initialize(databaseHelper: state.databaseHelper);
+          unawaited(di.initialize(databaseHelper: state.databaseHelper));
         },
       ),
 
@@ -120,11 +122,11 @@ class _AppState extends State<App> {
       if (kDebugMode)
         BlocListener<AuthenticationBloc, AuthenticationState>(
           listenWhen: (p, c) => p.user != null && c.user == null,
-          listener: (context, state) {
+          listener: (context, state) async {
             /// Clear the preserved login credentials when the user logs out.
             final sharedPreferences = SharedPreferencesAsync();
-            sharedPreferences.remove("preserved_username");
-            sharedPreferences.remove("preserved_password");
+            await sharedPreferences.remove("preserved_username");
+            await sharedPreferences.remove("preserved_password");
           },
         ),
     ];
@@ -135,7 +137,8 @@ class _AppState extends State<App> {
     super.initState();
 
     theme = FluentThemeData.light().copyWith(cardColor: Colors.white);
-    di = DependencyInjector()..initialize();
+    di = DependencyInjector();
+    unawaited(di.initialize());
     di.addListener(_handleDependencyInjectorChanges);
   }
 

@@ -7,7 +7,7 @@ import 'package:flutter/foundation.dart';
 /// If [label] is provided, it will be displayed at the top of the box.
 ///
 /// This function is intended for debugging purposes and is only active in debug mode.
-/// Using this function should have no side effects such as mutations
+/// Using this function should have no side effects such as mutations.
 @pragma('vm:prefer-inline')
 void printBoxed(Object? value, [String? label]) {
   if (kDebugMode) {

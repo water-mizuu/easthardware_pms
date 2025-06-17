@@ -4,7 +4,6 @@ import 'dart:math';
 import 'package:easthardware_pms/domain/models/invoice.dart';
 import 'package:easthardware_pms/domain/repository/invoice_product_repository.dart';
 import 'package:easthardware_pms/presentation/bloc/billing/invoicelist/invoice_list_bloc.dart';
-import 'package:easthardware_pms/presentation/views/dashboard/cards/recent_sales.dart';
 import 'package:easthardware_pms/presentation/widgets/layout/spacing.dart';
 import 'package:easthardware_pms/presentation/widgets/text.dart';
 import 'package:easthardware_pms/utils/boxed.dart';
@@ -12,7 +11,6 @@ import 'package:easthardware_pms/utils/try_future.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:fluent_ui/fluent_ui.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 class TopProductActivity extends StatefulWidget {
   const TopProductActivity({super.key});
@@ -85,7 +83,6 @@ enum TopProductActivityChoice {
 class _TopProductActivityState extends State<TopProductActivity> {
   static const int productDisplayLimit = 5;
 
-  late final SharedPreferencesAsync _preferences = SharedPreferencesAsync();
   late final ValueNotifier<TopProductActivityChoice> _productActivityChoice;
   late List<Invoice>? _invoices;
   late BarChartData? _barChartData;
@@ -97,10 +94,8 @@ class _TopProductActivityState extends State<TopProductActivity> {
 
     _invoices = null;
     _productActivityChoice = ValueNotifier(TopProductActivityChoice.last30Days) //
-      ..addListener(() async {
-        if (_invoices == null) return;
-        _updateBarChartData(_invoices!);
-        _preferences.setInt('top_product_activity_choice', _productActivityChoice.value.index);
+      ..addListener(() {
+        if (_invoices != null) _updateBarChartData(_invoices!);
       });
     _barChartData = null;
     _requestCanceller = null;
@@ -108,13 +103,6 @@ class _TopProductActivityState extends State<TopProductActivity> {
     _invoices = null;
     _barChartData = null;
     _requestCanceller = null;
-
-    unawaited(() async {
-      final stored = await _preferences.getInt('top_product_activity_choice');
-      if (stored == null || !mounted) return;
-
-      setState(() => _productActivityChoice.value = TopProductActivityChoice.values[stored]);
-    }());
   }
 
   @override
@@ -140,14 +128,18 @@ class _TopProductActivityState extends State<TopProductActivity> {
           children: [
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const DisplayText('Top Product Activity'),
-                    GrayText('Top sales ${_productActivityChoice.value.description}'),
-                  ],
+                Flexible(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const DisplayText('Top Product Activity'),
+                      GrayText('Top sales ${_productActivityChoice.value.description}'),
+                    ],
+                  ),
                 ),
+                Spacing.h12,
 
                 /// An example button to update the state of the product.
                 ComboBox(
@@ -171,7 +163,7 @@ class _TopProductActivityState extends State<TopProductActivity> {
             if (_barChartData case final barChartData?)
               Expanded(child: BarChart(barChartData))
             else
-              const Expanded(child: Center(child: RecentSalesPlaceholder())),
+              const Expanded(child: Center(child: _RecentSalesPlaceholder())),
           ],
         ),
       ),
@@ -192,15 +184,10 @@ class _TopProductActivityState extends State<TopProductActivity> {
   }
 
   Future<BarChartData?> _createBarChartData(List<Invoice> invoices) async {
-    /// This map counts the occurrences of each product in the last 30 days.
-    ///   The key is a tuple of (productId, productName), and the value is the count.
     final productOccurrences = <(int, String), int>{};
-
-    /// Get the invoice product repository from the context.
     final invoiceProductRepository = context.read<InvoiceProductRepository>();
 
-    /// Filter the invoices to only include those created in the last 30 days,
-    ///   and then map each invoice to its products.
+    final chosenLimit = _productActivityChoice.value;
     final (products, error) = await invoices
         .where((i) => _productActivityChoice.value.check(i.creationDate))
         .map((i) => invoiceProductRepository.fetchInvoiceProductsByInvoice(i.id!))
@@ -209,10 +196,10 @@ class _TopProductActivityState extends State<TopProductActivity> {
 
     if (error != null) {
       printBoxed(
-        "Failed to fetch products for the last 30 days: $error",
+        "Failed to fetch products for the ${chosenLimit.description}: $error",
         "ProductActivity",
       );
-      throw Exception("Failed to fetch products for the last 30 days");
+      throw Exception("Failed to fetch products for the ${chosenLimit.description}");
     }
     assert(products != null, "Products should not be null after fetching.");
 
@@ -220,8 +207,6 @@ class _TopProductActivityState extends State<TopProductActivity> {
       return null;
     }
 
-    /// For each product in the filtered invoices,
-    ///   count the occurrences of each product by its ID and name.
     for (final product in products.expand((l) => l)) {
       final productId = product.productId;
       final name = product.productName;
@@ -231,8 +216,6 @@ class _TopProductActivityState extends State<TopProductActivity> {
       productOccurrences[compositeKey] = productOccurrences[compositeKey]! + 1;
     }
 
-    /// Sort the occurrences by the count in descending order,
-    ///   and take the top [productDisplayLimit] occurrences.
     final topProducts = productOccurrences.entries
         .toList()
         .sorted((a, b) => b.value.compareTo(a.value))
@@ -240,8 +223,6 @@ class _TopProductActivityState extends State<TopProductActivity> {
         .map((e) => (e.key.$2, e.value))
         .toList();
 
-    /// [lineTouchData] configures the widgets shown as the mouse hovers over points
-    ///   in the data.
     final barTouchData = BarTouchData(
       handleBuiltInTouches: true,
       touchTooltipData: BarTouchTooltipData(
@@ -250,7 +231,7 @@ class _TopProductActivityState extends State<TopProductActivity> {
           final occurrences = rod.toY.toInt();
 
           return BarTooltipItem(
-            '$occurrences sales\nfor the past 30 days.',
+            '$occurrences sales\nfor ${chosenLimit.description}',
             const TextStyle(
               color: Colors.black,
               fontWeight: FontWeight.bold,
@@ -373,6 +354,26 @@ class _TopProductActivityState extends State<TopProductActivity> {
       minY: 0,
       maxY: maxY + (maxY / 4).toDouble(),
       rotationQuarterTurns: 1,
+    );
+  }
+}
+
+class _RecentSalesPlaceholder extends StatelessWidget {
+  const _RecentSalesPlaceholder();
+
+  @override
+  Widget build(BuildContext context) {
+    return const Padding(
+      padding: EdgeInsets.all(16.0),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(FluentIcons.report_alert, size: 42.0),
+          SubheadingText("No recent sales."),
+          Spacing.v8,
+          GrayText("Please add some sales to view them here."),
+        ],
+      ),
     );
   }
 }

@@ -49,14 +49,14 @@ class _AppWindowState extends State<AppWindow> with WindowListener {
   void onWindowMaximize([int? windowId]) {
     if (!mounted) return;
 
-    SharedPreferencesAsync().setBool("isMaximized", true).tryCatch();
+    unawaited(SharedPreferencesAsync().setBool("isMaximized", true).tryCatch());
   }
 
   @override
   void onWindowUnmaximize([int? windowId]) {
     if (!mounted) return;
 
-    SharedPreferencesAsync().setBool("isMaximized", false).tryCatch();
+    unawaited(SharedPreferencesAsync().setBool("isMaximized", false).tryCatch());
   }
 
   @override
@@ -90,10 +90,10 @@ class _AppWindowState extends State<AppWindow> with WindowListener {
         onSuccess: () => exitCompleter.complete(true),
         onCancel: () => exitCompleter.complete(false),
       );
-      if (!exitCompleter.isCompleted) {
-        /// If the dialog was not shown, we can exit the application.
-        _exit();
-      }
+
+      /// If the dialog was not shown, we can exit the application.
+      if (!exitCompleter.isCompleted) _exit();
+
       final didUserConfirmExit = await exitCompleter.future;
       if (!didUserConfirmExit) return;
 
@@ -232,10 +232,10 @@ Future<void> _closeServers(BuildContext context) async {
 }
 
 Never _exit() {
-  Timer(const Duration(milliseconds: 100), () => WindowManagerPlus.current.destroy());
+  Timer(const Duration(milliseconds: 100), () => unawaited(WindowManagerPlus.current.destroy()));
 
-  WindowManagerPlus.current.setPreventClose(false);
-  WindowManagerPlus.current.close();
+  unawaited(WindowManagerPlus.current.setPreventClose(false));
+  unawaited(WindowManagerPlus.current.close());
 
   throw _unreachable;
 }

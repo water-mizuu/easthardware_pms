@@ -100,9 +100,7 @@ Future<void> spawnLandingIsolate((RootIsolateToken, NamedSendPort, int port) pay
 
     // Close this isolate's receive port.
     receivePort.close();
-    if (kDebugMode) {
-      print("Isolate stopped.");
-    }
+    printBoxed("Isolate stopped.", "LANDING SERVER");
 
     /// Success code 0.
     sendPort.send(name, 0);
@@ -120,7 +118,7 @@ Future<void> spawnLandingIsolate((RootIsolateToken, NamedSendPort, int port) pay
     if (message case [final String returnName, final Object args]) {
       switch (args) {
         case ["stop", ...]:
-          closeIsolate(returnName);
+          await closeIsolate(returnName);
           break;
         case ['requestConnection', [final int secureKey]]:
           sendPort.send(returnName, _secureConnections[secureKey]);

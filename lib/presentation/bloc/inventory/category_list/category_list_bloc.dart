@@ -57,7 +57,7 @@ class CategoryListBloc extends Bloc<CategoryListEvent, CategoryListState> {
   Future<void> _onUpdate(UpdateCategoryEvent event, Emitter emit) async {
     emit(state.copyWith(status: DataStatus.loading));
     try {
-      _repository.updateCategory(event.category);
+      await _repository.updateCategory(event.category);
       final categories = state.categories.toList();
       final index = categories.indexWhere((category) => category.id == event.category.id);
       categories[index] = event.category;
@@ -70,7 +70,7 @@ class CategoryListBloc extends Bloc<CategoryListEvent, CategoryListState> {
   Future<void> _onDelete(DeleteCategoryEvent event, Emitter emit) async {
     emit(state.copyWith(status: DataStatus.loading));
     try {
-      _repository.deleteCategory(event.categoryId);
+      await _repository.deleteCategory(event.categoryId);
       final categories = state.categories.toList();
       categories.removeWhere((category) => category.id == event.categoryId);
       emit(state.copyWith(categories: categories, status: DataStatus.success));

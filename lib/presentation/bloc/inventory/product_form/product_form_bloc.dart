@@ -50,7 +50,7 @@ class ProductFormBloc extends Bloc<ProductFormEvent, ProductFormState> {
       product,
       secondaryUnits,
     ));
-    bloc.formKey.currentState?.reset();
+
     return bloc;
   }
 

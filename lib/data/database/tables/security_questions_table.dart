@@ -8,8 +8,8 @@ class SecurityQuestionsTable {
   static const String SECURITY_QUESTIONS_QUESTION = 'question';
   static const String SECURITY_QUESTIONS_ANSWER = 'answer';
 
-  static void createTable(DatabaseExecutor database) {
-    database.execute('''
+  static Future<void> createTable(DatabaseExecutor database) async {
+    await database.execute('''
       CREATE TABLE IF NOT EXISTS $SECURITY_QUESTIONS_TABLE (
         $SECURITY_QUESTIONS_ID INTEGER PRIMARY KEY AUTOINCREMENT,
         $SECURITY_QUESTIONS_USER_ID INTEGER NOT NULL,
@@ -20,8 +20,8 @@ class SecurityQuestionsTable {
     ''');
   }
 
-  static void dropTable(DatabaseExecutor database) {
-    database.execute('''
+  static Future<void> dropTable(DatabaseExecutor database) async {
+    await database.execute('''
       DROP TABLE IF EXISTS $SECURITY_QUESTIONS_TABLE
     ''');
   }

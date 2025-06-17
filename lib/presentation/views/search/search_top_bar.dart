@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:easthardware_pms/presentation/bloc/billing/invoicelist/invoice_list_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/inventory/product_list/product_list_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/order/orderlist/order_list_bloc.dart';
@@ -70,7 +72,7 @@ class _SearchPageState extends State<SearchPage> {
 
   @override
   void dispose() {
-    _searchBloc.close();
+    unawaited(_searchBloc.close());
     _scrollController.dispose();
 
     super.dispose();

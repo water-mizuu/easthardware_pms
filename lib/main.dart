@@ -1,5 +1,6 @@
 // ignore_for_file: avoid_print
 
+import 'dart:async';
 import 'dart:io';
 
 import 'package:easthardware_pms/app/app_window.dart';
@@ -27,7 +28,7 @@ void main(List<String> args) async {
     );
     final id = args.isEmpty ? 0 : int.tryParse(args[0]) ?? 0;
     final (_) = await WindowManagerPlus.ensureInitialized(id).tryCatch();
-    WindowManagerPlus.current.waitUntilReadyToShow(options, () async {
+    unawaited(WindowManagerPlus.current.waitUntilReadyToShow(options, () async {
       if (Platform.isWindows) {
         await WindowManagerPlus.current.setAlwaysOnBottom(false);
       }
@@ -36,10 +37,10 @@ void main(List<String> args) async {
       await WindowManagerPlus.current.setTitleBarStyle(TitleBarStyle.hidden);
       await WindowManagerPlus.current.show();
       await WindowManagerPlus.current.focus();
-    });
+    }));
   }
 
-  setupKeyMicroService();
+  unawaited(setupKeyMicroService());
 
   /// Current idea:
   ///   1. scan for all ips in the subnetwork.

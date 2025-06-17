@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math';
 
 import 'package:easthardware_pms/domain/enums/enums.dart';
@@ -58,7 +59,7 @@ class _InventoryPanePageState extends State<InventoryPanePage> {
   @override
   void dispose() {
     _scrollController.dispose();
-    _inventoryDisplayBloc.close();
+    unawaited(_inventoryDisplayBloc.close());
 
     super.dispose();
   }
@@ -139,16 +140,28 @@ class InventorySummary extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         const SubheadingText('Inventory Summary'),
-        LayoutMode.builder((context, layoutMode) {
+        LayoutMode.builder((context, layoutMode, keys) {
           switch (layoutMode) {
             case LayoutMode.wide:
               return IntrinsicHeight(
                 child: Row(
                   children: [
-                    ActiveCountCard(value: activeCount.toString()),
-                    LowStockCountCard(value: lowStockCount.toString()),
-                    HangingCountCard(value: deadCount.toString()),
-                    FastMovingCountCard(value: fastMovingCount.toString()),
+                    ActiveCountCard(
+                      value: activeCount.toString(),
+                      key: keys['activeCount'],
+                    ),
+                    LowStockCountCard(
+                      value: lowStockCount.toString(),
+                      key: keys['lowStockCount'],
+                    ),
+                    HangingCountCard(
+                      value: deadCount.toString(),
+                      key: keys['deadCount'],
+                    ),
+                    FastMovingCountCard(
+                      value: fastMovingCount.toString(),
+                      key: keys['fastMovingCount'],
+                    ),
                   ].withSpacing(() => Spacing.h16),
                 ),
               );
@@ -158,16 +171,28 @@ class InventorySummary extends StatelessWidget {
                   IntrinsicHeight(
                     child: Row(
                       children: [
-                        ActiveCountCard(value: activeCount.toString()),
-                        LowStockCountCard(value: lowStockCount.toString()),
+                        ActiveCountCard(
+                          value: activeCount.toString(),
+                          key: keys['activeCount'],
+                        ),
+                        LowStockCountCard(
+                          value: lowStockCount.toString(),
+                          key: keys['lowStockCount'],
+                        ),
                       ].withSpacing(() => Spacing.h8),
                     ),
                   ),
                   IntrinsicHeight(
                     child: Row(
                       children: [
-                        HangingCountCard(value: deadCount.toString()),
-                        FastMovingCountCard(value: fastMovingCount.toString()),
+                        HangingCountCard(
+                          value: deadCount.toString(),
+                          key: keys['deadCount'],
+                        ),
+                        FastMovingCountCard(
+                          value: fastMovingCount.toString(),
+                          key: keys['fastMovingCount'],
+                        ),
                       ].withSpacing(() => Spacing.h8),
                     ),
                   ),
@@ -177,10 +202,26 @@ class InventorySummary extends StatelessWidget {
               return Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  ActiveCountCard(value: activeCount.toString(), isExpanded: false),
-                  LowStockCountCard(value: lowStockCount.toString(), isExpanded: false),
-                  HangingCountCard(value: deadCount.toString(), isExpanded: false),
-                  FastMovingCountCard(value: fastMovingCount.toString(), isExpanded: false),
+                  ActiveCountCard(
+                    value: activeCount.toString(),
+                    isExpanded: false,
+                    key: keys['activeCount'],
+                  ),
+                  LowStockCountCard(
+                    value: lowStockCount.toString(),
+                    isExpanded: false,
+                    key: keys['lowStockCount'],
+                  ),
+                  HangingCountCard(
+                    value: deadCount.toString(),
+                    isExpanded: false,
+                    key: keys['deadCount'],
+                  ),
+                  FastMovingCountCard(
+                    value: fastMovingCount.toString(),
+                    isExpanded: false,
+                    key: keys['fastMovingCount'],
+                  ),
                 ].withSpacing(() => Spacing.v8),
               );
           }

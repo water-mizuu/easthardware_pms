@@ -96,7 +96,7 @@ Future<void> spawnWebSocketIsolate((RootIsolateToken, NamedSendPort) payload) as
 
       if (userId != null) {
         // Notify the main isolate about the user logout.
-        _logoutClientForcefully(userId);
+        await _logoutClientForcefully(userId);
       }
 
       /// Ensure that the message channel for this WebSocket is closed to avoid memory leaks.
@@ -108,9 +108,7 @@ Future<void> spawnWebSocketIsolate((RootIsolateToken, NamedSendPort) payload) as
 
     // Close this isolate's receive port.
     receivePort.close();
-    if (kDebugMode) {
-      print("Isolate stopped.");
-    }
+    printBoxed("Isolate stopped.", "WEBSOCKET SERVER");
 
     /// Success code 0.
     sendPort.send(name, 0);
@@ -125,7 +123,7 @@ Future<void> spawnWebSocketIsolate((RootIsolateToken, NamedSendPort) payload) as
     if (message case [final String name, final Object args]) {
       switch (args) {
         case ["stop", _]:
-          closeIsolate(name);
+          await closeIsolate(name);
           break;
         case ["resetDb", _]:
           // // Restart the database connection.
@@ -144,7 +142,7 @@ Future<void> spawnWebSocketIsolate((RootIsolateToken, NamedSendPort) payload) as
 
           /// Hook onto the database update that signifies that the user has logged in.
           if (method == "update") {
-            _hookOntoUpdate(arguments);
+            await _hookOntoUpdate(arguments);
           }
           break;
       }
@@ -249,7 +247,7 @@ Future<void> _handleConnection(
 
         /// Hook onto the database update that signifies that the user has logged in.
         if (method == "update") {
-          _hookOntoUpdate(arguments, (webSocketChannel, messageChannel));
+          await _hookOntoUpdate(arguments, (webSocketChannel, messageChannel));
         }
 
         break;
@@ -374,7 +372,7 @@ Future<void> _hookOntoUpdate(
         return;
       }
 
-      _logToMain(LogCommand.userLoggedIn, user);
+      await _logToMain(LogCommand.userLoggedIn, user);
     } else {
       /// We assume that the user logged in from the server.
       _userId = userId;
@@ -408,7 +406,7 @@ Future<void> _hookOntoUpdate(
         return;
       }
 
-      _logToMain(LogCommand.userLoggedOut, user);
+      await _logToMain(LogCommand.userLoggedOut, user);
     } else {
       assert(_userId == userId, "User ID should match the one in the arguments.");
       _userId = null;
@@ -422,7 +420,7 @@ Future<void> _hookOntoUpdate(
 Future<void> _logToMain(LogCommand command, User user) async {
   assertChildIsolate();
 
-  mainChannel.invokeMain(command as String, [user]);
+  await mainChannel.invokeMain(command as String, [user]);
 }
 
 Future<SecureConnection> _requestConnection(int sessionKey) async {

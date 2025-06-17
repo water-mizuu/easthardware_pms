@@ -47,7 +47,7 @@ class UsersTable {
   static Future<void> _insertInitialAdmin(DatabaseExecutor database) async {
     const password = 'Admin123';
 
-    printBoxed("LAST BIRTHDAY", "LIFE GOES ON WIHTOUT ME");
+    printBoxed("LAST BIRTHDAY", "LIFE GOES ON WITHOUT ME");
     var id = 0;
     {
       final salt = CryptographyService.generateSalt();
@@ -65,7 +65,7 @@ class UsersTable {
         passwordHash: passwordHash,
         salt: salt,
       );
-      database.insert(UsersTable.USERS_TABLE_NAME, admin.toMap(),
+      await database.insert(UsersTable.USERS_TABLE_NAME, admin.toMap(),
           conflictAlgorithm: ConflictAlgorithm.replace);
     }
 
@@ -85,7 +85,7 @@ class UsersTable {
         passwordHash: passwordHash,
         salt: salt,
       );
-      database.insert(UsersTable.USERS_TABLE_NAME, admin.toMap(),
+      await database.insert(UsersTable.USERS_TABLE_NAME, admin.toMap(),
           conflictAlgorithm: ConflictAlgorithm.replace);
     }
 
@@ -106,7 +106,7 @@ class UsersTable {
         salt: salt,
       );
 
-      database.insert(UsersTable.USERS_TABLE_NAME, staff.toMap(),
+      await database.insert(UsersTable.USERS_TABLE_NAME, staff.toMap(),
           conflictAlgorithm: ConflictAlgorithm.replace);
     }
   }

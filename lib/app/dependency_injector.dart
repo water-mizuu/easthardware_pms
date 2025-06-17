@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:easthardware_pms/data/database/database_helper.dart';
 import 'package:easthardware_pms/domain/repository/authentication_repository.dart';
 import 'package:easthardware_pms/domain/repository/category_repository.dart';
@@ -171,7 +173,6 @@ class DependencyInjector extends ChangeNotifier {
         key: key(),
         create: (context) {
           final state = _userLogListBloc?.state ?? const UserLogListState();
-          _userLogListBloc?.close();
 
           return _userLogListBloc = UserLogListBloc(_userLogRepository, state)
             ..addIf(_databaseHelper != null, const LoadUserLogsEvent());

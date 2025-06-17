@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:easthardware_pms/domain/enums/enums.dart';
 import 'package:easthardware_pms/domain/models/product.dart';
 import 'package:easthardware_pms/presentation/bloc/authentication/authentication/authentication_bloc.dart';
@@ -48,7 +50,7 @@ class CreateInvoicePage extends StatelessWidget {
                   context.read<InvoiceListBloc>().add(AddInvoiceEvent(invoice, products));
                 } else if (state.status == FormStatus.error) {
                   final blocContext = context;
-                  showDialog<String>(
+                  unawaited(showDialog<String>(
                     context: blocContext,
                     builder: (dialogContext) => ContentDialog(
                       title: const Text('Incomplete Details', style: TextStyles.subtitle),
@@ -63,7 +65,7 @@ class CreateInvoicePage extends StatelessWidget {
                         ),
                       ],
                     ),
-                  );
+                  ));
                 }
               },
             ),

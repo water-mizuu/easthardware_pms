@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:easthardware_pms/domain/enums/enums.dart';
 import 'package:easthardware_pms/presentation/bloc/authentication/authentication/authentication_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/order/orderform/order_form_bloc.dart';
@@ -11,7 +13,6 @@ import 'package:easthardware_pms/presentation/widgets/ui/form_table_column.dart'
 import 'package:easthardware_pms/presentation/widgets/ui/text_button.dart';
 import 'package:easthardware_pms/presentation/widgets/ui/text_form_boxes.dart';
 import 'package:easthardware_pms/utils/typed_routes.dart';
-
 import 'package:fluent_ui/fluent_ui.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -33,27 +34,19 @@ class CreateExpenseOrderPage extends StatelessWidget {
               if (state.status == FormStatus.submitting) {
                 final order = state.copyWith().toOrder();
                 print('Order ID (Expense): ${order.id}');
-                final products = state.products
-                    .map((product) => product.toOrderProduct(order.id ?? 0))
-                    .toList();
-                context
-                    .read<OrderListBloc>()
-                    .add(AddOrderEvent(order, products));
+                final products =
+                    state.products.map((product) => product.toOrderProduct(order.id ?? 0)).toList();
+                context.read<OrderListBloc>().add(AddOrderEvent(order, products));
                 context.read<OrderFormBloc>().add(FormSubmittedEvent());
               } else if (state.status == FormStatus.success) {
-                if (context
-                        .read<AuthenticationBloc>()
-                        .state
-                        .user!
-                        .accessLevel ==
+                if (context.read<AuthenticationBloc>().state.user!.accessLevel ==
                     AccessLevel.administrator) {
                   context.navigate(AppRoutes.admin.order);
                 } else {
                   //context.navigate(AppRoutes.staff.order);
                 }
-              } else if (state.status == FormStatus.error &&
-                  state.dialogErrorMessage != null) {
-                showDialog<String>(
+              } else if (state.status == FormStatus.error && state.dialogErrorMessage != null) {
+                unawaited(showDialog<String>(
                   context: context,
                   builder: (dialogContext) => ContentDialog(
                     title: const Text('Incomplete Details'),
@@ -67,7 +60,7 @@ class CreateExpenseOrderPage extends StatelessWidget {
                       ),
                     ],
                   ),
-                );
+                ));
               }
             },
           ),
@@ -147,8 +140,7 @@ class OrderPageHeader extends StatelessWidget {
           onPressed: () {
             final creationDate = DateTime.now();
             final creatorId = context.read<AuthenticationBloc>().state.user?.id;
-            final orderId =
-                context.read<OrderListBloc>().state.allOrders.length;
+            final orderId = context.read<OrderListBloc>().state.allOrders.length;
             context.read<OrderFormBloc>().add(
                   SaveOrderRequestEvent(
                     creationDate: creationDate,
@@ -208,16 +200,14 @@ class OrderPageForm extends StatelessWidget with OrderFormValidator {
                       TextFormBox(
                         initialValue: state.payeeName,
                         validator: validatePayeeName,
-                        onChanged: (value) =>
-                            bloc.add(PayeeNameChangedEvent(value)),
+                        onChanged: (value) => bloc.add(PayeeNameChangedEvent(value)),
                       ),
                       if (state.payeeNameErrorMessage != null)
                         Padding(
                           padding: const EdgeInsets.only(top: 4.0),
                           child: Text(
                             state.payeeNameErrorMessage!,
-                            style: TextStyle(
-                                color: Colors.red.lightest, fontSize: 12),
+                            style: TextStyle(color: Colors.red.lightest, fontSize: 12),
                           ),
                         ),
                     ],
@@ -234,10 +224,8 @@ class OrderPageForm extends StatelessWidget with OrderFormValidator {
                       ComboBox<int>(
                         value: state.expenseType,
                         items: const [
-                          ComboBoxItem<int>(
-                              value: 1, child: Text('Restock Order')),
-                          ComboBoxItem<int>(
-                              value: 2, child: Text('Expense Order')),
+                          ComboBoxItem<int>(value: 1, child: Text('Restock Order')),
+                          ComboBoxItem<int>(value: 2, child: Text('Expense Order')),
                         ],
                       ),
                     ],
@@ -258,16 +246,14 @@ class OrderPageForm extends StatelessWidget with OrderFormValidator {
                       TextFormBox(
                         initialValue: state.referenceNumber,
                         validator: validateReferenceNumber,
-                        onChanged: (value) =>
-                            bloc.add(ReferenceNumberChangedEvent(value)),
+                        onChanged: (value) => bloc.add(ReferenceNumberChangedEvent(value)),
                       ),
                       if (state.referenceNumberErrorMessage != null)
                         Padding(
                           padding: const EdgeInsets.only(top: 4.0),
                           child: Text(
                             state.referenceNumberErrorMessage!,
-                            style: TextStyle(
-                                color: Colors.red.lightest, fontSize: 12),
+                            style: TextStyle(color: Colors.red.lightest, fontSize: 12),
                           ),
                         ),
                     ],
@@ -286,8 +272,7 @@ class OrderPageForm extends StatelessWidget with OrderFormValidator {
                         value: state.paymentMethod,
                         items: const [
                           ComboBoxItem<int>(value: 1, child: Text('Cash')),
-                          ComboBoxItem<int>(
-                              value: 2, child: Text('Installment')),
+                          ComboBoxItem<int>(value: 2, child: Text('Installment')),
                           ComboBoxItem<int>(value: 3, child: Text('Card')),
                         ],
                         onChanged: (value) {
@@ -301,8 +286,7 @@ class OrderPageForm extends StatelessWidget with OrderFormValidator {
                           padding: const EdgeInsets.only(top: 4.0),
                           child: Text(
                             state.paymentMethodErrorMessage!,
-                            style: TextStyle(
-                                color: Colors.red.lightest, fontSize: 12),
+                            style: TextStyle(color: Colors.red.lightest, fontSize: 12),
                           ),
                         ),
                     ],
@@ -322,16 +306,14 @@ class OrderPageForm extends StatelessWidget with OrderFormValidator {
                       Spacing.v8,
                       DatePicker(
                         selected: state.paymentDate,
-                        onChanged: (date) =>
-                            bloc.add(PaymentDateChangedEvent(date)),
+                        onChanged: (date) => bloc.add(PaymentDateChangedEvent(date)),
                       ),
                       if (state.paymentDateErrorMessage != null)
                         Padding(
                           padding: const EdgeInsets.only(top: 4.0),
                           child: Text(
                             state.paymentDateErrorMessage!,
-                            style: TextStyle(
-                                color: Colors.red.lightest, fontSize: 12),
+                            style: TextStyle(color: Colors.red.lightest, fontSize: 12),
                           ),
                         ),
                     ],
@@ -347,16 +329,14 @@ class OrderPageForm extends StatelessWidget with OrderFormValidator {
                       Spacing.v8,
                       DatePicker(
                         selected: state.orderDate,
-                        onChanged: (date) =>
-                            bloc.add(OrderDateChangedEvent(date)),
+                        onChanged: (date) => bloc.add(OrderDateChangedEvent(date)),
                       ),
                       if (state.orderDateErrorMessage != null)
                         Padding(
                           padding: const EdgeInsets.only(top: 4.0),
                           child: Text(
                             state.orderDateErrorMessage!,
-                            style: TextStyle(
-                                color: Colors.red.lightest, fontSize: 12),
+                            style: TextStyle(color: Colors.red.lightest, fontSize: 12),
                           ),
                         ),
                     ],
@@ -385,8 +365,8 @@ class _OrderSummaryAndMemo extends StatelessWidget {
   Widget build(BuildContext context) {
     final state = context.watch<OrderFormBloc>().state;
     final bloc = context.read<OrderFormBloc>();
-    final total = state.products.fold<double>(
-        0.0, (previousValue, element) => previousValue + (element.amount));
+    final total = state.products
+        .fold<double>(0.0, (previousValue, element) => previousValue + (element.amount));
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -503,26 +483,18 @@ class OrderProductDataTable extends StatelessWidget {
           ),
           child: Row(
             children: [
-              FormTableColumn(
-                  child: const SizedBox(
-                      width: 32.0, child: Center(child: Text("#")))),
-              Expanded(
-                  flex: 2,
-                  child: FormTableColumn(child: const Text("Product"))),
-              Expanded(
-                  flex: 2,
-                  child: FormTableColumn(child: const Text("Description"))),
+              FormTableColumn(child: const SizedBox(width: 32.0, child: Center(child: Text("#")))),
+              Expanded(flex: 2, child: FormTableColumn(child: const Text("Product"))),
+              Expanded(flex: 2, child: FormTableColumn(child: const Text("Description"))),
               Expanded(child: FormTableColumn(child: const Text("Quantity"))),
               Expanded(child: FormTableColumn(child: const Text("Rate"))),
               Expanded(child: FormTableColumn(child: const Text("Amount"))),
-              const SizedBox(
-                  width: 82.0, child: Center(child: Text("Actions"))),
+              const SizedBox(width: 82.0, child: Center(child: Text("Actions"))),
             ],
           ),
         ),
         BlocBuilder<OrderFormBloc, OrderFormState>(
-            buildWhen: (previous, current) =>
-                previous.products != current.products,
+            buildWhen: (previous, current) => previous.products != current.products,
             builder: (context, state) {
               return ListView.builder(
                 shrinkWrap: true,
@@ -555,16 +527,11 @@ class _OrderFormTableRowState extends State<_OrderFormTableRow> {
   @override
   void initState() {
     super.initState();
-    final initialProduct =
-        context.read<OrderFormBloc>().state.products[widget.index];
-    _descriptionController =
-        TextEditingController(text: initialProduct.description ?? '');
-    _quantityController =
-        TextEditingController(text: initialProduct.quantity.toString());
-    _rateController =
-        TextEditingController(text: initialProduct.rate.toString());
-    _amountController =
-        TextEditingController(text: initialProduct.amount.toStringAsFixed(2));
+    final initialProduct = context.read<OrderFormBloc>().state.products[widget.index];
+    _descriptionController = TextEditingController(text: initialProduct.description ?? '');
+    _quantityController = TextEditingController(text: initialProduct.quantity.toString());
+    _rateController = TextEditingController(text: initialProduct.rate.toString());
+    _amountController = TextEditingController(text: initialProduct.amount.toStringAsFixed(2));
 
     _descriptionController.addListener(() {
       final bloc = context.read<OrderFormBloc>();
@@ -584,8 +551,7 @@ class _OrderFormTableRowState extends State<_OrderFormTableRow> {
       final newValue = double.tryParse(_quantityController.text) ?? 0;
       if (currentProduct.quantity != newValue) {
         bloc.add(ProductUpdatedEvent(
-          currentProduct.copyWith(
-              quantity: newValue, amount: newValue * currentProduct.rate),
+          currentProduct.copyWith(quantity: newValue, amount: newValue * currentProduct.rate),
           widget.index,
         ));
       }
@@ -597,8 +563,7 @@ class _OrderFormTableRowState extends State<_OrderFormTableRow> {
       final newValue = double.tryParse(_rateController.text) ?? 0;
       if (currentProduct.rate != newValue) {
         bloc.add(ProductUpdatedEvent(
-          currentProduct.copyWith(
-              rate: newValue, amount: currentProduct.quantity * newValue),
+          currentProduct.copyWith(rate: newValue, amount: currentProduct.quantity * newValue),
           widget.index,
         ));
       }
@@ -626,25 +591,19 @@ class _OrderFormTableRowState extends State<_OrderFormTableRow> {
         final currentProduct = state.products[widget.index];
 
         WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (_descriptionController.text !=
-              (currentProduct.description ?? '')) {
+          if (_descriptionController.text != (currentProduct.description ?? '')) {
             _descriptionController.text = currentProduct.description ?? '';
           }
-          if (_quantityController.text !=
-              (currentProduct.quantity.toString())) {
-            _quantityController.text = currentProduct.quantity != 0
-                ? currentProduct.quantity.toString()
-                : '';
+          if (_quantityController.text != (currentProduct.quantity.toString())) {
+            _quantityController.text =
+                currentProduct.quantity != 0 ? currentProduct.quantity.toString() : '';
           }
           if (_rateController.text != (currentProduct.rate.toString())) {
-            _rateController.text =
-                currentProduct.rate != 0 ? currentProduct.rate.toString() : '';
+            _rateController.text = currentProduct.rate != 0 ? currentProduct.rate.toString() : '';
           }
-          if (_amountController.text !=
-              (currentProduct.amount.toStringAsFixed(2))) {
-            _amountController.text = currentProduct.amount != 0
-                ? currentProduct.amount.toStringAsFixed(2)
-                : '';
+          if (_amountController.text != (currentProduct.amount.toStringAsFixed(2))) {
+            _amountController.text =
+                currentProduct.amount != 0 ? currentProduct.amount.toStringAsFixed(2) : '';
           }
         });
 

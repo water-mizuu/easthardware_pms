@@ -14,8 +14,10 @@ import 'package:easthardware_pms/domain/models/user.dart';
 import 'package:easthardware_pms/presentation/bloc/server/server_bloc.dart';
 import 'package:easthardware_pms/presentation/router/app_router.dart';
 import 'package:easthardware_pms/utils/boxed.dart';
+import 'package:easthardware_pms/utils/duration.dart';
 import 'package:easthardware_pms/utils/message_channel.dart';
 import 'package:easthardware_pms/utils/parallelism.dart';
+import 'package:easthardware_pms/utils/try_future.dart';
 import 'package:fluent_ui/fluent_ui.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
@@ -109,7 +111,7 @@ Future<(ShelfServer, ShelfServer, Stream<ServerEvent>)> hostShelfServer(int port
 
               // Notify the app that a user has logged in.
               if (innerContext != null) {
-                displayInfoBar(
+                await displayInfoBar(
                   innerContext,
                   builder: (context, close) {
                     return InfoBar(
@@ -135,7 +137,7 @@ Future<(ShelfServer, ShelfServer, Stream<ServerEvent>)> hostShelfServer(int port
 
               // Notify the app that a user has logged out.
               if (innerContext != null) {
-                displayInfoBar(
+                await displayInfoBar(
                   innerContext,
                   builder: (context, close) {
                     return InfoBar(
@@ -196,19 +198,20 @@ Future<ShelfServer> hostLandingServer(int port) async {
   final channel = MessageChannel(receivePort, sendPort);
 
   Future<void> dispose() async {
-    final status = await channel.invoke("stop");
+    final (status, err) = await channel.invoke("stop").timeout(2.seconds).tryCatch();
 
     switch (status) {
       case 0:
-        if (kDebugMode) {
-          print("Isolate stopped successfully.");
-        }
+        printBoxed("Isolate stopped successfully.", "LANDING SERVER");
         receivePort.close();
         isolate.kill(priority: Isolate.immediate);
         break;
       case _:
-        if (kDebugMode) {
-          print("Failed to stop the isolate.");
+        printBoxed("Failed to stop the isolate.", "LANDING SERVER");
+        receivePort.close();
+        isolate.kill(priority: Isolate.immediate);
+        if (err != null) {
+          printBoxed("Error stopping the isolate: $err", "LANDING SERVER");
         }
         break;
     }
@@ -245,18 +248,20 @@ Future<ShelfServer> hostWebSocketServer() async {
   /// We create a dispose function to stop the isolate.
   ///   This allows us to not expose the isolate itself to the user.
   Future<void> dispose() async {
-    final status = await channel.invoke("stop");
+    final (status, err) = await channel.invoke("stop").timeout(2.seconds).tryCatch();
+
     switch (status) {
       case 0:
-        if (kDebugMode) {
-          print("Isolate stopped successfully.");
-        }
+        printBoxed("Isolate stopped successfully.", "WEBSOCKET SERVER");
         receivePort.close();
         isolate.kill(priority: Isolate.immediate);
         break;
       case _:
-        if (kDebugMode) {
-          print("Failed to stop the isolate.");
+        printBoxed("Failed to stop the isolate.", "WEBSOCKET SERVER");
+        receivePort.close();
+        isolate.kill(priority: Isolate.immediate);
+        if (err != null) {
+          printBoxed("Error stopping the isolate: $err", "WEBSOCKET SERVER");
         }
         break;
     }

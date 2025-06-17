@@ -57,7 +57,7 @@ class InvoiceProductRepositoryImpl implements InvoiceProductRepository {
 
   @override
   Future<InvoiceProduct> updateInvoiceProduct(InvoiceProduct invoiceProduct) async {
-    _validateInvoiceProduct(invoiceProduct);
+    await _validateInvoiceProduct(invoiceProduct);
     try {
       return await _invoiceProductsDao.updateInvoiceProduct(invoiceProduct);
     } catch (e) {

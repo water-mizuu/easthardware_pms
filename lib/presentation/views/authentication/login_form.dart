@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:easthardware_pms/domain/enums/enums.dart';
 import 'package:easthardware_pms/presentation/bloc/authentication/'
     'authentication/authentication_bloc.dart';
@@ -242,8 +244,8 @@ class _PreserveDebugLoginState extends State<_PreserveDebugLogin> {
             "Submitted username does not match the authenticated user.",
           );
           if (_isLoginPreserved.value) {
-            _sharedPreferences.setString("preserved_username", _submittedUsername!);
-            _sharedPreferences.setString("preserved_password", _submittedPassword!);
+            unawaited(_sharedPreferences.setString("preserved_username", _submittedUsername!));
+            unawaited(_sharedPreferences.setString("preserved_password", _submittedPassword!));
           }
         },
         child: Row(

@@ -44,36 +44,36 @@ Future<void> resetDatabase() async {
     if (_databaseInstance case final db?) {
       await db.transaction((txn) async {
         // Drop all tables
-        CategoriesTable.dropTable(txn);
-        ExpenseTypesTable.dropTable(txn);
-        PaymentMethodsTable.dropTable(txn);
-        UsersTable.dropTable(txn);
-        UserLogsTable.dropTable(txn);
-        ProductsTable.dropTable(txn);
-        UnitsTable.dropTable(txn);
-        OrdersTable.dropTable(txn);
-        OrderProductsTable.dropTable(txn);
-        InvoicesTable.dropTable(txn);
-        InvoiceProductsTable.dropTable(txn);
-        PaymentsTable.dropTable(txn);
-        SecurityQuestionsTable.dropTable(txn);
-        ProductFlagsView.dropView(txn);
+        await CategoriesTable.dropTable(txn);
+        await ExpenseTypesTable.dropTable(txn);
+        await PaymentMethodsTable.dropTable(txn);
+        await UsersTable.dropTable(txn);
+        await UserLogsTable.dropTable(txn);
+        await ProductsTable.dropTable(txn);
+        await UnitsTable.dropTable(txn);
+        await OrdersTable.dropTable(txn);
+        await OrderProductsTable.dropTable(txn);
+        await InvoicesTable.dropTable(txn);
+        await InvoiceProductsTable.dropTable(txn);
+        await PaymentsTable.dropTable(txn);
+        await SecurityQuestionsTable.dropTable(txn);
+        await ProductFlagsView.dropView(txn);
 
         // Recreate all tables
-        CategoriesTable.createTable(db);
-        ExpenseTypesTable.createTable(db);
-        PaymentMethodsTable.createTable(db);
-        UsersTable.createTable(db);
-        UserLogsTable.createTable(db);
-        ProductsTable.createTable(db);
-        UnitsTable.createTable(db);
-        OrdersTable.createTable(db);
-        OrderProductsTable.createTable(db);
-        InvoicesTable.createTable(db);
-        InvoiceProductsTable.createTable(db);
-        PaymentsTable.createTable(db);
-        SecurityQuestionsTable.createTable(db);
-        ProductFlagsView.createView(db);
+        await CategoriesTable.createTable(db);
+        await ExpenseTypesTable.createTable(db);
+        await PaymentMethodsTable.createTable(db);
+        await UsersTable.createTable(db);
+        await UserLogsTable.createTable(db);
+        await ProductsTable.createTable(db);
+        await UnitsTable.createTable(db);
+        await OrdersTable.createTable(db);
+        await OrderProductsTable.createTable(db);
+        await InvoicesTable.createTable(db);
+        await InvoiceProductsTable.createTable(db);
+        await PaymentsTable.createTable(db);
+        await SecurityQuestionsTable.createTable(db);
+        await ProductFlagsView.createView(db);
       });
     }
   }
@@ -91,34 +91,28 @@ Future<DatabaseMethodResult> serverHandleDatabaseMethod(
   final start = DateTime.now();
   final completer = Completer<DatabaseMethodResult>.sync();
   _dbMethodQueue.addJob((_) async {
-    final isolateDatabase = await _getDatabase(savedHeartbeat);
-    final waitingDuration = DateTime.now().difference(start);
-
-    DatabaseMethodResult? jobResult;
     try {
+      final isolateDatabase = await _getDatabase(savedHeartbeat);
+      final waitingDuration = DateTime.now().difference(start);
+
+      DatabaseMethodResult? jobResult;
       switch ((method, arguments)) {
         case (
             'delete',
             [
               final String table,
-              {
-                'where': final String? where,
-                'whereArgs': final List<Object?>? whereArgs
-              }
+              {'where': final String? where, 'whereArgs': final List<Object?>? whereArgs}
             ]
           ):
-          final result = await isolateDatabase.delete(table,
-              where: where, whereArgs: whereArgs);
+          final result = await isolateDatabase.delete(table, where: where, whereArgs: whereArgs);
           final hasChanged = result > 0;
-          jobResult =
-              DatabaseMethodResult(result: result, hasChanged: hasChanged);
+          jobResult = DatabaseMethodResult(result: result, hasChanged: hasChanged);
           break;
 
         case ('execute', [final String sql, final List<Object?>? sqlArgs]):
           await isolateDatabase.execute(sql, sqlArgs);
           // Execute doesn't return a count, but we assume it modified the database
-          jobResult =
-              const DatabaseMethodResult(result: null, hasChanged: true);
+          jobResult = const DatabaseMethodResult(result: null, hasChanged: true);
           break;
 
         case (
@@ -141,8 +135,7 @@ Future<DatabaseMethodResult> serverHandleDatabaseMethod(
                 : null,
           );
           final hasChanged = result > 0;
-          jobResult =
-              DatabaseMethodResult(result: result, hasChanged: hasChanged);
+          jobResult = DatabaseMethodResult(result: result, hasChanged: hasChanged);
           break;
 
         case (
@@ -216,15 +209,13 @@ Future<DatabaseMethodResult> serverHandleDatabaseMethod(
         case ('rawDelete', [final String sql, final List<Object?>? args]):
           final result = await isolateDatabase.rawDelete(sql, args);
           final hasChanged = result > 0;
-          jobResult =
-              DatabaseMethodResult(result: result, hasChanged: hasChanged);
+          jobResult = DatabaseMethodResult(result: result, hasChanged: hasChanged);
           break;
 
         case ('rawInsert', [final String sql, final List<Object?>? args]):
           final result = await isolateDatabase.rawInsert(sql, args);
           final hasChanged = result > 0;
-          jobResult =
-              DatabaseMethodResult(result: result, hasChanged: hasChanged);
+          jobResult = DatabaseMethodResult(result: result, hasChanged: hasChanged);
           break;
 
         case ('rawQuery', [final String sql, final List<Object?>? args]):
@@ -235,14 +226,9 @@ Future<DatabaseMethodResult> serverHandleDatabaseMethod(
 
         case (
             'rawQueryCursor',
-            [
-              final String sql,
-              final List<Object?>? args,
-              {'bufferSize': final int? bufferSize}
-            ]
+            [final String sql, final List<Object?>? args, {'bufferSize': final int? bufferSize}]
           ):
-          final result = await isolateDatabase.rawQueryCursor(sql, args,
-              bufferSize: bufferSize);
+          final result = await isolateDatabase.rawQueryCursor(sql, args, bufferSize: bufferSize);
           // Query operations don't modify the database
           jobResult = DatabaseMethodResult(result: result, hasChanged: false);
           break;
@@ -250,15 +236,13 @@ Future<DatabaseMethodResult> serverHandleDatabaseMethod(
         case ('rawUpdate', [final String sql, final List<Object?>? args]):
           final result = await isolateDatabase.rawUpdate(sql, args);
           final hasChanged = result > 0;
-          jobResult =
-              DatabaseMethodResult(result: result, hasChanged: hasChanged);
+          jobResult = DatabaseMethodResult(result: result, hasChanged: hasChanged);
           break;
 
         case ('rawUpdate', [final String sql]):
           final result = await isolateDatabase.rawUpdate(sql);
           final hasChanged = result > 0;
-          jobResult =
-              DatabaseMethodResult(result: result, hasChanged: hasChanged);
+          jobResult = DatabaseMethodResult(result: result, hasChanged: hasChanged);
           break;
 
         case (
@@ -283,8 +267,7 @@ Future<DatabaseMethodResult> serverHandleDatabaseMethod(
                 : null,
           );
           final hasChanged = result > 0;
-          jobResult =
-              DatabaseMethodResult(result: result, hasChanged: hasChanged);
+          jobResult = DatabaseMethodResult(result: result, hasChanged: hasChanged);
           break;
 
         case (
@@ -312,10 +295,7 @@ Future<DatabaseMethodResult> serverHandleDatabaseMethod(
             'batch.apply',
             [
               final List<Object> operations,
-              {
-                'noResult': final bool? noResult,
-                'continueOnError': final bool? continueOnError
-              }
+              {'noResult': final bool? noResult, 'continueOnError': final bool? continueOnError}
             ]
           ):
           jobResult = await _executeBatch(
@@ -328,8 +308,30 @@ Future<DatabaseMethodResult> serverHandleDatabaseMethod(
           );
           break;
       }
-    } catch (e, stackTrace) {
+
+      final turnAroundDuration = DateTime.now().difference(start);
       if (printDatabaseMessages) {
+        printBoxed(
+          "Method: '$method'\n"
+              "Waiting Time: ${waitingDuration.inMicroseconds}μs\n"
+              "Turnaround Time: ${turnAroundDuration.inMicroseconds}μs\n"
+              "Arguments:\n${jsonEncode(arguments).wrap.indent}",
+          "Database Method Call",
+        );
+      }
+
+      if (jobResult != null) {
+        completer.complete(jobResult);
+      } else {
+        completer.completeError(
+          UnsupportedError(
+            'Unsupported database method: $method or ' //
+            'invalid arguments: $arguments',
+          ),
+        );
+      }
+    } catch (e, stackTrace) {
+      if (true || printDatabaseMessages) {
         printBoxed(
           "Error occurred while executing database method: $method\n"
               "Error: $e\n"
@@ -339,28 +341,6 @@ Future<DatabaseMethodResult> serverHandleDatabaseMethod(
       }
       completer.completeError(e, stackTrace);
       return;
-    }
-
-    final turnAroundDuration = DateTime.now().difference(start);
-    if (printDatabaseMessages) {
-      printBoxed(
-        "Method: '$method'\n"
-            "Waiting Time: ${waitingDuration.inMicroseconds}μs\n"
-            "Turnaround Time: ${turnAroundDuration.inMicroseconds}μs\n"
-            "Arguments:\n${jsonEncode(arguments).wrap.indent}",
-        "Database Method Call",
-      );
-    }
-
-    if (jobResult != null) {
-      completer.complete(jobResult);
-    } else {
-      completer.completeError(
-        UnsupportedError(
-          'Unsupported database method: $method or ' //
-          'invalid arguments: $arguments',
-        ),
-      );
     }
   });
 
@@ -385,7 +365,7 @@ Future<Database> _getDatabase(int? savedHeartbeat) async {
     final path = join(await getDatabasesPath(), 'database.db');
     _databaseInstance = await openDatabase(
       path,
-      version: 3,
+      version: 5,
       onCreate: (db, version) {
         CategoriesTable.createTable(db);
         ExpenseTypesTable.createTable(db);
@@ -404,69 +384,69 @@ Future<Database> _getDatabase(int? savedHeartbeat) async {
       },
       onDowngrade: (db, _, __) async {
         // Drop all tables
-        CategoriesTable.dropTable(db);
-        ExpenseTypesTable.dropTable(db);
-        PaymentMethodsTable.dropTable(db);
-        UsersTable.dropTable(db);
-        UserLogsTable.dropTable(db);
-        ProductsTable.dropTable(db);
-        UnitsTable.dropTable(db);
-        OrdersTable.dropTable(db);
-        OrderProductsTable.dropTable(db);
-        InvoicesTable.dropTable(db);
-        InvoiceProductsTable.dropTable(db);
-        PaymentsTable.dropTable(db);
-        SecurityQuestionsTable.dropTable(db);
-        ProductFlagsView.dropView(db);
+        await CategoriesTable.dropTable(db);
+        await ExpenseTypesTable.dropTable(db);
+        await PaymentMethodsTable.dropTable(db);
+        await UsersTable.dropTable(db);
+        await UserLogsTable.dropTable(db);
+        await ProductsTable.dropTable(db);
+        await UnitsTable.dropTable(db);
+        await OrdersTable.dropTable(db);
+        await OrderProductsTable.dropTable(db);
+        await InvoicesTable.dropTable(db);
+        await InvoiceProductsTable.dropTable(db);
+        await PaymentsTable.dropTable(db);
+        await SecurityQuestionsTable.dropTable(db);
+        await ProductFlagsView.dropView(db);
         // Recreate all tables
-        CategoriesTable.createTable(db);
-        ExpenseTypesTable.createTable(db);
-        PaymentMethodsTable.createTable(db);
-        UsersTable.createTable(db);
-        UserLogsTable.createTable(db);
-        ProductsTable.createTable(db);
-        UnitsTable.createTable(db);
-        OrdersTable.createTable(db);
-        OrderProductsTable.createTable(db);
-        InvoicesTable.createTable(db);
-        InvoiceProductsTable.createTable(db);
-        PaymentsTable.createTable(db);
-        SecurityQuestionsTable.createTable(db);
-        ProductFlagsView.createView(db);
+        await CategoriesTable.createTable(db);
+        await ExpenseTypesTable.createTable(db);
+        await PaymentMethodsTable.createTable(db);
+        await UsersTable.createTable(db);
+        await UserLogsTable.createTable(db);
+        await ProductsTable.createTable(db);
+        await UnitsTable.createTable(db);
+        await OrdersTable.createTable(db);
+        await OrderProductsTable.createTable(db);
+        await InvoicesTable.createTable(db);
+        await InvoiceProductsTable.createTable(db);
+        await PaymentsTable.createTable(db);
+        await SecurityQuestionsTable.createTable(db);
+        await ProductFlagsView.createView(db);
         // You can also add any additional migration logic here if needed
         // For example, if you want to migrate data from old tables to new tables, you can do it here
       },
       onUpgrade: (db, _, __) async {
         // Drop all tables
-        CategoriesTable.dropTable(db);
-        ExpenseTypesTable.dropTable(db);
-        PaymentMethodsTable.dropTable(db);
-        UsersTable.dropTable(db);
-        UserLogsTable.dropTable(db);
-        ProductsTable.dropTable(db);
-        UnitsTable.dropTable(db);
-        OrdersTable.dropTable(db);
-        OrderProductsTable.dropTable(db);
-        InvoicesTable.dropTable(db);
-        InvoiceProductsTable.dropTable(db);
-        PaymentsTable.dropTable(db);
-        SecurityQuestionsTable.dropTable(db);
-        ProductFlagsView.dropView(db);
+        await CategoriesTable.dropTable(db);
+        await ExpenseTypesTable.dropTable(db);
+        await PaymentMethodsTable.dropTable(db);
+        await UsersTable.dropTable(db);
+        await UserLogsTable.dropTable(db);
+        await ProductsTable.dropTable(db);
+        await UnitsTable.dropTable(db);
+        await OrdersTable.dropTable(db);
+        await OrderProductsTable.dropTable(db);
+        await InvoicesTable.dropTable(db);
+        await InvoiceProductsTable.dropTable(db);
+        await PaymentsTable.dropTable(db);
+        await SecurityQuestionsTable.dropTable(db);
+        await ProductFlagsView.dropView(db);
         // Recreate all tables
-        CategoriesTable.createTable(db);
-        ExpenseTypesTable.createTable(db);
-        PaymentMethodsTable.createTable(db);
-        UsersTable.createTable(db);
-        UserLogsTable.createTable(db);
-        ProductsTable.createTable(db);
-        UnitsTable.createTable(db);
-        OrdersTable.createTable(db);
-        OrderProductsTable.createTable(db);
-        InvoicesTable.createTable(db);
-        InvoiceProductsTable.createTable(db);
-        PaymentsTable.createTable(db);
-        SecurityQuestionsTable.createTable(db);
-        ProductFlagsView.createView(db);
+        await CategoriesTable.createTable(db);
+        await ExpenseTypesTable.createTable(db);
+        await PaymentMethodsTable.createTable(db);
+        await UsersTable.createTable(db);
+        await UserLogsTable.createTable(db);
+        await ProductsTable.createTable(db);
+        await UnitsTable.createTable(db);
+        await OrdersTable.createTable(db);
+        await OrderProductsTable.createTable(db);
+        await InvoicesTable.createTable(db);
+        await InvoiceProductsTable.createTable(db);
+        await PaymentsTable.createTable(db);
+        await SecurityQuestionsTable.createTable(db);
+        await ProductFlagsView.createView(db);
         // You can also add any additional migration logic here if needed
         // For example, if you want to migrate data from old tables to new tables, you can do it here
       },
@@ -474,7 +454,7 @@ Future<Database> _getDatabase(int? savedHeartbeat) async {
         /// Regardless of the database version, we reset the login status for all users.
 
         /// Ensures that the state is usable for the server isolate.
-        UsersTable.createTable(db);
+        await UsersTable.createTable(db);
 
         if (savedHeartbeat == null) {
           // Reset the login status for the user
@@ -497,12 +477,10 @@ Future<Database> _getDatabase(int? savedHeartbeat) async {
 
         final databaseHelper = DirectDatabaseHelper(db);
         final userLogsDao = UserLogsDao(databaseHelper);
-        final lastHeartbeat =
-            DateTime.fromMillisecondsSinceEpoch(savedHeartbeat);
+        final lastHeartbeat = DateTime.fromMillisecondsSinceEpoch(savedHeartbeat);
         for (final userMap in loggedInUsers) {
           await userLogsDao.insertUserLog(
-            UserLog.logout(
-                user: User.fromMap(userMap), eventTime: lastHeartbeat),
+            UserLog.logout(user: User.fromMap(userMap), eventTime: lastHeartbeat),
           );
         }
 
@@ -536,8 +514,7 @@ Future<DatabaseMethodResult> _executeBatch(
       case [final String method, final Object? params]:
         switch (method) {
           case 'rawInsert':
-            if (params
-                case [final String sql, final List<Object?>? arguments]) {
+            if (params case [final String sql, final List<Object?>? arguments]) {
               batch.rawInsert(sql, arguments);
               hasModifyingOperations = true;
             }
@@ -566,8 +543,7 @@ Future<DatabaseMethodResult> _executeBatch(
             break;
 
           case 'rawUpdate':
-            if (params
-                case [final String sql, final List<Object?>? arguments]) {
+            if (params case [final String sql, final List<Object?>? arguments]) {
               batch.rawUpdate(sql, arguments);
               hasModifyingOperations = true;
             }
@@ -598,8 +574,7 @@ Future<DatabaseMethodResult> _executeBatch(
             break;
 
           case 'rawDelete':
-            if (params
-                case [final String sql, final List<Object?>? arguments]) {
+            if (params case [final String sql, final List<Object?>? arguments]) {
               batch.rawDelete(sql, arguments);
               hasModifyingOperations = true;
             }
@@ -609,10 +584,7 @@ Future<DatabaseMethodResult> _executeBatch(
             if (params
                 case [
                   final String table,
-                  {
-                    'where': final String? where,
-                    'whereArgs': final List<Object?>? whereArgs
-                  }
+                  {'where': final String? where, 'whereArgs': final List<Object?>? whereArgs}
                 ]) {
               batch.delete(table, where: where, whereArgs: whereArgs);
               hasModifyingOperations = true;
@@ -620,8 +592,7 @@ Future<DatabaseMethodResult> _executeBatch(
             break;
 
           case 'execute':
-            if (params
-                case [final String sql, final List<Object?>? arguments]) {
+            if (params case [final String sql, final List<Object?>? arguments]) {
               batch.execute(sql, arguments);
               hasModifyingOperations = true;
             }
@@ -658,8 +629,7 @@ Future<DatabaseMethodResult> _executeBatch(
             break;
 
           case 'rawQuery':
-            if (params
-                case [final String sql, final List<Object?>? arguments]) {
+            if (params case [final String sql, final List<Object?>? arguments]) {
               batch.rawQuery(sql, arguments);
               // Query operations don't modify the database
             }
@@ -667,8 +637,7 @@ Future<DatabaseMethodResult> _executeBatch(
 
           default:
             if (kDebugMode) {
-              print(
-                  'Unknown batch operation method: $method with params: $params');
+              print('Unknown batch operation method: $method with params: $params');
             }
         }
         break;
@@ -691,12 +660,10 @@ Future<DatabaseMethodResult> _executeBatch(
           continueOnError: continueOnError,
         );
 
-  return DatabaseMethodResult(
-      result: result, hasChanged: hasModifyingOperations);
+  return DatabaseMethodResult(result: result, hasChanged: hasModifyingOperations);
 }
 
-extension type const DatabaseMethodResult._(
-    (Object? result, bool hasChanged) record) {
+extension type const DatabaseMethodResult._((Object? result, bool hasChanged) record) {
   const DatabaseMethodResult({
     required Object? result,
     required bool hasChanged,
