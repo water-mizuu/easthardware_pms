@@ -1,6 +1,18 @@
 import 'package:easthardware_pms/utils/undefined.dart';
 
 class Payment {
+  factory Payment.fromMap(Map<String, dynamic> map) {
+    return Payment(
+      id: map['id'] as int?,
+      invoiceId: map['invoice_id'] as int,
+      amount: (map['amount'] as num).toDouble(),
+      paymentDate: DateTime.parse(map['payment_date'] as String),
+      referenceNumber: map['reference_number'] as String,
+      paymentMethod: map['payment_method'] as int,
+      creatorId: map['creator_id'] as int,
+      creationDate: DateTime.parse(map['creation_date'] as String),
+    );
+  }
   const Payment({
     this.id,
     required this.invoiceId,

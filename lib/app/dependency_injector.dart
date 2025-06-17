@@ -6,6 +6,7 @@ import 'package:easthardware_pms/domain/repository/invoice_repository.dart';
 import 'package:easthardware_pms/domain/repository/order_product_repository.dart';
 import 'package:easthardware_pms/domain/repository/order_repository.dart';
 import 'package:easthardware_pms/domain/repository/payment_method_repository.dart';
+import 'package:easthardware_pms/domain/repository/payment_repository.dart';
 import 'package:easthardware_pms/domain/repository/product_repository.dart';
 import 'package:easthardware_pms/domain/repository/security_question_repository.dart';
 import 'package:easthardware_pms/domain/repository/unit_repository.dart';
@@ -24,6 +25,7 @@ import 'package:easthardware_pms/presentation/bloc/inventory/product_list/produc
 import 'package:easthardware_pms/presentation/bloc/inventory/unit_list/unit_list_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/navigation/navigation_cubit.dart';
 import 'package:easthardware_pms/presentation/bloc/order/orderlist/order_list_bloc.dart';
+import 'package:easthardware_pms/presentation/bloc/payment/payment_list/payment_list_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/payment/payment_method_list/payment_method_list_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/security/security_questions/'
     'security_question_list_bloc.dart';
@@ -56,6 +58,7 @@ class DependencyInjector extends ChangeNotifier {
   late UserLogRepository _userLogRepository;
   late UserRepository _userRepository;
   late SecurityQuestionRepository _securityQuestionRepository;
+  late PaymentRepository _paymentRepository;
 
   // Bloc instances that will be managed by the injector
   AuthenticationBloc? _authenticationBloc;
@@ -68,6 +71,7 @@ class DependencyInjector extends ChangeNotifier {
   ResetFormBloc? _resetFormBloc;
   InvoiceListBloc? _invoiceListBloc;
   PaymentMethodListBloc? _paymentMethodListBloc;
+  PaymentListBloc? _paymentListBloc;
   OrderListBloc? _orderListBloc;
 
   NewPasswordFormBloc? _newPasswordFormBloc;
@@ -85,6 +89,7 @@ class DependencyInjector extends ChangeNotifier {
     _invoiceRepository = InvoiceRepository(databaseHelper);
     _invoiceProductRepository = InvoiceProductRepository(databaseHelper);
     _paymentMethodRepository = PaymentMethodRepository(databaseHelper);
+    _paymentRepository = PaymentRepository(databaseHelper);
     _orderProductRepository = OrderProductRepository(databaseHelper);
     _orderRepository = OrderRepository(databaseHelper);
     _categoryRepository = CategoryRepository(databaseHelper);
@@ -111,6 +116,7 @@ class DependencyInjector extends ChangeNotifier {
       RepositoryProvider.value(value: _invoiceProductRepository),
       RepositoryProvider.value(value: _invoiceRepository),
       RepositoryProvider.value(value: _paymentMethodRepository),
+      RepositoryProvider.value(value: _paymentRepository),
       RepositoryProvider.value(value: _orderProductRepository),
       RepositoryProvider.value(value: _orderRepository),
       RepositoryProvider.value(value: _productRepository),
@@ -212,6 +218,15 @@ class DependencyInjector extends ChangeNotifier {
 
           return _paymentMethodListBloc = PaymentMethodListBloc(_paymentMethodRepository, state)
             ..addIf(_databaseHelper != null, const FetchAllPaymentMethodsEvent());
+        },
+      ),
+      BlocProvider(
+        key: key(),
+        create: (context) {
+          final state = _paymentListBloc?.state ?? const PaymentListState();
+
+          return _paymentListBloc = PaymentListBloc(_paymentRepository, state)
+            ..addIf(_databaseHelper != null, const FetchAllPaymentsEvent());
         },
       ),
       BlocProvider(
