@@ -30,7 +30,7 @@ class User {
       passwordHash: base64Decode(map['password_hash'] as String),
       salt: base64Decode(map['salt'] as String),
       creationDate: map['creation_date'] as String,
-      archiveStatus: map['archived_status'] as int,
+      archiveStatus: map['archive_status'] as int?,
       loginStatus: map['login_status'] as int,
     );
   }

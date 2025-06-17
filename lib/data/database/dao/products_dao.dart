@@ -105,7 +105,7 @@ final class ProductsDaoImpl extends DaoBase implements ProductsDao {
         "  WHERE date(i.invoice_date) >= date('now', '-' || p2.dead_stock_threshold || ' days')"
         ")"
         "  AND date(p.creation_date) <= date('now', '-' || p.dead_stock_threshold || ' days')"
-        "  AND archived_status = 0");
+        "  AND archive_status = 0");
 
     return List.generate(maps.length, (i) {
       return Product.fromMap(maps[i]);
@@ -119,8 +119,8 @@ final class ProductsDaoImpl extends DaoBase implements ProductsDao {
       "SELECT products.* FROM products "
       "JOIN invoice_products ON products.id = invoice_products.product_id "
       "JOIN invoices ON invoice_products.invoice_id = invoices.id "
-      "WHERE date(invoices.invoice_date) BETWEEN date('now', '-30 days') AND date('now', '0 days') "
-      "AND products.archived_status = 0 "
+      "WHERE date(invoices.invoice_date) BETWEEN date('now', '-30 days') AND date('now', '0 days')"
+      "AND products.archive_status = 0 "
       "GROUP BY products.id "
       "HAVING count(invoices.id) >= products.fast_moving_threshold "
       "ORDER BY count(invoices.id) DESC",
