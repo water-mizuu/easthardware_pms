@@ -16,8 +16,6 @@ class LowerStockedProducts extends StatefulWidget {
 }
 
 class _LowerStockedProductsState extends State<LowerStockedProducts> {
-  static const int maxRows = 4;
-
   late final AnimatedScrollController verticalScrollController;
   late final AnimatedScrollController horizontalScrollController;
 

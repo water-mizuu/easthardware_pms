@@ -1,4 +1,5 @@
-import 'package:easthardware_pms/presentation/views/dashboard/admin_dashboard_pane_page.dart';
+import 'package:easthardware_pms/presentation/views/dashboard/cards/recent_sales.dart';
+import 'package:easthardware_pms/presentation/views/dashboard/dashboard_commons.dart';
 import 'package:easthardware_pms/presentation/widgets/layout/spacing.dart';
 import 'package:easthardware_pms/presentation/widgets/text.dart';
 import 'package:fluent_ui/fluent_ui.dart';
@@ -15,6 +16,7 @@ class StaffDashboardPanePage extends StatelessWidget {
         children: [
           const PageHeader(),
           const SummarySection(),
+          const RecentSales(),
         ].withSpacing(() => Spacing.v8),
       ),
     );
