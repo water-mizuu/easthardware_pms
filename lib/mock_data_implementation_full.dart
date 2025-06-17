@@ -151,7 +151,7 @@ Future<void> generateMockData(DatabaseHelper databaseHelper) async {
       ),
       salt: salt,
       creationDate: '2022-01-01',
-      archivedStatus: 0,
+      archiveStatus: 0,
       loginStatus: 0,
     );
 
@@ -210,7 +210,7 @@ Future<void> generateMockData(DatabaseHelper databaseHelper) async {
       fastMovingStockThreshold: 15.0,
       creationDate: "2025-05-01",
       creatorId: usersIdOffset + 1,
-      archivedStatus: 0,
+      archiveStatus: 0,
     ),
     Product(
       sku: "HT-002",
@@ -227,7 +227,7 @@ Future<void> generateMockData(DatabaseHelper databaseHelper) async {
       fastMovingStockThreshold: 8.0,
       creationDate: "2025-05-01",
       creatorId: usersIdOffset + 1,
-      archivedStatus: 0,
+      archiveStatus: 0,
     ),
     Product(
       sku: "HT-003",
@@ -244,7 +244,7 @@ Future<void> generateMockData(DatabaseHelper databaseHelper) async {
       fastMovingStockThreshold: 4.0,
       creationDate: "2025-05-01",
       creatorId: usersIdOffset + 1,
-      archivedStatus: 0,
+      archiveStatus: 0,
     ),
     // Building Materials
     Product(
@@ -262,7 +262,7 @@ Future<void> generateMockData(DatabaseHelper databaseHelper) async {
       fastMovingStockThreshold: 30.0,
       creationDate: "2025-05-02",
       creatorId: usersIdOffset + 2,
-      archivedStatus: 0,
+      archiveStatus: 0,
     ),
     Product(
       sku: "BM-002",
@@ -278,7 +278,7 @@ Future<void> generateMockData(DatabaseHelper databaseHelper) async {
       fastMovingStockThreshold: 40.0,
       creationDate: "2025-05-02",
       creatorId: usersIdOffset + 2,
-      archivedStatus: 0,
+      archiveStatus: 0,
     ),
     // Plumbing
     Product(
@@ -295,7 +295,7 @@ Future<void> generateMockData(DatabaseHelper databaseHelper) async {
       fastMovingStockThreshold: 20.0,
       creationDate: "2025-05-03",
       creatorId: usersIdOffset + 3,
-      archivedStatus: 0,
+      archiveStatus: 0,
     ),
     Product(
       sku: "PL-002",
@@ -311,7 +311,7 @@ Future<void> generateMockData(DatabaseHelper databaseHelper) async {
       fastMovingStockThreshold: 5.0,
       creationDate: "2025-05-03",
       creatorId: usersIdOffset + 3,
-      archivedStatus: 0,
+      archiveStatus: 0,
     ),
     Product(
       sku: "PL-003",
@@ -327,7 +327,7 @@ Future<void> generateMockData(DatabaseHelper databaseHelper) async {
       fastMovingStockThreshold: 8.0,
       creationDate: "2025-05-03",
       creatorId: usersIdOffset + 3,
-      archivedStatus: 0,
+      archiveStatus: 0,
     ),
     // Electrical
     Product(
@@ -344,7 +344,7 @@ Future<void> generateMockData(DatabaseHelper databaseHelper) async {
       fastMovingStockThreshold: 10.0,
       creationDate: "2025-05-04",
       creatorId: usersIdOffset + 1,
-      archivedStatus: 0,
+      archiveStatus: 0,
     ),
     Product(
       sku: "EL-002",
@@ -360,7 +360,7 @@ Future<void> generateMockData(DatabaseHelper databaseHelper) async {
       fastMovingStockThreshold: 25.0,
       creationDate: "2025-05-04",
       creatorId: usersIdOffset + 1,
-      archivedStatus: 0,
+      archiveStatus: 0,
     ),
     Product(
       sku: "EL-003",
@@ -376,7 +376,7 @@ Future<void> generateMockData(DatabaseHelper databaseHelper) async {
       fastMovingStockThreshold: 12.0,
       creationDate: "2025-05-04",
       creatorId: usersIdOffset + 1,
-      archivedStatus: 0,
+      archiveStatus: 0,
     ),
     // Painting Supplies
     Product(
@@ -393,7 +393,7 @@ Future<void> generateMockData(DatabaseHelper databaseHelper) async {
       fastMovingStockThreshold: 8.0,
       creationDate: "2025-05-05",
       creatorId: usersIdOffset + 2,
-      archivedStatus: 0,
+      archiveStatus: 0,
     ),
     Product(
       sku: "PS-002",
@@ -409,7 +409,7 @@ Future<void> generateMockData(DatabaseHelper databaseHelper) async {
       fastMovingStockThreshold: 10.0,
       creationDate: "2025-05-05",
       creatorId: usersIdOffset + 2,
-      archivedStatus: 0,
+      archiveStatus: 0,
     ),
     // Safety & Security
     Product(
@@ -426,7 +426,7 @@ Future<void> generateMockData(DatabaseHelper databaseHelper) async {
       fastMovingStockThreshold: 6.0,
       creationDate: "2025-05-06",
       creatorId: usersIdOffset + 3,
-      archivedStatus: 0,
+      archiveStatus: 0,
     ),
     Product(
       sku: "SS-002",
@@ -442,7 +442,7 @@ Future<void> generateMockData(DatabaseHelper databaseHelper) async {
       fastMovingStockThreshold: 9.0,
       creationDate: "2025-05-06",
       creatorId: usersIdOffset + 3,
-      archivedStatus: 0,
+      archiveStatus: 0,
     ),
     Product(
       sku: "SS-003",
@@ -458,7 +458,7 @@ Future<void> generateMockData(DatabaseHelper databaseHelper) async {
       fastMovingStockThreshold: 15.0,
       creationDate: "2025-05-06",
       creatorId: usersIdOffset + 3,
-      archivedStatus: 0,
+      archiveStatus: 0,
     ),
     // Automotive
     Product(
@@ -475,7 +475,7 @@ Future<void> generateMockData(DatabaseHelper databaseHelper) async {
       fastMovingStockThreshold: 12.0,
       creationDate: "2025-05-07",
       creatorId: usersIdOffset + 1,
-      archivedStatus: 0,
+      archiveStatus: 0,
     ),
     Product(
       sku: "AU-002",
@@ -491,7 +491,7 @@ Future<void> generateMockData(DatabaseHelper databaseHelper) async {
       fastMovingStockThreshold: 15.0,
       creationDate: "2025-05-07",
       creatorId: usersIdOffset + 1,
-      archivedStatus: 0,
+      archiveStatus: 0,
     ),
     Product(
       sku: "AU-003",
@@ -507,7 +507,7 @@ Future<void> generateMockData(DatabaseHelper databaseHelper) async {
       fastMovingStockThreshold: 4.0,
       creationDate: "2025-05-07",
       creatorId: usersIdOffset + 1,
-      archivedStatus: 0,
+      archiveStatus: 0,
     ),
   ];
 

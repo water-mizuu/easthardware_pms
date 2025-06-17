@@ -18,7 +18,7 @@ class Product {
     required this.fastMovingStockThreshold,
     required this.creationDate,
     required this.creatorId,
-    required this.archivedStatus,
+    this.archiveStatus,
     this.isBelowCriticalLevel,
     this.isFastMovingStock,
     this.isDeadStock,
@@ -40,7 +40,7 @@ class Product {
       fastMovingStockThreshold: (map['fast_moving_threshold'] as num).toDouble(),
       creationDate: map['creation_date']?.toString() ?? '',
       creatorId: map['creator_id'] as int,
-      archivedStatus: map['archived_status'] as int,
+      archiveStatus: map['archived_status'] as int,
       isBelowCriticalLevel: map['is_below_critical_level'] == 1,
       isFastMovingStock: map['is_fast_moving_stock'] == 1,
       isDeadStock: map['is_dead_stock'] == 1,
@@ -61,7 +61,7 @@ class Product {
   final double fastMovingStockThreshold;
   final String creationDate;
   final int creatorId;
-  final int archivedStatus;
+  final int? archiveStatus;
   final bool? isBelowCriticalLevel;
   final bool? isFastMovingStock;
   final bool? isDeadStock;
@@ -82,7 +82,7 @@ class Product {
     double fastMovingStockThreshold,
     String creationDate,
     int creatorId,
-    int archivedStatus,
+    int archiveStatus,
     bool? isBelowCriticalLevel,
     bool? isFastMovingStock,
     bool? isDeadStock,
@@ -103,7 +103,7 @@ class Product {
       Object? fastMovingStockThreshold = undefined,
       Object? creationDate = undefined,
       Object? creatorId = undefined,
-      Object? archivedStatus = undefined,
+      Object? archiveStatus = undefined,
       Object? isBelowCriticalLevel = undefined,
       Object? isFastMovingStock = undefined,
       Object? isDeadStock = undefined,
@@ -124,7 +124,7 @@ class Product {
         fastMovingStockThreshold: fastMovingStockThreshold.or(this.fastMovingStockThreshold),
         creationDate: creationDate.or(this.creationDate),
         creatorId: creatorId.or(this.creatorId),
-        archivedStatus: archivedStatus.or(this.archivedStatus),
+        archiveStatus: archiveStatus.or(this.archiveStatus),
         isBelowCriticalLevel: isBelowCriticalLevel.or(this.isBelowCriticalLevel),
         isFastMovingStock: isFastMovingStock.or(this.isFastMovingStock),
         isDeadStock: isDeadStock.or(this.isDeadStock),
@@ -147,7 +147,7 @@ class Product {
       'fast_moving_threshold': fastMovingStockThreshold,
       'creation_date': creationDate,
       'creator_id': creatorId,
-      'archived_status': archivedStatus,
+      'archive_status': archiveStatus,
     };
   }
 }

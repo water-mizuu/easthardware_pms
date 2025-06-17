@@ -129,7 +129,7 @@ class InventorySummary extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final state = context.watch<ProductListBloc>().state;
-    final activeCount = state.allProducts.where((product) => product.archivedStatus == 0).length;
+    final activeCount = state.allProducts.where((product) => product.archiveStatus == 0).length;
     final lowStockCount = state.lowStockProducts.length;
     final fastMovingCount = state.fastMovingProducts.length;
     final deadCount = state.deadStockProducts.length;
@@ -414,7 +414,7 @@ class _ProductsDataTableState extends State<ProductsDataTable> {
             return const Center(child: ProgressRing());
           }
 
-          final notArchived = state.allProducts.where((p) => p.archivedStatus == 0).toList();
+          final notArchived = state.allProducts.where((p) => p.archiveStatus == 0).toList();
           final filtered = context.select((InventoryDisplayBloc b) => b.state.filteredProducts);
           final displayProducts = filtered ?? notArchived;
 

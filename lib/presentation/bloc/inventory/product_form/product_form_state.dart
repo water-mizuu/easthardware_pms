@@ -47,7 +47,7 @@ class ProductFormState extends Equatable {
           : units.map(FormUnit.fromUnit).toList(),
       creationDate: DateTime.parse(product.creationDate),
       creatorId: product.creatorId,
-      archivedStatus: product.archivedStatus,
+      archivedStatus: product.archiveStatus,
       productId: product.id!,
       errorMessage: null,
     );
@@ -198,7 +198,7 @@ class ProductFormState extends Equatable {
       fastMovingStockThreshold: double.parse(deadStockThreshold),
       creationDate: creationDate.toIso8601String(),
       creatorId: creatorId!,
-      archivedStatus: archivedStatus!,
+      archiveStatus: archivedStatus!,
     );
   }
 }

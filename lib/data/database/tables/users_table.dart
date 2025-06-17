@@ -55,7 +55,7 @@ class UsersTable {
       final admin = User(
         id: id++,
         uid: const Uuid().v4(),
-        archivedStatus: 0,
+        archiveStatus: 0,
         loginStatus: 0,
         creationDate: DateTime.now().toIso8601String(),
         firstName: 'System',
@@ -75,7 +75,7 @@ class UsersTable {
       final admin = User(
         id: id++,
         uid: const Uuid().v4(),
-        archivedStatus: 0,
+        archiveStatus: 0,
         loginStatus: 0,
         creationDate: DateTime.now().toIso8601String(),
         firstName: 'System',
@@ -95,7 +95,7 @@ class UsersTable {
       final staff = User(
         id: id++,
         uid: const Uuid().v4(),
-        archivedStatus: 0,
+        archiveStatus: 0,
         loginStatus: 0,
         creationDate: DateTime.now().toIso8601String(),
         firstName: 'System',

@@ -86,7 +86,7 @@ class UserDataTable extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocBuilder<UserListBloc, UserListState>(
       builder: (context, state) {
-        final allUsers = state.filteredUsers.where((user) => user.archivedStatus == 0).toList();
+        final allUsers = state.filteredUsers.where((user) => user.archiveStatus == 0).toList();
 
         return DecoratedBox(
           decoration: const BoxDecoration(color: Colors.white),

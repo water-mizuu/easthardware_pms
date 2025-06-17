@@ -660,7 +660,7 @@ class ServerBloc extends Bloc<ServerEvent, ServerState> {
             ),
             salt: salt,
             creationDate: '2022-01-01',
-            archivedStatus: 0,
+            archiveStatus: 0,
             loginStatus: 0,
           );
 
@@ -718,7 +718,7 @@ class ServerBloc extends Bloc<ServerEvent, ServerState> {
             fastMovingStockThreshold: 15.0,
             creationDate: "2025-05-01",
             creatorId: usersId + 1,
-            archivedStatus: 0,
+            archiveStatus: 0,
           ),
           Product(
             sku: "HT-002",
@@ -735,7 +735,7 @@ class ServerBloc extends Bloc<ServerEvent, ServerState> {
             fastMovingStockThreshold: 8.0,
             creationDate: "2025-05-01",
             creatorId: usersId + 1,
-            archivedStatus: 0,
+            archiveStatus: 0,
           ),
           Product(
             sku: "HT-003",
@@ -752,7 +752,7 @@ class ServerBloc extends Bloc<ServerEvent, ServerState> {
             fastMovingStockThreshold: 4.0,
             creationDate: "2025-05-01",
             creatorId: usersId + 1,
-            archivedStatus: 0,
+            archiveStatus: 0,
           ),
 
           // Building Materials
@@ -771,7 +771,7 @@ class ServerBloc extends Bloc<ServerEvent, ServerState> {
             fastMovingStockThreshold: 30.0,
             creationDate: "2025-05-02",
             creatorId: usersId + 2,
-            archivedStatus: 0,
+            archiveStatus: 0,
           ),
           Product(
             sku: "BM-002",
@@ -787,7 +787,7 @@ class ServerBloc extends Bloc<ServerEvent, ServerState> {
             fastMovingStockThreshold: 40.0,
             creationDate: "2025-05-02",
             creatorId: usersId + 2,
-            archivedStatus: 0,
+            archiveStatus: 0,
           ),
 
           // Plumbing
@@ -805,7 +805,7 @@ class ServerBloc extends Bloc<ServerEvent, ServerState> {
             fastMovingStockThreshold: 20.0,
             creationDate: "2025-05-03",
             creatorId: usersId + 3,
-            archivedStatus: 0,
+            archiveStatus: 0,
           ),
           Product(
             sku: "PL-002",
@@ -821,7 +821,7 @@ class ServerBloc extends Bloc<ServerEvent, ServerState> {
             fastMovingStockThreshold: 5.0,
             creationDate: "2025-05-03",
             creatorId: usersId + 3,
-            archivedStatus: 0,
+            archiveStatus: 0,
           ),
           Product(
             sku: "PL-003",
@@ -837,7 +837,7 @@ class ServerBloc extends Bloc<ServerEvent, ServerState> {
             fastMovingStockThreshold: 8.0,
             creationDate: "2025-05-03",
             creatorId: usersId + 3,
-            archivedStatus: 0,
+            archiveStatus: 0,
           ),
 
           // Electrical
@@ -855,7 +855,7 @@ class ServerBloc extends Bloc<ServerEvent, ServerState> {
             fastMovingStockThreshold: 10.0,
             creationDate: "2025-05-04",
             creatorId: usersId + 1,
-            archivedStatus: 0,
+            archiveStatus: 0,
           ),
           Product(
             sku: "EL-002",
@@ -871,7 +871,7 @@ class ServerBloc extends Bloc<ServerEvent, ServerState> {
             fastMovingStockThreshold: 25.0,
             creationDate: "2025-05-04",
             creatorId: usersId + 1,
-            archivedStatus: 0,
+            archiveStatus: 0,
           ),
           Product(
             sku: "EL-003",
@@ -887,7 +887,7 @@ class ServerBloc extends Bloc<ServerEvent, ServerState> {
             fastMovingStockThreshold: 12.0,
             creationDate: "2025-05-04",
             creatorId: usersId + 1,
-            archivedStatus: 0,
+            archiveStatus: 0,
           ),
 
           // Painting Supplies
@@ -905,7 +905,7 @@ class ServerBloc extends Bloc<ServerEvent, ServerState> {
             fastMovingStockThreshold: 8.0,
             creationDate: "2025-05-05",
             creatorId: usersId + 2,
-            archivedStatus: 0,
+            archiveStatus: 0,
           ),
 
           Product(
@@ -922,7 +922,7 @@ class ServerBloc extends Bloc<ServerEvent, ServerState> {
             fastMovingStockThreshold: 10.0,
             creationDate: "2025-05-05",
             creatorId: usersId + 2,
-            archivedStatus: 0,
+            archiveStatus: 0,
           ),
 
           // Safety & Security
@@ -940,7 +940,7 @@ class ServerBloc extends Bloc<ServerEvent, ServerState> {
             fastMovingStockThreshold: 6.0,
             creationDate: "2025-05-06",
             creatorId: usersId + 3,
-            archivedStatus: 0,
+            archiveStatus: 0,
           ),
           Product(
             sku: "SS-002",
@@ -956,7 +956,7 @@ class ServerBloc extends Bloc<ServerEvent, ServerState> {
             fastMovingStockThreshold: 9.0,
             creationDate: "2025-05-06",
             creatorId: usersId + 3,
-            archivedStatus: 0,
+            archiveStatus: 0,
           ),
           Product(
             sku: "SS-003",
@@ -972,7 +972,7 @@ class ServerBloc extends Bloc<ServerEvent, ServerState> {
             fastMovingStockThreshold: 15.0,
             creationDate: "2025-05-06",
             creatorId: usersId + 3,
-            archivedStatus: 0,
+            archiveStatus: 0,
           ),
 
           // Automotive
@@ -990,7 +990,7 @@ class ServerBloc extends Bloc<ServerEvent, ServerState> {
             fastMovingStockThreshold: 12.0,
             creationDate: "2025-05-07",
             creatorId: usersId + 1,
-            archivedStatus: 0,
+            archiveStatus: 0,
           ),
           Product(
             sku: "AU-002",
@@ -1006,7 +1006,7 @@ class ServerBloc extends Bloc<ServerEvent, ServerState> {
             fastMovingStockThreshold: 15.0,
             creationDate: "2025-05-07",
             creatorId: usersId + 1,
-            archivedStatus: 0,
+            archiveStatus: 0,
           ),
           Product(
             sku: "AU-003",
@@ -1022,7 +1022,7 @@ class ServerBloc extends Bloc<ServerEvent, ServerState> {
             fastMovingStockThreshold: 4.0,
             creationDate: "2025-05-07",
             creatorId: usersId + 1,
-            archivedStatus: 0,
+            archiveStatus: 0,
           ),
         ];
         // Add products to the database

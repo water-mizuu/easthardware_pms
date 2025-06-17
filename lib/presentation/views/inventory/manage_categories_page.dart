@@ -47,7 +47,7 @@ class PageTable extends StatelessWidget {
             .read<ProductListBloc>()
             .state
             .allProducts
-            .where((product) => product.archivedStatus == 0);
+            .where((product) => product.archiveStatus == 0);
         return BlocBuilder<CategoryListBloc, CategoryListState>(
           builder: (context, state) {
             final categories = context.read<CategoryListBloc>().state.categories;

@@ -1,10 +1,10 @@
 import 'package:easthardware_pms/utils/undefined.dart';
 
 class ExpenseType {
-
   ExpenseType({
     this.id,
     required this.name,
+    this.archiveStatus,
   });
 
   //from map to object
@@ -16,6 +16,7 @@ class ExpenseType {
   }
   final int? id;
   final String name;
+  final int? archiveStatus;
   ExpenseType Function({
     int? id,
     String name,
@@ -34,6 +35,7 @@ class ExpenseType {
   Map<String, dynamic> toMap() {
     return <String, dynamic>{
       "name": name,
+      "archive_status": archiveStatus ?? 0,
     };
   }
 }

@@ -261,7 +261,7 @@ class ProductFormBloc extends Bloc<ProductFormEvent, ProductFormState> {
         criticalLevel: event.product.criticalLevel.toString(),
         deadStockThreshold: event.product.deadStockThreshold.toString(),
         fastMovingThreshold: event.product.fastMovingStockThreshold.toString(),
-        archivedStatus: event.product.archivedStatus,
+        archivedStatus: event.product.archiveStatus,
         formStatus: FormStatus.initial,
       ));
     } catch (e) {

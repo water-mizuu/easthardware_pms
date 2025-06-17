@@ -14,7 +14,7 @@ class User {
     required this.accessLevel,
     required this.passwordHash,
     required this.salt,
-    required this.archivedStatus,
+    this.archiveStatus,
     required this.loginStatus,
     required this.creationDate,
   });
@@ -30,7 +30,7 @@ class User {
       passwordHash: base64Decode(map['password_hash'] as String),
       salt: base64Decode(map['salt'] as String),
       creationDate: map['creation_date'] as String,
-      archivedStatus: map['archived_status'] as int,
+      archiveStatus: map['archived_status'] as int,
       loginStatus: map['login_status'] as int,
     );
   }
@@ -42,7 +42,7 @@ class User {
   final AccessLevel accessLevel;
   final Uint8List salt;
   final Uint8List passwordHash;
-  final int archivedStatus;
+  final int? archiveStatus;
   final int loginStatus;
   final String creationDate;
 
@@ -55,7 +55,7 @@ class User {
     AccessLevel? accessLevel,
     Uint8List? passwordHash,
     Uint8List? salt,
-    int? archivedStatus,
+    int? archiveStatus,
     int? loginStatus,
     String? creationDate,
   }) get copyWith {
@@ -68,7 +68,7 @@ class User {
       Object? accessLevel = undefined,
       Object? passwordHash = undefined,
       Object? salt = undefined,
-      Object? archivedStatus = undefined,
+      Object? archiveStatus = undefined,
       Object? loginStatus = undefined,
       Object? creationDate = undefined,
     }) {
@@ -81,7 +81,7 @@ class User {
         accessLevel: accessLevel.or(this.accessLevel),
         passwordHash: passwordHash.or(this.passwordHash),
         salt: salt.or(this.salt),
-        archivedStatus: archivedStatus.or(this.archivedStatus),
+        archiveStatus: archiveStatus.or(this.archiveStatus),
         loginStatus: loginStatus.or(this.loginStatus),
         creationDate: creationDate.or(this.creationDate),
       );
@@ -98,7 +98,7 @@ class User {
       'access_level': accessLevel.index,
       'password_hash': base64Encode(passwordHash),
       'salt': base64Encode(salt),
-      'archived_status': archivedStatus,
+      'archive_status': archiveStatus,
       'login_status': loginStatus,
       'creation_date': creationDate,
     };

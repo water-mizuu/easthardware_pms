@@ -33,7 +33,7 @@ class UserFormState extends Equatable {
       accessLevel: user.accessLevel.name,
       passwordHash: user.passwordHash,
       salt: user.salt,
-      archivedStatus: user.archivedStatus,
+      archivedStatus: user.archiveStatus,
       uid: user.uid,
     );
   }
@@ -138,7 +138,7 @@ class UserFormState extends Equatable {
       accessLevel: AccessLevel.values.firstWhere((element) => element.name == accessLevel),
       passwordHash: passwordHash!,
       salt: salt!,
-      archivedStatus: archivedStatus!,
+      archiveStatus: archivedStatus!,
       loginStatus: 0, // Default login status
       creationDate: creationDate!,
     );
