@@ -1,7 +1,9 @@
 import 'package:easthardware_pms/domain/enums/enums.dart';
-import 'package:easthardware_pms/presentation/bloc/inventory/category_list/category_list_bloc.dart';
+import 'package:easthardware_pms/presentation/bloc/inventory/'
+    'category_list/category_list_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/inventory/product_form/product_form_bloc.dart';
-import 'package:easthardware_pms/presentation/bloc/inventory/product_form/product_form_validator.dart';
+import 'package:easthardware_pms/presentation/bloc/inventory/'
+    'product_form/product_form_validator.dart';
 import 'package:easthardware_pms/presentation/models/form_unit.dart';
 import 'package:easthardware_pms/presentation/widgets/animated_single_child_scroll_view.dart';
 import 'package:easthardware_pms/presentation/widgets/layout/spacing.dart';

@@ -116,7 +116,7 @@ Future<void> spawnWebSocketIsolate((RootIsolateToken, NamedSendPort) payload) as
 
   /// @MAIN2WS:invocation
   mainChannel.listenFrom("invocation", (message) async {
-    if (kDebugMode) {
+    if (kDebugMode && false) {
       printBoxed(message, "MAIN2WS:invocation");
     }
 

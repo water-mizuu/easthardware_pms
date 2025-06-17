@@ -5,7 +5,8 @@ import 'package:easthardware_pms/domain/enums/enums.dart';
 import 'package:easthardware_pms/domain/models/product.dart';
 import 'package:easthardware_pms/presentation/bloc/authentication/authentication/'
     'authentication_bloc.dart';
-import 'package:easthardware_pms/presentation/bloc/inventory/category_list/category_list_bloc.dart';
+import 'package:easthardware_pms/presentation/bloc/inventory/'
+    'category_list/category_list_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/inventory/inventory_display/'
     'inventory_display_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/inventory/inventory_display/'

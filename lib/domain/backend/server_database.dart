@@ -60,20 +60,20 @@ Future<void> resetDatabase() async {
         await ProductFlagsView.dropView(txn);
 
         // Recreate all tables
-        await CategoriesTable.createTable(db);
-        await ExpenseTypesTable.createTable(db);
-        await PaymentMethodsTable.createTable(db);
-        await UsersTable.createTable(db);
-        await UserLogsTable.createTable(db);
-        await ProductsTable.createTable(db);
-        await UnitsTable.createTable(db);
-        await OrdersTable.createTable(db);
-        await OrderProductsTable.createTable(db);
-        await InvoicesTable.createTable(db);
-        await InvoiceProductsTable.createTable(db);
-        await PaymentsTable.createTable(db);
-        await SecurityQuestionsTable.createTable(db);
-        await ProductFlagsView.createView(db);
+        await CategoriesTable.createTable(txn);
+        await ExpenseTypesTable.createTable(txn);
+        await PaymentMethodsTable.createTable(txn);
+        await UsersTable.createTable(txn);
+        await UserLogsTable.createTable(txn);
+        await ProductsTable.createTable(txn);
+        await UnitsTable.createTable(txn);
+        await OrdersTable.createTable(txn);
+        await OrderProductsTable.createTable(txn);
+        await InvoicesTable.createTable(txn);
+        await InvoiceProductsTable.createTable(txn);
+        await PaymentsTable.createTable(txn);
+        await SecurityQuestionsTable.createTable(txn);
+        await ProductFlagsView.createView(txn);
       });
     }
   }

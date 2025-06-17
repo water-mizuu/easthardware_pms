@@ -1,13 +1,17 @@
 import 'dart:async';
 
-import 'package:easthardware_pms/domain/enums/enums.dart' show AccessLevel, DataStatus;
+import 'package:easthardware_pms/domain/enums/enums.dart'
+    show AccessLevel, DataStatus, DiscountType;
 import 'package:easthardware_pms/domain/models/invoice.dart';
 import 'package:easthardware_pms/domain/models/payment_method.dart';
-import 'package:easthardware_pms/presentation/bloc/authentication/authentication/authentication_bloc.dart';
+import 'package:easthardware_pms/presentation/bloc/authentication/'
+    'authentication/authentication_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/billing/invoicelist/invoice_list_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/payment/payment_form/payment_form_bloc.dart';
-import 'package:easthardware_pms/presentation/bloc/payment/payment_method_list/payment_method_list_bloc.dart';
-import 'package:easthardware_pms/presentation/cubit/payment/payment_method_form/cubit/payment_method_form_cubit.dart';
+import 'package:easthardware_pms/presentation/bloc/payment/'
+    'payment_method_list/payment_method_list_bloc.dart';
+import 'package:easthardware_pms/presentation/cubit/payment/'
+    'payment_method_form/cubit/payment_method_form_cubit.dart';
 import 'package:easthardware_pms/presentation/router/app_routes.dart';
 import 'package:easthardware_pms/presentation/widgets/layout/spacing.dart';
 import 'package:easthardware_pms/presentation/widgets/ui/loading_page.dart';

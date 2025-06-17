@@ -1,19 +1,40 @@
-import 'dart:async';
-
-import 'package:easthardware_pms/domain/models/order.dart';
+import 'package:easthardware_pms/presentation/bloc/billing/invoicelist/invoice_list_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/order/orderlist/order_list_bloc.dart';
 import 'package:easthardware_pms/presentation/widgets/layout/spacing.dart';
 import 'package:easthardware_pms/presentation/widgets/text.dart';
-import 'package:fl_chart/fl_chart.dart';
 import 'package:fluent_ui/fluent_ui.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 
-enum ExpenseBreakdownChoice {
+enum ProfitLossTimeframe {
   last7Days,
   thisWeek,
-  thisMonth,
   last30Days,
-  lastMonth,
+  thisMonth,
+  thisYear,
+  allTime;
+
+  String get displayName {
+    return switch (this) {
+      last7Days => 'Last 7 days',
+      thisWeek => 'This week',
+      last30Days => 'Last 30 days',
+      thisMonth => 'This month',
+      thisYear => 'This year',
+      allTime => 'All time',
+    };
+  }
+
+  String get displayText {
+    return switch (this) {
+      last7Days => 'last 7 days',
+      thisWeek => 'this week',
+      last30Days => 'last 30 days',
+      thisMonth => 'this month',
+      thisYear => 'this year',
+      allTime => 'all time',
+    };
+  }
 }
 
 class ProfitAndLossCard extends StatelessWidget {
@@ -21,142 +42,260 @@ class ProfitAndLossCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      color: FluentTheme.of(context).cardColor,
-      padding: AppPadding.cardPadding,
-      child: const Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          DisplayText('Profit and Loss'),
-          Spacing.v16,
-          Expanded(child: _ProfitAndLossCardGraph()),
-        ],
-      ),
-    );
-  }
-}
-
-class _ProfitAndLossCardGraph extends StatefulWidget {
-  const _ProfitAndLossCardGraph();
-
-  @override
-  State<_ProfitAndLossCardGraph> createState() => _ProfitAndLossCardGraphState();
-}
-
-class _ProfitAndLossCardGraphState extends State<_ProfitAndLossCardGraph> {
-  late List<Order>? _orders;
-  late PieChartData? _pieChartData;
-  late void Function()? _requestCanceller;
-
-  @override
-  void initState() {
-    super.initState();
-
-    _orders = null;
-    _pieChartData = null;
-    _requestCanceller = null;
-  }
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-
-    final orders = context.watch<OrderListBloc>().state.allOrders;
-    if (_orders != orders) {
-      _orders = orders;
-      _updatePieChartData(orders);
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    if (_pieChartData == null || (_orders != null && _orders!.isEmpty)) {
-      return const Center(child: _ExpensesBreakdownPlaceholder());
-    } else {
-      return PieChart(_pieChartData!);
-    }
-  }
-
-  void _updatePieChartData(List<Order> invoices) {
-    _requestCanceller?.call();
-    var isCancelled = false;
-
-    _requestCanceller = () => isCancelled = true;
-    unawaited(() async {
-      final data = await _createPieChartData(invoices);
-      if (!mounted || isCancelled) return;
-      setState(() => _pieChartData = data);
-    }());
-  }
-
-  Future<PieChartData> _createPieChartData(List<Order> orders) async {
-    final pieTouchData = PieTouchData(
-      enabled: false,
-    );
-
-    final borderData = FlBorderData(
-      show: true,
-      border: Border(
-        bottom: BorderSide(color: Colors.black.withValues(alpha: 0.2), width: 4.0),
-        left: const BorderSide(color: Colors.transparent),
-        right: const BorderSide(color: Colors.transparent),
-        top: const BorderSide(color: Colors.transparent),
-      ),
-    );
-
-    final sections = await _createPieChartSections(orders);
-
-    return PieChartData(
-      pieTouchData: pieTouchData,
-      borderData: borderData,
-      sectionsSpace: 2,
-      sections: sections,
-    );
-  }
-
-  Future<List<PieChartSectionData>> _createPieChartSections(List<Order> orders) async {
-    final categoryTotals = <int, double>{};
-
-    for (final order in orders) {
-      final category = order.expenseType;
-      categoryTotals[category] = (categoryTotals[category] ??= 0) + order.amountDue;
-    }
-
-    final total = categoryTotals.values.fold(0.0, (sum, value) => sum + value);
-    final sections = <PieChartSectionData>[];
-    for (final (i, MapEntry(key: category, value: amount)) in categoryTotals.entries.indexed) {
-      final percentage = total > 0 ? (amount / total) * 100.0 : 0.0;
-
-      sections.add(
-        PieChartSectionData(
-          value: percentage,
-          title: 'Category $category (${percentage.toStringAsFixed(1)}%)',
-          color: HSLColor.fromAHSL(1.0, 0.5 + (i / 128), 0.5, 0.5).toColor(),
-          titleStyle: const TextStyle(fontSize: 12, color: Colors.white),
+    return ChangeNotifierProvider(
+      create: (context) => ProfitAndLossChangeNotifier(),
+      child: Container(
+        decoration: BoxDecoration(color: FluentTheme.of(context).cardColor),
+        padding: AppPadding.cardPadding,
+        child: const Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _ProfitAndLossTitle(),
+            Spacing.v16,
+            Expanded(child: _ProfitAndLossContent()),
+          ],
         ),
-      );
-    }
-
-    return sections;
+      ),
+    );
   }
 }
 
-class _ExpensesBreakdownPlaceholder extends StatelessWidget {
-  const _ExpensesBreakdownPlaceholder();
+class _ProfitAndLossTitle extends StatelessWidget {
+  const _ProfitAndLossTitle();
 
   @override
   Widget build(BuildContext context) {
-    return const Padding(
-      padding: EdgeInsets.all(16.0),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(FluentIcons.report_alert, size: 42.0),
-          SubheadingText("No orders recorded."),
-          Spacing.v8,
-          GrayText("Please add some orders to view them here."),
-        ],
-      ),
+    return Row(
+      children: [
+        Expanded(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const DisplayText('Profit and Loss'),
+              Builder(builder: (context) {
+                final timeframe = context.watch<ProfitAndLossChangeNotifier>().timeframe;
+
+                return GrayText('Net profit for ${timeframe.displayText}');
+              }),
+            ],
+          ),
+        ),
+        ComboBox<ProfitLossTimeframe>(
+          value: context.select((ProfitAndLossChangeNotifier notifier) => notifier.timeframe),
+          items: [
+            for (final value in ProfitLossTimeframe.values)
+              ComboBoxItem(
+                value: value,
+                child: Text(value.displayName),
+              ),
+          ],
+          onChanged: (value) {
+            if (value == null) return;
+
+            context.read<ProfitAndLossChangeNotifier>().setTimeframe(value);
+          },
+        ),
+      ],
     );
+  }
+}
+
+class _ProfitAndLossContent extends StatelessWidget {
+  const _ProfitAndLossContent();
+
+  @override
+  Widget build(BuildContext context) {
+    final formatter = NumberFormat.currency(locale: 'en_PH', symbol: 'Php ');
+    final timeframe = context.select((ProfitAndLossChangeNotifier n) => n.timeframe);
+    final invoiceState = context.watch<InvoiceListBloc>().state;
+    final orderState = context.watch<OrderListBloc>().state;
+
+    final now = DateTime.now();
+
+    // Calculate date range based on selected timeframe
+    final (startDate, endDate) = _getDateRange(now, timeframe);
+
+    // Calculate income from invoices for the selected period
+    final incomeInvoices = invoiceState.invoices.where((invoice) {
+      return invoice.invoiceDate.isAfter(startDate) &&
+          invoice.invoiceDate.isBefore(endDate.add(const Duration(days: 1)));
+    }).toList();
+
+    final totalIncome = incomeInvoices.fold<double>(
+      0.0,
+      (sum, invoice) => sum + (invoice.amountPaid ?? invoice.amountDue),
+    );
+
+    // Calculate expenses from orders for the selected period
+    final expenseOrders = orderState.allOrders.where((order) {
+      return order.orderDate.isAfter(startDate) &&
+          order.orderDate.isBefore(endDate.add(const Duration(days: 1)));
+    }).toList();
+
+    final totalExpenses = expenseOrders.fold<double>(
+      0.0,
+      (sum, order) => sum + order.amountDue,
+    );
+
+    final netProfit = totalIncome - totalExpenses;
+    final profitPercentage = totalIncome > 0 ? ((netProfit / totalIncome) * 100).round() : 0;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Net profit section
+        const SizedBox(height: 8),
+        Row(
+          children: [
+            Text(
+              netProfit < 0 //
+                  ? '-${formatter.format(netProfit.abs())}'
+                  : formatter.format(netProfit),
+              style: const TextStyle(
+                fontSize: 28,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(width: 8),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+              decoration: BoxDecoration(
+                color: Colors.blue.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    FluentIcons.info,
+                    size: 12,
+                    color: Colors.blue,
+                  ),
+                  const SizedBox(width: 4),
+                  Text(
+                    '$profitPercentage%',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Colors.blue,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+
+        // Income section
+        _FinancialBar(
+          label: 'Income',
+          amount: totalIncome,
+          color: Colors.green,
+        ),
+        const SizedBox(height: 16),
+
+        // Expenses section
+        _FinancialBar(
+          label: 'Expenses',
+          amount: totalExpenses,
+          color: Colors.teal,
+        ),
+      ],
+    );
+  }
+
+  // Helper function to calculate date ranges based on timeframe
+  (DateTime, DateTime) _getDateRange(DateTime now, ProfitLossTimeframe timeframe) {
+    switch (timeframe) {
+      case ProfitLossTimeframe.last7Days:
+        final startDate = now.subtract(const Duration(days: 7));
+        return (startDate, now);
+
+      case ProfitLossTimeframe.thisWeek:
+        final weekday = now.weekday;
+        final startOfWeek = now.subtract(Duration(days: weekday - 1));
+        return (startOfWeek, now);
+
+      case ProfitLossTimeframe.last30Days:
+        final startDate = now.subtract(const Duration(days: 30));
+        return (startDate, now);
+
+      case ProfitLossTimeframe.thisMonth:
+        final startOfMonth = DateTime(now.year, now.month, 1);
+        return (startOfMonth, now);
+
+      case ProfitLossTimeframe.thisYear:
+        final startOfYear = DateTime(now.year, 1, 1);
+        return (startOfYear, now);
+
+      case ProfitLossTimeframe.allTime:
+        final startDate = DateTime(2000, 1, 1); // Arbitrary start date
+        return (startDate, now);
+    }
+  }
+}
+
+class _FinancialBar extends StatelessWidget {
+  const _FinancialBar({
+    required this.label,
+    required this.amount,
+    required this.color,
+  });
+
+  final String label;
+  final double amount;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    final formatter = NumberFormat.currency(locale: 'en_PH', symbol: 'Php ');
+
+    return Row(
+      children: [
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              formatter.format(amount),
+              style: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 12,
+                color: FluentTheme.of(context).resources.textFillColorSecondary,
+              ),
+            ),
+          ],
+        ),
+        const Spacer(),
+        Expanded(
+          child: Container(
+            height: 20,
+            decoration: BoxDecoration(
+              color: color,
+              borderRadius: BorderRadius.circular(4),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class ProfitAndLossChangeNotifier extends ChangeNotifier {
+  ProfitLossTimeframe _timeframe = ProfitLossTimeframe.last30Days;
+
+  ProfitLossTimeframe get timeframe => _timeframe;
+  void setTimeframe(ProfitLossTimeframe newTimeframe) {
+    if (_timeframe != newTimeframe) {
+      _timeframe = newTimeframe;
+      notifyListeners();
+    }
   }
 }

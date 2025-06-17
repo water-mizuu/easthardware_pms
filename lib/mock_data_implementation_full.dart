@@ -4,22 +4,30 @@
 import 'package:easthardware_pms/data/database/database_helper.dart';
 import 'package:easthardware_pms/domain/enums/enums.dart';
 import 'package:easthardware_pms/domain/models/category.dart';
+import 'package:easthardware_pms/domain/models/expense_type.dart' as model;
 import 'package:easthardware_pms/domain/models/invoice.dart';
 import 'package:easthardware_pms/domain/models/invoice_product.dart';
+import 'package:easthardware_pms/domain/models/order.dart';
+import 'package:easthardware_pms/domain/models/order_product.dart';
+import 'package:easthardware_pms/domain/models/payment_method.dart' as model;
 import 'package:easthardware_pms/domain/models/product.dart';
 import 'package:easthardware_pms/domain/models/security_question.dart';
 import 'package:easthardware_pms/domain/models/user.dart';
 import 'package:easthardware_pms/domain/repository/category_repository.dart';
+import 'package:easthardware_pms/domain/repository/expense_type_repository.dart';
 import 'package:easthardware_pms/domain/repository/invoice_product_repository.dart';
 import 'package:easthardware_pms/domain/repository/invoice_repository.dart';
+import 'package:easthardware_pms/domain/repository/order_product_repository.dart';
+import 'package:easthardware_pms/domain/repository/order_repository.dart';
+import 'package:easthardware_pms/domain/repository/payment_method_repository.dart';
 import 'package:easthardware_pms/domain/repository/product_repository.dart';
 import 'package:easthardware_pms/domain/repository/security_question_repository.dart';
 import 'package:easthardware_pms/domain/repository/user_repository.dart';
 import 'package:easthardware_pms/domain/services/cryptography_service.dart';
 import 'package:uuid/uuid.dart';
 
-/// The current date for the app is set to June 13, 2025
-final DateTime currentDate = DateTime(2025, 6, 13);
+/// The current date for the app is set to June 17, 2025
+final DateTime currentDate = DateTime(2025, 6, 17);
 
 /// Generate 50 mock invoices and all necessary related data
 Future<void> generateMockData(DatabaseHelper databaseHelper) async {
@@ -30,6 +38,10 @@ Future<void> generateMockData(DatabaseHelper databaseHelper) async {
   final categoryRepository = CategoryRepository(databaseHelper);
   final invoiceRepository = InvoiceRepository(databaseHelper);
   final invoiceProductRepository = InvoiceProductRepository(databaseHelper);
+  final orderRepository = OrderRepository(databaseHelper);
+  final orderProductRepository = OrderProductRepository(databaseHelper);
+  final expenseTypeRepository = ExpenseTypeRepository(databaseHelper);
+  final paymentMethodRepository = PaymentMethodRepository(databaseHelper);
 
   // Get starting user ID
   var usersIdOffset = await usersRepository.getAllUsers().then((u) => u.length);
@@ -515,6 +527,8 @@ Future<void> generateMockData(DatabaseHelper databaseHelper) async {
   final productIds = <int>[];
   for (final product in mockProducts) {
     final insertedProduct = await productsRepository.insertProduct(product);
+
+    throw Error();
     productIds.add(insertedProduct.id!);
   }
 
@@ -756,6 +770,171 @@ Future<void> generateMockData(DatabaseHelper databaseHelper) async {
     );
 
     await invoiceRepository.updateInvoice(updatedInvoice);
+  }
+
+  // STEP 5: CREATE EXPENSE TYPES
+  final mockExpenseTypes = <model.ExpenseType>[
+    model.ExpenseType(name: 'Inventory Restock'),
+    model.ExpenseType(name: 'Equipment'),
+    model.ExpenseType(name: 'Utilities'),
+    model.ExpenseType(name: 'Rent'),
+    model.ExpenseType(name: 'Salaries'),
+    model.ExpenseType(name: 'Marketing'),
+    model.ExpenseType(name: 'Insurance'),
+    model.ExpenseType(name: 'Maintenance'),
+    model.ExpenseType(name: 'Office Supplies'),
+    model.ExpenseType(name: 'Transportation'),
+  ];
+
+  // Add expense types to database
+  final expenseTypeIds = <int>[];
+  for (final expenseType in mockExpenseTypes) {
+    final savedExpenseType = await expenseTypeRepository.insertExpenseType(expenseType);
+    expenseTypeIds.add(savedExpenseType.id!);
+  }
+
+  // STEP 6: CREATE PAYMENT METHODS
+  final mockPaymentMethods = <model.PaymentMethod>[
+    model.PaymentMethod(name: 'Cash'),
+    model.PaymentMethod(name: 'Credit Card'),
+    model.PaymentMethod(name: 'Bank Transfer'),
+    model.PaymentMethod(name: 'Mobile Payment'),
+    model.PaymentMethod(name: 'Check'),
+    model.PaymentMethod(name: 'Store Credit'),
+  ];
+
+  // Add payment methods to database
+  final paymentMethodIds = <int>[];
+  for (final paymentMethod in mockPaymentMethods) {
+    final savedPaymentMethod = await paymentMethodRepository.insertPaymentMethod(paymentMethod);
+    paymentMethodIds.add(savedPaymentMethod.id!);
+  }
+
+  // STEP 7: CREATE ORDERS (EXPENSES)
+  // Create 20 orders with different expense types and payment methods
+  final mockOrders = <Order>[];
+  // List of supplier names for payee names
+  final suppliers = <String>[
+    'East Hardware Wholesale',
+    'Premium Tools Supply',
+    'Building Materials Inc',
+    'Industrial Parts Ltd',
+    'City Power & Electric',
+    'Metro Office Solutions',
+    'National Construction Supply',
+    'Quality Hardware Distributors',
+    'Global Tool Company',
+    'Local Lumber Yard'
+  ];
+
+  // Generate 20 orders over a period of time
+  for (var i = 0; i < 20; i++) {
+    // Determine date (spread out over the past 6 months)
+    final daysAgo = (i * 9) % 180; // Max 180 days ago (about 6 months)
+    final orderDate = currentDate.subtract(Duration(days: daysAgo));
+
+    // Determine expense type (bias towards inventory restock)
+    int expenseTypeId;
+    if (i % 3 == 0) {
+      expenseTypeId = expenseTypeIds[0]; // Inventory Restock
+    } else {
+      expenseTypeId = expenseTypeIds[i % expenseTypeIds.length];
+    }
+
+    // Determine payment method
+    final paymentMethodId = paymentMethodIds[i % paymentMethodIds.length];
+
+    // Determine creator (user)
+    final creatorId = i % 2 == 0 ? users[0].id! : users[1].id!;
+
+    // Reference number (invoice/receipt number)
+    final referenceNumber = 'REC${10000 + i}';
+
+    // Determine if it's a paid expense
+    final isPaid = daysAgo > 15; // Invoices older than 15 days are paid
+
+    // Create order object
+    final order = Order(
+      payeeName: suppliers[i % suppliers.length],
+      expenseType: expenseTypeId,
+      orderDate: orderDate,
+      paymentMethod: paymentMethodId,
+      referenceNumber: referenceNumber,
+      memo:
+          'Purchase order for ${expenseTypeId == expenseTypeIds[0] ? 'inventory restock' : mockExpenseTypes[expenseTypeIds.indexOf(expenseTypeId)].name.toLowerCase()}',
+      amountDue: 0, // Will be updated after adding products
+      amountPaid: isPaid ? null : 0, // Will be updated if paid
+      paymentDate:
+          isPaid ? orderDate.add(const Duration(days: 3)) : null, // Paid 3 days after order
+      creationDate: orderDate,
+      creatorId: creatorId,
+    );
+
+    // Add order to database and get ID
+    final savedOrder = await orderRepository.insertOrder(order);
+    final orderId = savedOrder.id!;
+    mockOrders.add(savedOrder);
+
+    // Add products to order
+    var totalAmount = 0.0;
+    final productCount = 1 + (i % 4); // 1-4 products per order
+    final selectedProducts = <int>{}; // Avoid duplicate products in same order
+
+    for (var j = 0; j < productCount; j++) {
+      // Select a product that hasn't been used in this order yet
+      int productIndex;
+      do {
+        productIndex = (i * 3 + j) % mockProducts.length;
+      } while (selectedProducts.contains(productIndex));
+
+      selectedProducts.add(productIndex);
+
+      // Get the product
+      final product = mockProducts[productIndex];
+
+      // Determine quantity based on product type and expense type
+      double quantity;
+      if (expenseTypeId == expenseTypeIds[0]) {
+        // Inventory restock
+        if (product.mainUnit == "piece" || product.mainUnit == "set") {
+          quantity = 10.0 + (j % 10); // 10-19 for piece/set items for restocking
+        } else if (product.mainUnit == "bag" || product.mainUnit == "gallon") {
+          quantity = 5.0 + (j % 5); // 5-9 for heavy items
+        } else {
+          quantity = 8.0 + (j % 7); // 8-14 for other items
+        }
+      } else {
+        // Non-restock expenses typically involve fewer items
+        quantity = 1.0 + (j % 3); // 1-3 items
+      }
+
+      // Use purchase price as rate for orders
+      final rate = product.orderCost;
+      final amount = rate * quantity;
+      totalAmount += amount;
+
+      // Create order product
+      final orderProduct = OrderProduct(
+        orderId: orderId,
+        productId: productIds[productIndex],
+        productName: product.name,
+        description: product.description,
+        quantity: quantity,
+        rate: rate,
+        amount: amount,
+      );
+
+      // Add to database
+      await orderProductRepository.insertOrderProduct(orderProduct);
+    }
+
+    // Update order with total amount
+    final updatedOrder = savedOrder.copyWith(
+      amountDue: totalAmount,
+      amountPaid: isPaid ? totalAmount : null,
+    );
+
+    await orderRepository.updateOrder(updatedOrder);
   }
 }
 
