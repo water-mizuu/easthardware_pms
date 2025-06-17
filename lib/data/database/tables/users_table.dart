@@ -36,7 +36,7 @@ class UsersTable {
       $USERS_LOGIN_STATUS INTEGER NOT NULL
     )
   ''');
-    _insertInitialAdmin(database);
+    await _insertInitialAdmin(database);
   }
 
   static Future<void> dropTable(DatabaseExecutor database) async {
@@ -47,7 +47,6 @@ class UsersTable {
   static Future<void> _insertInitialAdmin(DatabaseExecutor database) async {
     const password = 'Admin123';
 
-    printBoxed("LAST BIRTHDAY", "LIFE GOES ON WITHOUT ME");
     var id = 0;
     {
       final salt = CryptographyService.generateSalt();
