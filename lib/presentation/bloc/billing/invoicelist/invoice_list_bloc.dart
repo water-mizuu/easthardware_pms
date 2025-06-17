@@ -6,6 +6,7 @@ import 'package:easthardware_pms/domain/repository/invoice_product_repository.da
 import 'package:easthardware_pms/domain/repository/invoice_repository.dart';
 import 'package:easthardware_pms/domain/repository/product_repository.dart';
 import 'package:easthardware_pms/utils/boxed.dart';
+import 'package:easthardware_pms/utils/undefined.dart';
 import 'package:equatable/equatable.dart';
 
 part 'invoice_list_event.dart';
@@ -22,6 +23,7 @@ class InvoiceListBloc extends Bloc<InvoiceListEvent, InvoiceListState> {
     on<AddInvoiceEvent>(_onAddInvoice);
     on<UpdateInvoiceEvent>(_onUpdateInvoice);
     on<DeleteInvoiceEvent>(_onDeleteInvoice);
+    on<FetchInvoiceProductsEvent>(_onFetchInvoiceProducts);
   }
   final InvoiceRepository _repository;
   final InvoiceProductRepository _itemRepository;
@@ -98,6 +100,17 @@ class InvoiceListBloc extends Bloc<InvoiceListEvent, InvoiceListState> {
       await _repository.deleteInvoice(event.invoice);
       final invoices = List<Invoice>.from(state.invoices)..remove(event.invoice);
       emit(state.copyWith(invoices: invoices, status: DataStatus.success));
+    } catch (e) {
+      emit(state.copyWith(status: DataStatus.error));
+    }
+  }
+
+  Future<void> _onFetchInvoiceProducts(FetchInvoiceProductsEvent event, Emitter emit) async {
+    emit(state.copyWith(status: DataStatus.loading));
+    try {
+      final products = await _itemRepository.fetchInvoiceProductsByInvoice(event.invoiceId);
+      printBoxed('Fetched invoice products: ${products.length}', 'InvoiceListBloc');
+      emit(state.copyWith(invoiceProducts: products, status: DataStatus.success));
     } catch (e) {
       emit(state.copyWith(status: DataStatus.error));
     }

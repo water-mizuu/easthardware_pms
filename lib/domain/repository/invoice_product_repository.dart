@@ -7,7 +7,7 @@ abstract class InvoiceProductRepository {
 
   Future<List<InvoiceProduct>> fetchAllInvoiceProducts();
   Future<InvoiceProduct?> fetchInvoiceProductById(int id);
-  Future<List<InvoiceProduct>> fetchInvoiceProductByInvoice(int invoiceId);
+  Future<List<InvoiceProduct>> fetchInvoiceProductsByInvoice(int invoiceId);
   Future<InvoiceProduct> insertInvoiceProduct(InvoiceProduct invoiceProduct);
   Future<void> updateInvoiceProduct(InvoiceProduct invoiceProduct);
   Future<void> deleteInvoiceProduct(int id);

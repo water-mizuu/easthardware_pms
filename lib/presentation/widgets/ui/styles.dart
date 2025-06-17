@@ -42,6 +42,10 @@ class TextStyles {
     fontSize: 12,
     fontWeight: FontWeight.w500,
   );
+  static const TextStyle tableBody = TextStyle(
+    fontSize: 12,
+    fontWeight: FontWeight.w400,
+  );
 }
 
 class ButtonStyles {

@@ -31,7 +31,7 @@ class PaymentMethodListBloc extends Bloc<PaymentMethodListEvent, PaymentMethodLi
     emit(state.copyWith(status: DataStatus.loading));
     try {
       final paymentMethod = await _repository.insertPaymentMethod(event.paymentMethod);
-      final paymentMethods = List.from(state.paymentMethods)..remove(paymentMethod);
+      final paymentMethods = [...state.paymentMethods, paymentMethod];
       emit(state.copyWith(paymentMethods: paymentMethods, status: DataStatus.success));
     } catch (e) {
       emit(state.copyWith(status: DataStatus.error));

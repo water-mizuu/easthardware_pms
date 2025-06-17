@@ -41,3 +41,12 @@ class DeleteInvoiceEvent extends InvoiceListEvent {
   @override
   List<Object> get props => [invoice];
 }
+
+class FetchInvoiceProductsEvent extends InvoiceListEvent {
+  const FetchInvoiceProductsEvent(this.invoiceId);
+
+  final int invoiceId;
+
+  @override
+  List<Object> get props => [invoiceId];
+}

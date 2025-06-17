@@ -1,6 +1,6 @@
 part of 'payment_method_list_bloc.dart';
 
-class PaymentMethodListState {
+class PaymentMethodListState with EquatableMixin {
   const PaymentMethodListState({
     this.paymentMethods = const [],
     this.status = DataStatus.initial,
@@ -9,14 +9,21 @@ class PaymentMethodListState {
   final List<PaymentMethod> paymentMethods;
   final DataStatus status;
 
-  PaymentMethodListState copyWith({
-    Object? paymentMethods = undefined,
-    Object? status = undefined,
-  }) {
-    return PaymentMethodListState(
-      paymentMethods:
-          paymentMethods == undefined ? this.paymentMethods : paymentMethods as List<PaymentMethod>,
-      status: status == undefined ? this.status : status as DataStatus,
-    );
+  PaymentMethodListState Function({
+    List<PaymentMethod> paymentMethods,
+    DataStatus status,
+  }) get copyWith {
+    return ({
+      Object paymentMethods = undefined,
+      Object status = undefined,
+    }) {
+      return PaymentMethodListState(
+        paymentMethods: paymentMethods.or(this.paymentMethods),
+        status: status.or(this.status),
+      );
+    };
   }
+
+  @override
+  List<Object?> get props => [paymentMethods, status];
 }

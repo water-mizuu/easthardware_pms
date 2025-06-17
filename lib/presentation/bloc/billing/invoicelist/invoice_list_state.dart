@@ -13,18 +13,25 @@ class InvoiceListState extends Equatable {
   final DataStatus status;
   final List<InvoiceProduct> invoiceProducts;
 
-  InvoiceListState copyWith({
+  InvoiceListState Function({
     List<Invoice>? invoices,
     Invoice? latest,
     DataStatus? status,
     List<InvoiceProduct>? invoiceProducts,
-  }) {
-    return InvoiceListState(
-      latest: latest ?? this.latest,
-      invoices: invoices ?? this.invoices,
-      status: status ?? this.status,
-      invoiceProducts: this.invoiceProducts,
-    );
+  }) get copyWith {
+    return ({
+      Object? invoices = undefined,
+      Object? latest = undefined,
+      Object? status = undefined,
+      Object? invoiceProducts = undefined,
+    }) {
+      return InvoiceListState(
+        invoices: invoices.or(this.invoices),
+        latest: latest.or(this.latest),
+        status: status.or(this.status),
+        invoiceProducts: invoiceProducts.or(this.invoiceProducts),
+      );
+    };
   }
 
   @override

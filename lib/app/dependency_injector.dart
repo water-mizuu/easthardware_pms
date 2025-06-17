@@ -209,7 +209,9 @@ class DependencyInjector extends ChangeNotifier {
         key: key(),
         create: (context) {
           final state = _paymentMethodListBloc?.state ?? const PaymentMethodListState();
-          return _paymentMethodListBloc = PaymentMethodListBloc(_paymentMethodRepository, state);
+
+          return _paymentMethodListBloc = PaymentMethodListBloc(_paymentMethodRepository, state)
+            ..addIf(_databaseHelper != null, const FetchAllPaymentMethodsEvent());
         },
       ),
       BlocProvider(

@@ -5,3 +5,5 @@
 # Flutter / Dart / Pub
 .dart_tool/
 build
+
+.*

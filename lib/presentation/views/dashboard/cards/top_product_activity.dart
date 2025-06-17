@@ -203,7 +203,7 @@ class _TopProductActivityState extends State<TopProductActivity> {
     ///   and then map each invoice to its products.
     final (products, error) = await invoices
         .where((i) => _productActivityChoice.value.check(i.creationDate))
-        .map((i) => invoiceProductRepository.fetchInvoiceProductByInvoice(i.id!))
+        .map((i) => invoiceProductRepository.fetchInvoiceProductsByInvoice(i.id!))
         .wait
         .tryCatch();
 
