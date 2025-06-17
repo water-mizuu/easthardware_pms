@@ -380,9 +380,14 @@ class _OrderSummaryAndMemo extends StatelessWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Text("Total"),
-                    Text("Php. " + total.toStringAsFixed(2),
-                        style: const TextStyle(fontWeight: FontWeight.bold)),
+                    const Text(
+                      "Total",
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    Text(
+                      "Php. ${total.toStringAsFixed(2)}",
+                      style: const TextStyle(fontWeight: FontWeight.bold),
+                    ),
                   ],
                 ),
               ],

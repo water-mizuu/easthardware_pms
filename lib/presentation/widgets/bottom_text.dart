@@ -44,7 +44,7 @@ class BottomText extends StatelessWidget {
                     },
                   ),
                 ),
-                if (kDebugMode && serverBloc.state.databaseArgs != null)
+                if (serverBloc.state.databaseArgs != null)
                   Button(
                     child: const Text("Reset Connection"),
                     onPressed: () {

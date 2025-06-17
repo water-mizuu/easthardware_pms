@@ -74,16 +74,20 @@ class _AdminNavigationViewState extends State<AdminNavigationView>
   late final AnimatedScrollController _scrollController;
   late int _selectedIndex;
 
-  late final List<NavigationPaneItem> _navigationItems = buildNavigationItems(context);
+  late final List<NavigationPaneItem> _navigationItems =
+      buildNavigationItems(context);
   late final List<NavigationPaneItem> _footerItems = footerItems(context);
-  late final List<PaneItem> _expandedNavigationItems = _navigationItems.expandItems().toList();
+  late final List<PaneItem> _expandedNavigationItems =
+      _navigationItems.expandItems().toList();
 
   @override
   void initState() {
     super.initState();
 
-    _routeIndexMapper = NavRailRouteIndexMapper(items: _expandedNavigationItems);
-    _scrollController = AnimatedScrollController(animationFactory: const ChromiumEaseInOut());
+    _routeIndexMapper =
+        NavRailRouteIndexMapper(items: _expandedNavigationItems);
+    _scrollController =
+        AnimatedScrollController(animationFactory: const ChromiumEaseInOut());
     _selectedIndex = 0;
   }
 
@@ -266,6 +270,33 @@ class _AdminNavigationViewState extends State<AdminNavigationView>
             icon: FluentIcons.user_window,
             title: 'User Logs',
             route: AppRoutes.admin.userLogs,
+          ),
+        ],
+      ),
+      navItem(
+        icon: FluentIcons.settings,
+        title: 'Settings',
+        // route: AppRoutes.admin.userLogs,
+        items: [
+          navItem(
+            icon: FluentIcons.archive,
+            title: 'Archived Products',
+            // route: AppRoutes.admin.order,
+          ),
+          navItem(
+            icon: FluentIcons.save,
+            title: 'System Backup',
+            // route: AppRoutes.admin.billing,
+          ),
+          navItem(
+            icon: FluentIcons.help,
+            title: 'Help',
+            // route: AppRoutes.admin.userLogs,
+          ),
+          navItem(
+            icon: FluentIcons.info,
+            title: 'About',
+            // route: AppRoutes.admin.dashboard,
           ),
         ],
       ),

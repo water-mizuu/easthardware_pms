@@ -373,13 +373,15 @@ class ProductsDataTable extends StatefulWidget {
 
 class _ProductsDataTableState extends State<ProductsDataTable> {
   static const double cellHeight = 36.0;
-  static final Map<String, SpanExtent> _rowExtents = {
+
+  late final Map<String, SpanExtent> _rowExtents = {
     "Name": const MaxSpanExtent(FixedSpanExtent(240.00), FractionalSpanExtent(0.33)),
     "Category": const MaxSpanExtent(FixedSpanExtent(80.00), FractionalSpanExtent(0.33)),
     "Price": const FixedSpanExtent(120),
     "Cost": const FixedSpanExtent(120),
     "Quantity": const FixedSpanExtent(120),
-    "Actions": const MaxSpanExtent(FixedSpanExtent(80.00), RemainingSpanExtent()),
+    if (context.read<AuthenticationBloc>().state.user?.accessLevel == AccessLevel.administrator)
+      "Actions": const MaxSpanExtent(FixedSpanExtent(80.00), RemainingSpanExtent()),
   };
 
   late final AnimatedScrollController _verticalScrollController;
@@ -422,15 +424,19 @@ class _ProductsDataTableState extends State<ProductsDataTable> {
             return const DataTablePlaceHolder(FluentIcons.product_list, 'Products');
           }
 
+          final loggedInUser = context.select((AuthenticationBloc b) => b.state.user?.accessLevel);
           final matrix = [
             [
               for (final columnName in _rowExtents.keys)
                 Text(columnName, style: const TextStyle(fontWeight: FontWeight.w600)),
             ],
             for (final product in displayProducts) //
-              if (DataRowMapper.mapProductToRow(product, editAction: () {
-                context.navigateWithExtra(AppRoutes.admin.editProduct, product);
-              })
+              if (DataRowMapper.mapProductToRow(product,
+                      editAction: loggedInUser == AccessLevel.administrator
+                          ? () {
+                              context.navigateWithExtra(AppRoutes.admin.editProduct, product);
+                            }
+                          : null)
                   case final row)
                 [
                   for (final cell in row.cells)
