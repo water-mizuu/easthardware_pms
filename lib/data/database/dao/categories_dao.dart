@@ -1,5 +1,6 @@
 import 'package:easthardware_pms/data/database/dao/dao_base.dart';
 import 'package:easthardware_pms/data/database/database_helper.dart';
+import 'package:easthardware_pms/data/database/tables/categories_table.dart';
 import 'package:easthardware_pms/domain/models/category.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
@@ -30,6 +31,8 @@ abstract interface class CategoriesDao {
 
   /// Deletes a category.
   Future<void> deleteCategory(int id);
+
+  Future<Category?> getCategoryByName(String name);
 }
 
 /// Implementation of the CategoriesDao interface
@@ -98,5 +101,19 @@ final class CategoriesDaoImpl extends DaoBase implements CategoriesDao {
       whereArgs: [category.id],
     );
     return category;
+  }
+
+  @override
+  Future<Category?> getCategoryByName(String name) async {
+    final db = databaseHelper.database;
+    final id = await db.query(
+      CategoriesTable.CATEGORIES_TABLE_NAME,
+      where: '${CategoriesTable.CATEGORIES_NAME} = ?',
+      whereArgs: [name],
+    );
+    if (id.isNotEmpty) {
+      return Category.fromMap(id.first);
+    }
+    return null;
   }
 }

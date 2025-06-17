@@ -6,6 +6,7 @@ class ProductListState with EquatableMixin {
     required this.lowStockProducts,
     required this.deadStockProducts,
     required this.fastMovingProducts,
+    this.latest,
     this.status = DataStatus.initial,
   });
 
@@ -14,12 +15,14 @@ class ProductListState with EquatableMixin {
         lowStockProducts = const [],
         deadStockProducts = const [],
         fastMovingProducts = const [],
-        status = DataStatus.initial;
+        status = DataStatus.initial,
+        latest = null;
 
   final List<Product> allProducts;
   final List<Product> lowStockProducts;
   final List<Product> deadStockProducts;
   final List<Product> fastMovingProducts;
+  final Product? latest;
   final DataStatus status;
 
   ProductListState Function({
@@ -27,6 +30,7 @@ class ProductListState with EquatableMixin {
     List<Product> lowStockProducts,
     List<Product> deadStockProducts,
     List<Product> fastMovingProducts,
+    Product? latest,
     DataStatus status,
   }) get copyWith {
     return ({
@@ -34,6 +38,7 @@ class ProductListState with EquatableMixin {
       Object? lowStockProducts = undefined,
       Object? deadStockProducts = undefined,
       Object? fastMovingProducts = undefined,
+      Product? latest,
       Object? status = undefined,
     }) {
       return ProductListState(
@@ -41,6 +46,7 @@ class ProductListState with EquatableMixin {
         lowStockProducts: lowStockProducts.or(this.lowStockProducts),
         deadStockProducts: deadStockProducts.or(this.deadStockProducts),
         fastMovingProducts: fastMovingProducts.or(this.fastMovingProducts),
+        latest: latest.or(this.latest),
         status: status.or(this.status),
       );
     };

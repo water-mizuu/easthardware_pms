@@ -1,4 +1,3 @@
-import 'package:easthardware_pms/data/database/dao/categories_dao.dart';
 import 'package:easthardware_pms/data/database/dao/products_dao.dart';
 import 'package:easthardware_pms/data/database/database_helper.dart';
 import 'package:easthardware_pms/domain/errors/exceptions.dart';
@@ -7,11 +6,9 @@ import 'package:easthardware_pms/domain/repository/product_repository.dart';
 
 class ProductRepositoryImpl implements ProductRepository {
   ProductRepositoryImpl(DatabaseHelper? databaseHelper)
-      : _productsDao = ProductsDao(databaseHelper),
-        _categoriesDao = CategoriesDao(databaseHelper);
+      : _productsDao = ProductsDao(databaseHelper);
 
   final ProductsDao _productsDao;
-  final CategoriesDao _categoriesDao;
 
   @override
   Future<void> deleteProduct(int id) {
@@ -26,14 +23,6 @@ class ProductRepositoryImpl implements ProductRepository {
   Future<List<Product>> getAllProducts() async {
     try {
       final products = await _productsDao.getAllProducts();
-      final categories = await _categoriesDao.getAllCategories();
-      final categoryMap = {
-        for (final c in categories) c.id: c.name,
-      };
-
-      for (final product in products) {
-        product.categoryName = categoryMap[product.categoryId] ?? "Uncategorized";
-      }
 
       return products;
     } catch (e) {

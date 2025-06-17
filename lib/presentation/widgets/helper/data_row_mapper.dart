@@ -25,7 +25,7 @@ class DataRowMapper {
     if (product.isBelowCriticalLevel == true) {
       return WarningDataRow([
         DataCell(Text(product.name)),
-        DataCell(Text(product.categoryName!)),
+        DataCell(Text(product.categoryName ?? '')),
         DataCell(Text(product.salePrice.toString())),
         DataCell(Text(product.orderCost.toString())),
         DataCell(Row(
@@ -93,8 +93,7 @@ class DataRowMapper {
     ]);
   }
 
-  static DataRow mapCategoryToRow(
-      Category category, int productCount, Function() action) {
+  static DataRow mapCategoryToRow(Category category, int productCount, Function() action) {
     return DataRow(cells: [
       DataCell(Text(category.id!.toString())),
       DataCell(Text(category.name.toString())),
@@ -111,8 +110,7 @@ class DataRowMapper {
       cells: [
         DataCell(Text('${user.firstName} ${user.lastName}')),
         DataCell(Text(user.accessLevel.name.toTitleCase())),
-        DataCell(Text(
-            DateFormat.yMMMMd().format(DateTime.parse(user.creationDate)))),
+        DataCell(Text(DateFormat.yMMMMd().format(DateTime.parse(user.creationDate)))),
         if (isLoggedIn)
           DataCell(
             Container(
@@ -146,12 +144,10 @@ class DataRowMapper {
   }
 
   static DataRow mapInvoiceToRow(Invoice invoice, Function() action) {
-    final invoiceDate =
-        DateFormat.yMMMMd().format(invoice.invoiceDate).toString();
+    final invoiceDate = DateFormat.yMMMMd().format(invoice.invoiceDate).toString();
     final invoiceId = invoice.id!.toString();
-    final invoiceCustomer = invoice.customerName.isNotEmpty
-        ? invoice.customerName
-        : "Unnamed Customer";
+    final invoiceCustomer =
+        invoice.customerName.isNotEmpty ? invoice.customerName : "Unnamed Customer";
     final invoiceTotal = invoice.amountDue.toString();
 
     final amountPaid = invoice.amountPaid ?? 0;
@@ -221,22 +217,18 @@ class DataRowMapper {
       )),
       // Discount
       DataCell(ComboBox(
-          items: DiscountType.values
-              .map((type) => ComboBoxItem(child: Text(type.name)))
-              .toList())),
+          items: DiscountType.values.map((type) => ComboBoxItem(child: Text(type.name))).toList())),
       // Amount
       DataCell(TextFormBox()),
       // Delete
-      DataCell(
-          IconButton(icon: const Icon(FluentIcons.remove), onPressed: () {}))
+      DataCell(IconButton(icon: const Icon(FluentIcons.remove), onPressed: () {}))
     ]);
   }
 
   static DataRow mapOrderToRow(Order order, void Function() onViewPressed) {
     final orderId = order.id?.toString() ?? 'N/A';
     final orderDate = DateFormat.yMMMMd().format(order.orderDate);
-    final payee =
-        order.payeeName.isNotEmpty == true ? order.payeeName : 'Unknown Payee';
+    final payee = order.payeeName.isNotEmpty == true ? order.payeeName : 'Unknown Payee';
     // Map expenseType to label
     final expenseType = order.expenseType == 1
         ? 'Restock Order'
@@ -251,8 +243,7 @@ class DataRowMapper {
       DataCell(Text(payee)),
       DataCell(Text(expenseType)),
       DataCell(Text(amount)),
-      DataCell(
-          HyperlinkButton(onPressed: onViewPressed, child: const Text('View'))),
+      DataCell(HyperlinkButton(onPressed: onViewPressed, child: const Text('View'))),
     ]);
   }
 
@@ -296,8 +287,7 @@ class DataRowMapper {
       // Quantity with CompoundButton (Text + ComboBox)
       DataCell(CompoundButton(
         text: product.quantity.toString(),
-        onTextChanged: (value) =>
-            functions.onQuantityChanged(double.tryParse(value) ?? 0),
+        onTextChanged: (value) => functions.onQuantityChanged(double.tryParse(value) ?? 0),
         onComboBoxSelected: (unit) => functions.onUnitSelected(unit),
         items: units
             .map((unit) => ComboBoxItem(
@@ -310,8 +300,7 @@ class DataRowMapper {
       // Rate (TextFormBox)
       DataCell(TextFormBox(
         controller: TextEditingController(text: product.rate.toString()),
-        onChanged: (value) =>
-            functions.onRateChanged(double.tryParse(value) ?? 0),
+        onChanged: (value) => functions.onRateChanged(double.tryParse(value) ?? 0),
       )),
 
       // Amount (TextFormBox, disabled)

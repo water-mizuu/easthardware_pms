@@ -77,7 +77,10 @@ class CreateInvoicePage extends StatelessWidget {
                 final authState = context.read<AuthenticationBloc>().state;
                 final formState = context.read<InvoiceFormBloc>().state;
 
+                // Update Product Stocks
                 context.read<ProductListBloc>().add(const ReloadAllProductsEvent());
+
+                // Add UserLog
                 context.read<UserLogListBloc>().add(
                       AddCreateEvent('Invoice #${latest.id}', authState.user!),
                     );

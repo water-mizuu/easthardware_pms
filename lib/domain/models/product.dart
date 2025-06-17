@@ -40,7 +40,7 @@ class Product {
       fastMovingStockThreshold: (map['fast_moving_threshold'] as num).toDouble(),
       creationDate: map['creation_date']?.toString() ?? '',
       creatorId: map['creator_id'] as int,
-      archiveStatus: map['archived_status'] as int,
+      archiveStatus: map['archive_status'] as int,
       isBelowCriticalLevel: map['is_below_critical_level'] == 1,
       isFastMovingStock: map['is_fast_moving_stock'] == 1,
       isDeadStock: map['is_dead_stock'] == 1,
@@ -147,7 +147,7 @@ class Product {
       'fast_moving_threshold': fastMovingStockThreshold,
       'creation_date': creationDate,
       'creator_id': creatorId,
-      'archive_status': archiveStatus,
+      'archive_status': archiveStatus ?? 0,
     };
   }
 }

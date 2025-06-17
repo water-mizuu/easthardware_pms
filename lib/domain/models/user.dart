@@ -98,7 +98,7 @@ class User {
       'access_level': accessLevel.index,
       'password_hash': base64Encode(passwordHash),
       'salt': base64Encode(salt),
-      'archive_status': archiveStatus,
+      'archive_status': archiveStatus ?? 0,
       'login_status': loginStatus,
       'creation_date': creationDate,
     };

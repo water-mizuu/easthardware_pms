@@ -54,14 +54,13 @@ class FormUnit with EquatableMixin {
   }
 
   // From FormUnit to Unit Data Entity
-  Unit toUnit(int productId) {
+  Unit toUnit() {
     final unitQuantity = int.parse(this.unitQuantity.value);
     final mainQuantity = int.parse(this.mainQuantity.value);
 
     return Unit(
       id: id,
       name: name.value,
-      productId: productId,
       mainQuantity: mainQuantity,
       unitQuantity: unitQuantity,
     );

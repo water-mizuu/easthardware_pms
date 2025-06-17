@@ -54,4 +54,13 @@ class CategoryRepositoryImpl implements CategoryRepository {
       throw DatabaseException('Failed to update category: $e');
     }
   }
+
+  @override
+  Future<Category?> getCategoryByName(String name) {
+    try {
+      return _categoriesDao.getCategoryByName(name);
+    } catch (e) {
+      throw DatabaseException('Failed to fetch category by name: $e');
+    }
+  }
 }

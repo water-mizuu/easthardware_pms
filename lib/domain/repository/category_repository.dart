@@ -7,6 +7,7 @@ abstract class CategoryRepository {
 
   Future<List<Category>> getAllCategories();
   Future<Category?> getCategoryById(int id);
+  Future<Category?> getCategoryByName(String name);
 
   Future<Category> insertCategory(Category category);
   Future<Category> updateCategory(Category category);

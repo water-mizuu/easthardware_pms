@@ -16,18 +16,30 @@ class ReloadAllProductsEvent extends ProductListEvent {
 }
 
 class AddProductEvent extends ProductListEvent {
-  const AddProductEvent(this.product);
+  const AddProductEvent({
+    required this.product,
+    required this.category,
+    required this.units,
+  });
 
   final Product product;
+  final List<Unit> units;
+  final Category category;
 
   @override
-  List<Object> get props => [product];
+  List<Object> get props => [product, category, units];
 }
 
 class UpdateProductEvent extends ProductListEvent {
-  const UpdateProductEvent(this.product);
+  const UpdateProductEvent(
+    this.product,
+    this.category,
+    this.units,
+  );
 
   final Product product;
+  final Category category;
+  final List<Unit> units;
 
   @override
   List<Object> get props => [product];

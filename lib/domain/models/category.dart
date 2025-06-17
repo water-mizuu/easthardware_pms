@@ -38,7 +38,7 @@ class Category {
   Map<String, dynamic> toMap() {
     return <String, dynamic>{
       "name": name,
-      "archive_status": archiveStatus,
+      "archive_status": archiveStatus ?? 0,
     };
   }
 }

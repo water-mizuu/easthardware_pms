@@ -153,8 +153,12 @@ class DependencyInjector extends ChangeNotifier {
         create: (context) {
           final state = _productListBloc?.state ?? const ProductListState.initial();
 
-          return _productListBloc = ProductListBloc(_productRepository, state)
-            ..addIf(_databaseHelper != null, const LoadAllProductsEvent());
+          return _productListBloc = ProductListBloc(
+            _productRepository,
+            _categoryRepository,
+            _unitRepository,
+            state,
+          )..addIf(_databaseHelper != null, const LoadAllProductsEvent());
         },
       ),
       BlocProvider(

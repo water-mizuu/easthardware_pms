@@ -24,49 +24,16 @@ class CreateProductPage extends StatelessWidget {
   const CreateProductPage({super.key});
 
   void _handleFormSubmit(BuildContext context, ProductFormState state) {
-    // Handle Category Search and Creation
-    final formCategory = state.categoryName;
-    final stateCategories = context.read<CategoryListBloc>().state.categories;
-    final matchedCategory = stateCategories.firstWhere(
-      (category) => category.name == formCategory,
-      orElse: () {
-        /// If no match found, create a new category.
-        final newCategory = Category(name: formCategory, id: stateCategories.length);
-        context.read<CategoryListBloc>().add(AddCategoryEvent(newCategory));
-
-        return newCategory;
-      },
-    );
-
-    final createdProduct = state //
-        .toProduct()
-        .copyWith(
-          categoryId: matchedCategory.id,
-          categoryName: matchedCategory.name,
-          id: state.productId,
+    context.read<ProductListBloc>().add(
+          AddProductEvent(
+            category: Category(name: state.categoryName),
+            product: state.toProduct(),
+            units: [
+              for (final unit in state.secondaryUnits)
+                if (unit.name.isNotEmpty) unit.toUnit()
+            ],
+          ),
         );
-
-    context //
-        .read<ProductListBloc>()
-        .add(AddProductEvent(createdProduct));
-    context //
-        .read<UserLogListBloc>()
-        .add(AddCreateEvent(
-          'Product #${state.productId}',
-          context.read<AuthenticationBloc>().state.user!,
-        ));
-
-    final mappedUnits = state.secondaryUnits
-        .where((formUnit) => formUnit.name.value.isNotEmpty)
-        .map((formUnit) => formUnit.toUnit(state.productId!));
-
-    for (final unit in mappedUnits) {
-      context.read<UnitListBloc>().add(AddUnitEvent(unit));
-    }
-
-    /// Let the form know that the submission is complete,
-    ///   and we reset the form state.
-    context.read<ProductFormBloc>().add(FormSubmittedEvent());
   }
 
   @override
@@ -139,6 +106,24 @@ class CreateProductPage extends StatelessWidget {
                 );
               },
             ),
+            BlocListener<ProductListBloc, ProductListState>(
+              listenWhen: (previous, current) =>
+                  previous.latest != current.latest && //
+                  current.latest != null,
+              listener: (context, state) {
+                final latest = state.latest!;
+                final authState = context.read<AuthenticationBloc>().state;
+
+                // Update Category
+                context.read<CategoryListBloc>().add(const ReloadCategoriesEvent());
+                // Update Secondary Units
+                context.read<UnitListBloc>().add(const ReloadUnitsEvent());
+                context
+                    .read<UserLogListBloc>()
+                    .add(AddCreateEvent('Product ${latest.id}', authState.user!));
+                context.read<ProductFormBloc>().add(FormSubmittedEvent());
+              },
+            )
           ],
           child: BlocListener<ProductFormBloc, ProductFormState>(
             listener: (context, state) {
@@ -191,10 +176,9 @@ class PageHeader extends StatelessWidget {
         TextButtonFilled(
           'Save Product',
           onPressed: () {
-            // Added 1 because SQLite has one-based indexing
-            print(context.read<AuthenticationBloc>().state.user);
             final creatorId = context.read<AuthenticationBloc>().state.user!.id!;
             final productId = context.read<ProductListBloc>().state.allProducts.length;
+            printBoxed(productId);
             context.read<ProductFormBloc>().add(
                   FormButtonPressedEvent(productId: productId, creatorId: creatorId),
                 );

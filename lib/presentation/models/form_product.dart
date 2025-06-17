@@ -2,6 +2,7 @@ import 'package:easthardware_pms/domain/enums/enums.dart';
 import 'package:easthardware_pms/domain/models/invoice_product.dart';
 import 'package:easthardware_pms/domain/models/order_product.dart';
 import 'package:easthardware_pms/domain/models/product.dart';
+import 'package:easthardware_pms/utils/undefined.dart';
 
 class FormProduct {
   factory FormProduct.fromProduct(Product product) {
@@ -44,7 +45,7 @@ class FormProduct {
   final DiscountType discountType;
   final String? errorMessage;
 
-  FormProduct copyWith({
+  FormProduct Function({
     int? productId,
     String? productName,
     String? description,
@@ -57,21 +58,37 @@ class FormProduct {
     double? discount,
     DiscountType? discountType,
     String? errorMessage,
-  }) {
-    return FormProduct(
-      productId: productId ?? this.productId,
-      productName: productName ?? this.productName,
-      description: description ?? this.description,
-      quantity: quantity ?? this.quantity,
-      unit: unit ?? this.unit,
-      unitId: unitId ?? this.unitId,
-      conversionFactor: conversionFactor ?? this.conversionFactor,
-      rate: rate ?? this.rate,
-      amount: amount ?? this.amount,
-      discount: discount ?? this.discount,
-      discountType: discountType ?? this.discountType,
-      errorMessage: errorMessage,
-    );
+  }) get copyWith {
+    return ({
+      Object? productId = undefined,
+      Object? productName = undefined,
+      Object? description = undefined,
+      Object? quantity = undefined,
+      Object? unit = undefined,
+      Object? unitId = undefined,
+      Object? conversionFactor = undefined,
+      Object? rate = undefined,
+      Object? amount = undefined,
+      Object? discount = undefined,
+      Object? discountType = undefined,
+      Object? errorMessage = undefined,
+    }) {
+      return FormProduct(
+        productId: productId == undefined ? this.productId : productId as int?,
+        productName: productName == undefined ? this.productName : productName as String,
+        description: description == undefined ? this.description : description as String?,
+        quantity: quantity == undefined ? this.quantity : quantity as double,
+        unit: unit == undefined ? this.unit : unit as String,
+        unitId: unitId == undefined ? this.unitId : unitId as int?,
+        conversionFactor:
+            conversionFactor == undefined ? this.conversionFactor : conversionFactor as double?,
+        rate: rate == undefined ? this.rate : rate as double,
+        amount: amount == undefined ? this.amount : amount as double,
+        discount: discount == undefined ? this.discount : discount as double?,
+        discountType: discountType == undefined ? this.discountType : discountType as DiscountType,
+        errorMessage: errorMessage == undefined ? this.errorMessage : errorMessage as String?,
+      );
+    };
   }
 
   InvoiceProduct toInvoiceProduct() {
