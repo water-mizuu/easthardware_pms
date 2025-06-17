@@ -18,6 +18,10 @@ class OrderFormState extends Equatable {
     this.status = FormStatus.initial,
     this.orderDateErrorMessage,
     this.paymentDateErrorMessage,
+    this.payeeNameErrorMessage,
+    this.paymentMethodErrorMessage,
+    this.referenceNumberErrorMessage,
+    this.dialogErrorMessage,
   })  : orderDate = orderDate ?? DateTime.now(),
         paymentDate = paymentDate ?? DateTime.now(),
         creationDate = creationDate ?? DateTime.now(),
@@ -39,6 +43,10 @@ class OrderFormState extends Equatable {
   final FormStatus status;
   final String? orderDateErrorMessage;
   final String? paymentDateErrorMessage;
+  final String? payeeNameErrorMessage;
+  final String? paymentMethodErrorMessage;
+  final String? referenceNumberErrorMessage;
+  final String? dialogErrorMessage;
 
   OrderFormState Function({
     String payeeName,
@@ -57,6 +65,10 @@ class OrderFormState extends Equatable {
     FormStatus status,
     String? orderDateErrorMessage,
     String? paymentDateErrorMessage,
+    String? payeeNameErrorMessage,
+    String? paymentMethodErrorMessage,
+    String? referenceNumberErrorMessage,
+    String? dialogErrorMessage,
   }) get copyWith {
     return ({
       Object? payeeName = undefined,
@@ -75,6 +87,10 @@ class OrderFormState extends Equatable {
       Object? status = undefined,
       Object? orderDateErrorMessage = undefined,
       Object? paymentDateErrorMessage = undefined,
+      Object? payeeNameErrorMessage = undefined,
+      Object? paymentMethodErrorMessage = undefined,
+      Object? referenceNumberErrorMessage = undefined,
+      Object? dialogErrorMessage = undefined,
     }) {
       return OrderFormState(
         payeeName: payeeName.or(this.payeeName),
@@ -95,6 +111,13 @@ class OrderFormState extends Equatable {
             orderDateErrorMessage.or(this.orderDateErrorMessage),
         paymentDateErrorMessage:
             paymentDateErrorMessage.or(this.paymentDateErrorMessage),
+        payeeNameErrorMessage:
+            payeeNameErrorMessage.or(this.payeeNameErrorMessage),
+        paymentMethodErrorMessage:
+            paymentMethodErrorMessage.or(this.paymentMethodErrorMessage),
+        referenceNumberErrorMessage:
+            referenceNumberErrorMessage.or(this.referenceNumberErrorMessage),
+        dialogErrorMessage: dialogErrorMessage.or(this.dialogErrorMessage),
       );
     };
   }
@@ -117,6 +140,10 @@ class OrderFormState extends Equatable {
         status,
         orderDateErrorMessage,
         paymentDateErrorMessage,
+        payeeNameErrorMessage,
+        paymentMethodErrorMessage,
+        referenceNumberErrorMessage,
+        dialogErrorMessage,
       ];
 
   Order toOrder() {

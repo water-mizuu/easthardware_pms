@@ -1,6 +1,7 @@
 import 'package:easthardware_pms/domain/enums/enums.dart';
 import 'package:easthardware_pms/domain/models/user.dart';
 import 'package:easthardware_pms/domain/services/cryptography_service.dart';
+import 'package:easthardware_pms/utils/boxed.dart';
 import 'package:flutter/foundation.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:uuid/uuid.dart';
@@ -21,7 +22,7 @@ class UsersTable {
 
   static Future<void> createTable(DatabaseExecutor database) async {
     await database.execute('''
-      CREATE TABLE $USERS_TABLE_NAME (
+      CREATE TABLE IF NOT EXISTS $USERS_TABLE_NAME (
       $USERS_ID INTEGER PRIMARY KEY AUTOINCREMENT,
       $USERS_UID TEXT NOT NULL,
       $USERS_USERNAME TEXT NOT NULL UNIQUE,
@@ -46,6 +47,7 @@ class UsersTable {
   static Future<void> _insertInitialAdmin(DatabaseExecutor database) async {
     const password = 'Admin123';
 
+    printBoxed("LAST BIRTHDAY", "LIFE GOES ON WIHTOUT ME");
     var id = 0;
     {
       final salt = CryptographyService.generateSalt();
@@ -63,7 +65,8 @@ class UsersTable {
         passwordHash: passwordHash,
         salt: salt,
       );
-      database.insert(UsersTable.USERS_TABLE_NAME, admin.toMap());
+      database.insert(UsersTable.USERS_TABLE_NAME, admin.toMap(),
+          conflictAlgorithm: ConflictAlgorithm.replace);
     }
 
     if (kDebugMode) {
@@ -82,7 +85,8 @@ class UsersTable {
         passwordHash: passwordHash,
         salt: salt,
       );
-      database.insert(UsersTable.USERS_TABLE_NAME, admin.toMap());
+      database.insert(UsersTable.USERS_TABLE_NAME, admin.toMap(),
+          conflictAlgorithm: ConflictAlgorithm.replace);
     }
 
     if (kDebugMode) {
@@ -102,7 +106,8 @@ class UsersTable {
         salt: salt,
       );
 
-      database.insert(UsersTable.USERS_TABLE_NAME, staff.toMap());
+      database.insert(UsersTable.USERS_TABLE_NAME, staff.toMap(),
+          conflictAlgorithm: ConflictAlgorithm.replace);
     }
   }
 }

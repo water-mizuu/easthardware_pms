@@ -101,18 +101,24 @@ Future<DatabaseMethodResult> serverHandleDatabaseMethod(
             'delete',
             [
               final String table,
-              {'where': final String? where, 'whereArgs': final List<Object?>? whereArgs}
+              {
+                'where': final String? where,
+                'whereArgs': final List<Object?>? whereArgs
+              }
             ]
           ):
-          final result = await isolateDatabase.delete(table, where: where, whereArgs: whereArgs);
+          final result = await isolateDatabase.delete(table,
+              where: where, whereArgs: whereArgs);
           final hasChanged = result > 0;
-          jobResult = DatabaseMethodResult(result: result, hasChanged: hasChanged);
+          jobResult =
+              DatabaseMethodResult(result: result, hasChanged: hasChanged);
           break;
 
         case ('execute', [final String sql, final List<Object?>? sqlArgs]):
           await isolateDatabase.execute(sql, sqlArgs);
           // Execute doesn't return a count, but we assume it modified the database
-          jobResult = const DatabaseMethodResult(result: null, hasChanged: true);
+          jobResult =
+              const DatabaseMethodResult(result: null, hasChanged: true);
           break;
 
         case (
@@ -135,7 +141,8 @@ Future<DatabaseMethodResult> serverHandleDatabaseMethod(
                 : null,
           );
           final hasChanged = result > 0;
-          jobResult = DatabaseMethodResult(result: result, hasChanged: hasChanged);
+          jobResult =
+              DatabaseMethodResult(result: result, hasChanged: hasChanged);
           break;
 
         case (
@@ -209,13 +216,15 @@ Future<DatabaseMethodResult> serverHandleDatabaseMethod(
         case ('rawDelete', [final String sql, final List<Object?>? args]):
           final result = await isolateDatabase.rawDelete(sql, args);
           final hasChanged = result > 0;
-          jobResult = DatabaseMethodResult(result: result, hasChanged: hasChanged);
+          jobResult =
+              DatabaseMethodResult(result: result, hasChanged: hasChanged);
           break;
 
         case ('rawInsert', [final String sql, final List<Object?>? args]):
           final result = await isolateDatabase.rawInsert(sql, args);
           final hasChanged = result > 0;
-          jobResult = DatabaseMethodResult(result: result, hasChanged: hasChanged);
+          jobResult =
+              DatabaseMethodResult(result: result, hasChanged: hasChanged);
           break;
 
         case ('rawQuery', [final String sql, final List<Object?>? args]):
@@ -226,9 +235,14 @@ Future<DatabaseMethodResult> serverHandleDatabaseMethod(
 
         case (
             'rawQueryCursor',
-            [final String sql, final List<Object?>? args, {'bufferSize': final int? bufferSize}]
+            [
+              final String sql,
+              final List<Object?>? args,
+              {'bufferSize': final int? bufferSize}
+            ]
           ):
-          final result = await isolateDatabase.rawQueryCursor(sql, args, bufferSize: bufferSize);
+          final result = await isolateDatabase.rawQueryCursor(sql, args,
+              bufferSize: bufferSize);
           // Query operations don't modify the database
           jobResult = DatabaseMethodResult(result: result, hasChanged: false);
           break;
@@ -236,13 +250,15 @@ Future<DatabaseMethodResult> serverHandleDatabaseMethod(
         case ('rawUpdate', [final String sql, final List<Object?>? args]):
           final result = await isolateDatabase.rawUpdate(sql, args);
           final hasChanged = result > 0;
-          jobResult = DatabaseMethodResult(result: result, hasChanged: hasChanged);
+          jobResult =
+              DatabaseMethodResult(result: result, hasChanged: hasChanged);
           break;
 
         case ('rawUpdate', [final String sql]):
           final result = await isolateDatabase.rawUpdate(sql);
           final hasChanged = result > 0;
-          jobResult = DatabaseMethodResult(result: result, hasChanged: hasChanged);
+          jobResult =
+              DatabaseMethodResult(result: result, hasChanged: hasChanged);
           break;
 
         case (
@@ -267,7 +283,8 @@ Future<DatabaseMethodResult> serverHandleDatabaseMethod(
                 : null,
           );
           final hasChanged = result > 0;
-          jobResult = DatabaseMethodResult(result: result, hasChanged: hasChanged);
+          jobResult =
+              DatabaseMethodResult(result: result, hasChanged: hasChanged);
           break;
 
         case (
@@ -295,7 +312,10 @@ Future<DatabaseMethodResult> serverHandleDatabaseMethod(
             'batch.apply',
             [
               final List<Object> operations,
-              {'noResult': final bool? noResult, 'continueOnError': final bool? continueOnError}
+              {
+                'noResult': final bool? noResult,
+                'continueOnError': final bool? continueOnError
+              }
             ]
           ):
           jobResult = await _executeBatch(
@@ -453,6 +473,9 @@ Future<Database> _getDatabase(int? savedHeartbeat) async {
       onOpen: (db) async {
         /// Regardless of the database version, we reset the login status for all users.
 
+        /// Ensures that the state is usable for the server isolate.
+        UsersTable.createTable(db);
+
         if (savedHeartbeat == null) {
           // Reset the login status for the user
           await db.update(
@@ -474,10 +497,12 @@ Future<Database> _getDatabase(int? savedHeartbeat) async {
 
         final databaseHelper = DirectDatabaseHelper(db);
         final userLogsDao = UserLogsDao(databaseHelper);
-        final lastHeartbeat = DateTime.fromMillisecondsSinceEpoch(savedHeartbeat);
+        final lastHeartbeat =
+            DateTime.fromMillisecondsSinceEpoch(savedHeartbeat);
         for (final userMap in loggedInUsers) {
           await userLogsDao.insertUserLog(
-            UserLog.logout(user: User.fromMap(userMap), eventTime: lastHeartbeat),
+            UserLog.logout(
+                user: User.fromMap(userMap), eventTime: lastHeartbeat),
           );
         }
 
@@ -511,7 +536,8 @@ Future<DatabaseMethodResult> _executeBatch(
       case [final String method, final Object? params]:
         switch (method) {
           case 'rawInsert':
-            if (params case [final String sql, final List<Object?>? arguments]) {
+            if (params
+                case [final String sql, final List<Object?>? arguments]) {
               batch.rawInsert(sql, arguments);
               hasModifyingOperations = true;
             }
@@ -540,7 +566,8 @@ Future<DatabaseMethodResult> _executeBatch(
             break;
 
           case 'rawUpdate':
-            if (params case [final String sql, final List<Object?>? arguments]) {
+            if (params
+                case [final String sql, final List<Object?>? arguments]) {
               batch.rawUpdate(sql, arguments);
               hasModifyingOperations = true;
             }
@@ -571,7 +598,8 @@ Future<DatabaseMethodResult> _executeBatch(
             break;
 
           case 'rawDelete':
-            if (params case [final String sql, final List<Object?>? arguments]) {
+            if (params
+                case [final String sql, final List<Object?>? arguments]) {
               batch.rawDelete(sql, arguments);
               hasModifyingOperations = true;
             }
@@ -581,7 +609,10 @@ Future<DatabaseMethodResult> _executeBatch(
             if (params
                 case [
                   final String table,
-                  {'where': final String? where, 'whereArgs': final List<Object?>? whereArgs}
+                  {
+                    'where': final String? where,
+                    'whereArgs': final List<Object?>? whereArgs
+                  }
                 ]) {
               batch.delete(table, where: where, whereArgs: whereArgs);
               hasModifyingOperations = true;
@@ -589,7 +620,8 @@ Future<DatabaseMethodResult> _executeBatch(
             break;
 
           case 'execute':
-            if (params case [final String sql, final List<Object?>? arguments]) {
+            if (params
+                case [final String sql, final List<Object?>? arguments]) {
               batch.execute(sql, arguments);
               hasModifyingOperations = true;
             }
@@ -626,7 +658,8 @@ Future<DatabaseMethodResult> _executeBatch(
             break;
 
           case 'rawQuery':
-            if (params case [final String sql, final List<Object?>? arguments]) {
+            if (params
+                case [final String sql, final List<Object?>? arguments]) {
               batch.rawQuery(sql, arguments);
               // Query operations don't modify the database
             }
@@ -634,7 +667,8 @@ Future<DatabaseMethodResult> _executeBatch(
 
           default:
             if (kDebugMode) {
-              print('Unknown batch operation method: $method with params: $params');
+              print(
+                  'Unknown batch operation method: $method with params: $params');
             }
         }
         break;
@@ -657,10 +691,12 @@ Future<DatabaseMethodResult> _executeBatch(
           continueOnError: continueOnError,
         );
 
-  return DatabaseMethodResult(result: result, hasChanged: hasModifyingOperations);
+  return DatabaseMethodResult(
+      result: result, hasChanged: hasModifyingOperations);
 }
 
-extension type const DatabaseMethodResult._((Object? result, bool hasChanged) record) {
+extension type const DatabaseMethodResult._(
+    (Object? result, bool hasChanged) record) {
   const DatabaseMethodResult({
     required Object? result,
     required bool hasChanged,

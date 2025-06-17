@@ -29,25 +29,17 @@ class CreateRestockOrderPage extends StatelessWidget {
       child: MultiBlocListener(
         listeners: [
           BlocListener<OrderFormBloc, OrderFormState>(
+            listenWhen: (previous, current) =>
+                previous.status != current.status ||
+                previous.dialogErrorMessage != current.dialogErrorMessage,
             listener: (context, state) {
-              if (state.status == FormStatus.submitting) {
-                final order = state.copyWith().toOrder();
-                print('Order ID (restock): ${order.id}');
-                final products = state.products
-                    .map((product) => product.toOrderProduct(order.id ?? 0))
-                    .toList();
-                context
-                    .read<OrderListBloc>()
-                    .add(AddOrderEvent(order, products));
-                context.read<OrderFormBloc>().add(FormSubmittedEvent());
-              } else if (state.status == FormStatus.error) {
+              if (state.status == FormStatus.error &&
+                  state.dialogErrorMessage != null) {
                 showDialog<String>(
                   context: context,
                   builder: (dialogContext) => ContentDialog(
                     title: const Text('Incomplete Details'),
-                    content: Text(state.orderDateErrorMessage ??
-                        state.paymentDateErrorMessage ??
-                        'Please check your order details.'),
+                    content: Text(state.dialogErrorMessage!),
                     actions: [
                       FilledButton(
                         child: const Text('OK'),
@@ -58,6 +50,15 @@ class CreateRestockOrderPage extends StatelessWidget {
                     ],
                   ),
                 );
+              } else if (state.status == FormStatus.submitting) {
+                final order = state.copyWith().toOrder();
+                final products = state.products
+                    .map((product) => product.toOrderProduct(order.id ?? 0))
+                    .toList();
+                context
+                    .read<OrderListBloc>()
+                    .add(AddOrderEvent(order, products));
+                context.read<OrderFormBloc>().add(FormSubmittedEvent());
               }
             },
           ),

@@ -38,7 +38,11 @@ class OrderFormBloc extends Bloc<OrderFormEvent, OrderFormState> {
 
   void _onPayeeNameChanged(
       PayeeNameChangedEvent event, Emitter<OrderFormState> emit) {
-    emit(state.copyWith(payeeName: event.payeeName));
+    emit(state.copyWith(
+      payeeName: event.payeeName,
+      payeeNameErrorMessage:
+          event.payeeName.isEmpty ? 'Payee name is required.' : null,
+    ));
   }
 
   void _onOrderDateChanged(
@@ -72,12 +76,22 @@ class OrderFormBloc extends Bloc<OrderFormEvent, OrderFormState> {
 
   void _onPaymentMethodChanged(
       PaymentMethodChangedEvent event, Emitter<OrderFormState> emit) {
-    emit(state.copyWith(paymentMethod: event.paymentMethod));
+    emit(state.copyWith(
+      paymentMethod: event.paymentMethod,
+      paymentMethodErrorMessage: event.paymentMethod == undefined
+          ? 'Payment method is required.'
+          : null,
+    ));
   }
 
   void _onReferenceNumberChanged(
       ReferenceNumberChangedEvent event, Emitter<OrderFormState> emit) {
-    emit(state.copyWith(referenceNumber: event.referenceNumber));
+    emit(state.copyWith(
+      referenceNumber: event.referenceNumber,
+      referenceNumberErrorMessage: event.referenceNumber.isEmpty
+          ? 'Reference number is required.'
+          : null,
+    ));
   }
 
   void _onMemoChanged(MemoChangedEvent event, Emitter<OrderFormState> emit) {
@@ -128,10 +142,74 @@ class OrderFormBloc extends Bloc<OrderFormEvent, OrderFormState> {
 
   Future<void> _onFormButtonPressed(
       FormButtonPressedEvent event, Emitter<OrderFormState> emit) async {
-    if (formKey.currentState?.validate() ?? false) {
+    /// Validate required fields
+    final payeeNameError =
+        state.payeeName.isEmpty ? 'Payee name is required.' : null;
+    final paymentMethodError =
+        state.paymentMethod == undefined ? 'Payment method is required.' : null;
+    final referenceNumberError =
+        state.referenceNumber.isEmpty ? 'Reference number is required.' : null;
+
+    // Check if products are valid
+    final products = state.products;
+    if (products.every(
+      (product) =>
+          product.productId == null &&
+          product.description == null &&
+          product.quantity <= 0 &&
+          product.rate <= 0,
+    )) {
+      // Mark all products as having errors
+      emit(state.copyWith(
+        products: products
+            .map((product) =>
+                product.copyWith(errorMessage: 'Order items cannot be empty'))
+            .toList(),
+        status: FormStatus.error,
+      ));
+      return;
+    }
+
+    // Tag incomplete products
+    final taggedProducts = products.map(
+      (product) {
+        if (product.productId == null &&
+            (product.quantity > 0 ||
+                product.description != null ||
+                product.rate > 0)) {
+          return product.copyWith(errorMessage: 'Item cannot be blank');
+        }
+        return product;
+      },
+    ).toList();
+
+    if (taggedProducts.any((product) => product.errorMessage != null)) {
+      emit(state.copyWith(
+        products: taggedProducts,
+        status: FormStatus.error,
+      ));
+      return;
+    }
+
+    // Emit state with all validation errors
+    emit(state.copyWith(
+      payeeNameErrorMessage: payeeNameError,
+      paymentMethodErrorMessage: paymentMethodError,
+      referenceNumberErrorMessage: referenceNumberError,
+      products: taggedProducts,
+    ));
+
+    // Check if form is valid (including the form key validation)
+    final bool isValid = (formKey.currentState?.validate() ?? false) &&
+        payeeNameError == null &&
+        paymentMethodError == null &&
+        referenceNumberError == null &&
+        !taggedProducts.any((product) => product.errorMessage != null);
+
+    if (isValid) {
       emit(state.copyWith(status: FormStatus.submitting));
     } else {
-      emit(state.copyWith(status: FormStatus.invalid));
+      emit(state.copyWith(status: FormStatus.error));
     }
   }
 
@@ -151,7 +229,95 @@ class OrderFormBloc extends Bloc<OrderFormEvent, OrderFormState> {
     Emitter<OrderFormState> emit,
   ) async {
     await Future.delayed(Duration.zero);
+
+    /// Checks
+    /// - Products must not be empty
+    final products = state.products;
+    final orderDateErrorMessage = state.orderDateErrorMessage;
+    final paymentDateErrorMessage = state.paymentDateErrorMessage;
+    final payeeNameErrorMessage = state.payeeNameErrorMessage;
+    final paymentMethodErrorMessage = state.paymentMethodErrorMessage;
+    final referenceNumberErrorMessage = state.referenceNumberErrorMessage;
+
+    // Start validation
+    emit(state.copyWith(status: FormStatus.validating));
+
+    // Check if products are empty
+    if (products.every(
+      (product) =>
+          product.productId == null &&
+          product.description == null &&
+          product.quantity <= 0 &&
+          product.rate <= 0,
+    )) {
+      emit(
+        state.copyWith(
+          status: FormStatus.error,
+          products: products
+              .map(
+                (product) => product.copyWith(
+                  errorMessage: 'Order items cannot be empty',
+                ),
+              )
+              .toList(),
+          dialogErrorMessage: 'Please add at least one product.',
+        ),
+      );
+      return;
+    }
+
+    // Tag incomplete products
+    final taggedProducts = products.map(
+      (product) {
+        if (product.productId == null &&
+            (product.quantity > 0 ||
+                product.description != null ||
+                product.rate > 0)) {
+          return product.copyWith(errorMessage: 'Item cannot be blank');
+        }
+        return product;
+      },
+    ).toList();
+
+    if (taggedProducts
+        .any((product) => product.errorMessage == 'Item cannot be blank')) {
+      return emit(
+        state.copyWith(
+          status: FormStatus.error,
+          products: taggedProducts,
+          dialogErrorMessage: 'Please fill in all product details.',
+        ),
+      );
+    }
+
+    // Check required fields
+    if (payeeNameErrorMessage != null ||
+        paymentMethodErrorMessage != null ||
+        referenceNumberErrorMessage != null) {
+      return emit(
+        state.copyWith(
+          status: FormStatus.error,
+          dialogErrorMessage: payeeNameErrorMessage ??
+              paymentMethodErrorMessage ??
+              referenceNumberErrorMessage ??
+              'Please check required fields.',
+        ),
+      );
+    }
+
+    // Check dates
+    if (orderDateErrorMessage != null || paymentDateErrorMessage != null) {
+      return emit(
+        state.copyWith(
+          status: FormStatus.error,
+          dialogErrorMessage: 'Please select valid order and payment dates.',
+        ),
+      );
+    }
+
+    // If all validation passes, proceed with submission
     emit(state.copyWith(
+      dialogErrorMessage: null,
       creationDate: event.creationDate,
       creatorId: event.creatorId,
       id: event.id,
