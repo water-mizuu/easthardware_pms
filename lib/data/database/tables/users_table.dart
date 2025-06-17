@@ -17,7 +17,7 @@ class UsersTable {
   static const String USERS_ACCESS_LEVEL = 'access_level';
   static const String USERS_SALT = 'salt';
   static const String USERS_CREATION_DATE = 'creation_date';
-  static const String USERS_ARCHIVED_STATUS = 'archived_status';
+  static const String USERS_ARCHIVED_STATUS = 'archive_status';
   static const String USERS_LOGIN_STATUS = 'login_status';
 
   static Future<void> createTable(DatabaseExecutor database) async {
@@ -31,7 +31,7 @@ class UsersTable {
       $USERS_LAST_NAME TEXT NOT NULL,
       $USERS_ACCESS_LEVEL INTEGER NOT NULL,
       $USERS_SALT INTEGER NOT NULL,
-      $USERS_ARCHIVED_STATUS INTEGER NOT NULL,
+      $USERS_ARCHIVED_STATUS INTEGER NOT NULL DEFAULT 0,
       $USERS_CREATION_DATE STRING NOT NULL,
       $USERS_LOGIN_STATUS INTEGER NOT NULL
     )
