@@ -56,7 +56,9 @@ class OrderListBloc extends Bloc<OrderListEvent, OrderListState> {
             product.productId, product.quantity);
       }).toList();
       await Future.wait(updateStockFutures);
-      final orders = List<Order>.from(state.allOrders)..add(order);
+
+      // Fetch all orders to ensure we have the latest data
+      final orders = await _repository.getAllOrders();
       emit(state.copyWith(allOrders: orders, status: DataStatus.success));
     } catch (e) {
       emit(state.copyWith(status: DataStatus.error));

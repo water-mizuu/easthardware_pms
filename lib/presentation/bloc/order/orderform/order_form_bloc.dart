@@ -177,7 +177,7 @@ class OrderFormBloc extends Bloc<OrderFormEvent, OrderFormState> {
             (product.quantity > 0 ||
                 product.description != null ||
                 product.rate > 0)) {
-          return product.copyWith(errorMessage: 'Item cannot be blank');
+          return product.copyWith(errorMessage: 'Order items cannot be blank');
         }
         return product;
       },
@@ -215,7 +215,12 @@ class OrderFormBloc extends Bloc<OrderFormEvent, OrderFormState> {
 
   Future<void> _onFormSubmitted(
       FormSubmittedEvent event, Emitter<OrderFormState> emit) async {
+    // First emit success status
     emit(state.copyWith(status: FormStatus.success));
+
+    // Then emit a new state to trigger UI updates
+    await Future.delayed(Duration.zero);
+    emit(OrderFormState(expenseType: state.expenseType));
   }
 
   void _onClearProducts(
@@ -228,6 +233,9 @@ class OrderFormBloc extends Bloc<OrderFormEvent, OrderFormState> {
     SaveOrderRequestEvent event,
     Emitter<OrderFormState> emit,
   ) async {
+    // First emit validating state to show we're processing
+    emit(state.copyWith(status: FormStatus.validating));
+
     await Future.delayed(Duration.zero);
 
     /// Checks
@@ -269,11 +277,22 @@ class OrderFormBloc extends Bloc<OrderFormEvent, OrderFormState> {
     // Tag incomplete products
     final taggedProducts = products.map(
       (product) {
-        if (product.productId == null &&
-            (product.quantity > 0 ||
-                product.description != null ||
-                product.rate > 0)) {
-          return product.copyWith(errorMessage: 'Item cannot be blank');
+        if (product.productId == null) {
+          // Only mark as error if some fields are filled but not all
+          if (product.quantity > 0 ||
+              product.description != null ||
+              product.rate > 0) {
+            return product.copyWith(errorMessage: 'Item cannot be blank');
+          }
+        } else if (product.productId == -1) {
+          // For expense items, check if all required fields are filled
+          if (product.description == null ||
+              product.description!.isEmpty ||
+              product.quantity <= 0 ||
+              product.rate <= 0) {
+            return product.copyWith(
+                errorMessage: 'Please fill in all item details');
+          }
         }
         return product;
       },

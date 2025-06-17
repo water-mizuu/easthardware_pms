@@ -10,7 +10,8 @@ part 'product_list_event.dart';
 part 'product_list_state.dart';
 
 class ProductListBloc extends Bloc<ProductListEvent, ProductListState> {
-  ProductListBloc(this._repository, ProductListState initialState) : super(initialState) {
+  ProductListBloc(this._repository, ProductListState initialState)
+      : super(initialState) {
     on<LoadAllProductsEvent>(_onLoad);
     on<ReloadAllProductsEvent>(_onReloadAllProducts);
     on<AddProductEvent>(_onAdd);
@@ -36,7 +37,8 @@ class ProductListBloc extends Bloc<ProductListEvent, ProductListState> {
     }
   }
 
-  Future<void> _onReloadAllProducts(ReloadAllProductsEvent event, Emitter emit) async {
+  Future<void> _onReloadAllProducts(
+      ReloadAllProductsEvent event, Emitter emit) async {
     emit(state.copyWith(status: DataStatus.loading));
     try {
       emit(
@@ -57,14 +59,16 @@ class ProductListBloc extends Bloc<ProductListEvent, ProductListState> {
     emit(state.copyWith(status: DataStatus.loading));
     try {
       final insertedProduct = event.product.copyWith(
-        isBelowCriticalLevel: event.product.quantity <= event.product.criticalLevel,
+        isBelowCriticalLevel:
+            event.product.quantity <= event.product.criticalLevel,
         isDeadStock: false,
         isFastMovingStock: false,
       );
 
       await _repository.insertProduct(event.product);
 
-      final products = List<Product>.from(state.allProducts)..add(insertedProduct);
+      final products = List<Product>.from(state.allProducts)
+        ..add(insertedProduct);
       final lowStockProducts = List<Product>.from(state.lowStockProducts);
 
       if (event.product.quantity <= event.product.criticalLevel) {
@@ -87,17 +91,20 @@ class ProductListBloc extends Bloc<ProductListEvent, ProductListState> {
 
     try {
       final updatedProduct = event.product.copyWith(
-        isBelowCriticalLevel: event.product.quantity <= event.product.criticalLevel,
+        isBelowCriticalLevel:
+            event.product.quantity <= event.product.criticalLevel,
       );
       await _repository.updateProduct(updatedProduct);
 
       final updatedProducts = List<Product>.from(state.allProducts);
-      final index = updatedProducts.indexWhere((p) => p.id == updatedProduct.id);
+      final index =
+          updatedProducts.indexWhere((p) => p.id == updatedProduct.id);
       if (index != -1) {
         updatedProducts[index] = updatedProduct;
       }
 
-      final updatedLowStock = updatedProducts.where((p) => p.isBelowCriticalLevel == true).toList();
+      final updatedLowStock =
+          updatedProducts.where((p) => p.isBelowCriticalLevel == true).toList();
 
       emit(
         state.copyWith(
