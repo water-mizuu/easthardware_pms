@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:easthardware_pms/domain/enums/enums.dart';
 import 'package:easthardware_pms/domain/models/product.dart';
 import 'package:easthardware_pms/presentation/bloc/authentication/authentication/'
@@ -412,11 +414,11 @@ class _ProductsDataTableState extends State<ProductsDataTable> {
             return const Center(child: ProgressRing());
           }
 
-          final allProducts = state.allProducts.where((p) => p.archivedStatus == 0).toList();
-          final displayProducts =
-              context.select((InventoryDisplayBloc b) => b.state.filteredProducts);
+          final notArchived = state.allProducts.where((p) => p.archivedStatus == 0).toList();
+          final filtered = context.select((InventoryDisplayBloc b) => b.state.filteredProducts);
+          final displayProducts = filtered ?? notArchived;
 
-          if (allProducts.isEmpty) {
+          if (displayProducts.isEmpty || state.status != DataStatus.success) {
             return const DataTablePlaceHolder(FluentIcons.product_list, 'Products');
           }
 
@@ -425,7 +427,7 @@ class _ProductsDataTableState extends State<ProductsDataTable> {
               for (final columnName in _rowExtents.keys)
                 Text(columnName, style: const TextStyle(fontWeight: FontWeight.w600)),
             ],
-            for (final product in displayProducts ?? allProducts) //
+            for (final product in displayProducts) //
               if (DataRowMapper.mapProductToRow(product, editAction: () {
                 context.navigateWithExtra(AppRoutes.admin.editProduct, product);
               })
@@ -442,7 +444,7 @@ class _ProductsDataTableState extends State<ProductsDataTable> {
           return ConstrainedBox(
             constraints: BoxConstraints(
               minHeight: cellHeight * 4,
-              maxHeight: matrix.length * cellHeight,
+              maxHeight: cellHeight * max(4, matrix.length),
             ),
             child: TableView.builder(
               verticalDetails: ScrollableDetails.vertical(
