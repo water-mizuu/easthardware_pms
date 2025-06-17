@@ -36,7 +36,9 @@ class _ProductInformationFormContentState extends State<ProductInformationFormCo
   @override
   Widget build(BuildContext context) {
     return BlocListener<ProductFormBloc, ProductFormState>(
-      listenWhen: (p, c) => c.formStatus == FormStatus.initial,
+      listenWhen: (p, c) =>
+          p.formStatus == FormStatus.loading && //
+          c.formStatus == FormStatus.initial,
       listener: (context, state) {
         /// Invalidate the form when the form status is initial.
         /// This is necessary to ensure that the form is rebuilt with the latest state.

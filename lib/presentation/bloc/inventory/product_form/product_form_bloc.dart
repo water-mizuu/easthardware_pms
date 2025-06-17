@@ -244,6 +244,7 @@ class ProductFormBloc extends Bloc<ProductFormEvent, ProductFormState> {
   }
 
   void _onProductLoaded(ProductLoadedEvent event, Emitter emit) {
+    emit(state.copyWith(formStatus: FormStatus.loading));
     try {
       emit(state.copyWith(
         name: event.product.name,
