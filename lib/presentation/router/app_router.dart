@@ -4,6 +4,7 @@ import 'package:easthardware_pms/presentation/router/app_routes.dart';
 import 'package:easthardware_pms/presentation/views/Order/create_expense_order_page.dart';
 import 'package:easthardware_pms/presentation/views/Order/create_restock_order_page.dart';
 import 'package:easthardware_pms/presentation/views/Order/order_pane_page.dart';
+import 'package:easthardware_pms/presentation/views/Reports/report_list_pane.dart';
 import 'package:easthardware_pms/presentation/views/authentication/login_page.dart';
 import 'package:easthardware_pms/presentation/views/authentication/new_password_page.dart';
 import 'package:easthardware_pms/presentation/views/authentication/reset_password_page.dart';
@@ -24,6 +25,7 @@ import 'package:easthardware_pms/presentation/views/search/search_top_bar.dart';
 import 'package:easthardware_pms/presentation/views/security/create_user_page.dart';
 import 'package:easthardware_pms/presentation/views/security/user_log_pane.dart';
 import 'package:easthardware_pms/presentation/views/security/users_pane_page.dart';
+import 'package:easthardware_pms/presentation/views/settings/about_page.dart';
 import 'package:easthardware_pms/presentation/widgets/bottom_text.dart';
 import 'package:easthardware_pms/utils/boxed.dart';
 import 'package:easthardware_pms/utils/typed_routes.dart';
@@ -36,7 +38,8 @@ final keys = (searchKey: GlobalKey<NavigatorState>(),);
 const initialLocation = AppRoutes.login;
 
 /// This is the global key for the root navigator. This should be used for modals.
-final rootWidgetKey = GlobalKey<NavigatorState>(debugLabel: "Complain the money's hard");
+final rootWidgetKey =
+    GlobalKey<NavigatorState>(debugLabel: "Complain the money's hard");
 
 /// This is the global key for the inner navigator, containing the overlay.
 ///   This should be used for overlay calls.
@@ -58,16 +61,19 @@ final router = GoRouter(
             ),
             TypedGoRoute(
               route: AppRoutes.resetPassword,
-              builder: (context, state) => ResetPasswordPage(username: state.extra),
+              builder: (context, state) =>
+                  ResetPasswordPage(username: state.extra),
             ),
             TypedGoRoute(
               route: AppRoutes.newPassword,
-              builder: (context, state) => NewPasswordPage(username: state.extra),
+              builder: (context, state) =>
+                  NewPasswordPage(username: state.extra),
             )
           ],
         ),
         StatefulShellRoute.indexedStack(
-          builder: (context, state, shell) => BottomText(child: AdminNavigationScaffold(shell)),
+          builder: (context, state, shell) =>
+              BottomText(child: AdminNavigationScaffold(shell)),
           branches: [
             // Admin Dashboard Shell
             StatefulShellBranch(
@@ -137,7 +143,8 @@ final router = GoRouter(
                 ),
                 TypedGoRoute(
                   route: AppRoutes.admin.editProduct,
-                  builder: (context, state) => EditProductPage(product: state.extra),
+                  builder: (context, state) =>
+                      EditProductPage(product: state.extra),
                 ),
                 TypedGoRoute(
                   route: AppRoutes.admin.categories,
@@ -168,7 +175,8 @@ final router = GoRouter(
                 ),
                 TypedGoRoute(
                   route: AppRoutes.admin.createPayment,
-                  builder: (context, state) => CreatePaymentPage(invoice: state.extra),
+                  builder: (context, state) =>
+                      CreatePaymentPage(invoice: state.extra),
                 ),
               ],
             ),
@@ -182,14 +190,29 @@ final router = GoRouter(
                 ),
                 TypedGoRoute(
                   route: AppRoutes.admin.createRestockOrder,
-                  builder: (context, state) => CreateRestockOrderPage(expenseType: state.extra),
+                  builder: (context, state) =>
+                      CreateRestockOrderPage(expenseType: state.extra),
                 ),
                 TypedGoRoute(
                   route: AppRoutes.admin.createExpenseOrder,
-                  builder: (context, state) => CreateExpenseOrderPage(expenseType: state.extra),
+                  builder: (context, state) =>
+                      CreateExpenseOrderPage(expenseType: state.extra),
                 ),
               ],
             ),
+
+            // Reports Shell
+            StatefulShellBranch(
+              //initialLocation: AppRoutes.admin.users.path,
+              routes: [
+                TypedGoRoute(
+                  route: AppRoutes.admin.reports,
+                  builder: (context, state) => const ReportListPane(),
+                )
+              ],
+            ),
+
+            // Security Shell
             StatefulShellBranch(
               initialLocation: AppRoutes.admin.users.path,
               routes: [
@@ -206,11 +229,22 @@ final router = GoRouter(
                   builder: (context, state) => const UserLogPane(),
                 )
               ],
-            )
+            ),
+            // Settings Shell
+            StatefulShellBranch(
+              //initialLocation: AppRoutes.admin.users.path,
+              routes: [
+                TypedGoRoute(
+                  route: AppRoutes.admin.about,
+                  builder: (context, state) => const AboutPanePage(),
+                )
+              ],
+            ),
           ],
         ),
         StatefulShellRoute.indexedStack(
-          builder: (context, state, shell) => BottomText(child: StaffNavigationScaffold(shell)),
+          builder: (context, state, shell) =>
+              BottomText(child: StaffNavigationScaffold(shell)),
           branches: [
             // Staff Dashboard Shell
             StatefulShellBranch(

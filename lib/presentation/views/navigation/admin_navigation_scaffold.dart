@@ -232,7 +232,7 @@ class _AdminNavigationViewState extends State<AdminNavigationView>
       navItem(
         icon: FluentIcons.bill,
         title: 'Orders',
-        // route: AppRoutes.orderPage,
+        route: AppRoutes.admin.order,
         items: [
           navItem(
             icon: FluentIcons.bill,
@@ -249,12 +249,12 @@ class _AdminNavigationViewState extends State<AdminNavigationView>
       navItem(
         icon: FluentIcons.bar_chart_vertical_fill,
         title: 'Reports',
-        // route: AppRoutes.reportsPage,
+        route: AppRoutes.admin.reports,
       ),
       navItem(
         icon: FluentIcons.local_admin,
         title: 'Security',
-        // route: AppRoutes.admin.userLogs,
+        route: AppRoutes.admin.users,
         items: [
           navItem(
             icon: FluentIcons.contact_list,
@@ -276,27 +276,26 @@ class _AdminNavigationViewState extends State<AdminNavigationView>
       navItem(
         icon: FluentIcons.settings,
         title: 'Settings',
-        // route: AppRoutes.admin.userLogs,
         items: [
           navItem(
             icon: FluentIcons.archive,
             title: 'Archived Products',
-            // route: AppRoutes.admin.order,
+            // route: AppRoutes.admin.archivedProducts,
           ),
           navItem(
             icon: FluentIcons.save,
             title: 'System Backup',
-            // route: AppRoutes.admin.billing,
+            // route: AppRoutes.admin.systemBackup,
           ),
           navItem(
             icon: FluentIcons.help,
             title: 'Help',
-            // route: AppRoutes.admin.userLogs,
+            // route: AppRoutes.admin.help,
           ),
           navItem(
             icon: FluentIcons.info,
             title: 'About',
-            // route: AppRoutes.admin.dashboard,
+            route: AppRoutes.admin.about,
           ),
         ],
       ),
