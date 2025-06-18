@@ -44,6 +44,7 @@ class UserListBloc extends Bloc<UserListEvent, UserListState> {
     emit(state.copyWith(status: DataStatus.loading));
     try {
       final users = await _repository.getAllUsers();
+      print(users);
 
       emit(state.copyWith(
         status: DataStatus.success,
@@ -145,21 +146,28 @@ class UserListBloc extends Bloc<UserListEvent, UserListState> {
 
   Future<void> _onUserLoggedOut(UserLoggedOutEvent event, Emitter<UserListState> emit) async {
     emit(state.copyWith(status: DataStatus.loading));
-    await _repository.setUserAsInactive(event.userId);
-    final user = state.users.firstWhere((user) => user.id == event.userId);
-    final updatedUsers = List<User>.from(state.users);
-    final index = updatedUsers.indexWhere((u) => u.id == user.id);
-    updatedUsers[index] = user.copyWith(loginStatus: 0);
+    try {
+      await _repository.setUserAsInactive(event.userId);
+      final user = state.users.firstWhere((user) => user.id == event.userId);
+      final updatedUsers = List<User>.from(state.users);
+      final index = updatedUsers.indexWhere((u) => u.id == user.id);
+      updatedUsers[index] = user.copyWith(loginStatus: 0);
 
-    if (kDebugMode) {
-      print('UserListBloc: User logged out: ${user.username} (ID: ${user.id})');
+      if (kDebugMode) {
+        print('UserListBloc: User logged out: ${user.username} (ID: ${user.id})');
+      }
+
+      emit(state.copyWith(
+        users: updatedUsers,
+        filteredUsers: updatedUsers,
+        status: DataStatus.success,
+      ));
+    } catch (e, st) {
+      if (kDebugMode) {
+        print('Error logging out user $e');
+      }
+      emit(state.copyWith(status: DataStatus.error));
     }
-
-    emit(state.copyWith(
-      users: updatedUsers,
-      filteredUsers: updatedUsers,
-      status: DataStatus.success,
-    ));
   }
 
   Future<void> _onFilterByAccessLevel(

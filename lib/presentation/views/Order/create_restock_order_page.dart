@@ -7,6 +7,7 @@ import 'package:easthardware_pms/presentation/bloc/order/orderform/order_form_bl
 import 'package:easthardware_pms/presentation/bloc/order/orderform/order_form_validator.dart';
 import 'package:easthardware_pms/presentation/bloc/order/orderlist/order_list_bloc.dart';
 import 'package:easthardware_pms/presentation/router/app_routes.dart';
+import 'package:easthardware_pms/presentation/widgets/helper/currency_formatter.dart';
 import 'package:easthardware_pms/presentation/widgets/layout/spacing.dart';
 import 'package:easthardware_pms/presentation/widgets/text.dart';
 import 'package:easthardware_pms/presentation/widgets/ui/decorations.dart';
@@ -369,7 +370,7 @@ class _OrderSummaryAndMemo extends StatelessWidget {
                       style: TextStyle(fontWeight: FontWeight.bold),
                     ),
                     Text(
-                      "Php. ${total.toStringAsFixed(2)}",
+                      CurrencyFormatter.full(total),
                       style: const TextStyle(fontWeight: FontWeight.bold),
                     ),
                   ],

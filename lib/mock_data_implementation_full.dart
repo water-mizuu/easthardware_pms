@@ -528,7 +528,6 @@ Future<void> generateMockData(DatabaseHelper databaseHelper) async {
   for (final product in mockProducts) {
     final insertedProduct = await productsRepository.insertProduct(product);
 
-    throw Error();
     productIds.add(insertedProduct.id!);
   }
 
@@ -649,7 +648,7 @@ Future<void> generateMockData(DatabaseHelper databaseHelper) async {
     // Select memo text
     final memo = i % 3 == 0 ? memos[i % memos.length] : null;
 
-    // Create reference number with format INV-YYYYMMXXX
+    // Create reference number with format INV-YYYY MM XXX
     final refNum =
         "INV-${invoiceDate.year}${invoiceDate.month.toString().padLeft(2, '0')}${i.toString().padLeft(3, '0')}";
 

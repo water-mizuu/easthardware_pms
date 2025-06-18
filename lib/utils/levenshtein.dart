@@ -58,7 +58,7 @@ final class Levenshtein {
 
       /// This should contain the items that are being ranked.
       final itemScoreMap = <T, double>{};
-      final tokens = query.toLowerCase().split(RegExp(r'\s+'));
+      final queryTokens = query.toLowerCase().split(RegExp(r'\s+'));
 
       /// The threshold is strictly decreasing as the items are processed.
       ///   It starts at infinity and is adjusted based on the scores of the items.
@@ -69,7 +69,7 @@ final class Levenshtein {
 
         /// If any of the tokens have a direct match with the factor,
         ///   we reduce the score even more.
-        if (tokens.any((token) => factors.any((factor) => factor.contains(token)))) {
+        if (queryTokens.any((token) => factors.any((factor) => factor.contains(token)))) {
           score = 0;
         }
 
@@ -100,14 +100,18 @@ final class Levenshtein {
 
   static double _scoreFactorsByLevenshtein(String query, Set<String?> factors, double threshold) {
     var bestScore = threshold;
-    for (final factor in factors) {
-      if (factor == null) continue; // Skip null factors
-      final score = Levenshtein.distance(query, factor.toLowerCase(), bestScore);
+    final queryTokens = query.toLowerCase().split(RegExp(r'\s+')).followedBy([query]).toList();
+    for (final query in queryTokens) {
+      for (final factor in factors) {
+        if (factor == null) continue; // Skip null factors
+        final score = Levenshtein.distance(query, factor.toLowerCase(), bestScore);
 
-      if (score < bestScore) {
-        bestScore = score.toDouble();
+        if (score < bestScore) {
+          bestScore = score.toDouble();
+        }
       }
     }
+
     return bestScore;
   }
 }

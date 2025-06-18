@@ -84,26 +84,25 @@ class UserDataTable extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<UserListBloc, UserListState>(
-      builder: (context, state) {
-        final allUsers = state.filteredUsers.where((user) => user.archiveStatus == 0).toList();
+    final allUsers = context.select((UserListBloc b) => b.state.filteredUsers);
+    final notArchivedUsers = allUsers //
+        .where((u) => u.archiveStatus == 0 || u.archiveStatus == null)
+        .toList();
 
-        return DecoratedBox(
-          decoration: const BoxDecoration(color: Colors.white),
-          child: DataTable(
-            columns: const [
-              DataColumn(label: Text('Name', overflow: TextOverflow.fade)),
-              DataColumn(label: Text('Level of Access', overflow: TextOverflow.fade)),
-              DataColumn(label: Text('Creation Date', overflow: TextOverflow.fade)),
-              DataColumn(label: Text('Status', overflow: TextOverflow.fade)),
-            ],
-            rows: [
-              for (final user in allUsers) //
-                DataRowMapper.mapUserToRow(user, user.loginStatus == 1),
-            ],
-          ),
-        );
-      },
+    return DecoratedBox(
+      decoration: const BoxDecoration(color: Colors.white),
+      child: DataTable(
+        columns: const [
+          DataColumn(label: Text('Name', overflow: TextOverflow.fade)),
+          DataColumn(label: Text('Level of Access', overflow: TextOverflow.fade)),
+          DataColumn(label: Text('Creation Date', overflow: TextOverflow.fade)),
+          DataColumn(label: Text('Status', overflow: TextOverflow.fade)),
+        ],
+        rows: [
+          for (final user in notArchivedUsers) //
+            DataRowMapper.mapUserToRow(user, user.loginStatus == 1),
+        ],
+      ),
     );
   }
 }

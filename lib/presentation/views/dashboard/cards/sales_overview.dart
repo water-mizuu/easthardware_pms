@@ -3,6 +3,7 @@ import 'dart:math';
 
 import 'package:easthardware_pms/domain/models/invoice.dart';
 import 'package:easthardware_pms/presentation/bloc/billing/invoicelist/invoice_list_bloc.dart';
+import 'package:easthardware_pms/presentation/widgets/helper/currency_formatter.dart';
 import 'package:easthardware_pms/presentation/widgets/layout/spacing.dart';
 import 'package:easthardware_pms/presentation/widgets/text.dart';
 import 'package:easthardware_pms/utils/boxed.dart';
@@ -112,7 +113,9 @@ class _SalesOverviewState extends State<SalesOverview> {
                   ListenableBuilder(
                     listenable: _salesOverviewChoice,
                     builder: (context, _) {
-                      return const GrayText('Sales overview for the last 7 days');
+                      return GrayText(
+                        'Sales overview for the ${_salesOverviewChoice.value.description}',
+                      );
                     },
                   )
                 ],
@@ -165,7 +168,20 @@ class _SalesOverviewState extends State<SalesOverview> {
     final barTouchData = BarTouchData(
       handleBuiltInTouches: true,
       touchTooltipData: BarTouchTooltipData(
-        getTooltipColor: (touchedSpot) => Colors.grey[20],
+        getTooltipColor: (touchedSpot) => Colors.grey[10],
+        getTooltipItem: (group, groupIndex, rod, rodIndex) {
+          final totalAmount = rod.toY;
+          final formattedAmount = CurrencyFormatter.full(totalAmount);
+
+          return BarTooltipItem(
+            formattedAmount,
+            const TextStyle(
+              color: Colors.black,
+              fontWeight: FontWeight.bold,
+              fontSize: 14.0,
+            ),
+          );
+        },
       ),
     );
 
@@ -415,20 +431,17 @@ class _ChartUtils {
             final index = value.toInt();
             final intInterval = interval.toInt();
 
-            if (index < 0 || index >= dateMap.keys.length) return const SizedBox.shrink();
+            if (index < 0 || index >= dateMap.keys.length || index % intInterval != 0) {
+              return const SizedBox.shrink();
+            }
 
             final dateKey = dateMap.keys.elementAt(index);
 
-            // For interval-based labels, show if it matches the interval
-            if (index % intInterval == 0) {
-              return SideTitleWidget(
-                meta: meta,
-                space: 4,
-                child: Text(formatLabel(dateKey), style: style),
-              );
-            }
-
-            return const SizedBox.shrink();
+            return SideTitleWidget(
+              meta: meta,
+              space: 4,
+              child: Text(formatLabel(dateKey), style: style),
+            );
           },
         ),
       ),
@@ -439,13 +452,15 @@ class _ChartUtils {
           maxIncluded: false,
           getTitlesWidget: (double value, TitleMeta meta) {
             const style = TextStyle(fontWeight: FontWeight.bold, fontSize: 14);
+            final formattedValue = CurrencyFormatter.compact(value);
+
             return SideTitleWidget(
               meta: meta,
               child: Text(
-                '${value.toInt()}',
+                formattedValue,
                 style: style,
                 textAlign: TextAlign.center,
-                overflow: TextOverflow.ellipsis,
+                overflow: TextOverflow.fade,
               ),
             );
           },

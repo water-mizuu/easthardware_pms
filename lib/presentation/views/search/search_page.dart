@@ -4,9 +4,11 @@ import 'package:easthardware_pms/domain/models/invoice.dart';
 import 'package:easthardware_pms/domain/models/order.dart';
 import 'package:easthardware_pms/domain/models/product.dart';
 import 'package:easthardware_pms/presentation/bloc/search/search_bloc.dart';
+import 'package:easthardware_pms/presentation/widgets/helper/currency_formatter.dart';
 import 'package:easthardware_pms/presentation/widgets/layout/spacing.dart';
 import 'package:fluent_ui/fluent_ui.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:scroll_animator/scroll_animator.dart';
 import 'package:two_dimensional_scrollables/two_dimensional_scrollables.dart';
@@ -24,16 +26,16 @@ class ProductsBody extends SearchTableResult<Product> {
           ],
           rowExtents: const {
             0: FixedSpanExtent(64.00),
-            1: MinSpanExtent(
-              FixedSpanExtent(320.00),
+            1: MaxSpanExtent(
+              FixedSpanExtent(160.00),
               FractionalSpanExtent(0.3333),
             ),
-            2: MinSpanExtent(
-              FixedSpanExtent(320.00),
+            2: MaxSpanExtent(
+              FixedSpanExtent(160.00),
               FractionalSpanExtent(0.3333),
             ),
-            3: MinSpanExtent(
-              FixedSpanExtent(320.00),
+            3: MaxSpanExtent(
+              FixedSpanExtent(160.00),
               FractionalSpanExtent(0.3333),
             ),
           },
@@ -47,13 +49,23 @@ class InvoicesBody extends SearchTableResult<Invoice> {
       : super(
           selector: (b) => b.state.results.invoices,
           columns: [
-            ('ID', (p) => p.id.toString()),
+            ('Invoice Date', (p) => DateFormat('yyyy-MM-dd').format(p.invoiceDate)),
+            ('Customer Name', (p) => p.customerName),
+            ('Payment Reference No.', (p) => p.referenceNumber ?? ""),
             ('Memo', (p) => p.memo ?? ""),
           ],
           rowExtents: const {
-            0: FixedSpanExtent(64.00),
-            1: MinSpanExtent(
-              FixedSpanExtent(320.00),
+            0: FixedSpanExtent(192.00),
+            1: MaxSpanExtent(
+              FixedSpanExtent(160.00),
+              FractionalSpanExtent(0.3333),
+            ),
+            2: MaxSpanExtent(
+              FixedSpanExtent(160.00),
+              FractionalSpanExtent(0.3333),
+            ),
+            3: MaxSpanExtent(
+              FixedSpanExtent(160.00),
               RemainingSpanExtent(),
             ),
           },
@@ -68,13 +80,28 @@ class OrdersBody extends SearchTableResult<Order> {
       : super(
           selector: (b) => b.state.results.orders,
           columns: [
-            ('ID', (p) => p.id.toString()),
+            ('Order Date', (p) => DateFormat('yyyy-MM-dd').format(p.orderDate)),
             ('Payee Name', (p) => p.payeeName),
+            ('Expense Type', (p) => "${p.expenseType}"),
+            ('Amount', (p) => CurrencyFormatter.full(p.amountDue)),
+            ('Memo', (p) => p.memo ?? ""),
           ],
           rowExtents: const {
-            0: FixedSpanExtent(64.00),
-            1: MinSpanExtent(
-              FixedSpanExtent(320.00),
+            0: FixedSpanExtent(192.00),
+            1: MaxSpanExtent(
+              FixedSpanExtent(160.00),
+              FractionalSpanExtent(0.3333),
+            ),
+            2: MaxSpanExtent(
+              FixedSpanExtent(120.00),
+              FractionalSpanExtent(0.3333),
+            ),
+            3: MaxSpanExtent(
+              FixedSpanExtent(160.00),
+              FractionalSpanExtent(0.3333),
+            ),
+            4: MaxSpanExtent(
+              FixedSpanExtent(160.00),
               RemainingSpanExtent(),
             ),
           },
@@ -138,10 +165,8 @@ class _SearchTableResultState<T> extends State<SearchTableResult<T>> {
       color: FluentTheme.of(context).cardColor,
       child: ConstrainedBox(
         constraints: BoxConstraints(
-          maxHeight: min(
-            AppPadding.cardPadding.top + (cellHeight + rowPadding) * (4 + 1),
-            AppPadding.cardPadding.top + (cellHeight + rowPadding) * (results.length + 1),
-          ),
+          maxHeight: AppPadding.cardPadding.top + //
+              (cellHeight + rowPadding) * (max(4, results.length) + 1),
         ),
         child: Padding(
           padding: AppPadding.cardPadding.copyWith(bottom: 0.0),

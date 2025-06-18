@@ -4,10 +4,12 @@ import 'package:dart_bloc_concurrency/dart_bloc_concurrency.dart';
 import 'package:easthardware_pms/domain/models/invoice.dart';
 import 'package:easthardware_pms/domain/models/order.dart';
 import 'package:easthardware_pms/domain/models/product.dart';
+import 'package:easthardware_pms/utils/boxed.dart';
 import 'package:easthardware_pms/utils/duration.dart';
 import 'package:easthardware_pms/utils/levenshtein.dart';
 import 'package:easthardware_pms/utils/undefined.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:intl/intl.dart';
 
 part 'search_event.dart';
 part 'search_state.dart';
@@ -23,7 +25,13 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
     return Levenshtein.rankItems(
       state.allProducts,
       query,
-      (p) => {p.sku, p.name, p.categoryName, p.description} //
+      (p) => {
+        p.id?.toString(),
+        p.sku,
+        p.name,
+        p.categoryName,
+        p.description,
+      } //
           .whereType<String>(),
     );
   }
@@ -36,6 +44,9 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
       state.allInvoices,
       query,
       (i) => {
+        i.id?.toString(),
+        i.customerName,
+        i.referenceNumber,
         i.customerName,
         i.referenceNumber,
       }.whereType<String>(),
@@ -50,7 +61,12 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
       state.allOrders,
       query,
       (o) => {
+        o.id?.toString(),
         o.referenceNumber,
+        DateFormat('yyyy-MM-dd').format(o.orderDate),
+        o.payeeName,
+        o.expenseType.toString(),
+        o.memo,
       }.whereType<String>(),
     );
   }
@@ -115,8 +131,11 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
       /// TODO: Add the rest of the fields here.
       results: SearchResults(
         products: state.allProducts.toList(),
-        invoices: [],
-        orders: [],
+        invoices: state.allInvoices.toList()
+          ..forEach((i) {
+            printBoxed(i.toMap());
+          }),
+        orders: state.allOrders.toList(),
       ),
     ));
   }

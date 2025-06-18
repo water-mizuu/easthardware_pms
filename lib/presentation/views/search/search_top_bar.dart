@@ -1,5 +1,8 @@
 import 'dart:async';
 
+import 'package:easthardware_pms/domain/models/invoice.dart';
+import 'package:easthardware_pms/domain/models/order.dart';
+import 'package:easthardware_pms/domain/models/product.dart';
 import 'package:easthardware_pms/presentation/bloc/billing/invoicelist/invoice_list_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/inventory/product_list/product_list_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/order/orderlist/order_list_bloc.dart';
@@ -13,7 +16,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:provider/single_child_widget.dart';
-import 'package:scroll_animator/scroll_animator.dart';
 
 class SearchPage extends StatefulWidget {
   const SearchPage(this.shell, {super.key});
@@ -25,12 +27,11 @@ class SearchPage extends StatefulWidget {
 }
 
 class _SearchPageState extends State<SearchPage> {
-  late ProductListBloc? _productListBloc;
-  late InvoiceListBloc? _invoiceListBloc;
-  late OrderListBloc? _orderListBloc;
+  late List<Product>? _products;
+  late List<Invoice>? _invoices;
+  late List<Order>? _orders;
 
   late final SearchBloc _searchBloc;
-  late final AnimatedScrollController _scrollController;
 
   List<SingleChildWidget> get providers {
     return [
@@ -42,29 +43,26 @@ class _SearchPageState extends State<SearchPage> {
   void initState() {
     super.initState();
 
-    _productListBloc = null;
-    _invoiceListBloc = null;
-    _orderListBloc = null;
+    _products = null;
+    _invoices = null;
+    _orders = null;
 
     _searchBloc = SearchBloc();
-    _scrollController = AnimatedScrollController(animationFactory: const ChromiumEaseInOut());
   }
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
 
-    final productListBloc = context.watch<ProductListBloc>();
-    final invoiceListBloc = context.watch<InvoiceListBloc>();
-    final orderListBloc = context.watch<OrderListBloc>();
-    if (productListBloc != _productListBloc ||
-        invoiceListBloc != _invoiceListBloc ||
-        orderListBloc != _orderListBloc) {
+    final products = context.watch<ProductListBloc>().state.allProducts;
+    final invoices = context.watch<InvoiceListBloc>().state.invoices;
+    final orders = context.watch<OrderListBloc>().state.allOrders;
+    if (products != _products || invoices != _invoices || orders != _orders) {
       _searchBloc.add(
         SearchDependentsUpdated(
-          products: productListBloc.state.allProducts,
-          invoices: invoiceListBloc.state.invoices,
-          orders: orderListBloc.state.allOrders,
+          products: products,
+          invoices: invoices,
+          orders: orders,
         ),
       );
     }
@@ -73,7 +71,6 @@ class _SearchPageState extends State<SearchPage> {
   @override
   void dispose() {
     unawaited(_searchBloc.close());
-    _scrollController.dispose();
 
     super.dispose();
   }

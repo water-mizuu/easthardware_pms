@@ -1,9 +1,9 @@
 import 'package:easthardware_pms/presentation/bloc/billing/invoicelist/invoice_list_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/order/orderlist/order_list_bloc.dart';
+import 'package:easthardware_pms/presentation/widgets/helper/currency_formatter.dart';
 import 'package:easthardware_pms/presentation/widgets/layout/spacing.dart';
 import 'package:easthardware_pms/presentation/widgets/text.dart';
 import 'package:fluent_ui/fluent_ui.dart';
-import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
 enum ProfitLossTimeframe {
@@ -106,7 +106,6 @@ class _ProfitAndLossContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final formatter = NumberFormat.currency(locale: 'en_PH', symbol: 'Php ');
     final timeframe = context.select((ProfitAndLossChangeNotifier n) => n.timeframe);
     final invoiceState = context.watch<InvoiceListBloc>().state;
     final orderState = context.watch<OrderListBloc>().state;
@@ -150,8 +149,8 @@ class _ProfitAndLossContent extends StatelessWidget {
           children: [
             Text(
               netProfit < 0 //
-                  ? '-${formatter.format(netProfit.abs())}'
-                  : formatter.format(netProfit),
+                  ? '-${CurrencyFormatter.full(netProfit.abs())}'
+                  : CurrencyFormatter.full(netProfit),
               style: const TextStyle(
                 fontSize: 28,
                 fontWeight: FontWeight.bold,
@@ -250,15 +249,13 @@ class _FinancialBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final formatter = NumberFormat.currency(locale: 'en_PH', symbol: 'Php ');
-
     return Row(
       children: [
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              formatter.format(amount),
+              CurrencyFormatter.full(amount),
               style: const TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w600,
