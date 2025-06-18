@@ -64,10 +64,6 @@ class ProductListBloc extends Bloc<ProductListEvent, ProductListState> {
         return product.copyWith(categoryName: category.name);
       }).toList();
 
-      printBoxed(
-        'Fetched Products: ${allProducts.length},\nLow Stock: ${lowStockProducts.length},\n Fast Moving: ${fastMovingProducts.length},\n Dead Stock: ${deadStockProducts.length}',
-        'ProductListBloc',
-      );
       emit(
         state.copyWith(
           allProducts: allProducts,
@@ -116,10 +112,6 @@ class ProductListBloc extends Bloc<ProductListEvent, ProductListState> {
         return product.copyWith(categoryName: category.name);
       }).toList();
 
-      printBoxed(
-        'Reloaded Products: ${allProducts.length},\nLow Stock: ${lowStockProducts.length},\n Fast Moving: ${fastMovingProducts.length},\n Dead Stock: ${deadStockProducts.length}',
-        'ProductListBloc',
-      );
       emit(
         state.copyWith(
           allProducts: allProducts,

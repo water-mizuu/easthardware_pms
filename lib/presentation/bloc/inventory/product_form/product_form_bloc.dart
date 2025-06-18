@@ -203,10 +203,6 @@ class ProductFormBloc extends Bloc<ProductFormEvent, ProductFormState> {
     await Future.delayed(Duration.zero);
     if (isClosed) return;
 
-    if (kDebugMode) {
-      printBoxed(event, 'ProductFormBloc: Button Pressed');
-    }
-
     try {
       if (formKey.currentState case final FormState formState when formState.validate()) {
         await Future.delayed(Duration.zero);
@@ -247,6 +243,7 @@ class ProductFormBloc extends Bloc<ProductFormEvent, ProductFormState> {
     emit(state.copyWith(formStatus: FormStatus.loading));
     try {
       emit(state.copyWith(
+        productId: event.product.id,
         name: event.product.name,
         sku: event.product.sku,
         categoryName: event.product.categoryName ?? '',

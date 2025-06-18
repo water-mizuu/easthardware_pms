@@ -35,8 +35,6 @@ class EditProductPage extends StatelessWidget {
             final secondaryUnits = unitState.units //
                 .where((u) => u.productId == product.id)
                 .toList();
-
-            printBoxed(product.toMap(), 'Editing Product');
             return ProductFormBloc.fromProduct(product, secondaryUnits);
           },
         ),
@@ -69,11 +67,31 @@ class EditProductPage extends StatelessWidget {
               listener: (context, state) {
                 switch (state.formStatus) {
                   case FormStatus.initial:
+                    printBoxed(state.productId, 'EditProduct - ProductId');
                     break;
                   case FormStatus.submitting:
+                    final info = [
+                      '- ${state.productId}',
+                      state.name,
+                      state.categoryId,
+                      state.categoryName,
+                      state.description,
+                      state.mainUnit,
+                      state.archivedStatus,
+                      state.secondaryUnits //
+                          .map((u) => u.toUnit().toMap())
+                          .toList(),
+                      state.deadStockThreshold,
+                      state.criticalLevel,
+                      state.fastMovingThreshold
+                    ].map((e) => e.toString()).join('\n -');
+                    if (kDebugMode) {
+                      printBoxed(
+                          'Submitting Product Form: ${info.toString().wrap}', 'EditProductPage');
+                    }
                     context.read<ProductListBloc>().add(
                           UpdateProductEvent(
-                            state.toProduct(),
+                            state.toProduct().copyWith(id: state.productId),
                             Category(name: state.categoryName),
                             [
                               ...state.secondaryUnits //
@@ -86,7 +104,6 @@ class EditProductPage extends StatelessWidget {
                   case FormStatus.submitted:
                     Future.delayed(Duration.zero, () {
                       if (context.mounted) {
-                        context.read<ProductFormBloc>().add(FormResetEvent());
                         context.navigate(AppRoutes.admin.inventory);
                       }
                     });
@@ -178,20 +195,12 @@ class PageHeader extends StatelessWidget {
             ));
         }),
         TextButtonFilled('Update Product', onPressed: () {
-          // Added 1 because SQLite has one-based indexing
-          // Take actual productId
-          // Add onUpdate Event
-          final ProductFormState(:productId!, :creatorId!) = context.read<ProductFormBloc>().state;
-          if (kDebugMode) {
-            printBoxed(
-              'Product Status changed from $productId to $creatorId',
-              'EditProductPage',
-            );
-          }
+          final state = context.read<ProductFormBloc>().state;
+          final creatorId = context.read<AuthenticationBloc>().state.user!.id!;
           context //
               .read<ProductFormBloc>()
               .add(FormButtonPressedEvent(
-                productId: productId,
+                productId: state.productId!,
                 creatorId: creatorId,
               ));
         })

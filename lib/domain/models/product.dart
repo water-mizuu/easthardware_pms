@@ -133,7 +133,7 @@ class Product {
   }
 
   Map<String, dynamic> toMap() {
-    return <String, dynamic>{
+    final map = <String, dynamic>{
       'name': name,
       'category': categoryId,
       'sku': sku,
@@ -149,5 +149,12 @@ class Product {
       'creator_id': creatorId,
       'archive_status': archiveStatus ?? 0,
     };
+
+    // Only add id to the map if it's not null
+    if (id != null) {
+      map['id'] = id;
+    }
+
+    return map;
   }
 }
