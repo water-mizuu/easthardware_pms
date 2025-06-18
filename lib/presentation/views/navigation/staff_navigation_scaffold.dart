@@ -188,7 +188,7 @@ class _StaffNavigationViewState extends State<StaffNavigationView>
           navItem(
             icon: FluentIcons.text_document,
             title: "Invoice List",
-            route: AppRoutes.staff.createInvoice,
+            route: AppRoutes.staff.billing,
           ),
           navItem(
             icon: FluentIcons.text_document_edit,
@@ -218,6 +218,22 @@ class _StaffNavigationViewState extends State<StaffNavigationView>
         icon: FluentIcons.bar_chart_vertical_fill,
         title: 'Reports',
         // route: AppRoutes.reportsPage,
+      ),
+      navItem(
+        icon: FluentIcons.settings,
+        title: 'Settings',
+        items: [
+          navItem(
+            icon: FluentIcons.help,
+            title: 'Help',
+            route: AppRoutes.staff.help,
+          ),
+          navItem(
+            icon: FluentIcons.info,
+            title: 'About',
+            route: AppRoutes.staff.about,
+          ),
+        ],
       ),
     ];
   }

@@ -24,6 +24,7 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:fluent_ui/fluent_ui.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:scroll_animator/scroll_animator.dart';
 
 import '../../widgets/ui/text_form_boxes.dart';
@@ -31,7 +32,7 @@ import '../../widgets/ui/text_form_boxes.dart';
 /// Spacing Guidelines
 /// - Spacing between fields: 12.0
 /// - Spacing between sections: 16.0
-/// - Horizonral spacing between elements: 8.0
+/// - Horizontal spacing between elements: 8.0
 class CreateInvoicePage extends StatelessWidget {
   const CreateInvoicePage({super.key});
 
@@ -60,7 +61,7 @@ class CreateInvoicePage extends StatelessWidget {
                         FilledButton(
                           child: const Text('OK'),
                           onPressed: () {
-                            Navigator.pop(dialogContext);
+                            dialogContext.pop();
                             blocContext.read<InvoiceFormBloc>().add(const DialogBoxClosedEvent());
                           },
                         ),

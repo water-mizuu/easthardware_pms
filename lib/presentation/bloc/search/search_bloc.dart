@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math';
 
 import 'package:dart_bloc_concurrency/dart_bloc_concurrency.dart';
 import 'package:easthardware_pms/domain/models/invoice.dart';
@@ -10,6 +11,7 @@ import 'package:easthardware_pms/utils/levenshtein.dart';
 import 'package:easthardware_pms/utils/undefined.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 part 'search_event.dart';
 part 'search_state.dart';
@@ -19,6 +21,7 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
     on<SearchDependentsUpdated>(_onDependentsUpdated);
     on<SearchQueryUpdated>(_onQueryUpdated, transformer: debounce(0.ms));
     on<SearchReset>(_onSearchReset);
+    on<SearchQuerySaved>(_onSearchSaved, transformer: debounce(2.seconds));
   }
 
   Future<List<Product>> _processProduct(String query) {
@@ -127,16 +130,33 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
   Future<void> _onSearchReset(SearchReset event, Emitter<SearchState> emit) async {
     emit(state.copyWith(
       query: '',
-
-      /// TODO: Add the rest of the fields here.
       results: SearchResults(
         products: state.allProducts.toList(),
-        invoices: state.allInvoices.toList()
-          ..forEach((i) {
-            printBoxed(i.toMap());
-          }),
+        invoices: state.allInvoices.toList(),
         orders: state.allOrders.toList(),
       ),
     ));
+  }
+
+  Future<void> _onSearchSaved(SearchQuerySaved event, Emitter<SearchState> emit) async {
+    if (state.query.trim().isEmpty) {
+      return;
+    }
+
+    final sharedPreferences = SharedPreferencesAsync();
+    try {
+      final list = (await sharedPreferences.getStringList('search_history')) ?? <String>[];
+      list.removeWhere((e) => e.trim().isEmpty);
+      list.add(state.query);
+      final takeLength = min(20, list.length);
+      final savedList = list.sublist(list.length - takeLength);
+
+      await sharedPreferences.setStringList('search_history', savedList);
+      printBoxed('Search query saved: ${state.query}');
+
+      emit(state.copyWith(searchHistory: savedList));
+    } catch (e) {
+      emit(state.copyWith(errorMessage: e.toString()));
+    }
   }
 }

@@ -8,14 +8,6 @@ class AppRoutes {
   static const resetPassword = AppRoute<String>('/reset_password_authentication');
   static const newPassword = AppRoute<String>('/new_password');
 
-  static const inventory = AppRoute<Null>('/inventory');
-  static const billing = AppRoute<Null>('/billing');
-  static const order = AppRoute<Null>('/order');
-  static const reports = AppRoute<Null>('/reports_list');
-  static const settings = AppRoute<Null>('/settings');
-  static const help = AppRoute<Null>('/help');
-  static const about = AppRoute<Null>('/about');
-
   // Major Page Routes
   static const admin = (
     dashboard: AppRoute<Null>('/admin/dashboard'),

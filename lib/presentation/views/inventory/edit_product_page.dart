@@ -79,6 +79,10 @@ class EditProductPage extends StatelessWidget {
                       state.mainUnit,
                       state.archivedStatus,
                       state.secondaryUnits //
+                          .where((u) =>
+                              u.unitQuantity.value.isNotEmpty &&
+                              u.name.value.isNotEmpty &&
+                              u.mainQuantity.value.isNotEmpty)
                           .map((u) => u.toUnit().toMap())
                           .toList(),
                       state.deadStockThreshold,

@@ -3,8 +3,8 @@ import 'package:easthardware_pms/presentation/widgets/layout/spacing.dart';
 import 'package:easthardware_pms/presentation/widgets/text.dart';
 import 'package:fluent_ui/fluent_ui.dart';
 
-class AboutPanePage extends StatelessWidget {
-  const AboutPanePage({super.key});
+class HelpPage extends StatelessWidget {
+  const HelpPage({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -13,7 +13,7 @@ class AboutPanePage extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: const [
-          PageHeader(),
+          _PageHeader(),
           SystemInfoSection(),
           VersionInfoSection(),
           DevelopersSection(),
@@ -23,26 +23,15 @@ class AboutPanePage extends StatelessWidget {
   }
 }
 
-class PageHeader extends StatelessWidget {
-  const PageHeader({super.key});
+class _PageHeader extends StatelessWidget {
+  const _PageHeader();
 
   @override
   Widget build(BuildContext context) {
-    return Column(
+    return const Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const HeadingText('About'),
-        Spacing.v8,
-        InfoCard(
-          title: 'East Hardware',
-          child: Text(
-            'The following system is created specifically for the establishment East Hardware, its owners, and its store processes.',
-            style: FluentTheme.of(context)
-                .typography
-                .body //
-                ?.copyWith(color: FluentTheme.of(context).resources.textFillColorSecondary),
-          ),
-        ),
+        HeadingText('About'),
       ],
     );
   }
@@ -66,7 +55,9 @@ class SystemInfoRow extends StatelessWidget {
           width: 140,
           child: Text(
             label,
-            style: FluentTheme.of(context).typography.body?.copyWith(fontWeight: FontWeight.w500),
+            style: FluentTheme.of(context).typography.body?.copyWith(
+                  fontWeight: FontWeight.w500,
+                ),
           ),
         ),
         Expanded(

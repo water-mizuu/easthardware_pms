@@ -1,5 +1,4 @@
 import 'package:easthardware_pms/presentation/widgets/layout/spacing.dart';
-import 'package:easthardware_pms/presentation/widgets/ui/paginated_table.dart';
 import 'package:easthardware_pms/presentation/widgets/ui/styles.dart';
 import 'package:fluent_ui/fluent_ui.dart';
 
@@ -13,8 +12,8 @@ class PaymentsPanePage extends StatelessWidget {
       child: Column(
         children: [
           PageHeader(),
-          SizedBox(height: 16),
-          PaginatedTable.sample(isExpanded: true),
+          // SizedBox(height: 16),
+          // PaginatedTable.sample(isExpanded: true),
         ],
       ),
     );

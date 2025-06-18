@@ -11,6 +11,8 @@ import 'package:easthardware_pms/presentation/router/app_routes.dart';
 import 'package:easthardware_pms/presentation/views/navigation/common_side_panel_mixin.dart';
 import 'package:easthardware_pms/presentation/widgets/layout/spacing.dart';
 import 'package:easthardware_pms/presentation/widgets/text.dart';
+import 'package:easthardware_pms/utils/boxed.dart';
+import 'package:easthardware_pms/utils/notification.dart';
 import 'package:fluent_ui/fluent_ui.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -36,6 +38,19 @@ class _SearchPageState extends State<SearchPage> {
   List<SingleChildWidget> get providers {
     return [
       BlocProvider<SearchBloc>.value(value: _searchBloc),
+    ];
+  }
+
+  List<SingleChildWidget> get listeners {
+    return [
+      BlocListener<SearchBloc, SearchState>(
+        listenWhen: (p, c) => p.errorMessage != c.errorMessage,
+        listener: (context, state) {
+          if (state.errorMessage case final message?) {
+            showNotification(title: "SearchBloc Error", message: message);
+          }
+        },
+      ),
     ];
   }
 
@@ -167,8 +182,35 @@ class _PageHeader extends StatelessWidget {
   }
 }
 
-class _SearchElement extends StatelessWidget {
+class _SearchElement extends StatefulWidget {
   const _SearchElement();
+
+  @override
+  State<_SearchElement> createState() => _SearchElementState();
+}
+
+class _SearchElementState extends State<_SearchElement> {
+  late final FocusNode _focusNode = FocusNode();
+  bool _hasFocus = false;
+
+  @override
+  void initState() {
+    super.initState();
+
+    _focusNode.addListener(() {
+      if (_hasFocus && !_focusNode.hasFocus) {
+        printBoxed("The user has lost focus on the search box.");
+
+        context.read<SearchBloc>().add(const SearchQuerySaved());
+      }
+
+      if (_focusNode.hasFocus) {
+        _hasFocus = true;
+      } else {
+        _hasFocus = false;
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -177,10 +219,21 @@ class _SearchElement extends StatelessWidget {
         const Text("Search keyword:"),
         Spacing.h8,
         Expanded(
-          child: TextBox(
+          child: AutoSuggestBox(
+            items: [
+              for (final item in context.select((SearchBloc b) => b.state.searchHistory))
+                AutoSuggestBoxItem(value: item, label: item),
+            ],
+            focusNode: _focusNode,
             placeholder: 'Enter search keyword; e.g. product name, invoice number, etc.',
-            onChanged: (value) => context.read<SearchBloc>().add(SearchQueryUpdated(value)),
+            onChanged: (value, reason) {
+              context.read<SearchBloc>().add(SearchQueryUpdated(value));
+            },
           ),
+          // child: TextBox(
+          //   placeholder: 'Enter search keyword; e.g. product name, invoice number, etc.',
+          //   onChanged: (value) => context.read<SearchBloc>().add(SearchQueryUpdated(value)),
+          // ),
         ),
       ],
     );

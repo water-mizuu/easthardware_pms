@@ -6,6 +6,7 @@ final class SearchState {
     required this.allInvoices,
     required this.allOrders,
     this.query = '',
+    this.searchHistory = const [],
     this.results = const SearchResults.empty(),
     this.isLoading = false,
     this.errorMessage,
@@ -16,6 +17,7 @@ final class SearchState {
   final List<Order> allOrders;
 
   final String query;
+  final List<String> searchHistory;
   final SearchResults results;
   final bool isLoading;
   final String? errorMessage;
@@ -25,6 +27,7 @@ final class SearchState {
     List<Invoice> allInvoices,
     List<Order> allOrders,
     String query,
+    List<String> searchHistory,
     SearchResults results,
     bool isLoading,
     String? errorMessage,
@@ -34,6 +37,7 @@ final class SearchState {
       Object? allInvoices = undefined,
       Object? allOrders = undefined,
       Object? query = undefined,
+      Object? searchHistory = undefined,
       Object? results = undefined,
       Object? isLoading = undefined,
       Object? errorMessage = undefined,
@@ -43,6 +47,7 @@ final class SearchState {
         allInvoices: allInvoices.or(this.allInvoices),
         allOrders: allOrders.or(this.allOrders),
         query: query.or(this.query),
+        searchHistory: searchHistory.or(this.searchHistory),
         results: results.or(this.results),
         isLoading: isLoading.or(this.isLoading),
         errorMessage: errorMessage.or(this.errorMessage),

@@ -306,7 +306,7 @@ class _AdminNavigationViewState extends State<AdminNavigationView>
           navItem(
             icon: FluentIcons.help,
             title: 'Help',
-            // route: AppRoutes.admin.help,
+            route: AppRoutes.admin.help,
           ),
           navItem(
             icon: FluentIcons.info,

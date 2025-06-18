@@ -1,5 +1,3 @@
-import 'dart:math';
-
 import 'package:easthardware_pms/domain/models/invoice.dart';
 import 'package:easthardware_pms/domain/models/order.dart';
 import 'package:easthardware_pms/domain/models/product.dart';
@@ -22,7 +20,7 @@ class ProductsBody extends SearchTableResult<Product> {
             ('ID', (p) => p.id.toString()),
             ('SKU', (p) => p.sku),
             ('Name', (p) => p.name),
-            ('Price', (p) => p.categoryName.toString()),
+            ('Category', (p) => p.categoryName.toString()),
           ],
           rowExtents: const {
             0: FixedSpanExtent(64.00),
@@ -165,8 +163,7 @@ class _SearchTableResultState<T> extends State<SearchTableResult<T>> {
       color: FluentTheme.of(context).cardColor,
       child: ConstrainedBox(
         constraints: BoxConstraints(
-          maxHeight: AppPadding.cardPadding.top + //
-              (cellHeight + rowPadding) * (max(4, results.length) + 1),
+          maxHeight: AppPadding.cardPadding.top + (cellHeight + rowPadding) * (results.length + 1),
         ),
         child: Padding(
           padding: AppPadding.cardPadding.copyWith(bottom: 0.0),
