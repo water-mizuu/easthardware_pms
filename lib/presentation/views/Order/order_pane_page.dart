@@ -52,13 +52,13 @@ class PageHeader extends StatelessWidget {
         TextButtonFilled(
           "Create Restock Order",
           onPressed: () {
-            context.navigateWithExtra(AppRoutes.admin.createRestockOrder, 1);
+            context.navigate(AppRoutes.admin.createRestockOrder);
           },
         ),
         TextButtonFilled(
           "Create Expense Order",
           onPressed: () {
-            context.navigateWithExtra(AppRoutes.admin.createExpenseOrder, 2);
+            context.navigate(AppRoutes.admin.createExpenseOrder);
           },
         ),
       ].withSpacing(() => Spacing.h16),

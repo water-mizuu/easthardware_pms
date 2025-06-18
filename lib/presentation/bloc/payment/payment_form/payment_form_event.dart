@@ -17,13 +17,12 @@ class InvoiceChanged extends PaymentFormEvent {
 }
 
 class PaymentMethodChanged extends PaymentFormEvent {
-  const PaymentMethodChanged(this.paymentMethodId, this.paymentMethodName);
+  const PaymentMethodChanged(this.paymentMethod);
 
-  final int paymentMethodId;
-  final String paymentMethodName;
+  final PaymentMethod paymentMethod;
 
   @override
-  List<Object> get props => [paymentMethodId, paymentMethodName];
+  List<Object> get props => [paymentMethod];
 }
 
 class PaymentReferenceChanged extends PaymentFormEvent {

@@ -32,14 +32,13 @@ enum FormStatus {
   success,
 }
 
-enum PaymentMethod {
-  cash,
-  credit,
-  gcash,
-}
-
 enum InvoicePostAction {
   payment,
   create,
   none,
+}
+
+enum OrderType {
+  restock,
+  expense,
 }

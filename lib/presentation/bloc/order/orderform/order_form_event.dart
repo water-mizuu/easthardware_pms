@@ -17,7 +17,7 @@ class PayeeNameChangedEvent extends OrderFormEvent {
 
 class ExpenseTypeChangedEvent extends OrderFormEvent {
   const ExpenseTypeChangedEvent(this.expenseType);
-  final int expenseType;
+  final ExpenseType expenseType;
 
   @override
   List<Object?> get props => [expenseType];
@@ -33,7 +33,7 @@ class OrderDateChangedEvent extends OrderFormEvent {
 
 class PaymentMethodChangedEvent extends OrderFormEvent {
   const PaymentMethodChangedEvent(this.paymentMethod);
-  final int paymentMethod;
+  final PaymentMethod paymentMethod;
 
   @override
   List<Object?> get props => [paymentMethod];
@@ -55,23 +55,12 @@ class MemoChangedEvent extends OrderFormEvent {
   List<Object?> get props => [memo];
 }
 
-class AmountPaidChangedEvent extends OrderFormEvent {
-  const AmountPaidChangedEvent(this.amountPaid);
-  final double amountPaid;
+class ProductAddedEvent extends OrderFormEvent {
+  const ProductAddedEvent();
 
   @override
-  List<Object?> get props => [amountPaid];
+  List<Object> get props => [];
 }
-
-class PaymentDateChangedEvent extends OrderFormEvent {
-  const PaymentDateChangedEvent(this.paymentDate);
-  final DateTime paymentDate;
-
-  @override
-  List<Object?> get props => [paymentDate];
-}
-
-class ProductAddedEvent extends OrderFormEvent {}
 
 class ProductRemovedEvent extends OrderFormEvent {
   const ProductRemovedEvent(this.index);
@@ -99,11 +88,50 @@ class ProductSelectedEvent extends OrderFormEvent {
   List<Object?> get props => [product, index];
 }
 
-class FormButtonPressedEvent extends OrderFormEvent {}
+class ClearProductsEvent extends OrderFormEvent {
+  const ClearProductsEvent();
 
-class ClearProductsEvent extends OrderFormEvent {}
+  @override
+  List<Object?> get props => [];
+}
 
-class FormSubmittedEvent extends OrderFormEvent {}
+class OrderItemAddedEvent extends OrderFormEvent {
+  const OrderItemAddedEvent();
+
+  @override
+  List<Object?> get props => [];
+}
+
+class OrderItemRemovedEvent extends OrderFormEvent {
+  const OrderItemRemovedEvent(this.index);
+  final int index;
+
+  @override
+  List<Object?> get props => [index];
+}
+
+class OrderItemUpdatedEvent extends OrderFormEvent {
+  const OrderItemUpdatedEvent(this.orderItem, this.index);
+  final FormOrderItem orderItem;
+  final int index;
+
+  @override
+  List<Object?> get props => [orderItem, index];
+}
+
+class ClearOrderItemsEvent extends OrderFormEvent {
+  const ClearOrderItemsEvent();
+
+  @override
+  List<Object?> get props => [];
+}
+
+class FormSubmittedEvent extends OrderFormEvent {
+  const FormSubmittedEvent();
+
+  @override
+  List<Object?> get props => [];
+}
 
 class SaveOrderRequestEvent extends OrderFormEvent {
   const SaveOrderRequestEvent({

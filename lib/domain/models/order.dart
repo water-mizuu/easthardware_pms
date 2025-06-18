@@ -1,10 +1,6 @@
 import 'package:easthardware_pms/utils/undefined.dart';
 import 'package:uuid/uuid.dart';
 
-enum ExpenseType {
-  restock,
-}
-
 class Order {
   Order({
     String? uid,

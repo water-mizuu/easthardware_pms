@@ -10,10 +10,10 @@ import 'package:easthardware_pms/presentation/bloc/billing/invoicelist/invoice_l
 import 'package:easthardware_pms/presentation/bloc/payment/payment_form/payment_form_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/payment/'
     'payment_method_list/payment_method_list_bloc.dart';
-import 'package:easthardware_pms/presentation/cubit/payment/'
-    'payment_method_form/cubit/payment_method_form_cubit.dart';
+import 'package:easthardware_pms/presentation/cubit/payment/payment_method_form/payment_method_form_cubit.dart';
 import 'package:easthardware_pms/presentation/router/app_routes.dart';
 import 'package:easthardware_pms/presentation/widgets/layout/spacing.dart';
+import 'package:easthardware_pms/presentation/widgets/payment_method_combo_box.dart';
 import 'package:easthardware_pms/presentation/widgets/ui/loading_page.dart';
 import 'package:easthardware_pms/presentation/widgets/ui/styles.dart';
 import 'package:easthardware_pms/presentation/widgets/ui/text_button.dart';
@@ -147,15 +147,8 @@ class PageHeader extends StatelessWidget {
   }
 }
 
-class PaymentForm extends StatefulWidget {
+class PaymentForm extends StatelessWidget {
   const PaymentForm({super.key});
-
-  @override
-  State<PaymentForm> createState() => _PaymentFormState();
-}
-
-class _PaymentFormState extends State<PaymentForm> {
-  late final _flyoutController = FlyoutController();
 
   @override
   Widget build(BuildContext context) {
@@ -163,36 +156,6 @@ class _PaymentFormState extends State<PaymentForm> {
     final paymentMethods = context.select((PaymentMethodListBloc b) => b.state.paymentMethods);
     printBoxed(paymentMethods);
 
-    final comboBoxItems = [
-      ComboBoxItem(
-        value: null,
-        onTap: () {},
-        child: FlyoutTarget(
-          controller: _flyoutController,
-          child: const Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text('Add New Payment Method', style: TextStyles.body),
-              Icon(FluentIcons.add, size: 12.0),
-            ],
-          ),
-        ),
-      ),
-      for (final method in paymentMethods) ...[
-        ComboBoxItem(
-          value: method,
-          child: Text(method.name, style: TextStyles.body),
-          onTap: () {
-            context.read<PaymentFormBloc>().add(
-                  PaymentMethodChanged(
-                    method.id!,
-                    method.name,
-                  ),
-                );
-          },
-        ),
-      ],
-    ];
     return Container(
       constraints: const BoxConstraints(minHeight: 800),
       padding: const EdgeInsets.all(24),
@@ -332,84 +295,13 @@ class _PaymentFormState extends State<PaymentForm> {
                       style: TextStyles.body.merge(TextStyles.onSurface),
                     ),
                     Spacing.v8,
-                    ComboBox(
-                      placeholder: Text(
-                        'Select Payment Method',
-                        style: TextStyles.body.merge(TextStyles.onSurfaceVariant),
-                      ),
-                      isExpanded: true,
-                      items: [...comboBoxItems],
-                      onChanged: (value) {
-                        if (value is PaymentMethod) {
-                          context
-                              .read<PaymentFormBloc>()
-                              .add(PaymentMethodChanged(value.id!, value.name));
-                        } else {
-                          unawaited(_flyoutController.showFlyout(
-                            autoModeConfiguration: FlyoutAutoConfiguration(
-                              preferredMode: FlyoutPlacementMode.bottomRight,
-                            ),
-                            builder: (flyoutContext) {
-                              return FlyoutContent(
-                                child: ConstrainedBox(
-                                  constraints: const BoxConstraints(maxWidth: 400.0),
-                                  child: Column(
-                                    mainAxisSize: MainAxisSize.min,
-                                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                                    children: [
-                                      const Text('New Payment Method', style: TextStyles.subtitle),
-                                      Spacing.v16,
-                                      const Text('Name', style: TextStyles.body),
-                                      Spacing.v8,
-                                      TextFormBox(
-                                        validator: (value) {
-                                          if (value == null || value.isEmpty) {
-                                            return 'Payment method name cannot be empty';
-                                          }
-                                          if (value.length < 3) {
-                                            return 'Payment method name must be at least 3 characters long';
-                                          }
-                                          if (paymentMethods.map((e) => e.name).contains(value)) {
-                                            return 'Payment method already exists';
-                                          }
-                                          return null;
-                                        },
-                                        inputFormatters: [
-                                          FilteringTextInputFormatter.allow(
-                                              RegExp(r'^[a-zA-Z0-9\s]+$'))
-                                        ],
-                                        onChanged: (value) {
-                                          context
-                                              .read<PaymentMethodFormCubit>()
-                                              .onFormNameChanged(value);
-                                        },
-                                      ),
-                                      Spacing.v16,
-                                      Row(
-                                        children: [
-                                          const Spacer(flex: 2),
-                                          TextButtonFilled(
-                                            'Save',
-                                            onPressed: () {
-                                              final bloc = context.read<PaymentMethodListBloc>();
-                                              final paymentMethodFormState =
-                                                  context.read<PaymentMethodFormCubit>().state;
-                                              final paymentMethod =
-                                                  paymentMethodFormState.toPaymentMethod();
-                                              bloc.add(AddPaymentMethodEvent(paymentMethod));
-                                            },
-                                          )
-                                        ],
-                                      ),
-                                    ],
-                                  ),
-                                ),
+                    PaymentMethodComboBox(
+                        value: context.select((PaymentFormBloc b) => b.state.paymentMethod),
+                        onPaymentMethodSelected: (PaymentMethod method) {
+                          context.read<PaymentFormBloc>().add(
+                                PaymentMethodChanged(method),
                               );
-                            },
-                          ));
-                        }
-                      },
-                    )
+                        }),
                   ],
                 ),
               ),
@@ -475,19 +367,6 @@ class _PaymentFormState extends State<PaymentForm> {
               ),
             ],
           ),
-          // Container(
-          //   padding: const EdgeInsets.symmetric(vertical: 8.0),
-          //   decoration: BoxDecoration(
-          //     border: Border(
-          //       bottom: BorderSide(color: Colors.grey[40], width: 1),
-          //     ),
-          //   ),
-          //   child: const SizedBox.shrink(),
-          // ),
-          // const Text(
-          //   "Items",
-          //   style: TextStyles.title,
-          // ),
           Spacing.v16,
           Spacing.v16,
           const InvoiceProductTable(),

@@ -1,6 +1,8 @@
 import 'package:bloc/bloc.dart';
-import 'package:easthardware_pms/domain/enums/enums.dart';
+import 'package:easthardware_pms/domain/enums/enums.dart'
+    show FormStatus, InvoicePostAction, DiscountType;
 import 'package:easthardware_pms/domain/models/invoice.dart';
+import 'package:easthardware_pms/domain/models/payment_method.dart';
 import 'package:easthardware_pms/domain/models/product.dart';
 import 'package:easthardware_pms/presentation/models/form_product.dart';
 import 'package:easthardware_pms/utils/boxed.dart';

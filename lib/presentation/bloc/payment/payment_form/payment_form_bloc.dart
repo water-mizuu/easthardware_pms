@@ -2,6 +2,7 @@ import 'package:bloc/bloc.dart';
 import 'package:easthardware_pms/domain/enums/enums.dart';
 import 'package:easthardware_pms/domain/models/invoice.dart';
 import 'package:easthardware_pms/domain/models/payment.dart';
+import 'package:easthardware_pms/domain/models/payment_method.dart';
 import 'package:easthardware_pms/utils/undefined.dart';
 import 'package:equatable/equatable.dart';
 
@@ -22,16 +23,11 @@ class PaymentFormBloc extends Bloc<PaymentFormEvent, PaymentFormState> {
     emit(state.copyWith(invoice: event.invoice));
   }
 
-  void _onPaymentMethodChanged(
-      PaymentMethodChanged event, Emitter<PaymentFormState> emit) {
-    emit(state.copyWith(
-      paymentMethodId: event.paymentMethodId,
-      paymentMethodName: event.paymentMethodName,
-    ));
+  void _onPaymentMethodChanged(PaymentMethodChanged event, Emitter<PaymentFormState> emit) {
+    emit(state.copyWith(paymentMethod: event.paymentMethod, status: FormStatus.initial));
   }
 
-  void _onPaymentReferenceChanged(
-      PaymentReferenceChanged event, Emitter<PaymentFormState> emit) {
+  void _onPaymentReferenceChanged(PaymentReferenceChanged event, Emitter<PaymentFormState> emit) {
     emit(state.copyWith(paymentReference: event.paymentReference));
   }
 
@@ -39,11 +35,9 @@ class PaymentFormBloc extends Bloc<PaymentFormEvent, PaymentFormState> {
     emit(state.copyWith(amount: event.amount));
   }
 
-  void _onPaymentDateChanged(
-      PaymentDateChanged event, Emitter<PaymentFormState> emit) {
+  void _onPaymentDateChanged(PaymentDateChanged event, Emitter<PaymentFormState> emit) {
     emit(state.copyWith(paymentDate: event.paymentDate));
   }
 
-  void _onSavePaymentRequestEvent(
-      SavePaymentRequestEvent event, Emitter<PaymentFormState> emit) {}
+  void _onSavePaymentRequestEvent(SavePaymentRequestEvent event, Emitter<PaymentFormState> emit) {}
 }

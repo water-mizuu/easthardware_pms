@@ -74,20 +74,16 @@ class _AdminNavigationViewState extends State<AdminNavigationView>
   late final AnimatedScrollController _scrollController;
   late int _selectedIndex;
 
-  late final List<NavigationPaneItem> _navigationItems =
-      buildNavigationItems(context);
+  late final List<NavigationPaneItem> _navigationItems = buildNavigationItems(context);
   late final List<NavigationPaneItem> _footerItems = footerItems(context);
-  late final List<PaneItem> _expandedNavigationItems =
-      _navigationItems.expandItems().toList();
+  late final List<PaneItem> _expandedNavigationItems = _navigationItems.expandItems().toList();
 
   @override
   void initState() {
     super.initState();
 
-    _routeIndexMapper =
-        NavRailRouteIndexMapper(items: _expandedNavigationItems);
-    _scrollController =
-        AnimatedScrollController(animationFactory: const ChromiumEaseInOut());
+    _routeIndexMapper = NavRailRouteIndexMapper(items: _expandedNavigationItems);
+    _scrollController = AnimatedScrollController(animationFactory: const ChromiumEaseInOut());
     _selectedIndex = 0;
   }
 
@@ -227,7 +223,17 @@ class _AdminNavigationViewState extends State<AdminNavigationView>
             title: "Create Invoice",
             route: AppRoutes.admin.createInvoice,
           ),
+          navItem(
+            icon: FluentIcons.text_document_edit,
+            title: "Manage Payment Methods",
+            route: AppRoutes.admin.createInvoice,
+          ),
         ],
+      ),
+      navItem(
+        icon: FluentIcons.payment_card,
+        title: 'Payment',
+        route: AppRoutes.admin.payment,
       ),
       navItem(
         icon: FluentIcons.bill,
@@ -238,6 +244,16 @@ class _AdminNavigationViewState extends State<AdminNavigationView>
             icon: FluentIcons.bill,
             title: 'Orders List',
             route: AppRoutes.admin.order,
+          ),
+          navItem(
+            icon: FluentIcons.text_document_edit,
+            title: "Create Restock Order",
+            route: AppRoutes.admin.createRestockOrder,
+          ),
+          navItem(
+            icon: FluentIcons.text_document_edit,
+            title: "Create Expense Order",
+            route: AppRoutes.admin.createExpenseOrder,
           ),
           navItem(
             icon: FluentIcons.reservation_orders,

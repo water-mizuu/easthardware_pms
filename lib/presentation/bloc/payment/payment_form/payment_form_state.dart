@@ -4,8 +4,7 @@ class PaymentFormState {
   PaymentFormState({
     this.id,
     this.invoice,
-    this.paymentMethodId = 0,
-    this.paymentMethodName = '',
+    this.paymentMethod,
     this.paymentReference = '',
     this.amount = 0,
     DateTime? paymentDate,
@@ -16,8 +15,7 @@ class PaymentFormState {
 
   final int? id;
   final Invoice? invoice;
-  final int paymentMethodId;
-  final String paymentMethodName;
+  final PaymentMethod? paymentMethod;
   final String paymentReference;
   final double amount;
   final DateTime paymentDate;
@@ -28,8 +26,7 @@ class PaymentFormState {
   PaymentFormState copyWith({
     Object? id = undefined,
     Object? invoice = undefined,
-    Object? paymentMethodId = undefined,
-    Object? paymentMethodName = undefined,
+    Object? paymentMethod = undefined,
     Object? paymentReference = undefined,
     Object? amount = undefined,
     Object? paymentDate = undefined,
@@ -40,23 +37,14 @@ class PaymentFormState {
     return PaymentFormState(
       id: id == undefined ? this.id : id as int?,
       invoice: invoice == undefined ? this.invoice : invoice as Invoice?,
-      paymentMethodId: paymentMethodId == undefined
-          ? this.paymentMethodId
-          : paymentMethodId as int,
-      paymentMethodName: paymentMethodName == undefined
-          ? this.paymentMethodName
-          : paymentMethodName as String,
-      paymentReference: paymentReference == undefined
-          ? this.paymentReference
-          : paymentReference as String,
+      paymentMethod:
+          paymentMethod == undefined ? this.paymentMethod : paymentMethod as PaymentMethod?,
+      paymentReference:
+          paymentReference == undefined ? this.paymentReference : paymentReference as String,
       amount: amount == undefined ? this.amount : amount as double,
-      paymentDate: paymentDate == undefined
-          ? this.paymentDate
-          : paymentDate as DateTime?,
+      paymentDate: paymentDate == undefined ? this.paymentDate : paymentDate as DateTime?,
       creatorId: creatorId == undefined ? this.creatorId : creatorId as int?,
-      creationDate: creationDate == undefined
-          ? this.creationDate
-          : creationDate as DateTime?,
+      creationDate: creationDate == undefined ? this.creationDate : creationDate as DateTime?,
       status: status == undefined ? this.status : status as FormStatus,
     );
   }
@@ -67,7 +55,7 @@ class PaymentFormState {
       amount: amount,
       paymentDate: paymentDate,
       referenceNumber: paymentReference,
-      paymentMethod: paymentMethodId,
+      paymentMethod: paymentMethod!.id!,
       creatorId: creatorId!,
       creationDate: creationDate!,
     );

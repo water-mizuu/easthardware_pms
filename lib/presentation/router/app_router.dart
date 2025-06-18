@@ -187,11 +187,11 @@ final router = GoRouter(
                 ),
                 TypedGoRoute(
                   route: AppRoutes.admin.createRestockOrder,
-                  builder: (context, state) => CreateRestockOrderPage(expenseType: state.extra),
+                  builder: (context, state) => CreateRestockOrderPage(),
                 ),
                 TypedGoRoute(
                   route: AppRoutes.admin.createExpenseOrder,
-                  builder: (context, state) => CreateExpenseOrderPage(expenseType: state.extra),
+                  builder: (context, state) => const CreateExpenseOrderPage(),
                 ),
               ],
             ),

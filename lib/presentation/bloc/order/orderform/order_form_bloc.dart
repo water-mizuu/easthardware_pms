@@ -1,8 +1,12 @@
 import 'package:bloc/bloc.dart';
-import 'package:easthardware_pms/domain/enums/enums.dart';
+import 'package:easthardware_pms/domain/enums/enums.dart' show FormStatus, OrderType;
+import 'package:easthardware_pms/domain/models/expense_type.dart';
 import 'package:easthardware_pms/domain/models/order.dart';
+import 'package:easthardware_pms/domain/models/payment_method.dart';
 import 'package:easthardware_pms/domain/models/product.dart';
+import 'package:easthardware_pms/presentation/models/form_order_item.dart';
 import 'package:easthardware_pms/presentation/models/form_product.dart';
+import 'package:easthardware_pms/utils/boxed.dart';
 import 'package:easthardware_pms/utils/undefined.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter/widgets.dart';
@@ -12,85 +16,87 @@ part 'order_form_event.dart';
 part 'order_form_state.dart';
 
 class OrderFormBloc extends Bloc<OrderFormEvent, OrderFormState> {
-  OrderFormBloc({int? expenseType})
-      : formKey = GlobalKey<FormState>(),
-        super(expenseType != null
-            ? OrderFormState(expenseType: expenseType)
-            : OrderFormState()) {
+  OrderFormBloc(super.state) : formKey = GlobalKey<FormState>() {
     on<PayeeNameChangedEvent>(_onPayeeNameChanged);
     on<OrderDateChangedEvent>(_onOrderDateChanged);
     on<ExpenseTypeChangedEvent>(_onExpenseTypeChanged);
     on<PaymentMethodChangedEvent>(_onPaymentMethodChanged);
     on<ReferenceNumberChangedEvent>(_onReferenceNumberChanged);
-    on<PaymentDateChangedEvent>(_onPaymentDateChanged);
     on<MemoChangedEvent>(_onMemoChanged);
     on<ProductAddedEvent>(_onProductAdded);
     on<ProductRemovedEvent>(_onProductRemoved);
     on<ProductSelectedEvent>(_onProductSelected);
     on<ProductUpdatedEvent>(_onProductUpdated);
-    on<FormButtonPressedEvent>(_onFormButtonPressed);
+    on<OrderItemAddedEvent>(_onOrderItemAdded);
+    on<OrderItemRemovedEvent>(_onOrderItemRemoved);
+    on<OrderItemUpdatedEvent>(_onOrderItemUpdated);
+    on<ClearOrderItemsEvent>(_onClearOrderItems);
     on<FormSubmittedEvent>(_onFormSubmitted);
     on<ClearProductsEvent>(_onClearProducts);
     on<SaveOrderRequestEvent>(_onSaveOrderRequest);
   }
 
+  factory OrderFormBloc.RestockOrder() {
+    return OrderFormBloc(
+      OrderFormState.RestockOrder(),
+    );
+  }
+  factory OrderFormBloc.ExpenseOrder() {
+    return OrderFormBloc(
+      OrderFormState.ExpenseOrder(),
+    );
+  }
+  factory OrderFormBloc.FromRestockOrder() {
+    // TODO: Implement
+    return OrderFormBloc(
+      OrderFormState.RestockOrder(),
+    );
+  }
+  factory OrderFormBloc.FromExpenseOrder() {
+    // TODO: Implement
+    return OrderFormBloc(
+      OrderFormState.ExpenseOrder(),
+    );
+  }
+
   final GlobalKey<FormState> formKey;
 
-  void _onPayeeNameChanged(
-      PayeeNameChangedEvent event, Emitter<OrderFormState> emit) {
+  void _onPayeeNameChanged(PayeeNameChangedEvent event, Emitter<OrderFormState> emit) {
     emit(state.copyWith(
       payeeName: event.payeeName,
-      payeeNameErrorMessage:
-          event.payeeName.isEmpty ? 'Payee name is required.' : null,
+      payeeNameErrorMessage: event.payeeName.isEmpty ? 'Payee name is required.' : null,
     ));
   }
 
-  void _onOrderDateChanged(
-      OrderDateChangedEvent event, Emitter<OrderFormState> emit) {
+  void _onOrderDateChanged(OrderDateChangedEvent event, Emitter<OrderFormState> emit) {
     emit(state.copyWith(
       orderDate: event.orderDate,
-      orderDateErrorMessage: event.orderDate.isAfter(DateTime.now())
-          ? 'Order date cannot be in the future.'
-          : null,
-      paymentDateErrorMessage: (state.paymentDate != null &&
-              state.paymentDate!.isBefore(event.orderDate))
-          ? 'Payment date cannot be before order date.'
-          : null,
+      orderDateErrorMessage:
+          event.orderDate.isAfter(DateTime.now()) ? 'Order date cannot be in the future.' : null,
     ));
   }
 
-  void _onPaymentDateChanged(
-      PaymentDateChangedEvent event, Emitter<OrderFormState> emit) {
-    emit(state.copyWith(
-      paymentDate: event.paymentDate,
-      paymentDateErrorMessage: (event.paymentDate.isBefore(state.orderDate))
-          ? 'Payment date cannot be before order date.'
-          : null,
-    ));
+  void _onExpenseTypeChanged(ExpenseTypeChangedEvent event, Emitter<OrderFormState> emit) {
+    try {
+      emit(state.copyWith(expenseType: event.expenseType));
+    } catch (e, stackTrace) {
+      printBoxed('Error changing expense type: $e \n $stackTrace', 'OrderFormBloc');
+      emit(state.copyWith(
+        status: FormStatus.error,
+        dialogErrorMessage: 'Failed to change expense type.',
+      ));
+    }
   }
 
-  void _onExpenseTypeChanged(
-      ExpenseTypeChangedEvent event, Emitter<OrderFormState> emit) {
-    emit(state.copyWith(expenseType: event.expenseType));
+  void _onPaymentMethodChanged(PaymentMethodChangedEvent event, Emitter<OrderFormState> emit) {
+    emit(state.copyWith(paymentMethod: event.paymentMethod));
   }
 
-  void _onPaymentMethodChanged(
-      PaymentMethodChangedEvent event, Emitter<OrderFormState> emit) {
-    emit(state.copyWith(
-      paymentMethod: event.paymentMethod,
-      paymentMethodErrorMessage: event.paymentMethod == undefined
-          ? 'Payment method is required.'
-          : null,
-    ));
-  }
-
-  void _onReferenceNumberChanged(
-      ReferenceNumberChangedEvent event, Emitter<OrderFormState> emit) {
+  void _onReferenceNumberChanged(ReferenceNumberChangedEvent event, Emitter<OrderFormState> emit) {
     emit(state.copyWith(
       referenceNumber: event.referenceNumber,
-      referenceNumberErrorMessage: event.referenceNumber.isEmpty
-          ? 'Reference number is required.'
-          : null,
+      referenceNumberErrorMessage:
+          event.referenceNumber.isEmpty ? 'Reference number is required.' : null,
     ));
   }
 
@@ -99,34 +105,28 @@ class OrderFormBloc extends Bloc<OrderFormEvent, OrderFormState> {
   }
 
   void _onProductAdded(ProductAddedEvent event, Emitter<OrderFormState> emit) {
-    final updatedProducts = List<FormProduct>.from(state.products)
-      ..add(EmptyFormProduct());
+    final updatedProducts = [...?state.products, EmptyFormProduct()];
     emit(state.copyWith(products: updatedProducts));
   }
 
-  void _onProductRemoved(
-      ProductRemovedEvent event, Emitter<OrderFormState> emit) {
-    final updatedProducts = List<FormProduct>.from(state.products)
-      ..removeAt(event.index);
+  void _onProductRemoved(ProductRemovedEvent event, Emitter<OrderFormState> emit) {
+    final updatedProducts = List<FormProduct>.from(state.products!)..removeAt(event.index);
     emit(state.copyWith(products: updatedProducts));
   }
 
-  void _onProductSelected(
-      ProductSelectedEvent event, Emitter<OrderFormState> emit) {
-    final updatedProducts = List<FormProduct>.from(state.products);
+  void _onProductSelected(ProductSelectedEvent event, Emitter<OrderFormState> emit) {
+    final updatedProducts = List<FormProduct>.from(state.products!);
     if (event.index != -1) {
-      updatedProducts[event.index] = FormProduct.fromProduct(event.product)
-          .copyWith(rate: event.product.orderCost, amount: 0);
+      updatedProducts[event.index] =
+          FormProduct.fromProduct(event.product).copyWith(rate: event.product.orderCost, amount: 0);
       emit(state.copyWith(products: updatedProducts));
     }
   }
 
-  void _onProductUpdated(
-      ProductUpdatedEvent event, Emitter<OrderFormState> emit) {
-    final updatedProducts = List<FormProduct>.from(state.products);
+  void _onProductUpdated(ProductUpdatedEvent event, Emitter<OrderFormState> emit) {
+    final updatedProducts = List<FormProduct>.from(state.products!);
     if (event.index != -1) {
-      final adjustedRate =
-          event.product.rate * (event.product.conversionFactor ?? 1);
+      final adjustedRate = event.product.rate * (event.product.conversionFactor ?? 1);
       final adjustedProduct = event.product.copyWith(
         rate: adjustedRate,
         amount: adjustedRate * event.product.quantity,
@@ -140,93 +140,49 @@ class OrderFormBloc extends Bloc<OrderFormEvent, OrderFormState> {
     }
   }
 
-  Future<void> _onFormButtonPressed(
-      FormButtonPressedEvent event, Emitter<OrderFormState> emit) async {
-    /// Validate required fields
-    final payeeNameError =
-        state.payeeName.isEmpty ? 'Payee name is required.' : null;
-    final paymentMethodError =
-        state.paymentMethod == undefined ? 'Payment method is required.' : null;
-    final referenceNumberError =
-        state.referenceNumber.isEmpty ? 'Reference number is required.' : null;
+  void _onOrderItemAdded(OrderItemAddedEvent event, Emitter<OrderFormState> emit) {
+    final updatedOrderItems = [...?state.orderItems, FormOrderItem()];
+    emit(state.copyWith(orderItems: updatedOrderItems));
+  }
 
-    // Check if products are valid
-    final products = state.products;
-    if (products.every(
-      (product) =>
-          product.productId == null &&
-          product.description == null &&
-          product.quantity <= 0 &&
-          product.rate <= 0,
-    )) {
-      // Mark all products as having errors
-      emit(state.copyWith(
-        products: products
-            .map((product) =>
-                product.copyWith(errorMessage: 'Order items cannot be empty'))
-            .toList(),
-        status: FormStatus.error,
-      ));
-      return;
+  void _onOrderItemRemoved(OrderItemRemovedEvent event, Emitter<OrderFormState> emit) {
+    final updatedOrderItems = List<FormOrderItem>.from(state.orderItems!)..removeAt(event.index);
+    emit(state.copyWith(orderItems: updatedOrderItems));
+  }
+
+  void _onOrderItemUpdated(OrderItemUpdatedEvent event, Emitter<OrderFormState> emit) {
+    final updatedOrderItems = List<FormOrderItem>.from(state.orderItems!);
+    if (event.index != -1) {
+      updatedOrderItems[event.index] = event.orderItem;
+      final amountDue = updatedOrderItems.fold<double>(
+        0,
+        (previousValue, element) => previousValue + (element.amount ?? 0),
+      );
+      emit(state.copyWith(orderItems: updatedOrderItems, amountDue: amountDue));
     }
+  }
 
-    // Tag incomplete products
-    final taggedProducts = products.map(
-      (product) {
-        if (product.productId == null &&
-            (product.quantity > 0 ||
-                product.description != null ||
-                product.rate > 0)) {
-          return product.copyWith(errorMessage: 'Order items cannot be blank');
-        }
-        return product;
-      },
-    ).toList();
-
-    if (taggedProducts.any((product) => product.errorMessage != null)) {
-      emit(state.copyWith(
-        products: taggedProducts,
-        status: FormStatus.error,
-      ));
-      return;
-    }
-
-    // Emit state with all validation errors
-    emit(state.copyWith(
-      payeeNameErrorMessage: payeeNameError,
-      paymentMethodErrorMessage: paymentMethodError,
-      referenceNumberErrorMessage: referenceNumberError,
-      products: taggedProducts,
-    ));
-
-    // Check if form is valid (including the form key validation)
-    final bool isValid = (formKey.currentState?.validate() ?? false) &&
-        payeeNameError == null &&
-        paymentMethodError == null &&
-        referenceNumberError == null &&
-        !taggedProducts.any((product) => product.errorMessage != null);
-
-    if (isValid) {
-      emit(state.copyWith(status: FormStatus.submitting));
+  Future<void> _onFormSubmitted(FormSubmittedEvent event, Emitter<OrderFormState> emit) async {
+    // reset the form key to validate the form
+    formKey.currentState?.reset();
+    // Emit the button pressed event to handle validation and submission
+    if (state.orderType == OrderType.restock) {
+      emit(OrderFormState.RestockOrder());
+    } else if (state.orderType == OrderType.expense) {
+      emit(OrderFormState.ExpenseOrder());
     } else {
-      emit(state.copyWith(status: FormStatus.error));
+      emit(state.copyWith(status: FormStatus.error, dialogErrorMessage: 'Invalid order type.'));
     }
   }
 
-  Future<void> _onFormSubmitted(
-      FormSubmittedEvent event, Emitter<OrderFormState> emit) async {
-    // First emit success status
-    emit(state.copyWith(status: FormStatus.success));
-
-    // Then emit a new state to trigger UI updates
-    await Future.delayed(Duration.zero);
-    emit(OrderFormState(expenseType: state.expenseType));
-  }
-
-  void _onClearProducts(
-      ClearProductsEvent event, Emitter<OrderFormState> emit) {
+  void _onClearProducts(ClearProductsEvent event, Emitter<OrderFormState> emit) {
     final cleared = <FormProduct>[EmptyFormProduct()];
     emit(state.copyWith(products: cleared));
+  }
+
+  void _onClearOrderItems(ClearOrderItemsEvent event, Emitter<OrderFormState> emit) {
+    final cleared = <FormOrderItem>[FormOrderItem()];
+    emit(state.copyWith(orderItems: cleared));
   }
 
   Future<void> _onSaveOrderRequest(
@@ -242,7 +198,6 @@ class OrderFormBloc extends Bloc<OrderFormEvent, OrderFormState> {
     /// - Products must not be empty
     final products = state.products;
     final orderDateErrorMessage = state.orderDateErrorMessage;
-    final paymentDateErrorMessage = state.paymentDateErrorMessage;
     final payeeNameErrorMessage = state.payeeNameErrorMessage;
     final paymentMethodErrorMessage = state.paymentMethodErrorMessage;
     final referenceNumberErrorMessage = state.referenceNumberErrorMessage;
@@ -251,7 +206,7 @@ class OrderFormBloc extends Bloc<OrderFormEvent, OrderFormState> {
     emit(state.copyWith(status: FormStatus.validating));
 
     // Check if products are empty
-    if (products.every(
+    if (products!.every(
       (product) =>
           product.productId == null &&
           product.description == null &&
@@ -279,9 +234,7 @@ class OrderFormBloc extends Bloc<OrderFormEvent, OrderFormState> {
       (product) {
         if (product.productId == null) {
           // Only mark as error if some fields are filled but not all
-          if (product.quantity > 0 ||
-              product.description != null ||
-              product.rate > 0) {
+          if (product.quantity > 0 || product.description != null || product.rate > 0) {
             return product.copyWith(errorMessage: 'Item cannot be blank');
           }
         } else if (product.productId == -1) {
@@ -290,16 +243,14 @@ class OrderFormBloc extends Bloc<OrderFormEvent, OrderFormState> {
               product.description!.isEmpty ||
               product.quantity <= 0 ||
               product.rate <= 0) {
-            return product.copyWith(
-                errorMessage: 'Please fill in all item details');
+            return product.copyWith(errorMessage: 'Please fill in all item details');
           }
         }
         return product;
       },
     ).toList();
 
-    if (taggedProducts
-        .any((product) => product.errorMessage == 'Item cannot be blank')) {
+    if (taggedProducts.any((product) => product.errorMessage == 'Item cannot be blank')) {
       return emit(
         state.copyWith(
           status: FormStatus.error,
@@ -325,7 +276,7 @@ class OrderFormBloc extends Bloc<OrderFormEvent, OrderFormState> {
     }
 
     // Check dates
-    if (orderDateErrorMessage != null || paymentDateErrorMessage != null) {
+    if (orderDateErrorMessage != null) {
       return emit(
         state.copyWith(
           status: FormStatus.error,
@@ -339,7 +290,6 @@ class OrderFormBloc extends Bloc<OrderFormEvent, OrderFormState> {
       dialogErrorMessage: null,
       creationDate: event.creationDate,
       creatorId: event.creatorId,
-      id: event.id,
       status: FormStatus.submitting,
     ));
   }
