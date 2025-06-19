@@ -23,24 +23,7 @@ class ExpenseTypeComboBox extends StatefulWidget {
 }
 
 class _ExpenseTypeComboBoxState extends State<ExpenseTypeComboBox> {
-  @override
-  void initState() {
-    super.initState();
-    _currentValue = widget.value;
-  }
-
-  @override
-  void didUpdateWidget(covariant ExpenseTypeComboBox oldWidget) {
-    if (oldWidget.value != widget.value) {
-      setState(() {
-        _currentValue = widget.value;
-      });
-    }
-    super.didUpdateWidget(oldWidget);
-  }
-
   late final _flyoutController = FlyoutController();
-  ExpenseType? _currentValue;
   @override
   Widget build(BuildContext context) {
     final expenseTypes = context.select((ExpenseTypeListBloc b) => b.state.expenseTypes);
@@ -69,14 +52,13 @@ class _ExpenseTypeComboBoxState extends State<ExpenseTypeComboBox> {
       create: (context) => ExpenseTypeFormCubit(),
       child: Builder(builder: (context) {
         return ComboBox(
-          value: _currentValue,
+          value: widget.value,
           isExpanded: true,
           placeholder: const Text('Select Expense Type'),
           items: comboBoxItems,
           onChanged: (value) {
             if (value is ExpenseType) {
               widget.onExpenseTypeSelected(value);
-              _currentValue = value;
             } else {
               unawaited(_flyoutController.showFlyout(
                 autoModeConfiguration: FlyoutAutoConfiguration(

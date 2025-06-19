@@ -144,7 +144,7 @@ class OrderPageHeader extends StatelessWidget {
             final creatorId = context.read<AuthenticationBloc>().state.user?.id;
             final orderId = context.read<OrderListBloc>().state.allOrders.length;
             context.read<OrderFormBloc>().add(
-                  SaveOrderRequestEvent(
+                  SaveRestockOrderRequestEvent(
                     creationDate: creationDate,
                     creatorId: creatorId!,
                     id: orderId,

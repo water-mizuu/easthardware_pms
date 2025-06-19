@@ -4,6 +4,7 @@ import 'package:easthardware_pms/domain/models/expense_type.dart';
 import 'package:easthardware_pms/domain/models/order.dart';
 import 'package:easthardware_pms/domain/models/payment_method.dart';
 import 'package:easthardware_pms/domain/models/product.dart';
+import 'package:easthardware_pms/domain/services/cryptography_service.dart';
 import 'package:easthardware_pms/presentation/models/form_order_item.dart';
 import 'package:easthardware_pms/presentation/models/form_product.dart';
 import 'package:easthardware_pms/utils/boxed.dart';
@@ -33,7 +34,7 @@ class OrderFormBloc extends Bloc<OrderFormEvent, OrderFormState> {
     on<ClearOrderItemsEvent>(_onClearOrderItems);
     on<FormSubmittedEvent>(_onFormSubmitted);
     on<ClearProductsEvent>(_onClearProducts);
-    on<SaveOrderRequestEvent>(_onSaveOrderRequest);
+    on<SaveRestockOrderRequestEvent>(_onSaveRestockOrderRequest);
   }
 
   factory OrderFormBloc.RestockOrder() {
@@ -185,8 +186,8 @@ class OrderFormBloc extends Bloc<OrderFormEvent, OrderFormState> {
     emit(state.copyWith(orderItems: cleared));
   }
 
-  Future<void> _onSaveOrderRequest(
-    SaveOrderRequestEvent event,
+  Future<void> _onSaveRestockOrderRequest(
+    SaveRestockOrderRequestEvent event,
     Emitter<OrderFormState> emit,
   ) async {
     // First emit validating state to show we're processing
@@ -195,13 +196,34 @@ class OrderFormBloc extends Bloc<OrderFormEvent, OrderFormState> {
     await Future.delayed(Duration.zero);
 
     /// Checks
+    /// - Payee Name must not be empty
     /// - Products must not be empty
+    /// - Payment Method must be selected
+    /// - Reference Number must not be empty
+    /// - Order Date must not be in the future
+    /// - All products must have valid details
     final products = state.products;
     final orderDateErrorMessage = state.orderDateErrorMessage;
     final payeeNameErrorMessage = state.payeeNameErrorMessage;
     final paymentMethodErrorMessage = state.paymentMethodErrorMessage;
     final referenceNumberErrorMessage = state.referenceNumberErrorMessage;
 
+    final info = [
+      'Order Type: ${state.orderType.name}',
+      'Payee Name: ${state.payeeName}',
+      'Order Date: ${state.orderDate}',
+      'Expense Type: ${state.expenseType?.name ?? 'N/A'}',
+      'Payment Method: ${state.paymentMethod?.name ?? 'N/A'}',
+      'Reference Number: ${state.referenceNumber}',
+      'Memo: ${state.memo ?? 'N/A'}',
+      'Products: ${state.products}',
+      'Order Items: ${state.orderItems}',
+      'Amount Due: ${state.amountDue}',
+      'Creation Date: ${state.creationDate}',
+      'Creator ID: ${state.creatorId ?? 'N/A'}',
+    ].map((e) => e.toString()).join('\n -');
+
+    printBoxed('Submitting Product Form: ${info.toString().wrap}', 'EditProductPage');
     // Start validation
     emit(state.copyWith(status: FormStatus.validating));
 

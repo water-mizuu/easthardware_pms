@@ -139,7 +139,7 @@ class OrderPageHeader extends StatelessWidget {
             final creatorId = context.read<AuthenticationBloc>().state.user?.id;
             final orderId = context.read<OrderListBloc>().state.allOrders.length;
             context.read<OrderFormBloc>().add(
-                  SaveOrderRequestEvent(
+                  SaveRestockOrderRequestEvent(
                     creationDate: creationDate,
                     creatorId: creatorId!,
                     id: orderId,
@@ -249,21 +249,7 @@ class OrderPageForm extends StatelessWidget {
                 ),
               ),
               Spacing.h12,
-              Expanded(
-                flex: 2,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    const BodyText('Expense Type'),
-                    Spacing.v8,
-                    ExpenseTypeComboBox(
-                        value: state.expenseType,
-                        onExpenseTypeSelected: (value) {
-                          bloc.add(ExpenseTypeChangedEvent(value));
-                        }),
-                  ],
-                ),
-              ),
+              const Spacer()
             ],
           ),
           Spacing.v12,

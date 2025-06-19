@@ -1,3 +1,4 @@
+import 'package:easthardware_pms/domain/models/expense_type.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 class ExpenseTypesTable {
@@ -14,6 +15,12 @@ class ExpenseTypesTable {
         $EXPENSE_TYPE_ARCHIVE_STATUS INTEGER DEFAULT 0
       )
     ''');
+
+    await database.insert(
+      'expense_types',
+      ExpenseType(name: 'Inventory Restock').toMap(),
+      conflictAlgorithm: ConflictAlgorithm.fail,
+    );
   }
 
   static Future<void> dropTable(DatabaseExecutor database) async {

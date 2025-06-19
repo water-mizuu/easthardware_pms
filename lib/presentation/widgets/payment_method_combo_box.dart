@@ -25,24 +25,7 @@ class PaymentMethodComboBox extends StatefulWidget {
 }
 
 class _PaymentMethodComboBoxState extends State<PaymentMethodComboBox> {
-  @override
-  void initState() {
-    super.initState();
-    _currentValue = widget.value;
-  }
-
-  @override
-  void didUpdateWidget(covariant PaymentMethodComboBox oldWidget) {
-    if (oldWidget.value != widget.value) {
-      setState(() {
-        _currentValue = widget.value;
-      });
-    }
-    super.didUpdateWidget(oldWidget);
-  }
-
   late final _flyoutController = FlyoutController();
-  PaymentMethod? _currentValue;
 
   @override
   Widget build(BuildContext context) {
@@ -72,12 +55,12 @@ class _PaymentMethodComboBoxState extends State<PaymentMethodComboBox> {
       create: (context) => PaymentMethodFormCubit(),
       child: Builder(builder: (context) {
         return ComboBox(
-          value: _currentValue,
+          value: widget.value,
           placeholder: const Text('Select Payment Method'),
           items: comboBoxItems,
           onChanged: (value) {
             if (value is PaymentMethod) {
-              widget.onPaymentMethodSelected;
+              widget.onPaymentMethodSelected(value);
             } else {
               unawaited(_flyoutController.showFlyout(
                 autoModeConfiguration: FlyoutAutoConfiguration(
