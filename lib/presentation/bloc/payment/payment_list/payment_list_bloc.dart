@@ -2,6 +2,7 @@ import 'package:bloc/bloc.dart';
 import 'package:easthardware_pms/domain/enums/enums.dart';
 import 'package:easthardware_pms/domain/models/payment.dart';
 import 'package:easthardware_pms/domain/repository/payment_repository.dart';
+import 'package:easthardware_pms/utils/undefined.dart';
 import 'package:equatable/equatable.dart';
 
 part 'payment_list_event.dart';
@@ -34,7 +35,13 @@ class PaymentListBloc extends Bloc<PaymentListEvent, PaymentListState> {
     emit(state.copyWith(status: DataStatus.loading));
     try {
       final payment = await _repository.insertPayment(event.payment);
-      emit(state.copyWith(payments: [...state.payments, payment], status: DataStatus.success));
+      emit(
+        state.copyWith(
+          payments: [...state.payments, payment],
+          latest: payment,
+          status: DataStatus.success,
+        ),
+      );
     } catch (e) {
       emit(state.copyWith(status: DataStatus.error));
     }
@@ -47,7 +54,11 @@ class PaymentListBloc extends Bloc<PaymentListEvent, PaymentListState> {
       final updatedPayments = state.payments.map((p) {
         return p.id == payment.id ? payment : p;
       }).toList();
-      emit(state.copyWith(payments: updatedPayments, status: DataStatus.success));
+      emit(state.copyWith(
+        payments: updatedPayments,
+        latest: payment,
+        status: DataStatus.success,
+      ));
     } catch (e) {
       emit(state.copyWith(status: DataStatus.error));
     }

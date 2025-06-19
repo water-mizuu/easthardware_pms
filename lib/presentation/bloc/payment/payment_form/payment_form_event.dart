@@ -53,10 +53,10 @@ class PaymentDateChanged extends PaymentFormEvent {
 }
 
 class SavePaymentRequestEvent extends PaymentFormEvent {
-  const SavePaymentRequestEvent({required this.creatorId});
-
-  final int creatorId;
+  const SavePaymentRequestEvent();
 
   @override
   List<Object> get props => [];
 }
+
+class FormSubmittedEvent extends PaymentFormEvent {}

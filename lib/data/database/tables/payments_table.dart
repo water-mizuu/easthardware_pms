@@ -10,7 +10,7 @@ class PaymentsTable {
   static const String PAYMENTS_AMOUNT = "amount";
   static const String PAYMENTS_DATE = "payment_date";
   static const String PAYMENTS_PAYMENT_METHOD = "payment_method";
-  static const String PAYMENTS_REFERENCE_NUMBER = "reference number";
+  static const String PAYMENTS_REFERENCE_NUMBER = "reference_number";
   static const String PAYMENTS_CREATOR_ID = "creator_id";
   static const String PAYMENTS_CREATION_DATE = "creation_date";
 

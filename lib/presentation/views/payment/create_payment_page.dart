@@ -8,6 +8,7 @@ import 'package:easthardware_pms/presentation/bloc/authentication/'
     'authentication/authentication_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/billing/invoicelist/invoice_list_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/payment/payment_form/payment_form_bloc.dart';
+import 'package:easthardware_pms/presentation/bloc/payment/payment_list/payment_list_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/payment/'
     'payment_method_list/payment_method_list_bloc.dart';
 import 'package:easthardware_pms/presentation/cubit/payment/payment_method_form/payment_method_form_cubit.dart';
@@ -69,19 +70,39 @@ class _CreatePaymentPageState extends State<CreatePaymentPage> {
         BlocProvider(create: (context) => PaymentMethodFormCubit()),
       ],
       child: Builder(builder: (context) {
-        return BlocListener<PaymentFormBloc, PaymentFormState>(
-          listener: (context, state) {
-            if (state.status == FormStatus.submitting) {
-              final invoice = state.invoice?.copyWith(
-                amountPaid: state.amount,
-                paymentMethod: state.paymentMethod!.id!,
-                paymentDate: (state.invoice!.amountDue - state.amount) <= 0 ? DateTime.now() : null,
-              );
-            }
-          },
+        return MultiBlocListener(
+          listeners: [
+            BlocListener<PaymentFormBloc, PaymentFormState>(
+              listener: (context, state) {
+                if (state.status == FormStatus.submitting) {
+                  final creatorId = context.read<AuthenticationBloc>().state.user!.id!;
+                  final creationDate = DateTime.now();
+                  final payment = state
+                      .copyWith(creatorId: creatorId, creationDate: creationDate) //
+                      .toPayment();
+                  final invoice = state.invoice!.copyWith(
+                    amountPaid: state.amount,
+                    paymentMethod: state.paymentMethod!.id!,
+                    paymentDate:
+                        (state.invoice!.amountDue - state.amount) <= 0 ? creationDate : null,
+                  );
+                  context.read<InvoiceListBloc>().add(UpdateInvoiceEvent(invoice));
+                  context.read<PaymentListBloc>().add(AddPaymentEvent(payment));
+                }
+              },
+            ),
+            BlocListener<PaymentListBloc, PaymentListState>(
+              listenWhen: (previous, current) {
+                return previous.latest != current.latest && current.latest != null;
+              },
+              listener: (context, state) {
+                context.read<PaymentFormBloc>().add(FormSubmittedEvent());
+              },
+            ),
+          ],
           child: BlocBuilder<PaymentFormBloc, PaymentFormState>(
             builder: (context, state) {
-              if (state.invoice == null) {
+              if (state.invoice == null || state.status == FormStatus.submitting) {
                 return const LoadingPage();
               }
               return const Padding(
@@ -149,7 +170,9 @@ class PageHeader extends StatelessWidget {
             const Spacer(),
             TextButtonFilled(
               'Save Payment',
-              onPressed: () {},
+              onPressed: () {
+                context.read<PaymentFormBloc>().add(const SavePaymentRequestEvent());
+              },
             ),
           ],
         );
@@ -212,6 +235,7 @@ class PaymentForm extends StatelessWidget {
                     const Text('Invoice No.', style: TextStyles.body),
                     Spacing.v8,
                     TextFormBox(
+                      readOnly: true,
                       inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'^\d+$'))],
                       controller: TextEditingController(text: invoice.id.toString()),
                     ),
