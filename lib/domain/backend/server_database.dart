@@ -331,7 +331,7 @@ Future<DatabaseMethodResult> serverHandleDatabaseMethod(
         );
       }
     } catch (e, stackTrace) {
-      if (true || printDatabaseMessages) {
+      if (printDatabaseMessages) {
         printBoxed(
           "Error occurred while executing database method: $method\n"
               "Error: $e\n"

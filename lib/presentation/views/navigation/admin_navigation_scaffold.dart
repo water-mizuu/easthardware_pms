@@ -1,6 +1,6 @@
 import 'dart:io' show Platform;
 
-import 'package:easthardware_pms/presentation/bloc/navigation/navigation_cubit.dart';
+import 'package:easthardware_pms/presentation/cubit/navigation/navigation_cubit.dart';
 import 'package:easthardware_pms/presentation/router/app_routes.dart';
 import 'package:easthardware_pms/presentation/views/navigation/common_side_panel_mixin.dart';
 import 'package:easthardware_pms/presentation/widgets/brand/navrail_header.dart';

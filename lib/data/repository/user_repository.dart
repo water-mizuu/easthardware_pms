@@ -23,7 +23,7 @@ class UserRepositoryImpl implements UserRepository {
 
   @override
   Future<void> deleteUser(User user) {
-    if (user.id == null || user.id! <= 0) {
+    if (user.id == null || user.id! < 0) {
       throw ArgumentException('Invalid user ID');
     }
     try {
@@ -35,8 +35,8 @@ class UserRepositoryImpl implements UserRepository {
 
   @override
   Future<User?> getUserById(int id) {
-    if (id <= 0) {
-      throw ArgumentException('Invalid user ID');
+    if (id < 0) {
+      throw ArgumentException('Invalid user ID $id');
     }
     try {
       return _usersDao.getUserById(id);

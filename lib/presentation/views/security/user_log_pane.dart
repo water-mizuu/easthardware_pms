@@ -58,11 +58,26 @@ class PageActions extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        const ComboBox(
-          placeholder: Text('Level of Access'),
-          items: [],
+        ComboBox<AccessLevel?>(
+          value: context.select((UserLogListBloc b) => b.state.accessLevelQuery),
+          onChanged: (value) {
+            context.read<UserLogListBloc>().add(AccessLevelQueryUpdatedEvent(value));
+          },
+          placeholder: const Text('Level of Access'),
+          items: [
+            const ComboBoxItem(value: null, child: Text('All')),
+            for (final accessLevel in AccessLevel.values)
+              ComboBoxItem(value: accessLevel, child: Text(accessLevel.toString())),
+          ],
         ),
-        const Expanded(child: TextBox(placeholder: 'Search')),
+        Expanded(
+          child: TextBox(
+            placeholder: 'Search',
+            onChanged: (value) {
+              context.read<UserLogListBloc>().add(SearchQueryUpdatedEvent(value));
+            },
+          ),
+        ),
         // Column(
         //   children: [
         //     const CaptionText('From Date'),
@@ -127,8 +142,8 @@ class _UserLogDataTableState extends State<UserLogDataTable> {
           ),
         );
       default:
-        final allLogs = state.userLogs;
-        if (allLogs.isEmpty) {
+        final filteredLogs = state.filteredLogs;
+        if (filteredLogs.isEmpty) {
           return const DataTablePlaceHolder(FluentIcons.activity_feed, 'Logs');
         }
         return Expanded(
@@ -145,7 +160,7 @@ class _UserLogDataTableState extends State<UserLogDataTable> {
                   DataColumn(label: Text('Action')),
                 ],
                 rows: [
-                  for (final log in allLogs.reversed)
+                  for (final log in filteredLogs.reversed)
                     if (findUserById(log.userId) case final user?)
                       DataRowMapper.mapUserLogToRow(log, user),
                 ],

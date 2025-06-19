@@ -13,6 +13,7 @@ import 'package:easthardware_pms/presentation/bloc/order/orderlist/order_list_bl
 import 'package:easthardware_pms/presentation/models/form_product.dart';
 import 'package:easthardware_pms/presentation/router/app_router.dart';
 import 'package:easthardware_pms/presentation/router/app_routes.dart';
+import 'package:easthardware_pms/presentation/widgets/animated_single_child_scroll_view.dart';
 import 'package:easthardware_pms/presentation/widgets/expense_type_combo_box.dart';
 import 'package:easthardware_pms/presentation/widgets/layout/spacing.dart';
 import 'package:easthardware_pms/presentation/widgets/payment_method_combo_box.dart';
@@ -160,7 +161,6 @@ class OrderPageHeader extends StatelessWidget {
             final creationDate = DateTime.now();
             final creatorId = context.read<AuthenticationBloc>().state.user?.id;
             final orderId = context.read<OrderListBloc>().state.allOrders.length;
-            print("Creator ID: $creatorId, Order ID: $orderId, creationDate: $creationDate");
             final restockExpenseType =
                 ExpenseType(id: 0, name: 'Inventory Restock', archiveStatus: 0);
             context.read<OrderFormBloc>().add(ExpenseTypeChangedEvent(restockExpenseType));
@@ -184,10 +184,9 @@ class OrderPageForm extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final bloc = context.read<OrderFormBloc>();
     final state = context.watch<OrderFormBloc>().state;
 
-    return SingleChildScrollView(
+    return AnimatedSingleChildScrollView(
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -218,7 +217,8 @@ class OrderPageForm extends StatelessWidget {
                     Spacing.v8,
                     TextFormBox(
                       initialValue: state.payeeName,
-                      onChanged: (value) => bloc.add(PayeeNameChangedEvent(value)),
+                      onChanged: (value) =>
+                          context.read<OrderFormBloc>().add(PayeeNameChangedEvent(value)),
                     ),
                     if (context.watch<OrderFormBloc>().state.payeeNameErrorMessage != null)
                       Text(
@@ -238,7 +238,7 @@ class OrderPageForm extends StatelessWidget {
                     PaymentMethodComboBox(
                       value: state.paymentMethod,
                       onPaymentMethodSelected: (PaymentMethod value) {
-                        bloc.add(PaymentMethodChangedEvent(value));
+                        context.read<OrderFormBloc>().add(PaymentMethodChangedEvent(value));
                       },
                     ),
                     if (context.watch<OrderFormBloc>().state.paymentMethodErrorMessage != null)
@@ -264,7 +264,8 @@ class OrderPageForm extends StatelessWidget {
                     Spacing.v8,
                     TextFormBox(
                       initialValue: state.referenceNumber,
-                      onChanged: (value) => bloc.add(ReferenceNumberChangedEvent(value)),
+                      onChanged: (value) =>
+                          context.read<OrderFormBloc>().add(ReferenceNumberChangedEvent(value)),
                     ),
                     if (context.watch<OrderFormBloc>().state.referenceNumberErrorMessage != null)
                       Text(
@@ -284,7 +285,8 @@ class OrderPageForm extends StatelessWidget {
                     Spacing.v8,
                     DatePicker(
                       selected: context.watch<OrderFormBloc>().state.orderDate,
-                      onChanged: (date) => bloc.add(OrderDateChangedEvent(date)),
+                      onChanged: (date) =>
+                          context.read<OrderFormBloc>().add(OrderDateChangedEvent(date)),
                     ),
                     if (context.watch<OrderFormBloc>().state.orderDateErrorMessage != null)
                       Text(

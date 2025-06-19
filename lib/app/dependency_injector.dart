@@ -26,7 +26,6 @@ import 'package:easthardware_pms/presentation/bloc/billing/invoicelist/invoice_l
 import 'package:easthardware_pms/presentation/bloc/inventory/category_list/category_list_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/inventory/product_list/product_list_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/inventory/unit_list/unit_list_bloc.dart';
-import 'package:easthardware_pms/presentation/bloc/navigation/navigation_cubit.dart';
 import 'package:easthardware_pms/presentation/bloc/order/expense_type_list/expense_type_list_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/order/orderlist/order_list_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/payment/payment_list/payment_list_bloc.dart';
@@ -36,6 +35,7 @@ import 'package:easthardware_pms/presentation/bloc/security/security_questions/'
 import 'package:easthardware_pms/presentation/bloc/security/user_list/user_list_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/security/user_log_list/user_log_list_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/server/server_bloc.dart';
+import 'package:easthardware_pms/presentation/cubit/navigation/navigation_cubit.dart';
 import 'package:easthardware_pms/presentation/widgets/bottom_text.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -184,7 +184,7 @@ class DependencyInjector extends ChangeNotifier {
         create: (context) {
           final state = _userLogListBloc?.state ?? const UserLogListState();
 
-          return _userLogListBloc = UserLogListBloc(_userLogRepository, state)
+          return _userLogListBloc = UserLogListBloc(_userRepository, _userLogRepository, state)
             ..addIf(_databaseHelper != null, const LoadUserLogsEvent());
         },
       ),

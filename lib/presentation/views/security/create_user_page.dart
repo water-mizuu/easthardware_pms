@@ -11,6 +11,8 @@ import 'package:easthardware_pms/presentation/bloc/security/user_form/user_form_
 import 'package:easthardware_pms/presentation/bloc/security/user_list/user_list_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/security/user_log_list/user_log_list_bloc.dart';
 import 'package:easthardware_pms/presentation/router/app_routes.dart';
+import 'package:easthardware_pms/presentation/widgets/animated_single_child_scroll_view.dart';
+import 'package:easthardware_pms/presentation/widgets/auto_auto_suggest_box.dart';
 import 'package:easthardware_pms/presentation/widgets/dialog/success_dialog.dart';
 import 'package:easthardware_pms/presentation/widgets/layout/spacing.dart';
 import 'package:easthardware_pms/presentation/widgets/layout_mode_provider.dart';
@@ -24,7 +26,6 @@ import 'package:flutter/material.dart' show Icons;
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:provider/provider.dart';
 import 'package:provider/single_child_widget.dart';
-import 'package:scroll_animator/scroll_animator.dart';
 
 class CreateUserPage extends StatefulWidget {
   const CreateUserPage({super.key});
@@ -35,7 +36,6 @@ class CreateUserPage extends StatefulWidget {
 
 class _CreateUserPageState extends State<CreateUserPage> {
   late final UserFormBloc userFormBloc;
-  late final AnimatedScrollController _scrollController;
 
   List<SingleChildWidget> get providers {
     return [
@@ -118,13 +118,11 @@ class _CreateUserPageState extends State<CreateUserPage> {
     super.initState();
 
     userFormBloc = UserFormBloc();
-    _scrollController = AnimatedScrollController(animationFactory: const ChromiumEaseInOut());
   }
 
   @override
   void dispose() {
     unawaited(userFormBloc.close());
-    _scrollController.dispose();
 
     super.dispose();
   }
@@ -137,40 +135,42 @@ class _CreateUserPageState extends State<CreateUserPage> {
           padding: AppPadding.panePadding.copyWith(bottom: 0.0),
           child: const PageHeader(),
         ),
-        Expanded(
-          child: Form(
-            key: userFormBloc.formKey,
-            child: LayoutMode.builder((context, mode, keys) {
-              switch (mode) {
-                case LayoutMode.wide:
-                  return Padding(
-                    padding: AppPadding.panePadding.copyWith(top: 0.0),
-                    child: Row(
+        Padding(
+          padding: AppPadding.a16,
+          child: Container(
+            padding: AppPadding.panePadding,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(4.0),
+            ),
+            child: Form(
+              key: userFormBloc.formKey,
+              child: LayoutMode.builder((context, mode, keys) {
+                switch (mode) {
+                  case LayoutMode.wide:
+                    return Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Expanded(child: UserCredentialsSection(key: keys['userCredentials'])),
                         Spacing.h16,
                         Expanded(child: SecuritySection(key: keys['securitySection'])),
                       ],
-                    ),
-                  );
-                case LayoutMode.constrained:
-                case LayoutMode.compact:
-                  return SingleChildScrollView(
-                    controller: _scrollController,
-                    child: Padding(
-                      padding: AppPadding.panePadding.copyWith(top: 0.0),
+                    );
+                  case LayoutMode.constrained:
+                  case LayoutMode.compact:
+                    return AnimatedSingleChildScrollView(
                       child: Column(
+                        mainAxisSize: MainAxisSize.min,
                         children: [
                           UserCredentialsSection(key: keys['userCredentials']),
                           Spacing.v16,
                           SecuritySection(key: keys['securitySection']),
                         ],
                       ),
-                    ),
-                  );
-              }
-            }),
+                    );
+                }
+              }),
+            ),
           ),
         )
       ].withSpacing(() => Spacing.v16),
@@ -224,20 +224,16 @@ class UserCredentialsSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: AppPadding.a16,
-      decoration: const BoxDecoration(color: Colors.white),
-      child: FocusTraversalGroup(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: const [
-            SubheadingText('User Information'),
-            FirstNameLastNameFields(),
-            UsernameField(),
-            PasswordField(),
-          ].withSpacing(() => Spacing.v16),
-        ),
+    return FocusTraversalGroup(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: const [
+          SubheadingText('User Information'),
+          FirstNameLastNameFields(),
+          UsernameField(),
+          PasswordField(),
+        ].withSpacing(() => Spacing.v16),
       ),
     );
   }
@@ -248,20 +244,16 @@ class SecuritySection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: AppPadding.a16,
-      decoration: const BoxDecoration(color: Colors.white),
-      child: FocusTraversalGroup(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: const [
-            SubheadingText('Account Information'),
-            AccessLevelField(),
-            SecurityQuestionFields(),
-            // Include access level permissions
-          ].withSpacing(() => Spacing.v16),
-        ),
+    return FocusTraversalGroup(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: const [
+          SubheadingText('Account Information'),
+          AccessLevelField(),
+          SecurityQuestionFields(),
+          // Include access level permissions
+        ].withSpacing(() => Spacing.v16),
       ),
     );
   }
@@ -529,7 +521,7 @@ class _SecurityQuestionFieldsState extends State<SecurityQuestionFields> with Us
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   BodyText('Security Question ${index + 1}'),
-                  AutoSuggestBox.form(
+                  AutoAutoSuggestBox.form(
                     controller: _questionControllers[index],
                     placeholder: "Select or enter question ${index + 1}",
                     validator: (value) {

@@ -4,6 +4,7 @@ import 'dart:math';
 import 'package:easthardware_pms/domain/models/order.dart';
 import 'package:easthardware_pms/presentation/bloc/order/expense_type_list/expense_type_list_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/order/orderlist/order_list_bloc.dart';
+import 'package:easthardware_pms/presentation/widgets/animated_single_child_scroll_view.dart';
 import 'package:easthardware_pms/presentation/widgets/layout/spacing.dart';
 import 'package:easthardware_pms/presentation/widgets/text.dart';
 import 'package:fl_chart/fl_chart.dart';
@@ -100,27 +101,30 @@ class _ExpensesBreakdownCardGraphState extends State<_ExpensesBreakdownCardGraph
       crossAxisAlignment: CrossAxisAlignment.end,
       children: [
         Expanded(child: PieChart(_pieChartData!)),
-        Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            for (final value in _pieChartData!.sections)
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 4.0),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Container(
-                      width: 16,
-                      height: 16,
-                      color: value.color,
-                    ),
-                    Spacing.h8,
-                    if (value.badgeWidget case Opacity(child: Text(:final data?)))
-                      Text(data, style: const TextStyle(fontSize: 12)),
-                  ],
+        AnimatedSingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              for (final value in _pieChartData!.sections)
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 4.0),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(
+                        width: 16,
+                        height: 16,
+                        color: value.color,
+                      ),
+                      Spacing.h8,
+                      if (value.badgeWidget case Opacity(child: Text(:final data?)))
+                        Text(data, style: const TextStyle(fontSize: 12)),
+                    ],
+                  ),
                 ),
-              ),
-          ],
+            ],
+          ),
         )
       ],
     );

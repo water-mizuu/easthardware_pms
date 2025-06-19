@@ -58,6 +58,7 @@ class ProductListState with EquatableMixin {
         lowStockProducts,
         deadStockProducts,
         fastMovingProducts,
+        latest,
         status,
       ];
 }

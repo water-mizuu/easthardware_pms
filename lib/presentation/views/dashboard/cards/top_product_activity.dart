@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:math';
 
 import 'package:easthardware_pms/domain/models/invoice.dart';
@@ -189,7 +190,9 @@ class _TopProductActivityState extends State<TopProductActivity> {
 
     final chosenLimit = _productActivityChoice.value;
     final (products, error) = await invoices
+        // Take only the invoices that match the chosen time frame.
         .where((i) => _productActivityChoice.value.check(i.creationDate))
+        // Get the products for each invoice.
         .map((i) => invoiceProductRepository.fetchInvoiceProductsByInvoice(i.id!))
         .wait
         .tryCatch();
@@ -210,6 +213,9 @@ class _TopProductActivityState extends State<TopProductActivity> {
     for (final product in products.expand((l) => l)) {
       final productId = product.productId;
       final name = product.productName;
+      final quantity = product.quantity;
+      final conversion = product.conversionFactor;
+      printBoxed(const JsonEncoder.withIndent("  ").convert(product.toMap()), "Product");
       final compositeKey = (productId, name);
 
       productOccurrences[compositeKey] ??= 0;

@@ -12,6 +12,7 @@ import 'package:easthardware_pms/domain/backend/microservices/key_microservice.d
 import 'package:easthardware_pms/domain/backend/utils/isolate_indicator.dart';
 import 'package:easthardware_pms/domain/backend/utils/random_int_from_date.dart';
 import 'package:easthardware_pms/domain/services/cryptography_service.dart';
+import 'package:easthardware_pms/main.dart';
 import 'package:easthardware_pms/utils/boxed.dart';
 import 'package:easthardware_pms/utils/message_channel.dart';
 import 'package:easthardware_pms/utils/parallelism.dart';
@@ -112,7 +113,9 @@ Future<void> spawnLandingIsolate((RootIsolateToken, NamedSendPort, int port) pay
   /// @MAIN2LANDING:invocation
   _mainChannel.listenFrom("invocation", (message) async {
     if (kDebugMode) {
-      printBoxed(message, "MAIN2LANDING:invocation");
+      if (printInvocationMessages) {
+        printBoxed(message, "MAIN2LANDING:invocation");
+      }
     }
 
     if (message case [final String returnName, final Object args]) {

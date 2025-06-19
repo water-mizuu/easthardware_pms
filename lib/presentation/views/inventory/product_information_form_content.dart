@@ -53,16 +53,18 @@ class _ProductInformationFormContentState extends State<ProductInformationFormCo
       child: Form(
         key: context.read<ProductFormBloc>().formKey,
         child: AnimatedSingleChildScrollView(
-          child: Container(
-            padding: AppPadding.panePadding,
-            key: _bodyKey,
-            child: LayoutMode.builder(
-              (context, layoutMode, keys) => switch (layoutMode) {
-                LayoutMode.wide => Container(
-                    padding: AppPadding.a16,
-                    decoration: BoxDecoration(
-                        color: Colors.white, borderRadius: BorderRadius.circular(4.0)),
-                    child: Row(
+          child: Padding(
+            padding: AppPadding.a16,
+            child: Container(
+              padding: AppPadding.panePadding,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(4.0),
+              ),
+              key: _bodyKey,
+              child: LayoutMode.builder(
+                (context, layoutMode, keys) => switch (layoutMode) {
+                  LayoutMode.wide => Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Expanded(child: LeftColumn(key: keys['leftColumn'])),
@@ -70,12 +72,7 @@ class _ProductInformationFormContentState extends State<ProductInformationFormCo
                         Expanded(child: RightColumn(key: keys['rightColumn'])),
                       ],
                     ),
-                  ),
-                LayoutMode.constrained || LayoutMode.compact => FocusTraversalGroup(
-                    child: Container(
-                      padding: AppPadding.a16,
-                      decoration: BoxDecoration(
-                          color: Colors.white, borderRadius: BorderRadius.circular(4.0)),
+                  LayoutMode.constrained || LayoutMode.compact => FocusTraversalGroup(
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -86,8 +83,8 @@ class _ProductInformationFormContentState extends State<ProductInformationFormCo
                         ],
                       ),
                     ),
-                  ),
-              },
+                },
+              ),
             ),
           ),
         ),

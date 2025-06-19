@@ -20,6 +20,7 @@ import 'package:easthardware_pms/presentation/widgets/ui/form_table_column.dart'
 import 'package:easthardware_pms/presentation/widgets/ui/loading_page.dart';
 import 'package:easthardware_pms/presentation/widgets/ui/styles.dart';
 import 'package:easthardware_pms/presentation/widgets/ui/text_button.dart';
+import 'package:easthardware_pms/utils/boxed.dart';
 import 'package:easthardware_pms/utils/show_single_dialog.dart';
 import 'package:easthardware_pms/utils/typed_routes.dart';
 import 'package:fl_chart/fl_chart.dart';
@@ -546,17 +547,17 @@ class _FormTableRowState extends State<FormTableRow> {
       builder: (context, state) {
         final products = context.read<ProductListBloc>().state.allProducts;
         final bloc = context.read<InvoiceFormBloc>();
-        final currentProduct = state.products[widget.index];
+        final currentFormProduct = state.products[widget.index];
 
         // Only update controller text if it has changed
-        final newDescription = currentProduct.description ?? '';
-        final newQuantity = currentProduct.quantity % 1 == 0
-            ? currentProduct.quantity.toInt().toString()
-            : currentProduct.quantity.toString();
+        final newDescription = currentFormProduct.description ?? '';
+        final newQuantity = currentFormProduct.quantity % 1 == 0
+            ? currentFormProduct.quantity.toInt().toString()
+            : currentFormProduct.quantity.toString();
 
-        final newRate = currentProduct.rate % 1 == 0
-            ? currentProduct.rate.toInt().toString()
-            : currentProduct.rate.toString();
+        final newRate = currentFormProduct.rate % 1 == 0
+            ? currentFormProduct.rate.toInt().toString()
+            : currentFormProduct.rate.toString();
 
         if (_descriptionController.text != newDescription) {
           _descriptionController.text = newDescription;
@@ -572,7 +573,7 @@ class _FormTableRowState extends State<FormTableRow> {
 
         return Container(
           decoration: BoxDecoration(
-            color: currentProduct.errorMessage != null
+            color: currentFormProduct.errorMessage != null
                 ? Colors.errorSecondaryColor
                 : widget.index % 2 == 0
                     ? const Color(0xFFFAFAFA)
@@ -647,7 +648,7 @@ class _FormTableRowState extends State<FormTableRow> {
                             for (final product in products) {
                               if (product.name.toLowerCase() == value.toLowerCase()) {
                                 final formProduct = FormProduct.fromProduct(product)
-                                    .copyWith(quantity: currentProduct.quantity);
+                                    .copyWith(quantity: currentFormProduct.quantity);
                                 return bloc.add(
                                   ProductUpdatedEvent(
                                     product: formProduct,
@@ -662,8 +663,8 @@ class _FormTableRowState extends State<FormTableRow> {
                                 product: const EmptyFormProduct().copyWith(
                                   productName: value,
                                   productId: null,
-                                  description: currentProduct.description,
-                                  quantity: currentProduct.quantity,
+                                  description: currentFormProduct.description,
+                                  quantity: currentFormProduct.quantity,
                                 ),
                                 index: widget.index,
                               ),
@@ -671,15 +672,15 @@ class _FormTableRowState extends State<FormTableRow> {
                           }
                         },
                         onSelected: (value) {
-                          if (currentProduct.productId == null) {
+                          if (currentFormProduct.productId == null) {
                             final formProduct = FormProduct.fromProduct(value.value!);
                             bloc.add(ProductSelectedEvent(formProduct, widget.index));
-                          } else if (currentProduct.productId != value.value!.id) {
+                          } else if (currentFormProduct.productId != value.value!.id) {
                             bloc.add(
                               ProductUpdatedEvent(
                                 product: FormProduct.fromProduct(value.value!).copyWith(
-                                  description: currentProduct.description,
-                                  quantity: currentProduct.quantity,
+                                  description: currentFormProduct.description,
+                                  quantity: currentFormProduct.quantity,
                                 ),
                                 index: widget.index,
                               ),
@@ -725,106 +726,16 @@ class _FormTableRowState extends State<FormTableRow> {
                                   style: TextStyles.onSurface,
                                   controller: _quantityController,
                                   placeholder: '0',
-                                  placeholderStyle: currentProduct.productId == null
+                                  placeholderStyle: currentFormProduct.productId == null
                                       ? TextStyles.onSurfaceVariant
                                       : TextStyles.onSurface,
                                 )),
-                            if (currentProduct.productId == null)
+                            if (currentFormProduct.productId == null)
                               const Spacer(flex: 2)
                             else
                               Expanded(
                                 flex: 2,
-                                child: DropDownButton(
-                                  items: [
-                                    MenuFlyoutItem(
-                                        text: Text(
-                                          context
-                                              .read<ProductListBloc>()
-                                              .state
-                                              .allProducts
-                                              .firstWhere((product) =>
-                                                  product.id == currentProduct.productId)
-                                              .mainUnit,
-                                        ),
-                                        onPressed: () {
-                                          bloc.add(
-                                            ProductUpdatedEvent(
-                                              product: currentProduct.copyWith(
-                                                // Primitive Solution to get correct amount computation
-                                                unitId: null,
-                                                rate: context
-                                                    .read<ProductListBloc>()
-                                                    .state
-                                                    .allProducts
-                                                    .firstWhere((product) =>
-                                                        product.id == currentProduct.productId)
-                                                    .salePrice,
-                                                unit: context
-                                                    .read<ProductListBloc>()
-                                                    .state
-                                                    .allProducts
-                                                    .firstWhere((product) =>
-                                                        product.id == currentProduct.productId)
-                                                    .mainUnit,
-                                                conversionFactor: 1.0,
-                                              ),
-                                              index: widget.index,
-                                              reference: products.firstWhere(
-                                                  (p) => p.id == currentProduct.productId),
-                                            ),
-                                          );
-                                        }),
-                                    for (final unit in context
-                                        .read<UnitListBloc>()
-                                        .state
-                                        .units
-                                        .where((u) => u.productId == currentProduct.productId))
-                                      MenuFlyoutItem(
-                                        text: Text(unit.name),
-                                        onPressed: () {
-                                          bloc.add(
-                                            ProductUpdatedEvent(
-                                              product: currentProduct.copyWith(
-                                                unit: unit.name,
-                                                unitId: unit.id,
-                                                // Primitive Solution to get correct amount computation
-                                                rate: context
-                                                    .read<ProductListBloc>()
-                                                    .state
-                                                    .allProducts
-                                                    .firstWhere((product) =>
-                                                        product.id == currentProduct.productId)
-                                                    .salePrice,
-                                                conversionFactor:
-                                                    unit.mainQuantity / unit.unitQuantity,
-                                              ),
-                                              index: widget.index,
-                                              reference: products.firstWhere(
-                                                  (p) => p.id == currentProduct.productId),
-                                            ),
-                                          );
-                                        },
-                                      ),
-                                  ],
-                                  buttonBuilder: (context, onOpen) {
-                                    return Button(
-                                      style: ButtonStyles.ghost,
-                                      onPressed: onOpen,
-                                      child: Row(
-                                        mainAxisSize: MainAxisSize.min,
-                                        crossAxisAlignment: CrossAxisAlignment.center,
-                                        children: [
-                                          Text(
-                                            currentProduct.unit,
-                                            overflow: TextOverflow.ellipsis,
-                                          ),
-                                          Spacing.h12,
-                                          const Icon(FluentIcons.chevron_down, size: 8.0),
-                                        ],
-                                      ),
-                                    );
-                                  },
-                                ),
+                                child: _unitDropdown(context, currentFormProduct, bloc, products),
                               ),
                           ],
                         ),
@@ -841,7 +752,7 @@ class _FormTableRowState extends State<FormTableRow> {
                         style: TextStyles.onSurface,
                         controller: _rateController,
                         placeholder: '0.0',
-                        placeholderStyle: currentProduct.productId == null
+                        placeholderStyle: currentFormProduct.productId == null
                             ? TextStyles.onSurfaceVariant
                             : TextStyles.onSurface,
                       ),
@@ -852,8 +763,8 @@ class _FormTableRowState extends State<FormTableRow> {
                     child: FormTableCell(
                       child: TextFormBoxes.ghost(
                         enabled: false,
-                        placeholder: currentProduct.amount.toStringAsFixed(2),
-                        placeholderStyle: currentProduct.productId == null
+                        placeholder: currentFormProduct.amount.toStringAsFixed(2),
+                        placeholderStyle: currentFormProduct.productId == null
                             ? TextStyles.onSurfaceVariant
                             : TextStyles.onSurface,
                         onChanged: null,
@@ -872,14 +783,98 @@ class _FormTableRowState extends State<FormTableRow> {
                       : const SizedBox(width: 82.0)
                 ],
               ),
-              if (currentProduct.errorMessage != null)
+              if (currentFormProduct.errorMessage != null)
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 48.0, vertical: 4.0),
                   child: Text(
-                    currentProduct.errorMessage!,
+                    currentFormProduct.errorMessage!,
                     style: TextStyles.error,
                   ),
                 ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _unitDropdown(
+    BuildContext context,
+    FormProduct currentFormProduct,
+    InvoiceFormBloc bloc,
+    List<Product> products,
+  ) {
+    final allProducts = context.watch<ProductListBloc>().state.allProducts;
+    final currentProduct = allProducts //
+        .where((p) => p.id == currentFormProduct.productId)
+        .firstOrNull;
+    if (currentProduct == null) {
+      printBoxed(
+        'Current product not found for ID: ${currentFormProduct.productId}',
+        'unitDropdown',
+      );
+      return const SizedBox.shrink();
+    }
+    final currentProductUnits = context
+        .watch<UnitListBloc>()
+        .state
+        .units
+        .where((u) => u.productId == currentProduct.id)
+        .toList();
+
+    return DropDownButton(
+      items: [
+        MenuFlyoutItem(
+            text: Text(currentProduct.mainUnit),
+            onPressed: () {
+              bloc.add(
+                ProductUpdatedEvent(
+                  product: currentFormProduct.copyWith(
+                    // Primitive Solution to get correct amount computation
+                    unitId: null,
+                    conversionFactor: null,
+                    rate: currentProduct.salePrice,
+                    unit: currentProduct.mainUnit,
+                  ),
+                  index: widget.index,
+                  reference: currentProduct,
+                ),
+              );
+            }),
+        for (final unit in currentProductUnits)
+          MenuFlyoutItem(
+            text: Text(unit.name),
+            onPressed: () {
+              bloc.add(
+                ProductUpdatedEvent(
+                  product: currentFormProduct.copyWith(
+                    unit: unit.name,
+                    unitId: unit.id,
+                    // Primitive Solution to get correct amount computation
+                    rate: currentProduct.salePrice,
+                    conversionFactor: unit.mainQuantity / unit.unitQuantity,
+                  ),
+                  index: widget.index,
+                  reference: currentProduct,
+                ),
+              );
+            },
+          ),
+      ],
+      buttonBuilder: (context, onOpen) {
+        return Button(
+          style: ButtonStyles.ghost,
+          onPressed: onOpen,
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Text(
+                currentFormProduct.unit,
+                overflow: TextOverflow.ellipsis,
+              ),
+              Spacing.h12,
+              const Icon(FluentIcons.chevron_down, size: 8.0),
             ],
           ),
         );

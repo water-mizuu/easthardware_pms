@@ -12,6 +12,7 @@ import 'package:easthardware_pms/domain/backend/server_database.dart';
 import 'package:easthardware_pms/domain/backend/utils/isolate_indicator.dart';
 import 'package:easthardware_pms/domain/models/user.dart';
 import 'package:easthardware_pms/domain/models/user_log.dart';
+import 'package:easthardware_pms/main.dart';
 import 'package:easthardware_pms/utils/boxed.dart';
 import 'package:easthardware_pms/utils/duration.dart';
 import 'package:easthardware_pms/utils/message_channel.dart';
@@ -116,8 +117,10 @@ Future<void> spawnWebSocketIsolate((RootIsolateToken, NamedSendPort) payload) as
 
   /// @MAIN2WS:invocation
   mainChannel.listenFrom("invocation", (message) async {
-    if (kDebugMode && false) {
-      printBoxed(message, "MAIN2WS:invocation");
+    if (kDebugMode) {
+      if (printInvocationMessages) {
+        printBoxed(message, "MAIN2WS:invocation");
+      }
     }
 
     if (message case [final String name, final Object args]) {
@@ -225,7 +228,9 @@ Future<void> _handleConnection(
   /// @CLIENT2WS:invocation
   messageChannel.listenFrom("invocation", (object) async {
     if (kDebugMode) {
-      printBoxed(object, "CLIENT2WS:invocation");
+      if (printInvocationMessages) {
+        printBoxed(object, "CLIENT2WS:invocation");
+      }
     }
 
     final [name as String, message] = object as List<Object?>;

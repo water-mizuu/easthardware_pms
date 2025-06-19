@@ -12,7 +12,7 @@ class FormProduct {
       description: product.description,
       quantity: 0,
       unit: product.mainUnit,
-      conversionFactor: 1,
+      conversionFactor: null,
       rate: product.salePrice,
       amount: 0,
       discountType: DiscountType.value,
@@ -115,6 +115,22 @@ class FormProduct {
       rate: rate,
       amount: amount,
     );
+  }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'productId': productId,
+      'productName': productName,
+      'description': description,
+      'quantity': quantity,
+      'unitId': unitId,
+      'unit': unit,
+      'conversionFactor': conversionFactor,
+      'rate': rate,
+      'amount': amount,
+      'discount': discount,
+      'discountType': discountType.name,
+    };
   }
 }
 

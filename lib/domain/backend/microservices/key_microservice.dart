@@ -6,6 +6,7 @@ import 'dart:isolate';
 
 import 'package:easthardware_pms/domain/backend/utils/isolate_indicator.dart';
 import 'package:easthardware_pms/domain/services/cryptography_service.dart';
+import 'package:easthardware_pms/main.dart';
 import 'package:easthardware_pms/utils/boxed.dart';
 import 'package:easthardware_pms/utils/message_channel.dart';
 import 'package:easthardware_pms/utils/parallelism.dart';
@@ -121,7 +122,9 @@ Future<void> _spawnKeyMicroserviceIsolate((RootIsolateToken, NamedSendPort) payl
   /// @MAIN2MS_KEYS:invocation
   localChannel.listenFrom("invocation", (message) async {
     if (kDebugMode) {
-      printBoxed(message, "MAIN2MS_KEYS:invocation");
+      if (printInvocationMessages) {
+        printBoxed(message, "MAIN2MS_KEYS:invocation");
+      }
     }
 
     if (message case [final String returnName, final Object args]) {

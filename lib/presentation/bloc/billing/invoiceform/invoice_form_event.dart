@@ -4,7 +4,7 @@ sealed class InvoiceFormEvent extends Equatable {
   const InvoiceFormEvent();
 
   @override
-  List<Object> get props => [];
+  List<Object?> get props => [];
 }
 
 class CustomerNameChangedEvent extends InvoiceFormEvent {
@@ -93,7 +93,7 @@ class ProductUpdatedEvent extends InvoiceFormEvent {
   final int index;
 
   @override
-  List<Object> get props => [product];
+  List<Object?> get props => [reference, product, index];
 }
 
 class SaveInvoiceRequestEvent extends InvoiceFormEvent {

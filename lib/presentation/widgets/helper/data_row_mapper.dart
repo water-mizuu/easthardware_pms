@@ -23,78 +23,174 @@ class DataRowMapper {
   }) {
     if (product.isBelowCriticalLevel == true) {
       return DataRow(cells: [
-        DataCell(Align(alignment: Alignment.centerLeft, child: Text(product.name))),
-        DataCell(Align(alignment: Alignment.centerLeft, child: Text(product.categoryName ?? ''))),
-        DataCell(Align(
+        DataCell(
+          Align(
             alignment: Alignment.centerLeft,
-            child: Text(CurrencyFormatter.compact(product.salePrice)))),
+            child: Text(product.name),
+          ),
+        ),
         DataCell(Align(
+          alignment: Alignment.centerLeft,
+          child: Text(product.categoryName ?? ''),
+        )),
+        DataCell(
+          Align(
             alignment: Alignment.centerLeft,
-            child: Text('${product.quantity.toString()} ${product.mainUnit}'))),
-        DataCell(Row(children: [Badges.bad('Low Stock')])),
+            child: Text(
+              CurrencyFormatter.full(product.salePrice),
+            ),
+          ),
+        ),
+        DataCell(
+          Align(
+            alignment: Alignment.centerLeft,
+            child: Text('${product.quantity.toString()} ${product.mainUnit}'),
+          ),
+        ),
+        DataCell(
+          Row(
+            children: [Badges.bad('Low Stock')],
+          ),
+        ),
         if (editAction != null)
           DataCell(
-            HyperlinkButton(
-              onPressed: editAction,
-              child: const Text('Edit'),
+            Align(
+              alignment: Alignment.centerLeft,
+              child: HyperlinkButton(
+                onPressed: editAction,
+                child: const Text('Edit'),
+              ),
             ),
           )
       ]);
     }
     if (product.isFastMovingStock == true) {
       return DataRow(cells: [
-        DataCell(Align(alignment: Alignment.centerLeft, child: Text(product.name))),
-        DataCell(Align(alignment: Alignment.centerLeft, child: Text(product.categoryName ?? ''))),
-        DataCell(Align(
+        DataCell(
+          Align(
             alignment: Alignment.centerLeft,
-            child: Text(CurrencyFormatter.compact(product.salePrice)))),
-        DataCell(Align(
+            child: Text(product.name),
+          ),
+        ),
+        DataCell(
+          Align(
             alignment: Alignment.centerLeft,
-            child: Text('${product.quantity.toString()} ${product.mainUnit}'))),
-        DataCell(Row(children: [Badges.good('Fast Moving')])),
+            child: Text(product.categoryName ?? ''),
+          ),
+        ),
+        DataCell(
+          Align(
+            alignment: Alignment.centerLeft,
+            child: Text(
+              CurrencyFormatter.full(product.salePrice),
+            ),
+          ),
+        ),
+        DataCell(
+          Align(
+            alignment: Alignment.centerLeft,
+            child: Text('${product.quantity.toString()} ${product.mainUnit}'),
+          ),
+        ),
+        DataCell(
+          Row(
+            children: [Badges.good('Fast Moving')],
+          ),
+        ),
         if (editAction != null)
           DataCell(
-            HyperlinkButton(
-              onPressed: editAction,
-              child: const Text('Edit'),
+            Align(
+              alignment: Alignment.centerLeft,
+              child: HyperlinkButton(
+                onPressed: editAction,
+                child: const Text('Edit'),
+              ),
             ),
           )
       ]);
     }
     if (product.isDeadStock == true) {
       return DataRow(cells: [
-        DataCell(Align(alignment: Alignment.centerLeft, child: Text(product.name))),
-        DataCell(Align(alignment: Alignment.centerLeft, child: Text(product.categoryName ?? ''))),
-        DataCell(Align(
+        DataCell(
+          Align(
             alignment: Alignment.centerLeft,
-            child: Text(CurrencyFormatter.compact(product.salePrice)))),
-        DataCell(Align(
+            child: Text(product.name),
+          ),
+        ),
+        DataCell(
+          Align(
             alignment: Alignment.centerLeft,
-            child: Text('${product.quantity.toString()} ${product.mainUnit}'))),
-        DataCell(Row(children: [Badges.dull('Dead Stock')])),
+            child: Text(product.categoryName ?? ''),
+          ),
+        ),
+        DataCell(
+          Align(
+            alignment: Alignment.centerLeft,
+            child: Text(
+              CurrencyFormatter.full(product.salePrice),
+            ),
+          ),
+        ),
+        DataCell(
+          Align(
+            alignment: Alignment.centerLeft,
+            child: Text('${product.quantity.toString()} ${product.mainUnit}'),
+          ),
+        ),
+        DataCell(
+          Row(
+            children: [Badges.dull('Dead Stock')],
+          ),
+        ),
         if (editAction != null)
           DataCell(
-            HyperlinkButton(
-              onPressed: editAction,
-              child: const Text('Edit'),
+            Align(
+              alignment: Alignment.centerLeft,
+              child: HyperlinkButton(
+                onPressed: editAction,
+                child: const Text('Edit'),
+              ),
             ),
           )
       ]);
     }
 
     return DataRow(cells: [
-      DataCell(Align(alignment: Alignment.centerLeft, child: Text(product.name))),
-      DataCell(Align(alignment: Alignment.centerLeft, child: Text(product.categoryName!))),
-      DataCell(Align(alignment: Alignment.centerLeft, child: Text(product.salePrice.toString()))),
-      DataCell(Align(
+      DataCell(
+        Align(
           alignment: Alignment.centerLeft,
-          child: Text('${product.quantity.toString()} ${product.mainUnit}'))),
+          child: Text(product.name),
+        ),
+      ),
+      DataCell(
+        Align(
+          alignment: Alignment.centerLeft,
+          child: Text(product.categoryName!),
+        ),
+      ),
+      DataCell(
+        Align(
+          alignment: Alignment.centerLeft,
+          child: Text(
+            CurrencyFormatter.full(product.salePrice),
+          ),
+        ),
+      ),
+      DataCell(
+        Align(
+          alignment: Alignment.centerLeft,
+          child: Text('${product.quantity.toString()} ${product.mainUnit}'),
+        ),
+      ),
       const DataCell(SizedBox.shrink()),
       if (editAction != null)
         DataCell(
-          HyperlinkButton(
-            onPressed: editAction,
-            child: const Text('Edit'),
+          Align(
+            alignment: Alignment.centerLeft,
+            child: HyperlinkButton(
+              onPressed: editAction,
+              child: const Text('Edit'),
+            ),
           ),
         )
     ]);
@@ -181,24 +277,29 @@ class DataRowMapper {
         height: 32,
         width: 128,
         child: AutoSuggestBox.form(
-            foregroundDecoration: const BoxDecoration(border: Border()),
-            onSelected: (value) {
-              if (value.value != null) {
-                functions.onProductSelected(value.value!);
-              }
-            },
-            items: products.map((product) {
-              return AutoSuggestBoxItem(
-                value: product,
-                label: product.name,
-              );
-            }).toList()),
+          foregroundDecoration: const BoxDecoration(border: Border()),
+          onSelected: (value) {
+            if (value.value != null) {
+              functions.onProductSelected(value.value!);
+            }
+          },
+          items: products.map((product) {
+            return AutoSuggestBoxItem(
+              value: product,
+              label: product.name,
+            );
+          }).toList(),
+        ),
       )),
-      DataCell(TextFormBox(
+      DataCell(
+        TextFormBox(
           onChanged: (value) => functions.onDescriptionChanged,
-          controller: TextEditingController(text: product.description))),
+          controller: TextEditingController(text: product.description),
+        ),
+      ),
       // Quantity
-      DataCell(CompoundButton(
+      DataCell(
+        CompoundButton(
           onTextChanged: (value) => functions.onQuantityChanged,
           onComboBoxSelected: (value) => functions.onUnitSelected,
           items: units
@@ -207,18 +308,30 @@ class DataRowMapper {
                     child: Text(unit.name),
                   ))
               .toList(),
-          text: product.quantity.toString())),
+          text: product.quantity.toString(),
+        ),
+      ),
       // Rate
-      DataCell(TextFormBox(
-        controller: TextEditingController(text: product.rate.toString()),
-      )),
+      DataCell(
+        TextFormBox(
+          controller: TextEditingController(text: product.rate.toString()),
+        ),
+      ),
       // Discount
-      DataCell(ComboBox(
-          items: DiscountType.values.map((type) => ComboBoxItem(child: Text(type.name))).toList())),
+      DataCell(
+        ComboBox(
+          items: DiscountType.values.map((type) => ComboBoxItem(child: Text(type.name))).toList(),
+        ),
+      ),
       // Amount
       DataCell(TextFormBox()),
       // Delete
-      DataCell(IconButton(icon: const Icon(FluentIcons.remove), onPressed: () {}))
+      DataCell(
+        IconButton(
+          icon: const Icon(FluentIcons.remove),
+          onPressed: () {},
+        ),
+      )
     ]);
   }
 

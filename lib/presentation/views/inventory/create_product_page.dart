@@ -24,7 +24,9 @@ class CreateProductPage extends StatelessWidget {
   const CreateProductPage({super.key});
 
   void _handleFormSubmit(BuildContext context, ProductFormState state) {
-    context.read<ProductListBloc>().add(
+    context //
+        .read<ProductListBloc>()
+        .add(
           AddProductEvent(
             category: Category(name: state.categoryName),
             product: state.toProduct(),
@@ -141,6 +143,7 @@ class CreateProductPage extends StatelessWidget {
                     showNotification(
                       title: "Success",
                       message: "Product '${product.name}' has been successfully created.",
+                      severity: InfoBarSeverity.success,
                     );
                   }
 

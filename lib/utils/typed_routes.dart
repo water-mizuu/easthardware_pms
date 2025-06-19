@@ -1,4 +1,4 @@
-import 'package:easthardware_pms/presentation/bloc/navigation/navigation_cubit.dart';
+import 'package:easthardware_pms/presentation/cubit/navigation/navigation_cubit.dart';
 import 'package:easthardware_pms/utils/boxed.dart';
 import 'package:fluent_ui/fluent_ui.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';

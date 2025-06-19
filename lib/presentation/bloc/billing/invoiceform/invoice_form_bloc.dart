@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:bloc/bloc.dart';
 import 'package:easthardware_pms/domain/enums/enums.dart'
     show FormStatus, InvoicePostAction, DiscountType;
@@ -170,14 +172,16 @@ class InvoiceFormBloc extends Bloc<InvoiceFormEvent, InvoiceFormState> {
     );
 
     final index = event.index;
-    final updatedProducts = List<FormProduct>.from(state.products);
     if (index == -1) return;
 
-    updatedProducts[index] = adjustedProduct;
+    printBoxed(
+      const JsonEncoder.withIndent("  ").convert(adjustedProduct.toMap()),
+      "Adjusted Product",
+    );
+    final updatedProducts = List<FormProduct>.from(state.products)..[index] = adjustedProduct;
 
-    final subtotal = updatedProducts //
-        .map((e) => e.amount)
-        .fold<double>(0, (s, p) => s + p);
+    /// Compute the new subtotal, discount, and amount due.
+    final subtotal = updatedProducts.map((e) => e.amount).fold(0.0, (acc, cur) => acc + cur);
     final discountAmount = state.discountType == DiscountType.percentage
         ? (subtotal * (state.discount ?? 0) / 100)
         : (state.discount ?? 0);
