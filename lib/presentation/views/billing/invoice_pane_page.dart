@@ -1,13 +1,14 @@
 import 'package:easthardware_pms/domain/enums/enums.dart';
 import 'package:easthardware_pms/domain/models/invoice.dart';
+import 'package:easthardware_pms/presentation/bloc/authentication/authentication/authentication_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/billing/invoicelist/invoice_list_bloc.dart';
-import 'package:easthardware_pms/presentation/bloc/navigation/navigation_cubit.dart';
 import 'package:easthardware_pms/presentation/router/app_routes.dart';
 import 'package:easthardware_pms/presentation/widgets/animated_single_child_scroll_view.dart';
 import 'package:easthardware_pms/presentation/widgets/helper/data_row_mapper.dart';
 import 'package:easthardware_pms/presentation/widgets/layout/spacing.dart';
 import 'package:easthardware_pms/presentation/widgets/text.dart';
 import 'package:easthardware_pms/presentation/widgets/ui/text_button.dart';
+import 'package:easthardware_pms/utils/typed_routes.dart';
 import 'package:fluent_ui/fluent_ui.dart';
 import 'package:flutter/material.dart'
     show
@@ -52,9 +53,17 @@ class PageHeader extends StatelessWidget {
         const Spacer(flex: 1),
         TextButtonFilled(
           "Create Invoice",
-          onPressed: () => context //
-              .read<NavigationCubit>()
-              .navigateTo(AppRoutes.admin.createInvoice),
+          onPressed: () {
+            final user = context.read<AuthenticationBloc>().state.user;
+            switch (user?.accessLevel) {
+              case null:
+                context.navigate(AppRoutes.login);
+              case AccessLevel.staff:
+                context.navigate(AppRoutes.staff.createInvoice);
+              case AccessLevel.administrator:
+                context.navigate(AppRoutes.admin.createInvoice);
+            }
+          },
         ),
       ],
     );
