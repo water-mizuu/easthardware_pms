@@ -25,6 +25,7 @@ import 'package:easthardware_pms/presentation/views/security/user_log_pane.dart'
 import 'package:easthardware_pms/presentation/views/security/users_pane_page.dart';
 import 'package:easthardware_pms/presentation/views/settings/about_page.dart';
 import 'package:easthardware_pms/presentation/widgets/bottom_text.dart';
+import 'package:easthardware_pms/utils/boxed.dart';
 import 'package:easthardware_pms/utils/typed_routes.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart' hide TypedGoRoute;
@@ -33,7 +34,84 @@ final keys = (searchKey: GlobalKey<NavigatorState>(),);
 
 const initialLocation = AppRoutes.login;
 
-class NavigatorObserver extends RouteObserver {}
+class AggregatedObserver implements NavigatorObserver {
+  @override
+  void didPop(Route route, Route? previousRoute) {
+    // TODO: implement didPop
+  }
+
+  @override
+  void didPush(Route route, Route? previousRoute) {
+    // TODO: implement didPush
+  }
+
+  @override
+  void didRemove(Route route, Route? previousRoute) {
+    // TODO: implement didRemove
+  }
+
+  @override
+  void didReplace({Route? newRoute, Route? oldRoute}) {
+    // TODO: implement didReplace
+  }
+
+  @override
+  void didStartUserGesture(Route route, Route? previousRoute) {
+    // TODO: implement didStartUserGesture
+  }
+
+  @override
+  void didStopUserGesture() {
+    // TODO: implement didStopUserGesture
+  }
+
+  @override
+  NavigatorState? get navigator => null;
+}
+
+class MyObserver extends NavigatorObserver {
+  MyObserver(this._aggregated);
+
+  final AggregatedObserver _aggregated;
+
+  @override
+  void didPush(Route<dynamic> route, Route<dynamic>? previousRoute) {
+    printBoxed("Did pop\n$route\n$previousRoute");
+    _aggregated.didPush(route, previousRoute);
+  }
+
+  @override
+  void didPop(Route<dynamic> route, Route<dynamic>? previousRoute) {
+    printBoxed("Did pop\n$route\n$previousRoute");
+    _aggregated.didPop(route, previousRoute);
+  }
+
+  @override
+  void didRemove(Route<dynamic> route, Route<dynamic>? previousRoute) {
+    printBoxed("Did remove\n$route\n$previousRoute");
+    _aggregated.didRemove(route, previousRoute);
+  }
+
+  @override
+  void didReplace({Route<dynamic>? newRoute, Route<dynamic>? oldRoute}) {
+    printBoxed("Did replace\n$newRoute\n$oldRoute");
+    _aggregated.didReplace(newRoute: newRoute, oldRoute: oldRoute);
+  }
+
+  @override
+  void didStartUserGesture(Route<dynamic> route, Route<dynamic>? previousRoute) {
+    printBoxed("Did start user gesture\n$route\n$previousRoute");
+    _aggregated.didStartUserGesture(route, previousRoute);
+  }
+
+  @override
+  void didStopUserGesture() {
+    printBoxed("Did stop user gesture");
+    _aggregated.didStopUserGesture();
+  }
+}
+
+final _observer = AggregatedObserver();
 
 /// This is the global key for the root navigator. This should be used for modals.
 final rootWidgetKey = GlobalKey<NavigatorState>(debugLabel: "Complain the money's hard");
@@ -44,12 +122,15 @@ final overlayWidgetKey = GlobalKey<NavigatorState>(debugLabel: "bailey");
 final router = GoRouter(
   initialLocation: initialLocation as String,
   navigatorKey: rootWidgetKey,
+  observers: [MyObserver(_observer)],
   routes: [
     ShellRoute(
       navigatorKey: overlayWidgetKey,
+      observers: [MyObserver(_observer)],
       builder: (_, __, child) => Overlay.wrap(child: child),
       routes: [
         ShellRoute(
+          observers: [MyObserver(_observer)],
           builder: (_, __, child) => BottomText(child: child),
           routes: [
             TypedGoRoute(
@@ -71,6 +152,7 @@ final router = GoRouter(
           branches: [
             // Admin Dashboard Shell
             StatefulShellBranch(
+              observers: [MyObserver(_observer)],
               initialLocation: AppRoutes.admin.dashboard.path,
               routes: [
                 TypedGoRoute(
@@ -82,6 +164,7 @@ final router = GoRouter(
 
             // Search Page Shell
             StatefulShellBranch(
+              observers: [MyObserver(_observer)],
               navigatorKey: keys.searchKey,
               initialLocation: AppRoutes.admin.search.products.path,
               routes: [
@@ -122,6 +205,7 @@ final router = GoRouter(
 
             // Inventory Page Shell
             StatefulShellBranch(
+              observers: [MyObserver(_observer)],
               initialLocation: AppRoutes.admin.inventory.path,
               routes: [
                 TypedGoRoute(
@@ -147,6 +231,7 @@ final router = GoRouter(
             ),
             // Billing Shell
             StatefulShellBranch(
+              observers: [MyObserver(_observer)],
               initialLocation: AppRoutes.admin.billing.path,
               routes: [
                 TypedGoRoute(
@@ -160,6 +245,7 @@ final router = GoRouter(
               ],
             ),
             StatefulShellBranch(
+              observers: [MyObserver(_observer)],
               initialLocation: AppRoutes.admin.payment.path,
               routes: [
                 TypedGoRoute(
@@ -174,6 +260,7 @@ final router = GoRouter(
             ),
             // Order Shell
             StatefulShellBranch(
+              observers: [MyObserver(_observer)],
               initialLocation: AppRoutes.admin.order.path,
               routes: [
                 TypedGoRoute(
@@ -193,6 +280,7 @@ final router = GoRouter(
 
             // Reports Shell
             StatefulShellBranch(
+              observers: [MyObserver(_observer)],
               //initialLocation: AppRoutes.admin.users.path,
               routes: [
                 TypedGoRoute(
@@ -204,6 +292,7 @@ final router = GoRouter(
 
             // Security Shell
             StatefulShellBranch(
+              observers: [MyObserver(_observer)],
               initialLocation: AppRoutes.admin.users.path,
               routes: [
                 TypedGoRoute(
@@ -222,6 +311,7 @@ final router = GoRouter(
             ),
             // Settings Shell
             StatefulShellBranch(
+              observers: [MyObserver(_observer)],
               //initialLocation: AppRoutes.admin.users.path,
               routes: [
                 TypedGoRoute(
@@ -237,6 +327,7 @@ final router = GoRouter(
           branches: [
             // Staff Dashboard Shell
             StatefulShellBranch(
+              observers: [MyObserver(_observer)],
               initialLocation: AppRoutes.staff.dashboard.path,
               routes: [
                 GoRoute(
@@ -248,6 +339,7 @@ final router = GoRouter(
 
             // Search Page Shell
             StatefulShellBranch(
+              observers: [MyObserver(_observer)],
               navigatorKey: keys.searchKey,
               initialLocation: AppRoutes.staff.search.products.path,
               routes: [
@@ -288,6 +380,7 @@ final router = GoRouter(
 
             // Inventory Page Shell
             StatefulShellBranch(
+              observers: [MyObserver(_observer)],
               initialLocation: AppRoutes.staff.inventory.path,
               routes: [
                 TypedGoRoute(
@@ -299,6 +392,7 @@ final router = GoRouter(
 
             // Invoice Shell
             StatefulShellBranch(
+              observers: [MyObserver(_observer)],
               initialLocation: AppRoutes.staff.createInvoice.path,
               routes: [
                 TypedGoRoute(
@@ -317,6 +411,7 @@ final router = GoRouter(
             ),
 
             StatefulShellBranch(
+              observers: [MyObserver(_observer)],
               initialLocation: AppRoutes.staff.help.path,
               routes: [
                 TypedGoRoute(
@@ -327,6 +422,7 @@ final router = GoRouter(
             ),
 
             StatefulShellBranch(
+              observers: [MyObserver(_observer)],
               initialLocation: AppRoutes.staff.about.path,
               routes: [
                 TypedGoRoute(

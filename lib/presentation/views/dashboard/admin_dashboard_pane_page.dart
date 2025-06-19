@@ -1,7 +1,7 @@
 import 'package:easthardware_pms/presentation/views/dashboard/cards/expense_breakdown_card.dart';
+import 'package:easthardware_pms/presentation/views/dashboard/cards/latest_sales.dart';
 import 'package:easthardware_pms/presentation/views/dashboard/cards/lower_stocked_products.dart';
 import 'package:easthardware_pms/presentation/views/dashboard/cards/profit_and_loss_card.dart';
-import 'package:easthardware_pms/presentation/views/dashboard/cards/recent_sales.dart';
 import 'package:easthardware_pms/presentation/views/dashboard/cards/sales_overview.dart';
 import 'package:easthardware_pms/presentation/views/dashboard/cards/top_product_activity.dart';
 import 'package:easthardware_pms/presentation/views/dashboard/dashboard_commons.dart';
@@ -27,7 +27,7 @@ class AdminDashboardPanePage extends StatelessWidget {
             const SummarySection(),
             const GraphsSection(),
             const SectionAlpha(),
-            const RecentSales(),
+            const LatestSales(),
           ].withSpacing(() => Spacing.v8),
         ),
       ),
