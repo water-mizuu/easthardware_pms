@@ -36,7 +36,8 @@ const initialLocation = AppRoutes.login;
 class NavigatorObserver extends RouteObserver {}
 
 /// This is the global key for the root navigator. This should be used for modals.
-final rootWidgetKey = GlobalKey<NavigatorState>(debugLabel: "Complain the money's hard");
+final rootWidgetKey =
+    GlobalKey<NavigatorState>(debugLabel: "Complain the money's hard");
 
 /// This is the global key for the inner navigator, containing the overlay.
 ///   This should be used for overlay calls.
@@ -58,16 +59,19 @@ final router = GoRouter(
             ),
             TypedGoRoute(
               route: AppRoutes.resetPassword,
-              builder: (context, state) => ResetPasswordPage(username: state.extra),
+              builder: (context, state) =>
+                  ResetPasswordPage(username: state.extra),
             ),
             TypedGoRoute(
               route: AppRoutes.newPassword,
-              builder: (context, state) => NewPasswordPage(username: state.extra),
+              builder: (context, state) =>
+                  NewPasswordPage(username: state.extra),
             )
           ],
         ),
         StatefulShellRoute.indexedStack(
-          builder: (context, state, shell) => BottomText(child: AdminNavigationScaffold(shell)),
+          builder: (context, state, shell) =>
+              BottomText(child: AdminNavigationScaffold(shell)),
           branches: [
             // Admin Dashboard Shell
             StatefulShellBranch(
@@ -137,7 +141,8 @@ final router = GoRouter(
                 ),
                 TypedGoRoute(
                   route: AppRoutes.admin.editProduct,
-                  builder: (context, state) => EditProductPage(product: state.extra),
+                  builder: (context, state) =>
+                      EditProductPage(product: state.extra),
                 ),
                 TypedGoRoute(
                   route: AppRoutes.admin.categories,
@@ -168,7 +173,8 @@ final router = GoRouter(
                 ),
                 TypedGoRoute(
                   route: AppRoutes.admin.createPayment,
-                  builder: (context, state) => CreatePaymentPage(invoice: state.extra),
+                  builder: (context, state) =>
+                      CreatePaymentPage(invoice: state.extra),
                 ),
               ],
             ),
@@ -233,7 +239,8 @@ final router = GoRouter(
           ],
         ),
         StatefulShellRoute.indexedStack(
-          builder: (context, state, shell) => BottomText(child: StaffNavigationScaffold(shell)),
+          builder: (context, state, shell) =>
+              BottomText(child: StaffNavigationScaffold(shell)),
           branches: [
             // Staff Dashboard Shell
             StatefulShellBranch(
@@ -302,6 +309,10 @@ final router = GoRouter(
               initialLocation: AppRoutes.staff.createInvoice.path,
               routes: [
                 TypedGoRoute(
+                  route: AppRoutes.staff.billing,
+                  builder: (context, state) => const InvoicePanePage(),
+                ),
+                TypedGoRoute(
                   route: AppRoutes.staff.createInvoice,
                   builder: (context, state) => const CreateInvoicePage(),
                 ),
@@ -311,6 +322,20 @@ final router = GoRouter(
                 ),
                 TypedGoRoute(
                   route: AppRoutes.staff.billing,
+                  builder: (context, state) => const InvoicePanePage(),
+                ),
+              ],
+            ),
+
+            StatefulShellBranch(
+              // initialLocation: AppRoutes.staff.createInvoice.path,
+              routes: [
+                TypedGoRoute(
+                  route: AppRoutes.staff.order,
+                  builder: (context, state) => const OrderPanePage(),
+                ),
+                TypedGoRoute(
+                  route: AppRoutes.staff.payInvoice,
                   builder: (context, state) => const InvoicePanePage(),
                 ),
               ],

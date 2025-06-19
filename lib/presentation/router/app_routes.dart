@@ -62,6 +62,7 @@ class AppRoutes {
     billing: AppRoute<Null>('/staff/billing'),
     createInvoice: AppRoute<Null>('/staff/create/invoice'),
     payInvoice: AppRoute<Null>('/staff/pay/invoice'),
+    order: AppRoute<Null>('/staff/order'),
     help: AppRoute<Null>('/staff/help'),
     about: AppRoute<Null>('/staff/about'),
   );

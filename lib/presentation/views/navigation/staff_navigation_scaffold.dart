@@ -75,16 +75,20 @@ class _StaffNavigationViewState extends State<StaffNavigationView>
   late final AnimatedScrollController _scrollController;
   late int _selectedIndex;
 
-  late final List<NavigationPaneItem> _navigationItems = buildNavigationItems(context);
+  late final List<NavigationPaneItem> _navigationItems =
+      buildNavigationItems(context);
   late final List<NavigationPaneItem> _footerItems = footerItems(context);
-  late final List<PaneItem> _expandedNavigationItems = _navigationItems.expandItems().toList();
+  late final List<PaneItem> _expandedNavigationItems =
+      _navigationItems.expandItems().toList();
 
   @override
   void initState() {
     super.initState();
 
-    _routeIndexMapper = NavRailRouteIndexMapper(items: _expandedNavigationItems);
-    _scrollController = AnimatedScrollController(animationFactory: const ChromiumEaseInOut());
+    _routeIndexMapper =
+        NavRailRouteIndexMapper(items: _expandedNavigationItems);
+    _scrollController =
+        AnimatedScrollController(animationFactory: const ChromiumEaseInOut());
     _selectedIndex = 0;
   }
 
@@ -200,12 +204,12 @@ class _StaffNavigationViewState extends State<StaffNavigationView>
       navItem(
         icon: FluentIcons.bill,
         title: 'Orders',
-        // route: AppRoutes.orderPage,
+        route: AppRoutes.staff.order,
         items: [
           navItem(
             icon: FluentIcons.bill,
             title: 'Orders List',
-            // route: AppRoutes.orderPage,
+            route: AppRoutes.staff.order,
           ),
           navItem(
             icon: FluentIcons.reservation_orders,
