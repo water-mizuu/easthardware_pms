@@ -6,7 +6,7 @@ class InvoiceFormState extends Equatable {
     this.customerName = '',
     DateTime? invoiceDate,
     DateTime? dueDate,
-    List<FormProduct>? products,
+    this.products = const [EmptyFormProduct()],
     this.memo,
     this.subtotal,
     this.discount,
@@ -25,7 +25,6 @@ class InvoiceFormState extends Equatable {
     this.status = FormStatus.initial,
     this.action = InvoicePostAction.none,
   })  : invoiceDate = invoiceDate ?? DateTime.now(),
-        products = products ?? [EmptyFormProduct()],
         dueDate = dueDate ?? DateTime.now();
 
   final int? invoiceId;
@@ -58,63 +57,81 @@ class InvoiceFormState extends Equatable {
   final String? dialogErrorMessage;
   final InvoicePostAction action;
 
-  InvoiceFormState copyWith({
-    Object? invoiceId = undefined,
-    Object? customerName = undefined,
-    Object? invoiceDate = undefined,
-    Object? dueDate = undefined,
-    Object? products = undefined,
-    Object? memo = undefined,
-    Object? subtotal = undefined,
-    Object? discount = undefined,
-    Object? discountType = undefined,
-    Object? amountDue = undefined,
-    Object? amountPaid = undefined,
-    Object? paymentDate = undefined,
-    Object? paymentMethod = undefined,
-    Object? referenceNumber = undefined,
-    Object? creatorId = undefined,
-    Object? creationDate = undefined,
-    Object? invoiceDateErrorMessage = undefined,
-    Object? dueDateErrorMessage = undefined,
-    Object? discountErrorMessage = undefined,
-    Object? dialogErrorMessage = undefined,
-    Object? status = undefined,
-    Object? action = undefined,
-  }) {
-    return InvoiceFormState(
-      invoiceId: invoiceId == undefined ? this.invoiceId : invoiceId as int?,
-      customerName: customerName == undefined ? this.customerName : customerName as String,
-      invoiceDate: invoiceDate == undefined ? this.invoiceDate : invoiceDate as DateTime,
-      dueDate: dueDate == undefined ? this.dueDate : dueDate as DateTime,
-      products: products == undefined ? this.products : products as List<FormProduct>,
-      memo: memo == undefined ? this.memo : memo as String?,
-      subtotal: subtotal == undefined ? this.subtotal : subtotal as double?,
-      discount: discount == undefined ? this.discount : discount as double?,
-      discountType: discountType == undefined ? this.discountType : discountType as DiscountType?,
-      amountDue: amountDue == undefined ? this.amountDue : amountDue as double?,
-      amountPaid: amountPaid == undefined ? this.amountPaid : amountPaid as double?,
-      paymentDate: paymentDate == undefined ? this.paymentDate : paymentDate as DateTime?,
-      paymentMethod:
-          paymentMethod == undefined ? this.paymentMethod : paymentMethod as PaymentMethod?,
-      referenceNumber:
-          referenceNumber == undefined ? this.referenceNumber : referenceNumber as String?,
-      creatorId: creatorId == undefined ? this.creatorId : creatorId as int?,
-      creationDate: creationDate == undefined ? this.creationDate : creationDate as DateTime?,
-      invoiceDateErrorMessage: invoiceDateErrorMessage == undefined
-          ? this.invoiceDateErrorMessage
-          : invoiceDateErrorMessage as String?,
-      dueDateErrorMessage: dueDateErrorMessage == undefined
-          ? this.dueDateErrorMessage
-          : dueDateErrorMessage as String?,
-      discountErrorMessage: discountErrorMessage == undefined
-          ? this.discountErrorMessage
-          : discountErrorMessage as String?,
-      dialogErrorMessage:
-          dialogErrorMessage == undefined ? this.dialogErrorMessage : dialogErrorMessage as String?,
-      status: status == undefined ? this.status : status as FormStatus,
-      action: action == undefined ? this.action : action as InvoicePostAction,
-    );
+  InvoiceFormState Function({
+    int? invoiceId,
+    String customerName,
+    DateTime invoiceDate,
+    DateTime dueDate,
+    List<FormProduct> products,
+    String? memo,
+    double? subtotal,
+    double? discount,
+    DiscountType? discountType,
+    double? amountDue,
+    double? amountPaid,
+    DateTime? paymentDate,
+    PaymentMethod? paymentMethod,
+    String? referenceNumber,
+    int? creatorId,
+    DateTime? creationDate,
+    String? invoiceDateErrorMessage,
+    String? dueDateErrorMessage,
+    String? discountErrorMessage,
+    String? dialogErrorMessage,
+    FormStatus status,
+    InvoicePostAction action,
+  }) get copyWith {
+    return ({
+      Object? invoiceId = undefined,
+      Object? customerName = undefined,
+      Object? invoiceDate = undefined,
+      Object? dueDate = undefined,
+      Object? products = undefined,
+      Object? memo = undefined,
+      Object? subtotal = undefined,
+      Object? discount = undefined,
+      Object? discountType = undefined,
+      Object? amountDue = undefined,
+      Object? amountPaid = undefined,
+      Object? paymentDate = undefined,
+      Object? paymentMethod = undefined,
+      Object? referenceNumber = undefined,
+      Object? creatorId = undefined,
+      Object? creationDate = undefined,
+      Object? invoiceDateErrorMessage = undefined,
+      Object? dueDateErrorMessage = undefined,
+      Object? discountErrorMessage = undefined,
+      Object? dialogErrorMessage = undefined,
+      Object? status = undefined,
+      Object? action = undefined,
+    }) {
+      return InvoiceFormState(
+        invoiceId: invoiceId.or(this.invoiceId),
+        customerName: customerName.or(this.customerName),
+        invoiceDate: invoiceDate.or(this.invoiceDate),
+        dueDate: dueDate.or(this.dueDate),
+        products: products.or(this.products),
+        memo: memo.or(this.memo),
+        subtotal: subtotal.or(this.subtotal),
+        discount: discount.or(this.discount),
+        discountType: discountType.or(this.discountType),
+        amountDue: amountDue.or(this.amountDue),
+        amountPaid: amountPaid.or(this.amountPaid),
+        paymentDate: paymentDate.or(this.paymentDate),
+        paymentMethod: paymentMethod.or(this.paymentMethod),
+        referenceNumber: referenceNumber.or(this.referenceNumber),
+        creatorId: creatorId.or(this.creatorId),
+        creationDate: creationDate.or(this.creationDate),
+        invoiceDateErrorMessage:
+            invoiceDateErrorMessage.or(this.invoiceDateErrorMessage),
+        dueDateErrorMessage: dueDateErrorMessage.or(this.dueDateErrorMessage),
+        discountErrorMessage:
+            discountErrorMessage.or(this.discountErrorMessage),
+        dialogErrorMessage: dialogErrorMessage.or(this.dialogErrorMessage),
+        status: status.or(this.status),
+        action: action.or(this.action),
+      );
+    };
   }
 
   Invoice toInvoice() {
@@ -136,22 +153,28 @@ class InvoiceFormState extends Equatable {
   }
 
   @override
-  List<Object> get props => [
-        invoiceId ?? 0,
+  List<Object?> get props => [
+        invoiceId,
         customerName,
         invoiceDate,
         dueDate,
         products,
-        memo ?? '',
-        subtotal ?? 0,
-        discount ?? 0,
-        discountType ?? DiscountType.value,
-        amountDue ?? 0,
-        amountPaid ?? 0,
-        paymentDate ?? DateTime.now(),
-        referenceNumber ?? '',
-        creatorId ?? 0,
-        creationDate ?? DateTime.now(),
+        memo,
+        subtotal,
+        discount,
+        discountType,
+        amountDue,
+        amountPaid,
+        paymentDate,
+        paymentMethod,
+        referenceNumber,
+        creatorId,
+        creationDate,
+        invoiceDateErrorMessage,
+        dueDateErrorMessage,
+        discountErrorMessage,
+        status,
+        dialogErrorMessage,
         action,
       ];
 }

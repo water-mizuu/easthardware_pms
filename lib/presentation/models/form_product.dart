@@ -18,7 +18,7 @@ class FormProduct {
       discountType: DiscountType.value,
     );
   }
-  FormProduct({
+  const FormProduct({
     this.productId,
     required this.productName,
     this.description,
@@ -74,19 +74,18 @@ class FormProduct {
       Object? errorMessage = undefined,
     }) {
       return FormProduct(
-        productId: productId == undefined ? this.productId : productId as int?,
-        productName: productName == undefined ? this.productName : productName as String,
-        description: description == undefined ? this.description : description as String?,
-        quantity: quantity == undefined ? this.quantity : quantity as double,
-        unit: unit == undefined ? this.unit : unit as String,
-        unitId: unitId == undefined ? this.unitId : unitId as int?,
-        conversionFactor:
-            conversionFactor == undefined ? this.conversionFactor : conversionFactor as double?,
-        rate: rate == undefined ? this.rate : rate as double,
-        amount: amount == undefined ? this.amount : amount as double,
-        discount: discount == undefined ? this.discount : discount as double?,
-        discountType: discountType == undefined ? this.discountType : discountType as DiscountType,
-        errorMessage: errorMessage == undefined ? this.errorMessage : errorMessage as String?,
+        productId: productId.or(this.productId),
+        productName: productName.or(this.productName),
+        description: description.or(this.description),
+        quantity: quantity.or(this.quantity),
+        unit: unit.or(this.unit),
+        unitId: unitId.or(this.unitId),
+        conversionFactor: conversionFactor.or(this.conversionFactor),
+        rate: rate.or(this.rate),
+        amount: amount.or(this.amount),
+        discount: discount.or(this.discount),
+        discountType: discountType.or(this.discountType),
+        errorMessage: errorMessage.or(this.errorMessage),
       );
     };
   }
@@ -120,7 +119,7 @@ class FormProduct {
 }
 
 class EmptyFormProduct extends FormProduct {
-  EmptyFormProduct()
+  const EmptyFormProduct()
       : super(
           productName: '',
           quantity: 0,

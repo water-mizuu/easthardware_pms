@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'dart:math';
+import 'dart:ui';
 
 import 'package:flutter/foundation.dart';
 
@@ -9,13 +10,13 @@ import 'package:flutter/foundation.dart';
 /// This function is intended for debugging purposes and is only active in debug mode.
 /// Using this function should have no side effects such as mutations.
 @pragma('vm:prefer-inline')
-void printBoxed(Object? value, [String? label]) {
+void printBoxed(Object? value, [String? label, Color? color]) {
   if (kDebugMode) {
-    _printBoxed(value, label);
+    _printBoxed(value, label, color);
   }
 }
 
-void _printBoxed(Object? value, [String? label]) {
+void _printBoxed(Object? value, [String? label, Color? color]) {
   const maxLength = 80;
   const minContentWidth = 10; // Minimum content width inside the box
 

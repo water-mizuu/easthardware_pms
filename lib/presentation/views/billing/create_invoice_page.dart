@@ -20,6 +20,7 @@ import 'package:easthardware_pms/presentation/widgets/ui/form_table_column.dart'
 import 'package:easthardware_pms/presentation/widgets/ui/loading_page.dart';
 import 'package:easthardware_pms/presentation/widgets/ui/styles.dart';
 import 'package:easthardware_pms/presentation/widgets/ui/text_button.dart';
+import 'package:easthardware_pms/utils/show_single_dialog.dart';
 import 'package:easthardware_pms/utils/typed_routes.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:fluent_ui/fluent_ui.dart';
@@ -48,27 +49,32 @@ class CreateInvoicePage extends StatelessWidget {
               listener: (context, state) {
                 if (state.status == FormStatus.submitting) {
                   final invoice = state.copyWith().toInvoice();
-                  final products =
-                      state.products.map((product) => product.toInvoiceProduct()).toList();
+                  final products = state.products //
+                      .map((product) => product.toInvoiceProduct())
+                      .toList();
                   context.read<InvoiceListBloc>().add(AddInvoiceEvent(invoice, products));
                 } else if (state.status == FormStatus.error) {
-                  final blocContext = context;
-                  unawaited(showDialog<String>(
-                    context: blocContext,
-                    builder: (dialogContext) => ContentDialog(
-                      title: const Text('Incomplete Details', style: TextStyles.subtitle),
+                  unawaited(showSingleDialog(
+                    (dialogContext) => ContentDialog(
+                      title: const Text(
+                        'Incomplete Details ',
+                        style: TextStyles.subtitle,
+                      ),
                       content: Text(state.dialogErrorMessage ?? ''),
                       actions: [
                         FilledButton(
                           child: const Text('OK'),
                           onPressed: () {
                             dialogContext.pop();
-                            blocContext.read<InvoiceFormBloc>().add(const DialogBoxClosedEvent());
                           },
                         ),
                       ],
                     ),
-                  ));
+                  ).whenComplete(() {
+                    if (!context.mounted) return;
+
+                    context.read<InvoiceFormBloc>().add(const DialogBoxClosedEvent());
+                  }));
                 }
               },
             ),
@@ -123,7 +129,7 @@ class CreateInvoicePage extends StatelessWidget {
                   ],
                 ),
               ),
-              if (context.read<InvoiceFormBloc>().state.status == FormStatus.submitting)
+              if (context.select((InvoiceFormBloc b) => b.state.status) == FormStatus.submitting)
                 Positioned.fill(
                   child: Container(
                     color: Colors.black.withValues(alpha: 0.2),
@@ -183,9 +189,9 @@ class PageForm extends StatelessWidget {
                       const BodyText('Customer Name'),
                       Spacing.v8,
                       TextFormBox(
-                        onChanged: (value) => context.read<InvoiceFormBloc>().add(
-                              CustomerNameChangedEvent(value),
-                            ),
+                        onChanged: (value) => context //
+                            .read<InvoiceFormBloc>()
+                            .add(CustomerNameChangedEvent(value)),
                       ),
                     ],
                   ),
@@ -415,7 +421,9 @@ class _InvoiceProductTableState extends State<InvoiceProductTable> {
                   ),
                   const SizedBox(
                     width: 82.0,
-                    child: Center(child: Text("ACTIONS", style: TextStyles.tableHeader)),
+                    child: Center(
+                      child: Text("ACTIONS", style: TextStyles.tableHeader),
+                    ),
                   ),
                 ],
               ),
@@ -628,9 +636,7 @@ class _FormTableRowState extends State<FormTableRow> {
                             _rateController.clear();
                             return bloc.add(
                               ProductUpdatedEvent(
-                                product: EmptyFormProduct().copyWith(
-                                  productId: null,
-                                ),
+                                product: const EmptyFormProduct().copyWith(productId: null),
                                 index: widget.index,
                               ),
                             );
@@ -651,7 +657,7 @@ class _FormTableRowState extends State<FormTableRow> {
                             }
                             bloc.add(
                               ProductUpdatedEvent(
-                                product: EmptyFormProduct().copyWith(
+                                product: const EmptyFormProduct().copyWith(
                                   productName: value,
                                   productId: null,
                                   description: currentProduct.description,
@@ -684,13 +690,14 @@ class _FormTableRowState extends State<FormTableRow> {
                   ),
                   // Field 2 - Description
                   Expanded(
-                      flex: 2,
-                      child: FormTableCell(
-                        child: TextFormBoxes.ghost(
-                          controller: _descriptionController,
-                          placeholder: 'Sale Description',
-                        ),
-                      )),
+                    flex: 2,
+                    child: FormTableCell(
+                      child: TextFormBoxes.ghost(
+                        controller: _descriptionController,
+                        placeholder: 'Product Description',
+                      ),
+                    ),
+                  ),
                   // Field 3 - Quantity
                   Expanded(
                     child: Container(

@@ -40,7 +40,6 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
   }
 
   Future<List<Invoice>> _processInvoice(String query) {
-    /// TODO: Implement invoice search logic.
     /// For now, we will just search by customer name and reference number.
     ///   Eventually, this should include stuff like product names, invoice numbers, etc.
     return Levenshtein.rankItems(
@@ -57,7 +56,6 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
   }
 
   Future<List<Order>> _processOrder(String query) {
-    /// TODO: Implement order search logic.
     /// For now, we will just search by customer name and reference number.
     ///   Eventually, this should include stuff like product names, order numbers, etc.
     return Levenshtein.rankItems(

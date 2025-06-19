@@ -2,6 +2,7 @@ import 'dart:math';
 
 import 'package:easthardware_pms/domain/models/invoice.dart';
 import 'package:easthardware_pms/presentation/bloc/billing/invoicelist/invoice_list_bloc.dart';
+import 'package:easthardware_pms/presentation/widgets/helper/currency_formatter.dart';
 import 'package:easthardware_pms/presentation/widgets/layout/spacing.dart';
 import 'package:easthardware_pms/presentation/widgets/text.dart';
 import 'package:fluent_ui/fluent_ui.dart';
@@ -9,8 +10,8 @@ import 'package:provider/provider.dart';
 import 'package:scroll_animator/scroll_animator.dart';
 import 'package:two_dimensional_scrollables/two_dimensional_scrollables.dart';
 
-class RecentSales extends StatelessWidget {
-  const RecentSales({super.key});
+class LatestSales extends StatelessWidget {
+  const LatestSales({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -79,13 +80,13 @@ class _RecentSalesTableState extends State<RecentSalesTable> {
       ),
       (i) => Text(i.customerName),
     ),
-    "Total": (const FixedSpanExtent(120), (i) => Text(i.amountDue.toString())),
+    "Total": (const FixedSpanExtent(120), (i) => Text(CurrencyFormatter.full(i.amountDue))),
     "Payment Method": (
       const MaxSpanExtent(
         FixedSpanExtent(120.00),
         FractionalSpanExtent(0.33),
       ),
-      (i) => Text({0: "Cash", 1: "GCash"}[i.paymentMethod] ?? "Unknown"),
+      (i) => Text({0: "Cash", 1: "GCash"}[i.paymentMethod] ?? ""),
     ),
     "Date": (const FixedSpanExtent(120), (i) => Text(i.invoiceDate.toString())),
   };

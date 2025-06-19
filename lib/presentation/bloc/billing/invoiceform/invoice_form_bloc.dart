@@ -30,11 +30,19 @@ class InvoiceFormBloc extends Bloc<InvoiceFormEvent, InvoiceFormState> {
     on<DialogBoxClosedEvent>(_onDialogBoxClosed);
   }
 
-  void _onCustomerNameChanged(CustomerNameChangedEvent event, Emitter<InvoiceFormState> emit) {
+  onEvent(InvoiceFormEvent event) {
+    super.onEvent(event);
+
+    printBoxed(event, "InformFormBloc");
+  }
+
+  void _onCustomerNameChanged(
+      CustomerNameChangedEvent event, Emitter<InvoiceFormState> emit) {
     emit(state.copyWith(customerName: event.customerName));
   }
 
-  void _onInvoiceDateChanged(InvoiceDateChangedEvent event, Emitter<InvoiceFormState> emit) {
+  void _onInvoiceDateChanged(
+      InvoiceDateChangedEvent event, Emitter<InvoiceFormState> emit) {
     emit(
       state.copyWith(
         invoiceDate: event.invoiceDate,
@@ -45,7 +53,8 @@ class InvoiceFormBloc extends Bloc<InvoiceFormEvent, InvoiceFormState> {
     );
   }
 
-  void _onDueDateChanged(DueDateChangedEvent event, Emitter<InvoiceFormState> emit) {
+  void _onDueDateChanged(
+      DueDateChangedEvent event, Emitter<InvoiceFormState> emit) {
     emit(
       state.copyWith(
         dueDate: event.dueDate,
@@ -60,7 +69,8 @@ class InvoiceFormBloc extends Bloc<InvoiceFormEvent, InvoiceFormState> {
     emit(state.copyWith(memo: event.memo));
   }
 
-  void _onDiscountChanged(DiscountChangedEvent event, Emitter<InvoiceFormState> emit) {
+  void _onDiscountChanged(
+      DiscountChangedEvent event, Emitter<InvoiceFormState> emit) {
     final subtotal = state.subtotal ?? 0;
     final amountDue = (subtotal) -
         (state.discountType == DiscountType.percentage
@@ -91,7 +101,8 @@ class InvoiceFormBloc extends Bloc<InvoiceFormEvent, InvoiceFormState> {
     ));
   }
 
-  void _onDiscountTypeChanged(DiscountTypeChangedEvent event, Emitter<InvoiceFormState> emit) {
+  void _onDiscountTypeChanged(
+      DiscountTypeChangedEvent event, Emitter<InvoiceFormState> emit) {
     final subtotal = state.subtotal ?? 0;
     final discountAmount = state.discount ?? 0;
     final amountDue = (subtotal) -
@@ -122,23 +133,29 @@ class InvoiceFormBloc extends Bloc<InvoiceFormEvent, InvoiceFormState> {
     ));
   }
 
-  void _onProductAdded(ProductAddedEvent event, Emitter<InvoiceFormState> emit) {
-    final updatedProducts = List<FormProduct>.from(state.products)..add(EmptyFormProduct());
+  void _onProductAdded(
+      ProductAddedEvent event, Emitter<InvoiceFormState> emit) {
+    final updatedProducts = List<FormProduct>.from(state.products)
+      ..add(EmptyFormProduct());
     emit(state.copyWith(products: updatedProducts));
   }
 
-  void _onProductRemoved(ProductRemovedEvent event, Emitter<InvoiceFormState> emit) {
+  void _onProductRemoved(
+      ProductRemovedEvent event, Emitter<InvoiceFormState> emit) {
     final index = event.index;
-    final updatedProducts = List<FormProduct>.from(state.products)..removeAt(index);
+    final updatedProducts = List<FormProduct>.from(state.products)
+      ..removeAt(index);
     emit(state.copyWith(products: updatedProducts));
   }
 
-  void _onProductsCleared(ProductsClearedEvent event, Emitter<InvoiceFormState> emit) {
+  void _onProductsCleared(
+      ProductsClearedEvent event, Emitter<InvoiceFormState> emit) {
     final updatedProducts = <FormProduct>[EmptyFormProduct()];
     emit(state.copyWith(products: updatedProducts));
   }
 
-  void _onProductSelected(ProductSelectedEvent event, Emitter<InvoiceFormState> emit) {
+  void _onProductSelected(
+      ProductSelectedEvent event, Emitter<InvoiceFormState> emit) {
     final index = event.index;
     final updatedProducts = List<FormProduct>.from(state.products);
     if (index != -1) {
@@ -150,41 +167,42 @@ class InvoiceFormBloc extends Bloc<InvoiceFormEvent, InvoiceFormState> {
     }
   }
 
-  void _onProductUpdated(ProductUpdatedEvent event, Emitter<InvoiceFormState> emit) {
-    printBoxed('Conversion Factor: ${event.product.conversionFactor}');
-    final adjustedRate = event.product.rate * (event.product.conversionFactor ?? 1);
+  void _onProductUpdated(
+      ProductUpdatedEvent event, Emitter<InvoiceFormState> emit) {
+    // printBoxed('Conversion Factor: ${event.product.conversionFactor}');
+    final adjustedRate =
+        event.product.rate * (event.product.conversionFactor ?? 1);
 
     final adjustedProduct = event.product.copyWith(
       rate: adjustedRate,
       amount: adjustedRate * event.product.quantity,
-      errorMessage: (event.reference != null && event.reference!.quantity < event.product.quantity)
+      errorMessage: (event.reference != null &&
+              event.reference!.quantity < event.product.quantity)
           ? 'Item quantity exceeds available stock.'
           : null,
     );
 
     final index = event.index;
     final updatedProducts = List<FormProduct>.from(state.products);
+    if (index == -1) return;
 
-    if (index != -1) {
-      updatedProducts[index] = adjustedProduct;
+    updatedProducts[index] = adjustedProduct;
 
-      final subtotal = updatedProducts.fold<double>(
-        0,
-        (previousValue, element) => previousValue + (element.amount),
-      );
-      final discountAmount = state.discountType == DiscountType.percentage
-          ? (subtotal * (state.discount ?? 0) / 100)
-          : (state.discount ?? 0);
-      final amountDue = subtotal - discountAmount;
+    final subtotal = updatedProducts //
+        .map((e) => e.amount)
+        .fold<double>(0, (s, p) => s + p);
+    final discountAmount = state.discountType == DiscountType.percentage
+        ? (subtotal * (state.discount ?? 0) / 100)
+        : (state.discount ?? 0);
+    final amountDue = subtotal - discountAmount;
 
-      emit(
-        state.copyWith(
-          products: updatedProducts,
-          subtotal: subtotal,
-          amountDue: amountDue,
-        ),
-      );
-    }
+    emit(
+      state.copyWith(
+        products: updatedProducts,
+        subtotal: subtotal,
+        amountDue: amountDue,
+      ),
+    );
   }
 
   Future<void> _onFormButtonPressed(
@@ -200,7 +218,8 @@ class InvoiceFormBloc extends Bloc<InvoiceFormEvent, InvoiceFormState> {
     final dueDateErrorMessage = state.dueDateErrorMessage;
     final discountErrorMessage = state.discountErrorMessage;
 
-    emit(state.copyWith(status: FormStatus.validating, dialogErrorMessage: null));
+    emit(state.copyWith(
+        status: FormStatus.validating, dialogErrorMessage: null));
     if (products.every(
       (product) =>
           product.productId == null &&
@@ -228,14 +247,17 @@ class InvoiceFormBloc extends Bloc<InvoiceFormEvent, InvoiceFormState> {
     final taggedProducts = products.map(
       (product) {
         if (product.productId == null &&
-            (product.quantity > 0 || product.description != null || product.rate > 0)) {
+            (product.quantity > 0 ||
+                product.description != null ||
+                product.rate > 0)) {
           return product.copyWith(errorMessage: 'Item cannot be blank');
         }
         return product;
       },
     ).toList();
 
-    if (taggedProducts.any((product) => product.errorMessage == 'Item cannot be blank')) {
+    if (taggedProducts
+        .any((product) => product.errorMessage == 'Item cannot be blank')) {
       return emit(
         state.copyWith(
           status: FormStatus.error,
@@ -262,8 +284,8 @@ class InvoiceFormBloc extends Bloc<InvoiceFormEvent, InvoiceFormState> {
       );
     }
 
-    if (taggedProducts
-        .any((product) => product.errorMessage == 'Item quantity exceeds available stock.')) {
+    if (taggedProducts.any((product) =>
+        product.errorMessage == 'Item quantity exceeds available stock.')) {
       return emit(
         state.copyWith(
           status: FormStatus.error,
@@ -285,16 +307,17 @@ class InvoiceFormBloc extends Bloc<InvoiceFormEvent, InvoiceFormState> {
     return;
   }
 
-  void _onDialogBoxClosed(DialogBoxClosedEvent event, Emitter<InvoiceFormState> emit) {
-    emit(state.copyWith(
-      status: FormStatus.initial,
-      invoiceDateErrorMessage: state.invoiceDateErrorMessage,
-      dueDateErrorMessage: state.dueDateErrorMessage,
-      discountErrorMessage: state.discountErrorMessage,
-    ));
+  void _onDialogBoxClosed(
+    DialogBoxClosedEvent event,
+    Emitter<InvoiceFormState> emit,
+  ) {
+    printBoxed('Dialog box closed');
+    emit(state.copyWith(status: FormStatus.initial));
+    printBoxed(state.copyWith(status: FormStatus.initial));
   }
 
-  Future<void> _onFormSubmitted(FormSubmittedEvent event, Emitter<InvoiceFormState> emit) async {
+  Future<void> _onFormSubmitted(
+      FormSubmittedEvent event, Emitter<InvoiceFormState> emit) async {
     emit(state.copyWith(status: FormStatus.submitted));
     await Future.delayed(Duration.zero);
     return emit(InvoiceFormState());
