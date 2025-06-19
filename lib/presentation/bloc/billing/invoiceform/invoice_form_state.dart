@@ -143,7 +143,7 @@ class InvoiceFormState extends Equatable {
       memo: memo,
       discount: discount,
       discountType: discountType,
-      amountDue: amountDue!,
+      amountDue: amountDue,
       amountPaid: amountPaid,
       creatorId: creatorId!,
       creationDate: creationDate!,
