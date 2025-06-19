@@ -32,7 +32,7 @@ import 'package:go_router/go_router.dart' hide TypedGoRoute;
 
 final keys = (searchKey: GlobalKey<NavigatorState>(),);
 
-final initialLocation = AppRoutes.admin.inventory;
+const initialLocation = AppRoutes.login;
 
 /// This is the global key for the root navigator. This should be used for modals.
 final rootWidgetKey = GlobalKey<NavigatorState>(debugLabel: "Complain the money's hard");
@@ -327,10 +327,6 @@ final router = GoRouter(
             StatefulShellBranch(
               // initialLocation: AppRoutes.staff.createInvoice.path,
               routes: [
-                TypedGoRoute(
-                  route: AppRoutes.staff.order,
-                  builder: (context, state) => const OrderPanePage(),
-                ),
                 TypedGoRoute(
                   route: AppRoutes.staff.payInvoice,
                   builder: (context, state) => const InvoicePanePage(),

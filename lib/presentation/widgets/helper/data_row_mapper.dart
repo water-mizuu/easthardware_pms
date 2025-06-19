@@ -227,11 +227,7 @@ class DataRowMapper {
     final orderDate = DateFormat.yMMMMd().format(order.orderDate);
     final payee = order.payeeName.isNotEmpty == true ? order.payeeName : 'Unknown Payee';
     // Map expenseType to label
-    final expenseType = order.expenseType == 1
-        ? 'Restock Order'
-        : order.expenseType == 2
-            ? 'Expense Order'
-            : order.expenseType.toString();
+    final expenseType = order.expenseType.toString();
     final amount = order.amountDue.toString();
 
     return DataRow(cells: [

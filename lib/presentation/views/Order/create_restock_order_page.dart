@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:easthardware_pms/domain/enums/enums.dart'
     show AccessLevel, DataStatus, FormStatus, OrderType;
+import 'package:easthardware_pms/domain/models/expense_type.dart';
 import 'package:easthardware_pms/domain/models/payment_method.dart';
 import 'package:easthardware_pms/domain/models/product.dart';
 import 'package:easthardware_pms/presentation/bloc/authentication/authentication/authentication_bloc.dart';
@@ -67,11 +68,12 @@ class _CreateRestockOrderPageState extends State<CreateRestockOrderPage> {
                   ),
                 ));
               } else if (state.status == FormStatus.submitting) {
-                // final order = state.copyWith().toOrder();
-                // final products =
-                //     state.products.map((product) => product.toOrderProduct(order.id ?? 0)).toList();
-                // context.read<OrderListBloc>().add(AddOrderEvent(order, products));
-                // context.read<OrderFormBloc>().add(const FormSubmittedEvent());
+                final order = state.copyWith().toOrder();
+                final products = state.products
+                    ?.map((product) => product.toOrderProduct(order.id ?? 0))
+                    .toList();
+                context.read<OrderListBloc>().add(AddOrderEvent(order, products!));
+                context.read<OrderFormBloc>().add(const FormSubmittedEvent());
               }
             },
           ),
@@ -158,6 +160,10 @@ class OrderPageHeader extends StatelessWidget {
             final creationDate = DateTime.now();
             final creatorId = context.read<AuthenticationBloc>().state.user?.id;
             final orderId = context.read<OrderListBloc>().state.allOrders.length;
+            print("Creator ID: $creatorId, Order ID: $orderId, creationDate: $creationDate");
+            final restockExpenseType =
+                ExpenseType(id: 0, name: 'Inventory Restock', archiveStatus: 0);
+            context.read<OrderFormBloc>().add(ExpenseTypeChangedEvent(restockExpenseType));
             context.read<OrderFormBloc>().add(
                   SaveRestockOrderRequestEvent(
                     creationDate: creationDate,
