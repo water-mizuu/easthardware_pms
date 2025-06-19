@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:bloc/bloc.dart';
 import 'package:easthardware_pms/domain/enums/enums.dart';
 import 'package:easthardware_pms/domain/models/invoice.dart';
@@ -18,6 +20,7 @@ class PaymentFormBloc extends Bloc<PaymentFormEvent, PaymentFormState> {
     on<AmountChanged>(_onAmountChanged);
     on<PaymentDateChanged>(_onPaymentDateChanged);
     on<SavePaymentRequestEvent>(_onSavePaymentRequestEvent);
+    on<FormSubmittedEvent>(_onFormSubmitted);
   }
 
   void _onInvoiceChanged(InvoiceChanged event, Emitter<PaymentFormState> emit) {
@@ -71,5 +74,9 @@ class PaymentFormBloc extends Bloc<PaymentFormEvent, PaymentFormState> {
     } catch (e, stackTrace) {
       printBoxed('$e\n$stackTrace', 'PaymentFormBloc');
     }
+  }
+
+  FutureOr<void> _onFormSubmitted(FormSubmittedEvent event, Emitter<PaymentFormState> emit) {
+    emit(state.copyWith(status: FormStatus.initial));
   }
 }

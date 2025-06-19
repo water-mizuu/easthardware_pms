@@ -164,7 +164,7 @@ class UserListBloc extends Bloc<UserListEvent, UserListState> {
       ));
     } catch (e, st) {
       if (kDebugMode) {
-        print('Error logging out user $e');
+        print('Error logging out user $e\n$st');
       }
       emit(state.copyWith(status: DataStatus.error));
     }

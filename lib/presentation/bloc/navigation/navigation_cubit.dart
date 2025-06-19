@@ -9,7 +9,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 part 'navigation_state.dart';
 
 class NavigationCubit extends Cubit<NavigationState> {
-  NavigationCubit() : super(const NavigationState(route: initialLocation));
+  NavigationCubit() : super(NavigationState(route: initialLocation));
 
   void navigateTo(AppRoute route, {Object? extra}) {
     if (kDebugMode) {

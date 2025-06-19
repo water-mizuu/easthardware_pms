@@ -10,8 +10,9 @@ class TotalSalesCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final totalSales = context.select(
-      (InvoiceListBloc b) => b.state.invoices //
-          .fold(0.0, (p, i) => p + (i.amountPaid ?? i.amountDue)),
+      (InvoiceListBloc b) => b.state.invoices
+          .map((i) => i.amountPaid ?? 0.0) //
+          .fold(0.0, (p, i) => p + i),
     );
     final totalSalesFormatted = CurrencyFormatter.full(totalSales);
 

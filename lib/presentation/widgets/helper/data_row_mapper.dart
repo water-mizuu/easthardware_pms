@@ -153,9 +153,11 @@ class DataRowMapper {
   static DataRow mapInvoiceToRow(Invoice invoice, Function() action) {
     final invoiceDate = DateFormat.yMMMMd().format(invoice.invoiceDate).toString();
     final invoiceId = invoice.id!.toString();
-    final invoiceCustomer =
-        invoice.customerName.isNotEmpty ? invoice.customerName : "Unnamed Customer";
-    final invoiceTotal = invoice.amountDue.toString();
+    final invoiceCustomer = invoice.customerName.isNotEmpty //
+        ? invoice.customerName
+        : "Unnamed Customer";
+    final invoiceTotal = CurrencyFormatter.full(invoice.amountDue);
+
     return DataRow(cells: [
       DataCell(Text(invoiceDate)),
       DataCell(Text(invoiceId)),

@@ -113,7 +113,7 @@ class OrderFormBloc extends Bloc<OrderFormEvent, OrderFormState> {
   }
 
   void _onProductAdded(ProductAddedEvent event, Emitter<OrderFormState> emit) {
-    final updatedProducts = [...?state.products, const EmptyFormProduct()];
+    final updatedProducts = [...state.products!, const EmptyFormProduct()];
     emit(state.copyWith(products: updatedProducts));
   }
 

@@ -4,7 +4,6 @@ import 'dart:ui';
 
 import 'package:equatable/equatable.dart';
 import 'package:fl_chart/fl_chart.dart';
-import 'package:fl_chart/src/extensions/color_extension.dart';
 import 'package:fl_chart/src/utils/lerp.dart';
 import 'package:fl_chart/src/utils/utils.dart';
 import 'package:flutter/material.dart';
@@ -81,8 +80,7 @@ class BarChartData extends AxisChartData with EquatableMixin {
 
   /// Holds data for showing error (threshold) indicators on the spots in
   /// the different [BarChartGroupData.barRods]
-  final FlErrorIndicatorData<BarChartSpotErrorRangeCallbackInput>
-      errorIndicatorData;
+  final FlErrorIndicatorData<BarChartSpotErrorRangeCallbackInput> errorIndicatorData;
 
   /// Copies current [BarChartData] to a new [BarChartData],
   /// and replaces provided values.
@@ -101,8 +99,7 @@ class BarChartData extends AxisChartData with EquatableMixin {
     Color? backgroundColor,
     ExtraLinesData? extraLinesData,
     int? rotationQuarterTurns,
-    FlErrorIndicatorData<BarChartSpotErrorRangeCallbackInput>?
-        errorIndicatorData,
+    FlErrorIndicatorData<BarChartSpotErrorRangeCallbackInput>? errorIndicatorData,
   }) =>
       BarChartData(
         barGroups: barGroups ?? this.barGroups,
@@ -131,8 +128,7 @@ class BarChartData extends AxisChartData with EquatableMixin {
         groupsSpace: lerpDouble(a.groupsSpace, b.groupsSpace, t),
         alignment: b.alignment,
         titlesData: FlTitlesData.lerp(a.titlesData, b.titlesData, t),
-        rangeAnnotations:
-            RangeAnnotations.lerp(a.rangeAnnotations, b.rangeAnnotations, t),
+        rangeAnnotations: RangeAnnotations.lerp(a.rangeAnnotations, b.rangeAnnotations, t),
         barTouchData: b.barTouchData,
         gridData: FlGridData.lerp(a.gridData, b.gridData, t),
         borderData: FlBorderData.lerp(a.borderData, b.borderData, t),
@@ -140,8 +136,7 @@ class BarChartData extends AxisChartData with EquatableMixin {
         minY: lerpDouble(a.minY, b.minY, t),
         baselineY: lerpDouble(a.baselineY, b.baselineY, t),
         backgroundColor: Color.lerp(a.backgroundColor, b.backgroundColor, t),
-        extraLinesData:
-            ExtraLinesData.lerp(a.extraLinesData, b.extraLinesData, t),
+        extraLinesData: ExtraLinesData.lerp(a.extraLinesData, b.extraLinesData, t),
         rotationQuarterTurns: b.rotationQuarterTurns,
         errorIndicatorData: FlErrorIndicatorData.lerp(
           a.errorIndicatorData,
@@ -244,9 +239,8 @@ class BarChartGroupData with EquatableMixin {
     if (groupVertically) {
       return barRods.map((rodData) => rodData.width).reduce(max);
     } else {
-      final sumWidth = barRods
-          .map((rodData) => rodData.width)
-          .reduce((first, second) => first + second);
+      final sumWidth =
+          barRods.map((rodData) => rodData.width).reduce((first, second) => first + second);
       final spaces = (barRods.length - 1) * barsSpace;
 
       return sumWidth + spaces;
@@ -267,8 +261,7 @@ class BarChartGroupData with EquatableMixin {
         groupVertically: groupVertically ?? this.groupVertically,
         barRods: barRods ?? this.barRods,
         barsSpace: barsSpace ?? this.barsSpace,
-        showingTooltipIndicators:
-            showingTooltipIndicators ?? this.showingTooltipIndicators,
+        showingTooltipIndicators: showingTooltipIndicators ?? this.showingTooltipIndicators,
       );
 
   /// Lerps a [BarChartGroupData] based on [t] value, check [Tween.lerp].
@@ -342,8 +335,7 @@ class BarChartRodData with EquatableMixin {
     BackgroundBarChartRodData? backDrawRodData,
     List<BarChartRodStackItem>? rodStackItems,
   })  : fromY = fromY ?? 0,
-        color =
-            color ?? ((color == null && gradient == null) ? Colors.cyan : null),
+        color = color ?? ((color == null && gradient == null) ? Colors.cyan : null),
         width = width ?? 8,
         borderRadius = Utils().normalizeBorderRadius(borderRadius, width ?? 8),
         borderSide = Utils().normalizeBorderSide(borderSide, width ?? 8),
@@ -429,8 +421,7 @@ class BarChartRodData with EquatableMixin {
       );
 
   /// Lerps a [BarChartRodData] based on [t] value, check [Tween.lerp].
-  static BarChartRodData lerp(BarChartRodData a, BarChartRodData b, double t) =>
-      BarChartRodData(
+  static BarChartRodData lerp(BarChartRodData a, BarChartRodData b, double t) => BarChartRodData(
         gradient: Gradient.lerp(a.gradient, b.gradient, t),
         color: Color.lerp(a.color, b.color, t),
         width: lerpDouble(a.width, b.width, t),
@@ -445,8 +436,7 @@ class BarChartRodData with EquatableMixin {
           b.backDrawRodData,
           t,
         ),
-        rodStackItems:
-            lerpBarChartRodStackList(a.rodStackItems, b.rodStackItems, t),
+        rodStackItems: lerpBarChartRodStackList(a.rodStackItems, b.rodStackItems, t),
       );
 
   /// Used for equality check, see [EquatableMixin].
@@ -555,8 +545,7 @@ class BackgroundBarChartRodData with EquatableMixin {
   })  : fromY = fromY ?? 0,
         toY = toY ?? 0,
         show = show ?? false,
-        color = color ??
-            ((color == null && gradient == null) ? Colors.blueGrey : null);
+        color = color ?? ((color == null && gradient == null) ? Colors.blueGrey : null);
 
   /// Determines to show or hide this
   final bool show;
@@ -676,8 +665,7 @@ class BarTouchData extends FlTouchData<BarTouchResponse> with EquatableMixin {
         longPressDuration: longPressDuration ?? this.longPressDuration,
         touchTooltipData: touchTooltipData ?? this.touchTooltipData,
         touchExtraThreshold: touchExtraThreshold ?? this.touchExtraThreshold,
-        allowTouchBarBackDraw:
-            allowTouchBarBackDraw ?? this.allowTouchBarBackDraw,
+        allowTouchBarBackDraw: allowTouchBarBackDraw ?? this.allowTouchBarBackDraw,
         handleBuiltInTouches: handleBuiltInTouches ?? this.handleBuiltInTouches,
       );
 
@@ -744,13 +732,11 @@ class BarTouchTooltipData with EquatableMixin {
         // TODO(imaNNeo): We should remove this property in the next major version
         // ignore: deprecated_member_use_from_same_package
         tooltipRoundedRadius = tooltipRoundedRadius ?? 4,
-        tooltipBorderRadius = tooltipBorderRadius ??
-            BorderRadius.circular(tooltipRoundedRadius ?? 4),
-        tooltipPadding = tooltipPadding ??
-            const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        tooltipBorderRadius =
+            tooltipBorderRadius ?? BorderRadius.circular(tooltipRoundedRadius ?? 4),
+        tooltipPadding = tooltipPadding ?? const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         tooltipMargin = tooltipMargin ?? 16,
-        tooltipHorizontalAlignment =
-            tooltipHorizontalAlignment ?? FLHorizontalAlignment.center,
+        tooltipHorizontalAlignment = tooltipHorizontalAlignment ?? FLHorizontalAlignment.center,
         tooltipHorizontalOffset = tooltipHorizontalOffset ?? 0,
         maxContentWidth = maxContentWidth ?? 120,
         getTooltipItem = getTooltipItem ?? defaultBarTooltipItem,
@@ -902,8 +888,7 @@ typedef GetBarTooltipColor = Color Function(
 );
 
 /// Default implementation for [BarTouchTooltipData.getTooltipColor].
-Color defaultBarTooltipColor(BarChartGroupData group) =>
-    Colors.blueGrey.darken(15);
+Color defaultBarTooltipColor(BarChartGroupData group) => Colors.blueGrey.darken(15);
 
 /// Holds information about touch response in the [BarChart].
 ///
@@ -983,8 +968,7 @@ class BarTouchedSpot extends TouchedSpot with EquatableMixin {
 /// [groupIndex] is the index of the group,
 /// [rod] is the rod that the error range belongs to,
 /// [barRodIndex] is the index of the rod in the group.
-class BarChartSpotErrorRangeCallbackInput
-    extends FlSpotErrorRangeCallbackInput {
+class BarChartSpotErrorRangeCallbackInput extends FlSpotErrorRangeCallbackInput {
   BarChartSpotErrorRangeCallbackInput({
     required this.group,
     required this.groupIndex,

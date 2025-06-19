@@ -32,7 +32,7 @@ import 'package:go_router/go_router.dart' hide TypedGoRoute;
 
 final keys = (searchKey: GlobalKey<NavigatorState>(),);
 
-const initialLocation = AppRoutes.login;
+final initialLocation = AppRoutes.admin.inventory;
 
 /// This is the global key for the root navigator. This should be used for modals.
 final rootWidgetKey = GlobalKey<NavigatorState>(debugLabel: "Complain the money's hard");

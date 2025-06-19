@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:math';
 
 import 'package:easthardware_pms/domain/models/order.dart';
+import 'package:easthardware_pms/presentation/bloc/order/expense_type_list/expense_type_list_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/order/orderlist/order_list_bloc.dart';
 import 'package:easthardware_pms/presentation/widgets/layout/spacing.dart';
 import 'package:easthardware_pms/presentation/widgets/text.dart';
@@ -17,6 +18,8 @@ enum ExpenseBreakdownChoice {
   last30Days,
   lastMonth,
 }
+
+/// FIXME: Expense type table
 
 class ExpenseBreakdownCard extends StatelessWidget {
   const ExpenseBreakdownCard({super.key});
@@ -170,9 +173,16 @@ class _ExpensesBreakdownCardGraphState extends State<_ExpensesBreakdownCardGraph
 
     final total = categoryTotals.values.fold(0.0, (sum, value) => sum + value);
     final sections = <PieChartSectionData>[];
-    for (final (i, MapEntry(key: _, value: amount)) in categoryTotals.entries.indexed) {
+    for (final (i, MapEntry(key: id, value: amount)) in categoryTotals.entries.indexed) {
       final percentage = total > 0 ? (amount / total) * 100.0 : 0.0;
-      if (percentage < 4.0) continue; // Skip sections with less than 5% of total
+
+      final name = context
+          .read<ExpenseTypeListBloc>()
+          .state
+          .expenseTypes
+          .where((e) => e.id == id)
+          .firstOrNull
+          ?.name;
 
       sections.add(
         PieChartSectionData(
@@ -182,7 +192,7 @@ class _ExpensesBreakdownCardGraphState extends State<_ExpensesBreakdownCardGraph
           badgeWidget: Opacity(
             opacity: 0.0,
             child: Text(
-              'Category $i',
+              name ?? 'Other',
               style: const TextStyle(color: Colors.white),
             ),
           ),

@@ -441,41 +441,35 @@ class OrderProductDataTable extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<OrderFormBloc, OrderFormState>(
-      builder: (context, state) {
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Container(
-              decoration: BoxDecoration(
-                border: Border(bottom: BorderSide(color: Colors.grey[40])),
-              ),
-              child: Row(
-                children: [
-                  FormTableColumn(
-                      child: const SizedBox(width: 32.0, child: Center(child: Text("#")))),
-                  Expanded(flex: 2, child: FormTableColumn(child: const Text("Product"))),
-                  Expanded(flex: 2, child: FormTableColumn(child: const Text("Description"))),
-                  Expanded(child: FormTableColumn(child: const Text("Quantity"))),
-                  Expanded(child: FormTableColumn(child: const Text("Rate"))),
-                  Expanded(child: FormTableColumn(child: const Text("Amount"))),
-                  const SizedBox(width: 82.0, child: Center(child: Text("Actions"))),
-                ],
-              ),
-            ),
-            ListView.builder(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: state.orderType == OrderType.restock
-                  ? state.products?.length
-                  : state.orderItems?.length,
-              itemBuilder: (context, index) {
-                return _RestockOrderFormTableRow(index: index);
-              },
-            ),
-          ],
-        );
-      },
+    final products = context.watch<OrderFormBloc>().state.products!;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Container(
+          decoration: BoxDecoration(
+            border: Border(bottom: BorderSide(color: Colors.grey[40])),
+          ),
+          child: Row(
+            children: [
+              FormTableColumn(child: const SizedBox(width: 32.0, child: Center(child: Text("#")))),
+              Expanded(flex: 2, child: FormTableColumn(child: const Text("Product"))),
+              Expanded(flex: 2, child: FormTableColumn(child: const Text("Description"))),
+              Expanded(child: FormTableColumn(child: const Text("Quantity"))),
+              Expanded(child: FormTableColumn(child: const Text("Rate"))),
+              Expanded(child: FormTableColumn(child: const Text("Amount"))),
+              const SizedBox(width: 82.0, child: Center(child: Text("Actions"))),
+            ],
+          ),
+        ),
+        ListView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          itemCount: products.length,
+          itemBuilder: (context, index) {
+            return _RestockOrderFormTableRow(index: index);
+          },
+        ),
+      ],
     );
   }
 }
@@ -495,6 +489,7 @@ class _RestockOrderFormTableRowState extends State<_RestockOrderFormTableRow> {
   @override
   void initState() {
     super.initState();
+
     final initialProduct = context.read<OrderFormBloc>().state.products![widget.index];
     _quantityController = TextEditingController(text: initialProduct.quantity.toString());
     _rateController = TextEditingController(text: initialProduct.rate.toString());
@@ -535,9 +530,7 @@ class _RestockOrderFormTableRowState extends State<_RestockOrderFormTableRow> {
   Widget build(BuildContext context) {
     final products = context.select((ProductListBloc b) => b.state.allProducts);
     final bloc = context.read<OrderFormBloc>();
-    final currentProduct = context.select(
-      (OrderFormBloc b) => b.state.products![widget.index],
-    );
+    final currentProduct = context.watch<OrderFormBloc>().state.products![widget.index];
 
     final newQuantity = currentProduct.quantity % 1 == 0
         ? currentProduct.quantity.toInt().toString()
