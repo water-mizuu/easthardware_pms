@@ -1,4 +1,5 @@
 import 'dart:async';
+
 import 'package:easthardware_pms/domain/enums/enums.dart'
     show AccessLevel, DataStatus, FormStatus, OrderType;
 import 'package:easthardware_pms/domain/models/payment_method.dart';
@@ -10,11 +11,11 @@ import 'package:easthardware_pms/presentation/bloc/order/orderlist/order_list_bl
 import 'package:easthardware_pms/presentation/router/app_routes.dart';
 import 'package:easthardware_pms/presentation/widgets/expense_type_combo_box.dart';
 import 'package:easthardware_pms/presentation/widgets/layout/spacing.dart';
+import 'package:easthardware_pms/presentation/widgets/payment_method_combo_box.dart';
 import 'package:easthardware_pms/presentation/widgets/text.dart';
 import 'package:easthardware_pms/presentation/widgets/ui/decorations.dart';
 import 'package:easthardware_pms/presentation/widgets/ui/form_table_cell.dart';
 import 'package:easthardware_pms/presentation/widgets/ui/form_table_column.dart';
-import 'package:easthardware_pms/presentation/widgets/payment_method_combo_box.dart';
 import 'package:easthardware_pms/presentation/widgets/ui/styles.dart';
 import 'package:easthardware_pms/presentation/widgets/ui/text_button.dart';
 import 'package:easthardware_pms/presentation/widgets/ui/text_form_boxes.dart';
@@ -194,6 +195,11 @@ class OrderPageForm extends StatelessWidget {
                       initialValue: state.payeeName,
                       onChanged: (value) => bloc.add(PayeeNameChangedEvent(value)),
                     ),
+                    if (context.watch<OrderFormBloc>().state.payeeNameErrorMessage != null)
+                      Text(
+                        context.watch<OrderFormBloc>().state.payeeNameErrorMessage!,
+                        style: TextStyles.error,
+                      ),
                   ],
                 ),
               ),
@@ -210,6 +216,11 @@ class OrderPageForm extends StatelessWidget {
                         bloc.add(PaymentMethodChangedEvent(value));
                       },
                     ),
+                    if (context.watch<OrderFormBloc>().state.paymentMethodErrorMessage != null)
+                      Text(
+                        context.watch<OrderFormBloc>().state.paymentMethodErrorMessage!,
+                        style: TextStyles.error,
+                      ),
                   ],
                 ),
               ),
@@ -230,6 +241,11 @@ class OrderPageForm extends StatelessWidget {
                       initialValue: state.referenceNumber,
                       onChanged: (value) => bloc.add(ReferenceNumberChangedEvent(value)),
                     ),
+                    if (context.watch<OrderFormBloc>().state.referenceNumberErrorMessage != null)
+                      Text(
+                        context.watch<OrderFormBloc>().state.referenceNumberErrorMessage!,
+                        style: TextStyles.error,
+                      ),
                   ],
                 ),
               ),
@@ -245,6 +261,11 @@ class OrderPageForm extends StatelessWidget {
                       selected: context.watch<OrderFormBloc>().state.orderDate,
                       onChanged: (date) => bloc.add(OrderDateChangedEvent(date)),
                     ),
+                    if (context.watch<OrderFormBloc>().state.orderDateErrorMessage != null)
+                      Text(
+                        context.watch<OrderFormBloc>().state.orderDateErrorMessage!,
+                        style: TextStyles.error,
+                      ),
                   ],
                 ),
               ),

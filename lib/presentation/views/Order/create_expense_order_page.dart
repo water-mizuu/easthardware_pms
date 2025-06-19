@@ -14,10 +14,12 @@ import 'package:easthardware_pms/presentation/widgets/payment_method_combo_box.d
 import 'package:easthardware_pms/presentation/widgets/text.dart';
 import 'package:easthardware_pms/presentation/widgets/ui/form_table_cell.dart';
 import 'package:easthardware_pms/presentation/widgets/ui/form_table_column.dart';
+import 'package:easthardware_pms/presentation/widgets/ui/styles.dart';
 import 'package:easthardware_pms/presentation/widgets/ui/text_button.dart';
 import 'package:easthardware_pms/presentation/widgets/ui/text_form_boxes.dart';
 import 'package:easthardware_pms/utils/typed_routes.dart';
 import 'package:fluent_ui/fluent_ui.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class CreateExpenseOrderPage extends StatelessWidget {
@@ -34,8 +36,7 @@ class CreateExpenseOrderPage extends StatelessWidget {
                 previous.status != current.status ||
                 previous.dialogErrorMessage != current.dialogErrorMessage,
             listener: (context, state) {
-              if (state.status == FormStatus.error &&
-                  state.dialogErrorMessage != null) {
+              if (state.status == FormStatus.error && state.dialogErrorMessage != null) {
                 unawaited(showDialog<String>(
                   context: context,
                   builder: (dialogContext) => ContentDialog(
@@ -136,10 +137,9 @@ class OrderPageHeader extends StatelessWidget {
           onPressed: () {
             final creationDate = DateTime.now();
             final creatorId = context.read<AuthenticationBloc>().state.user?.id;
-            final orderId =
-                context.read<OrderListBloc>().state.allOrders.length;
+            final orderId = context.read<OrderListBloc>().state.allOrders.length;
             context.read<OrderFormBloc>().add(
-                  SaveRestockOrderRequestEvent(
+                  SaveExpenseOrderRequestEvent(
                     creationDate: creationDate,
                     creatorId: creatorId!,
                     id: orderId,
@@ -192,9 +192,13 @@ class OrderPageForm extends StatelessWidget with OrderFormValidator {
                     Spacing.v8,
                     TextFormBox(
                       initialValue: state.payeeName,
-                      onChanged: (value) =>
-                          bloc.add(PayeeNameChangedEvent(value)),
+                      onChanged: (value) => bloc.add(PayeeNameChangedEvent(value)),
                     ),
+                    if (context.watch<OrderFormBloc>().state.payeeNameErrorMessage != null)
+                      Text(
+                        context.watch<OrderFormBloc>().state.payeeNameErrorMessage!,
+                        style: TextStyles.error,
+                      ),
                   ],
                 ),
               ),
@@ -211,6 +215,11 @@ class OrderPageForm extends StatelessWidget with OrderFormValidator {
                         bloc.add(PaymentMethodChangedEvent(value));
                       },
                     ),
+                    if (context.watch<OrderFormBloc>().state.paymentMethodErrorMessage != null)
+                      Text(
+                        context.watch<OrderFormBloc>().state.paymentMethodErrorMessage!,
+                        style: TextStyles.error,
+                      ),
                   ],
                 ),
               ),
@@ -229,9 +238,13 @@ class OrderPageForm extends StatelessWidget with OrderFormValidator {
                     Spacing.v8,
                     TextFormBox(
                       initialValue: state.referenceNumber,
-                      onChanged: (value) =>
-                          bloc.add(ReferenceNumberChangedEvent(value)),
+                      onChanged: (value) => bloc.add(ReferenceNumberChangedEvent(value)),
                     ),
+                    if (context.watch<OrderFormBloc>().state.referenceNumberErrorMessage != null)
+                      Text(
+                        context.watch<OrderFormBloc>().state.referenceNumberErrorMessage!,
+                        style: TextStyles.error,
+                      ),
                   ],
                 ),
               ),
@@ -245,9 +258,13 @@ class OrderPageForm extends StatelessWidget with OrderFormValidator {
                     Spacing.v8,
                     DatePicker(
                       selected: context.watch<OrderFormBloc>().state.orderDate,
-                      onChanged: (date) =>
-                          bloc.add(OrderDateChangedEvent(date)),
+                      onChanged: (date) => bloc.add(OrderDateChangedEvent(date)),
                     ),
+                    if (context.watch<OrderFormBloc>().state.orderDateErrorMessage != null)
+                      Text(
+                        context.watch<OrderFormBloc>().state.orderDateErrorMessage!,
+                        style: TextStyles.error,
+                      ),
                   ],
                 ),
               ),
@@ -260,10 +277,16 @@ class OrderPageForm extends StatelessWidget with OrderFormValidator {
                     const BodyText('Expense Type'),
                     Spacing.v8,
                     ExpenseTypeComboBox(
-                        value: state.expenseType,
-                        onExpenseTypeSelected: (value) {
-                          bloc.add(ExpenseTypeChangedEvent(value));
-                        }),
+                      value: state.expenseType,
+                      onExpenseTypeSelected: (value) {
+                        bloc.add(ExpenseTypeChangedEvent(value));
+                      },
+                    ),
+                    if (context.watch<OrderFormBloc>().state.expenseTypeErrorMessage != null)
+                      Text(
+                        context.watch<OrderFormBloc>().state.expenseTypeErrorMessage!,
+                        style: TextStyles.error,
+                      ),
                   ],
                 ),
               ),
@@ -288,8 +311,8 @@ class _OrderSummaryAndMemo extends StatelessWidget {
   Widget build(BuildContext context) {
     final state = context.watch<OrderFormBloc>().state;
     final bloc = context.read<OrderFormBloc>();
-    final total = state.orderItems!.fold<double>(
-        0.0, (previousValue, element) => previousValue + (element.amount));
+    final total = state.orderItems!
+        .fold<double>(0.0, (previousValue, element) => previousValue + (element.amount));
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -407,26 +430,18 @@ class OrderProductDataTable extends StatelessWidget {
           ),
           child: Row(
             children: [
-              FormTableColumn(
-                  child: const SizedBox(
-                      width: 32.0, child: Center(child: Text("#")))),
-              Expanded(
-                  flex: 2,
-                  child: FormTableColumn(child: const Text("Order Item"))),
-              Expanded(
-                  flex: 2,
-                  child: FormTableColumn(child: const Text("Description"))),
+              FormTableColumn(child: const SizedBox(width: 32.0, child: Center(child: Text("#")))),
+              Expanded(flex: 2, child: FormTableColumn(child: const Text("Order Item"))),
+              Expanded(flex: 2, child: FormTableColumn(child: const Text("Description"))),
               Expanded(child: FormTableColumn(child: const Text("Quantity"))),
               Expanded(child: FormTableColumn(child: const Text("Rate"))),
               Expanded(child: FormTableColumn(child: const Text("Amount"))),
-              const SizedBox(
-                  width: 82.0, child: Center(child: Text("Actions"))),
+              const SizedBox(width: 82.0, child: Center(child: Text("Actions"))),
             ],
           ),
         ),
         BlocBuilder<OrderFormBloc, OrderFormState>(
-            buildWhen: (previous, current) =>
-                previous.products != current.products,
+            buildWhen: (previous, current) => previous.products != current.products,
             builder: (context, state) {
               return ListView.builder(
                 shrinkWrap: true,
@@ -459,16 +474,11 @@ class _OrderFormTableRowState extends State<_OrderFormTableRow> {
   @override
   void initState() {
     super.initState();
-    final initialOrderItem =
-        context.read<OrderFormBloc>().state.orderItems![widget.index];
-    _descriptionController =
-        TextEditingController(text: initialOrderItem.description ?? '');
-    _quantityController =
-        TextEditingController(text: initialOrderItem.quantity.toString());
-    _rateController =
-        TextEditingController(text: initialOrderItem.rate.toString());
-    _amountController =
-        TextEditingController(text: initialOrderItem.amount.toString());
+    final initialOrderItem = context.read<OrderFormBloc>().state.orderItems![widget.index];
+    _descriptionController = TextEditingController(text: initialOrderItem.description ?? '');
+    _quantityController = TextEditingController(text: initialOrderItem.quantity.toString());
+    _rateController = TextEditingController(text: initialOrderItem.rate.toString());
+    _amountController = TextEditingController(text: initialOrderItem.amount.toString());
 
     _descriptionController.addListener(() {
       final bloc = context.read<OrderFormBloc>();
@@ -488,8 +498,7 @@ class _OrderFormTableRowState extends State<_OrderFormTableRow> {
       final newValue = double.tryParse(_quantityController.text) ?? 0;
       if (currentItem.quantity != newValue) {
         bloc.add(OrderItemUpdatedEvent(
-          currentItem.copyWith(
-              quantity: newValue, amount: newValue * (currentItem.rate)),
+          currentItem.copyWith(quantity: newValue, amount: newValue * (currentItem.rate)),
           widget.index,
         ));
       }
@@ -501,8 +510,7 @@ class _OrderFormTableRowState extends State<_OrderFormTableRow> {
       final newValue = double.tryParse(_rateController.text) ?? 0;
       if (currentItem.rate != newValue) {
         bloc.add(OrderItemUpdatedEvent(
-          currentItem.copyWith(
-              rate: newValue, amount: newValue * (currentItem.quantity)),
+          currentItem.copyWith(rate: newValue, amount: newValue * (currentItem.quantity)),
           widget.index,
         ));
       }
@@ -523,14 +531,12 @@ class _OrderFormTableRowState extends State<_OrderFormTableRow> {
     return BlocBuilder<OrderFormBloc, OrderFormState>(
       buildWhen: (previous, current) {
         return previous.orderItems != current.orderItems ||
-            previous.orderItems![widget.index] !=
-                current.orderItems![widget.index];
+            previous.orderItems![widget.index] != current.orderItems![widget.index];
       },
       builder: (context, state) {
         final bloc = context.read<OrderFormBloc>();
         final currentOrderItem = state.orderItems![widget.index];
 
-        _descriptionController.text = currentOrderItem.description ?? '';
         final newDescription = currentOrderItem.description ?? '';
         final newQuantity = currentOrderItem.quantity % 1 == 0
             ? currentOrderItem.quantity.toInt().toString()
@@ -539,6 +545,10 @@ class _OrderFormTableRowState extends State<_OrderFormTableRow> {
         final newRate = currentOrderItem.rate % 1 == 0
             ? currentOrderItem.rate.toInt().toString()
             : currentOrderItem.rate.toString();
+
+        final newAmount = currentOrderItem.amount % 1 == 0
+            ? currentOrderItem.amount.toInt().toString()
+            : currentOrderItem.amount.toString();
 
         if (_descriptionController.text != newDescription) {
           _descriptionController.text = newDescription;
@@ -550,6 +560,10 @@ class _OrderFormTableRowState extends State<_OrderFormTableRow> {
 
         if (_rateController.text != newRate) {
           _rateController.text = newRate;
+        }
+
+        if (_amountController.text != newAmount) {
+          _amountController.text = newAmount;
         }
 
         return Container(
@@ -603,6 +617,9 @@ class _OrderFormTableRowState extends State<_OrderFormTableRow> {
                       child: TextFormBoxes.ghost(
                         controller: _quantityController,
                         placeholder: '0',
+                        inputFormatters: [
+                          FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}')),
+                        ],
                       ),
                     ),
                   ),
@@ -634,7 +651,7 @@ class _OrderFormTableRowState extends State<_OrderFormTableRow> {
                               onPressed: () {
                                 context
                                     .read<OrderFormBloc>()
-                                    .add(ProductRemovedEvent(widget.index));
+                                    .add(OrderItemRemovedEvent(widget.index));
                               },
                             ),
                           ),

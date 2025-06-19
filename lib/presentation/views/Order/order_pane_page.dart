@@ -2,6 +2,7 @@ import 'package:easthardware_pms/domain/enums/enums.dart';
 import 'package:easthardware_pms/domain/models/order.dart';
 import 'package:easthardware_pms/presentation/bloc/order/orderlist/order_list_bloc.dart';
 import 'package:easthardware_pms/presentation/router/app_routes.dart';
+import 'package:easthardware_pms/presentation/widgets/animated_single_child_scroll_view.dart';
 import 'package:easthardware_pms/presentation/widgets/helper/data_row_mapper.dart';
 import 'package:easthardware_pms/presentation/widgets/layout/spacing.dart';
 import 'package:easthardware_pms/presentation/widgets/text.dart';
@@ -26,16 +27,30 @@ class OrderPanePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: AppPadding.panePadding,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          const PageHeader(),
-          const PageActions(),
-          const OrdersDataTable(),
-        ].withSpacing(() => Spacing.v16),
-      ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Padding(
+          padding: AppPadding.panePadding.copyWith(bottom: 0.0),
+          child: const PageHeader(),
+        ),
+        Spacing.v16,
+        Expanded(
+          child: AnimatedSingleChildScrollView(
+            child: Padding(
+              padding: AppPadding.panePadding.copyWith(top: 0.0),
+              child: const Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  PageActions(),
+                  Spacing.v16,
+                  OrdersDataTable(),
+                ],
+              ),
+            ),
+          ),
+        )
+      ],
     );
   }
 }

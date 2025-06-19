@@ -31,6 +31,7 @@ class OrderFormState {
     this.orderDateErrorMessage,
     this.payeeNameErrorMessage,
     this.paymentMethodErrorMessage,
+    this.expenseTypeErrorMessage,
     this.referenceNumberErrorMessage,
     this.dialogErrorMessage,
   })  : orderDate = orderDate ?? DateTime.now(),
@@ -66,6 +67,7 @@ class OrderFormState {
   final String? payeeNameErrorMessage;
   final String? orderDateErrorMessage;
   final String? paymentMethodErrorMessage;
+  final String? expenseTypeErrorMessage;
   final String? referenceNumberErrorMessage;
   final String? dialogErrorMessage;
 
@@ -87,6 +89,7 @@ class OrderFormState {
     String? payeeNameErrorMessage,
     String? orderDateErrorMessage,
     String? paymentMethodErrorMessage,
+    String? expenseTypeErrorMessage,
     String? referenceNumberErrorMessage,
     String? dialogErrorMessage,
   }) get copyWith {
@@ -108,6 +111,7 @@ class OrderFormState {
       Object? payeeNameErrorMessage = undefined,
       Object? orderDateErrorMessage = undefined,
       Object? paymentMethodErrorMessage = undefined,
+      Object? expenseTypeErrorMessage = undefined,
       Object? referenceNumberErrorMessage = undefined,
       Object? dialogErrorMessage = undefined,
     }) {
@@ -136,6 +140,9 @@ class OrderFormState {
         paymentMethodErrorMessage: paymentMethodErrorMessage == undefined
             ? this.paymentMethodErrorMessage
             : paymentMethodErrorMessage as String?,
+        expenseTypeErrorMessage: expenseType == undefined
+            ? this.expenseTypeErrorMessage
+            : expenseTypeErrorMessage as String?,
         referenceNumberErrorMessage: referenceNumber == undefined
             ? this.referenceNumberErrorMessage
             : referenceNumberErrorMessage as String?,

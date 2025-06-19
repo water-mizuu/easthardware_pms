@@ -17,7 +17,7 @@ class PayeeNameChangedEvent extends OrderFormEvent {
 
 class ExpenseTypeChangedEvent extends OrderFormEvent {
   const ExpenseTypeChangedEvent(this.expenseType);
-  final ExpenseType expenseType;
+  final ExpenseType? expenseType;
 
   @override
   List<Object?> get props => [expenseType];
@@ -33,7 +33,7 @@ class OrderDateChangedEvent extends OrderFormEvent {
 
 class PaymentMethodChangedEvent extends OrderFormEvent {
   const PaymentMethodChangedEvent(this.paymentMethod);
-  final PaymentMethod paymentMethod;
+  final PaymentMethod? paymentMethod;
 
   @override
   List<Object?> get props => [paymentMethod];

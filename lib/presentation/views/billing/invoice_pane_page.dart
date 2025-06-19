@@ -3,6 +3,7 @@ import 'package:easthardware_pms/domain/models/invoice.dart';
 import 'package:easthardware_pms/presentation/bloc/billing/invoicelist/invoice_list_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/navigation/navigation_cubit.dart';
 import 'package:easthardware_pms/presentation/router/app_routes.dart';
+import 'package:easthardware_pms/presentation/widgets/animated_single_child_scroll_view.dart';
 import 'package:easthardware_pms/presentation/widgets/helper/data_row_mapper.dart';
 import 'package:easthardware_pms/presentation/widgets/layout/spacing.dart';
 import 'package:easthardware_pms/presentation/widgets/text.dart';
@@ -25,14 +26,16 @@ class InvoicePanePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: AppPadding.panePadding,
-      child: Column(
-        children: const [
-          PageHeader(),
-          PageActions(),
-          InvoiceDataTable(),
-        ].withSpacing(() => Spacing.v12),
+    return AnimatedSingleChildScrollView(
+      child: Padding(
+        padding: AppPadding.panePadding,
+        child: Column(
+          children: const [
+            PageHeader(),
+            PageActions(),
+            InvoiceDataTable(),
+          ].withSpacing(() => Spacing.v12),
+        ),
       ),
     );
   }
@@ -97,16 +100,17 @@ class InvoiceDataTable extends StatelessWidget {
           child: FractionallySizedBox(
             widthFactor: 1,
             child: PaginatedDataTable(
-                dataRowMaxHeight: 36,
-                dataRowMinHeight: 32,
-                columns: const [
-                  DataColumn(label: Text('Invoice Date')),
-                  DataColumn(label: Text('ID')),
-                  DataColumn(label: Text('Customer')),
-                  DataColumn(label: Text('Amount')),
-                  DataColumn(label: Text('Actions')),
-                ],
-                source: InvoiceDataSource(invoices)),
+              dataRowMaxHeight: 36,
+              dataRowMinHeight: 32,
+              columns: const [
+                DataColumn(label: Text('Invoice Date')),
+                DataColumn(label: Text('ID')),
+                DataColumn(label: Text('Customer')),
+                DataColumn(label: Text('Amount')),
+                DataColumn(label: Text('Actions')),
+              ],
+              source: InvoiceDataSource(invoices),
+            ),
           ),
         );
       },

@@ -1,3 +1,4 @@
+import 'package:easthardware_pms/presentation/widgets/animated_single_child_scroll_view.dart';
 import 'package:easthardware_pms/presentation/widgets/info_card.dart';
 import 'package:easthardware_pms/presentation/widgets/layout/spacing.dart';
 import 'package:easthardware_pms/presentation/widgets/text.dart';
@@ -8,42 +9,47 @@ class AboutPanePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: AppPadding.panePadding,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: const [
-          PageHeader(),
-          SystemInfoSection(),
-          VersionInfoSection(),
-          DevelopersSection(),
-        ].withSpacing(() => Spacing.v4),
+    return AnimatedSingleChildScrollView(
+      child: Padding(
+        padding: AppPadding.panePadding,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: const [
+            _PageHeader(),
+            _CompanySection(),
+            _SystemInfoSection(),
+            _VersionInfoSection(),
+            _DevelopersSection(),
+          ].withSpacing(() => Spacing.v4),
+        ),
       ),
     );
   }
 }
 
-class PageHeader extends StatelessWidget {
-  const PageHeader({super.key});
+class _PageHeader extends StatelessWidget {
+  const _PageHeader();
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const HeadingText('About'),
-        Spacing.v8,
-        InfoCard(
-          title: 'East Hardware',
-          child: Text(
-            'The following system is created specifically for the establishment East Hardware, its owners, and its store processes.',
-            style: FluentTheme.of(context)
-                .typography
-                .body //
-                ?.copyWith(color: FluentTheme.of(context).resources.textFillColorSecondary),
-          ),
-        ),
-      ],
+    return const HeadingText('About');
+  }
+}
+
+class _CompanySection extends StatelessWidget {
+  const _CompanySection();
+
+  @override
+  Widget build(BuildContext context) {
+    return InfoCard(
+      title: 'East Hardware',
+      child: Text(
+        'The following system is created specifically for the establishment East Hardware, its owners, and its store processes.',
+        style: FluentTheme.of(context)
+            .typography
+            .body //
+            ?.copyWith(color: FluentTheme.of(context).resources.textFillColorSecondary),
+      ),
     );
   }
 }
@@ -80,8 +86,8 @@ class SystemInfoRow extends StatelessWidget {
   }
 }
 
-class SystemInfoSection extends StatelessWidget {
-  const SystemInfoSection({super.key});
+class _SystemInfoSection extends StatelessWidget {
+  const _SystemInfoSection();
 
   @override
   Widget build(BuildContext context) {
@@ -132,8 +138,8 @@ class DeveloperInfo extends StatelessWidget {
   }
 }
 
-class VersionInfoSection extends StatelessWidget {
-  const VersionInfoSection({super.key});
+class _VersionInfoSection extends StatelessWidget {
+  const _VersionInfoSection();
 
   @override
   Widget build(BuildContext context) {
@@ -159,8 +165,8 @@ class VersionInfoSection extends StatelessWidget {
   }
 }
 
-class DevelopersSection extends StatelessWidget {
-  const DevelopersSection({super.key});
+class _DevelopersSection extends StatelessWidget {
+  const _DevelopersSection();
 
   @override
   Widget build(BuildContext context) {

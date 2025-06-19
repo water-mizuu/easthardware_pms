@@ -37,36 +37,48 @@ const initialLocation = AppRoutes.login;
 class AggregatedObserver implements NavigatorObserver {
   @override
   void didPop(Route route, Route? previousRoute) {
-    // TODO: implement didPop
+    if (route.settings.name case final path?) {
+      _didChangeRoute(path);
+    }
   }
 
   @override
   void didPush(Route route, Route? previousRoute) {
-    // TODO: implement didPush
+    if (route.settings.name case final path?) {
+      _didChangeRoute(path);
+    }
   }
 
   @override
   void didRemove(Route route, Route? previousRoute) {
-    // TODO: implement didRemove
+    if (route.settings.name case final path?) {
+      _didChangeRoute(path);
+    }
   }
 
   @override
   void didReplace({Route? newRoute, Route? oldRoute}) {
-    // TODO: implement didReplace
+    if (newRoute?.settings.name case final path?) {
+      _didChangeRoute(path);
+    }
   }
 
   @override
   void didStartUserGesture(Route route, Route? previousRoute) {
-    // TODO: implement didStartUserGesture
+    if (route.settings.name case final path?) {
+      _didChangeRoute(path);
+    }
   }
 
   @override
-  void didStopUserGesture() {
-    // TODO: implement didStopUserGesture
-  }
+  void didStopUserGesture() {}
 
   @override
   NavigatorState? get navigator => null;
+
+  void _didChangeRoute(String path) {
+    printBoxed("New path: $path", "March");
+  }
 }
 
 class MyObserver extends NavigatorObserver {
@@ -76,37 +88,31 @@ class MyObserver extends NavigatorObserver {
 
   @override
   void didPush(Route<dynamic> route, Route<dynamic>? previousRoute) {
-    printBoxed("Did pop\n$route\n$previousRoute");
     _aggregated.didPush(route, previousRoute);
   }
 
   @override
   void didPop(Route<dynamic> route, Route<dynamic>? previousRoute) {
-    printBoxed("Did pop\n$route\n$previousRoute");
     _aggregated.didPop(route, previousRoute);
   }
 
   @override
   void didRemove(Route<dynamic> route, Route<dynamic>? previousRoute) {
-    printBoxed("Did remove\n$route\n$previousRoute");
     _aggregated.didRemove(route, previousRoute);
   }
 
   @override
   void didReplace({Route<dynamic>? newRoute, Route<dynamic>? oldRoute}) {
-    printBoxed("Did replace\n$newRoute\n$oldRoute");
     _aggregated.didReplace(newRoute: newRoute, oldRoute: oldRoute);
   }
 
   @override
   void didStartUserGesture(Route<dynamic> route, Route<dynamic>? previousRoute) {
-    printBoxed("Did start user gesture\n$route\n$previousRoute");
     _aggregated.didStartUserGesture(route, previousRoute);
   }
 
   @override
   void didStopUserGesture() {
-    printBoxed("Did stop user gesture");
     _aggregated.didStopUserGesture();
   }
 }
@@ -114,8 +120,7 @@ class MyObserver extends NavigatorObserver {
 final _observer = AggregatedObserver();
 
 /// This is the global key for the root navigator. This should be used for modals.
-final rootWidgetKey =
-    GlobalKey<NavigatorState>(debugLabel: "Complain the money's hard");
+final rootWidgetKey = GlobalKey<NavigatorState>(debugLabel: "Complain the money's hard");
 
 /// This is the global key for the inner navigator, containing the overlay.
 ///   This should be used for overlay calls.
@@ -140,19 +145,16 @@ final router = GoRouter(
             ),
             TypedGoRoute(
               route: AppRoutes.resetPassword,
-              builder: (context, state) =>
-                  ResetPasswordPage(username: state.extra),
+              builder: (context, state) => ResetPasswordPage(username: state.extra),
             ),
             TypedGoRoute(
               route: AppRoutes.newPassword,
-              builder: (context, state) =>
-                  NewPasswordPage(username: state.extra),
+              builder: (context, state) => NewPasswordPage(username: state.extra),
             )
           ],
         ),
         StatefulShellRoute.indexedStack(
-          builder: (context, state, shell) =>
-              BottomText(child: AdminNavigationScaffold(shell)),
+          builder: (context, state, shell) => BottomText(child: AdminNavigationScaffold(shell)),
           branches: [
             // Admin Dashboard Shell
             StatefulShellBranch(
@@ -225,8 +227,7 @@ final router = GoRouter(
                 ),
                 TypedGoRoute(
                   route: AppRoutes.admin.editProduct,
-                  builder: (context, state) =>
-                      EditProductPage(product: state.extra),
+                  builder: (context, state) => EditProductPage(product: state.extra),
                 ),
                 TypedGoRoute(
                   route: AppRoutes.admin.categories,
@@ -259,8 +260,7 @@ final router = GoRouter(
                 ),
                 TypedGoRoute(
                   route: AppRoutes.admin.createPayment,
-                  builder: (context, state) =>
-                      CreatePaymentPage(invoice: state.extra),
+                  builder: (context, state) => CreatePaymentPage(invoice: state.extra),
                 ),
               ],
             ),
@@ -329,8 +329,7 @@ final router = GoRouter(
           ],
         ),
         StatefulShellRoute.indexedStack(
-          builder: (context, state, shell) =>
-              BottomText(child: StaffNavigationScaffold(shell)),
+          builder: (context, state, shell) => BottomText(child: StaffNavigationScaffold(shell)),
           branches: [
             // Staff Dashboard Shell
             StatefulShellBranch(
