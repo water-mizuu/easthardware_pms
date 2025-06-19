@@ -115,13 +115,13 @@ class CreateProductPage extends StatelessWidget {
                 final authState = context.read<AuthenticationBloc>().state;
 
                 // Update Category
-                context.read<CategoryListBloc>().add(const ReloadCategoriesEvent());
-                // Update Secondary Units
-                context.read<UnitListBloc>().add(const ReloadUnitsEvent());
                 context
-                    .read<UserLogListBloc>()
-                    .add(AddCreateEvent('Product ${latest.id}', authState.user!));
-                context.read<ProductFormBloc>().add(FormSubmittedEvent());
+                  ..read<CategoryListBloc>().add(const ReloadCategoriesEvent())
+                  // Update Secondary Units
+                  ..read<UnitListBloc>().add(const ReloadUnitsEvent())
+                  ..read<UserLogListBloc>()
+                      .add(AddCreateEvent('Product ${latest.id}', authState.user!))
+                  ..read<ProductFormBloc>().add(FormSubmittedEvent());
               },
             )
           ],
@@ -132,9 +132,17 @@ class CreateProductPage extends StatelessWidget {
                   _handleFormSubmit(context, state);
                   break;
                 case FormStatus.submitted:
+                  final latestProduct = context.read<ProductListBloc>().state.latest;
 
                   /// Reset the form
                   context.read<ProductFormBloc>().add(FormResetEvent());
+
+                  if (latestProduct case final product?) {
+                    showNotification(
+                      title: "Success",
+                      message: "Product '${product.name}' has been successfully created.",
+                    );
+                  }
 
                   /// Navigate to the inventory page after successful submission.
                   context.navigate(AppRoutes.admin.inventory);
@@ -178,10 +186,10 @@ class PageHeader extends StatelessWidget {
           onPressed: () {
             final creatorId = context.read<AuthenticationBloc>().state.user!.id!;
             final productId = context.read<ProductListBloc>().state.allProducts.length;
-            printBoxed(productId);
-            context.read<ProductFormBloc>().add(
-                  FormButtonPressedEvent(productId: productId, creatorId: creatorId),
-                );
+
+            context //
+                .read<ProductFormBloc>()
+                .add(FormButtonPressedEvent(productId: productId, creatorId: creatorId));
           },
         ),
       ].withSpacing(() => Spacing.h16),

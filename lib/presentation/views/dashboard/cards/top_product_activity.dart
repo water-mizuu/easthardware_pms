@@ -271,6 +271,7 @@ class _TopProductActivityState extends State<TopProductActivity> {
     ];
 
     final maxY = barGroups.expand((d) => d.barRods.map((s) => s.toY)).fold(0.0, max);
+    final sideInterval = (maxY ~/ 4).toDouble();
 
     /// titlesData displays the labels around the graph.
     final titlesData = FlTitlesData(
@@ -339,7 +340,7 @@ class _TopProductActivityState extends State<TopProductActivity> {
             );
           },
           showTitles: true,
-          interval: maxY <= 0 ? null : (maxY ~/ 4).toDouble(),
+          interval: sideInterval <= 0 ? 1 : sideInterval,
           reservedSize: 32,
         ),
       ),

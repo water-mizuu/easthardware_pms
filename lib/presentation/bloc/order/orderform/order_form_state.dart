@@ -1,16 +1,21 @@
 part of 'order_form_bloc.dart';
 
 class OrderFormState {
-  factory OrderFormState.RestockOrder() {
+  factory OrderFormState.RestockOrder(Product? product) {
     return OrderFormState(
       orderType: OrderType.restock,
-      products: [EmptyFormProduct()],
+      products: [
+        if (product == null)
+          const EmptyFormProduct() //
+        else
+          FormProduct.fromProduct(product)
+      ],
     );
   }
   factory OrderFormState.ExpenseOrder() {
     return OrderFormState(
       orderType: OrderType.expense,
-      orderItems: [FormOrderItem()],
+      orderItems: [const FormOrderItem()],
     );
   }
   OrderFormState({

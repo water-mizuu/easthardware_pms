@@ -1,6 +1,5 @@
 import 'package:easthardware_pms/presentation/widgets/layout/spacing.dart';
 import 'package:easthardware_pms/presentation/widgets/text.dart';
-import 'package:easthardware_pms/presentation/widgets/ui/styles.dart';
 import 'package:fluent_ui/fluent_ui.dart';
 
 class TextButton extends StatelessWidget {
@@ -41,7 +40,7 @@ class TextButtonFilled extends StatelessWidget {
       onPressed: onPressed,
       child: Padding(
         padding: AppPadding.a4,
-        child: Text(text, style: TextStyles.body),
+        child: ButtonText(text),
       ),
     );
   }

@@ -772,8 +772,8 @@ Future<void> generateMockData(DatabaseHelper databaseHelper) async {
   }
 
   // STEP 5: CREATE EXPENSE TYPES
-  final mockExpenseTypes = <model.ExpenseType>[
-    model.ExpenseType(name: 'Inventory Restock'),
+  final mockExpenseTypes = <model.ExpenseType?>[
+    null,
     model.ExpenseType(name: 'Equipment'),
     model.ExpenseType(name: 'Utilities'),
     model.ExpenseType(name: 'Rent'),
@@ -788,6 +788,11 @@ Future<void> generateMockData(DatabaseHelper databaseHelper) async {
   // Add expense types to database
   final expenseTypeIds = <int>[];
   for (final expenseType in mockExpenseTypes) {
+    if (expenseType == null) {
+      expenseTypeIds.add(expenseTypeIds.length);
+      continue;
+    }
+
     final savedExpenseType = await expenseTypeRepository.insertExpenseType(expenseType);
     expenseTypeIds.add(savedExpenseType.id!);
   }
@@ -860,7 +865,7 @@ Future<void> generateMockData(DatabaseHelper databaseHelper) async {
       paymentMethod: paymentMethodId,
       referenceNumber: referenceNumber,
       memo:
-          'Purchase order for ${expenseTypeId == expenseTypeIds[0] ? 'inventory restock' : mockExpenseTypes[expenseTypeIds.indexOf(expenseTypeId)].name.toLowerCase()}',
+          'Purchase order for ${expenseTypeId == expenseTypeIds[0] ? 'inventory restock' : mockExpenseTypes[expenseTypeIds.indexOf(expenseTypeId)]!.name.toLowerCase()}',
       amountDue: 0, // Will be updated after adding products
       amountPaid: isPaid ? null : 0, // Will be updated if paid
       paymentDate:

@@ -3,11 +3,14 @@ import 'dart:async';
 import 'package:easthardware_pms/domain/enums/enums.dart'
     show AccessLevel, DataStatus, FormStatus, OrderType;
 import 'package:easthardware_pms/domain/models/payment_method.dart';
+import 'package:easthardware_pms/domain/models/product.dart';
 import 'package:easthardware_pms/presentation/bloc/authentication/authentication/authentication_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/inventory/product_list/product_list_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/inventory/unit_list/unit_list_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/order/orderform/order_form_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/order/orderlist/order_list_bloc.dart';
+import 'package:easthardware_pms/presentation/models/form_product.dart';
+import 'package:easthardware_pms/presentation/router/app_router.dart';
 import 'package:easthardware_pms/presentation/router/app_routes.dart';
 import 'package:easthardware_pms/presentation/widgets/expense_type_combo_box.dart';
 import 'package:easthardware_pms/presentation/widgets/layout/spacing.dart';
@@ -22,14 +25,24 @@ import 'package:easthardware_pms/presentation/widgets/ui/text_form_boxes.dart';
 import 'package:easthardware_pms/utils/typed_routes.dart';
 import 'package:fluent_ui/fluent_ui.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:provider/provider.dart';
 
-class CreateRestockOrderPage extends StatelessWidget {
-  const CreateRestockOrderPage({super.key});
+class CreateRestockOrderPage extends StatefulWidget {
+  const CreateRestockOrderPage({this.product, super.key});
+
+  final Product? product;
+
+  @override
+  State<CreateRestockOrderPage> createState() => _CreateRestockOrderPageState();
+}
+
+class _CreateRestockOrderPageState extends State<CreateRestockOrderPage> {
+  OverlayEntry? overlayEntry;
 
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (_) => OrderFormBloc.RestockOrder(),
+      create: (_) => OrderFormBloc.FromRestockOrder(widget.product),
       child: MultiBlocListener(
         listeners: [
           BlocListener<OrderFormBloc, OrderFormState>(
@@ -76,43 +89,48 @@ class CreateRestockOrderPage extends StatelessWidget {
               }
             },
           ),
-        ],
-        child: Stack(
-          children: [
-            Padding(
-              padding: AppPadding.panePadding,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  const OrderPageHeader(),
-                  Spacing.v16,
-                  Expanded(
-                    child: Container(
-                      padding: const EdgeInsets.all(16.0),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(4.0),
-                      ),
-                      child: const OrderPageForm(),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            BlocBuilder<OrderFormBloc, OrderFormState>(
-              builder: (context, state) {
-                if (state.status == FormStatus.submitting) {
-                  return Positioned.fill(
-                    child: Container(
+          BlocListener<OrderFormBloc, OrderFormState>(
+            listener: (context, state) {
+              final overlay = Overlay.of(overlayWidgetKey.currentContext!);
+
+              if (state.status == FormStatus.submitting) {
+                if (overlayEntry == null) {
+                  overlayEntry = OverlayEntry(builder: (context) {
+                    return Container(
                       color: Colors.black.withOpacity(0.2),
                       child: const Center(child: ProgressRing()),
-                    ),
-                  );
+                    );
+                  });
+                  overlay.insert(overlayEntry!);
+                } else {
+                  return;
                 }
-                return const SizedBox.shrink();
-              },
-            ),
-          ],
+              } else {
+                overlayEntry?.remove();
+                overlayEntry = null;
+              }
+            },
+          ),
+        ],
+        child: Padding(
+          padding: AppPadding.panePadding,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const OrderPageHeader(),
+              Spacing.v16,
+              Expanded(
+                child: Container(
+                  padding: const EdgeInsets.all(16.0),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(4.0),
+                  ),
+                  child: const OrderPageForm(),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -127,10 +145,11 @@ class OrderPageHeader extends StatelessWidget {
     return Row(
       children: [
         IconButton(
-            icon: const Icon(FluentIcons.back),
-            onPressed: () {
-              context.navigate(AppRoutes.admin.order);
-            }),
+          icon: const Icon(FluentIcons.back),
+          onPressed: () {
+            context.navigate(AppRoutes.admin.order);
+          },
+        ),
         const DisplayText("Create Restock Order"),
         const Spacer(flex: 1),
         TextButtonFilled(
@@ -470,7 +489,6 @@ class _RestockOrderFormTableRow extends StatefulWidget {
 }
 
 class _RestockOrderFormTableRowState extends State<_RestockOrderFormTableRow> {
-  late TextEditingController _descriptionController;
   late TextEditingController _quantityController;
   late TextEditingController _rateController;
 
@@ -478,22 +496,8 @@ class _RestockOrderFormTableRowState extends State<_RestockOrderFormTableRow> {
   void initState() {
     super.initState();
     final initialProduct = context.read<OrderFormBloc>().state.products![widget.index];
-    _descriptionController = TextEditingController(text: initialProduct.description ?? '');
     _quantityController = TextEditingController(text: initialProduct.quantity.toString());
     _rateController = TextEditingController(text: initialProduct.rate.toString());
-
-    _descriptionController.addListener(() {
-      final bloc = context.read<OrderFormBloc>();
-      final currentProduct = bloc.state.products![widget.index];
-
-      final newValue = _descriptionController.text.trim();
-      if (currentProduct.description != newValue) {
-        bloc.add(ProductUpdatedEvent(
-          currentProduct.copyWith(description: newValue),
-          widget.index,
-        ));
-      }
-    });
 
     _quantityController.addListener(() {
       final bloc = context.read<OrderFormBloc>();
@@ -522,7 +526,6 @@ class _RestockOrderFormTableRowState extends State<_RestockOrderFormTableRow> {
 
   @override
   void dispose() {
-    _descriptionController.dispose();
     _quantityController.dispose();
     _rateController.dispose();
     super.dispose();
@@ -530,239 +533,285 @@ class _RestockOrderFormTableRowState extends State<_RestockOrderFormTableRow> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<OrderFormBloc, OrderFormState>(
-      buildWhen: (previous, current) {
-        return previous.products != current.products ||
-            previous.products![widget.index] != current.products![widget.index];
-      },
-      builder: (context, state) {
-        final products = context.read<ProductListBloc>().state.allProducts;
-        final bloc = context.read<OrderFormBloc>();
-        final currentProduct = state.products![widget.index];
+    final products = context.select((ProductListBloc b) => b.state.allProducts);
+    final bloc = context.read<OrderFormBloc>();
+    final currentProduct = context.select(
+      (OrderFormBloc b) => b.state.products![widget.index],
+    );
 
-        final newDescription = currentProduct.description ?? '';
-        final newQuantity = currentProduct.quantity % 1 == 0
-            ? currentProduct.quantity.toInt().toString()
-            : currentProduct.quantity.toString();
+    final newQuantity = currentProduct.quantity % 1 == 0
+        ? currentProduct.quantity.toInt().toString()
+        : currentProduct.quantity.toString();
 
-        final newRate = currentProduct.rate % 1 == 0
-            ? currentProduct.rate.toInt().toString()
-            : currentProduct.rate.toString();
+    final newRate = currentProduct.rate % 1 == 0
+        ? currentProduct.rate.toInt().toString()
+        : currentProduct.rate.toString();
 
-        if (_descriptionController.text != newDescription) {
-          _descriptionController.text = newDescription;
-        }
+    if (_quantityController.text != newQuantity) {
+      _quantityController.text = newQuantity;
+    }
 
-        if (_quantityController.text != newQuantity) {
-          _quantityController.text = newQuantity;
-        }
+    if (_rateController.text != newRate) {
+      _rateController.text = newRate;
+    }
 
-        if (_rateController.text != newRate) {
-          _rateController.text = newRate;
-        }
-
-        return Container(
-          decoration: BoxDecoration(
-            color: currentProduct.errorMessage != null
-                ? Colors.errorSecondaryColor
-                : widget.index % 2 == 0
-                    ? const Color(0xFFFAFAFA)
-                    : Colors.white,
-            border: Border(bottom: BorderSide(color: Colors.grey[40])),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Row(
-                children: [
-                  FormTableCell(
-                      child: SizedBox(
-                          height: 32.0,
-                          width: 32.0,
-                          child: Center(child: Text((widget.index + 1).toString())))),
-                  // Product
-                  Expanded(
-                    flex: 2,
-                    child: Container(
-                      decoration: const BoxDecoration(
-                          border: Border(right: BorderSide(width: 0.5, color: Colors.transparent))),
-                      child: AutoSuggestBox.form(
-                        decoration: BoxDecorations.ghost,
-                        foregroundDecoration: BoxDecorations.ghost,
-                        items: [
-                          for (final product in products)
-                            AutoSuggestBoxItem(
-                              value: product,
-                              label: product.name,
-                            ),
-                        ],
-                        onSelected: (value) {
-                          WidgetsBinding.instance.addPostFrameCallback((_) {
-                            if (currentProduct.productId == null) {
-                              final selectedProduct = value.value!;
-                              bloc.add(ProductSelectedEvent(
-                                selectedProduct.copyWith(orderCost: selectedProduct.orderCost),
-                                widget.index,
-                              ));
-                            } else if (currentProduct.productId != value.value!.id) {
-                              final selectedProduct = value.value!;
-                              bloc.add(ProductSelectedEvent(
-                                selectedProduct.copyWith(orderCost: selectedProduct.orderCost),
-                                widget.index,
-                              ));
-                            }
-                          });
-                        },
-                        placeholder: 'Select Product',
+    return InheritedProvider<IndexedFormProduct>.value(
+      value: (widget.index, currentProduct),
+      child: Container(
+        decoration: BoxDecoration(
+          color: currentProduct.errorMessage != null
+              ? Colors.errorSecondaryColor
+              : widget.index % 2 == 0
+                  ? const Color(0xFFFAFAFA)
+                  : Colors.white,
+          border: Border(bottom: BorderSide(color: Colors.grey[40])),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Row(
+              children: [
+                FormTableCell(
+                  child: SizedBox(
+                    height: 32.0,
+                    width: 32.0,
+                    child: Center(
+                      child: Text(
+                        (widget.index + 1).toString(),
                       ),
                     ),
                   ),
-                  // Description
-                  Expanded(
-                    flex: 2,
-                    child: FormTableCell(
-                      child: TextFormBoxes.ghost(
-                        controller: _descriptionController,
-                        enabled: currentProduct.productId != null,
-                        placeholder: 'Sale Description',
-                      ),
-                    ),
-                  ),
-                  // Quantity + Unit
-                  Expanded(
-                    child: FormTableCell(
-                      child: IntrinsicHeight(
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            Expanded(
-                              flex: 1,
-                              child: TextFormBoxes.ghost(
-                                controller: _quantityController,
-                                placeholder: '0',
-                              ),
-                            ),
-                            if (currentProduct.productId != null)
-                              Expanded(
-                                flex: 2,
-                                child: DropDownButton(
-                                  items: [
-                                    MenuFlyoutItem(
-                                        text: Text(
-                                          products
-                                              .firstWhere((p) => p.id == currentProduct.productId)
-                                              .mainUnit,
-                                        ),
-                                        onPressed: () {
-                                          bloc.add(ProductUpdatedEvent(
-                                            currentProduct.copyWith(
-                                              unitId: null,
-                                              rate: context
-                                                  .read<ProductListBloc>()
-                                                  .state
-                                                  .allProducts
-                                                  .firstWhere(
-                                                      (p) => p.id == currentProduct.productId)
-                                                  .orderCost,
-                                              unit: context
-                                                  .read<ProductListBloc>()
-                                                  .state
-                                                  .allProducts
-                                                  .firstWhere(
-                                                      (p) => p.id == currentProduct.productId)
-                                                  .mainUnit,
-                                              conversionFactor: 1.0,
-                                            ),
-                                            widget.index,
-                                          ));
-                                        }),
-                                    for (final unit in context
-                                        .read<UnitListBloc>()
-                                        .state
-                                        .units
-                                        .where((u) => u.productId == currentProduct.productId))
-                                      MenuFlyoutItem(
-                                        text: Text(unit.name),
-                                        onPressed: () {
-                                          bloc.add(ProductUpdatedEvent(
-                                            currentProduct.copyWith(unit: unit.name),
-                                            widget.index,
-                                          ));
-                                        },
-                                      ),
-                                  ],
-                                  buttonBuilder: (context, onOpen) {
-                                    return Button(
-                                        style: ButtonStyle(
-                                          padding: const WidgetStatePropertyAll(
-                                            EdgeInsetsDirectional.fromSTEB(0, 5, 0, 6),
-                                          ),
-                                          shape: WidgetStatePropertyAll(
-                                            RoundedRectangleBorder(
-                                              borderRadius: BorderRadius.circular(4.0),
-                                              side: const BorderSide(color: Colors.transparent),
-                                            ),
-                                          ),
-                                        ),
-                                        onPressed: onOpen,
-                                        child: Row(
-                                          mainAxisSize: MainAxisSize.min,
-                                          children: [
-                                            Text(currentProduct.unit),
-                                            Spacing.h12,
-                                            const Icon(FluentIcons.chevron_down),
-                                          ],
-                                        ));
-                                  },
-                                ),
-                              ),
-                          ],
+                ),
+                // Product
+                Expanded(
+                  flex: 2,
+                  child: Container(
+                    decoration: const BoxDecoration(
+                      border: Border(
+                        right: BorderSide(
+                          width: 0.5,
+                          color: Colors.transparent,
                         ),
                       ),
                     ),
-                  ),
-                  // Rate
-                  Expanded(
-                    child: FormTableCell(
-                      child: TextFormBoxes.ghost(
-                        controller: _rateController,
-                        placeholder: '0.0',
-                      ),
-                    ),
-                  ),
-                  // Amount
-                  Expanded(
-                    child: FormTableCell(
-                      child: TextFormBoxes.ghost(
-                        enabled: false,
-                        placeholder: currentProduct.amount.toStringAsFixed(2),
-                      ),
-                    ),
-                  ),
-                  widget.index > 0
-                      ? SizedBox(
-                          width: 82.0,
-                          child: Center(
-                            child: IconButton(
-                                icon: const Icon(FluentIcons.cancel),
-                                onPressed: () => bloc.add(ProductRemovedEvent(widget.index))),
+                    child: AutoSuggestBox.form(
+                      decoration: BoxDecorations.ghost,
+                      foregroundDecoration: BoxDecorations.ghost,
+                      items: [
+                        for (final product in products)
+                          AutoSuggestBoxItem(
+                            value: product,
+                            label: product.name,
                           ),
-                        )
-                      : const SizedBox(width: 82.0)
-                ],
-              ),
-              if (currentProduct.errorMessage != null)
-                Padding(
-                  padding: const EdgeInsets.only(left: 32, top: 4, bottom: 4),
-                  child: Text(
-                    currentProduct.errorMessage!,
-                    style: TextStyles.error,
+                      ],
+                      onSelected: (value) {
+                        WidgetsBinding.instance.addPostFrameCallback((_) {
+                          if (currentProduct.productId == null) {
+                            final selectedProduct = value.value!;
+                            bloc.add(ProductSelectedEvent(
+                              selectedProduct.copyWith(orderCost: selectedProduct.orderCost),
+                              widget.index,
+                            ));
+                          } else if (currentProduct.productId != value.value!.id) {
+                            final selectedProduct = value.value!;
+                            bloc.add(ProductSelectedEvent(
+                              selectedProduct.copyWith(orderCost: selectedProduct.orderCost),
+                              widget.index,
+                            ));
+                          }
+                        });
+                      },
+                      placeholder: 'Select Product',
+                    ),
                   ),
                 ),
-            ],
-          ),
-        );
-      },
+                // Description
+                const Expanded(
+                  flex: 2,
+                  child: _Description(),
+                ),
+                // Quantity + Unit
+                Expanded(
+                  child: FormTableCell(
+                    child: IntrinsicHeight(
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Expanded(
+                            flex: 1,
+                            child: TextFormBoxes.ghost(
+                              controller: _quantityController,
+                              placeholder: '0',
+                            ),
+                          ),
+                          if (currentProduct.productId != null)
+                            Expanded(
+                              flex: 2,
+                              child: DropDownButton(
+                                items: [
+                                  MenuFlyoutItem(
+                                      text: Text(
+                                        products
+                                            .firstWhere((p) => p.id == currentProduct.productId)
+                                            .mainUnit,
+                                      ),
+                                      onPressed: () {
+                                        bloc.add(ProductUpdatedEvent(
+                                          currentProduct.copyWith(
+                                            unitId: null,
+                                            rate: context
+                                                .read<ProductListBloc>()
+                                                .state
+                                                .allProducts
+                                                .firstWhere((p) => p.id == currentProduct.productId)
+                                                .orderCost,
+                                            unit: context
+                                                .read<ProductListBloc>()
+                                                .state
+                                                .allProducts
+                                                .firstWhere((p) => p.id == currentProduct.productId)
+                                                .mainUnit,
+                                            conversionFactor: 1.0,
+                                          ),
+                                          widget.index,
+                                        ));
+                                      }),
+                                  for (final unit in context
+                                      .read<UnitListBloc>()
+                                      .state
+                                      .units
+                                      .where((u) => u.productId == currentProduct.productId))
+                                    MenuFlyoutItem(
+                                      text: Text(unit.name),
+                                      onPressed: () {
+                                        bloc.add(ProductUpdatedEvent(
+                                          currentProduct.copyWith(unit: unit.name),
+                                          widget.index,
+                                        ));
+                                      },
+                                    ),
+                                ],
+                                buttonBuilder: (context, onOpen) {
+                                  return Button(
+                                      style: ButtonStyle(
+                                        padding: const WidgetStatePropertyAll(
+                                          EdgeInsetsDirectional.fromSTEB(0, 5, 0, 6),
+                                        ),
+                                        shape: WidgetStatePropertyAll(
+                                          RoundedRectangleBorder(
+                                            borderRadius: BorderRadius.circular(4.0),
+                                            side: const BorderSide(color: Colors.transparent),
+                                          ),
+                                        ),
+                                      ),
+                                      onPressed: onOpen,
+                                      child: Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Text(currentProduct.unit),
+                                          Spacing.h12,
+                                          const Icon(FluentIcons.chevron_down),
+                                        ],
+                                      ));
+                                },
+                              ),
+                            ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+                // Rate
+                Expanded(
+                  child: FormTableCell(
+                    child: TextFormBoxes.ghost(
+                      controller: _rateController,
+                      placeholder: '0.0',
+                    ),
+                  ),
+                ),
+                // Amount
+                Expanded(
+                  child: FormTableCell(
+                    child: TextFormBoxes.ghost(
+                      enabled: false,
+                      placeholder: currentProduct.amount.toStringAsFixed(2),
+                    ),
+                  ),
+                ),
+                widget.index > 0
+                    ? SizedBox(
+                        width: 82.0,
+                        child: Center(
+                          child: IconButton(
+                              icon: const Icon(FluentIcons.cancel),
+                              onPressed: () => bloc.add(ProductRemovedEvent(widget.index))),
+                        ),
+                      )
+                    : const SizedBox(width: 82.0)
+              ],
+            ),
+            if (currentProduct.errorMessage != null)
+              Padding(
+                padding: const EdgeInsets.only(left: 32, top: 4, bottom: 4),
+                child: Text(
+                  currentProduct.errorMessage!,
+                  style: TextStyles.error,
+                ),
+              ),
+          ],
+        ),
+      ),
     );
   }
 }
+
+class _Description extends StatefulWidget {
+  const _Description();
+
+  @override
+  State<_Description> createState() => _DescriptionState();
+}
+
+class _DescriptionState extends State<_Description> {
+  late final TextEditingController _descriptionController;
+
+  @override
+  void initState() {
+    super.initState();
+
+    _descriptionController = TextEditingController(text: '');
+    _descriptionController.addListener(() {
+      final (index, currentProduct) = context.read<IndexedFormProduct>();
+
+      final newValue = _descriptionController.text.trim();
+      if (currentProduct.description != newValue) {
+        context
+            .read<OrderFormBloc>() //
+            .add(ProductUpdatedEvent(currentProduct.copyWith(description: newValue), index));
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _descriptionController.dispose();
+
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final (index, currentProduct) = context.watch<IndexedFormProduct>();
+
+    return FormTableCell(
+      child: TextFormBoxes.ghost(
+        controller: _descriptionController,
+        enabled: currentProduct.productId != null,
+        placeholder: 'Sale Description',
+      ),
+    );
+  }
+}
+
+typedef IndexedFormProduct = (int, FormProduct);

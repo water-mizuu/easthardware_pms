@@ -28,12 +28,7 @@ class _PageHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        HeadingText('About'),
-      ],
-    );
+    return const HeadingText('Help');
   }
 }
 

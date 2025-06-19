@@ -40,7 +40,7 @@ class OrderFormBloc extends Bloc<OrderFormEvent, OrderFormState> {
 
   factory OrderFormBloc.RestockOrder() {
     return OrderFormBloc(
-      OrderFormState.RestockOrder(),
+      OrderFormState.RestockOrder(null),
     );
   }
   factory OrderFormBloc.ExpenseOrder() {
@@ -48,10 +48,10 @@ class OrderFormBloc extends Bloc<OrderFormEvent, OrderFormState> {
       OrderFormState.ExpenseOrder(),
     );
   }
-  factory OrderFormBloc.FromRestockOrder() {
+  factory OrderFormBloc.FromRestockOrder(Product? product) {
     // TODO: Implement
     return OrderFormBloc(
-      OrderFormState.RestockOrder(),
+      OrderFormState.RestockOrder(product),
     );
   }
   factory OrderFormBloc.FromExpenseOrder() {
@@ -113,7 +113,7 @@ class OrderFormBloc extends Bloc<OrderFormEvent, OrderFormState> {
   }
 
   void _onProductAdded(ProductAddedEvent event, Emitter<OrderFormState> emit) {
-    final updatedProducts = [...?state.products, EmptyFormProduct()];
+    final updatedProducts = [...?state.products, const EmptyFormProduct()];
     emit(state.copyWith(products: updatedProducts));
   }
 
@@ -149,7 +149,7 @@ class OrderFormBloc extends Bloc<OrderFormEvent, OrderFormState> {
   }
 
   void _onOrderItemAdded(OrderItemAddedEvent event, Emitter<OrderFormState> emit) {
-    final updatedOrderItems = [...?state.orderItems, FormOrderItem()];
+    final updatedOrderItems = [...?state.orderItems, const FormOrderItem()];
     emit(state.copyWith(orderItems: updatedOrderItems));
   }
 
@@ -164,7 +164,7 @@ class OrderFormBloc extends Bloc<OrderFormEvent, OrderFormState> {
       updatedOrderItems[event.index] = event.orderItem;
       final amountDue = updatedOrderItems.fold<double>(
         0,
-        (previousValue, element) => previousValue + (element.amount ?? 0),
+        (previousValue, element) => previousValue + element.amount,
       );
       emit(state.copyWith(orderItems: updatedOrderItems, amountDue: amountDue));
     }
@@ -175,7 +175,7 @@ class OrderFormBloc extends Bloc<OrderFormEvent, OrderFormState> {
     formKey.currentState?.reset();
     // Emit the button pressed event to handle validation and submission
     if (state.orderType == OrderType.restock) {
-      emit(OrderFormState.RestockOrder());
+      emit(OrderFormState.RestockOrder(null));
     } else if (state.orderType == OrderType.expense) {
       emit(OrderFormState.ExpenseOrder());
     } else {
@@ -184,12 +184,12 @@ class OrderFormBloc extends Bloc<OrderFormEvent, OrderFormState> {
   }
 
   void _onClearProducts(ClearProductsEvent event, Emitter<OrderFormState> emit) {
-    final cleared = <FormProduct>[EmptyFormProduct()];
+    final cleared = <FormProduct>[const EmptyFormProduct()];
     emit(state.copyWith(products: cleared));
   }
 
   void _onClearOrderItems(ClearOrderItemsEvent event, Emitter<OrderFormState> emit) {
-    final cleared = <FormOrderItem>[FormOrderItem()];
+    final cleared = <FormOrderItem>[const FormOrderItem()];
     emit(state.copyWith(orderItems: cleared));
   }
 

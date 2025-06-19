@@ -129,6 +129,8 @@ class CreateInvoicePage extends StatelessWidget {
                   ],
                 ),
               ),
+
+              /// FIXME: Create a reusable overlay thing.
               if (context.select((InvoiceFormBloc b) => b.state.status) == FormStatus.submitting)
                 Positioned.fill(
                   child: Container(

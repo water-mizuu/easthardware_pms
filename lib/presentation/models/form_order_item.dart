@@ -1,7 +1,7 @@
 import 'package:easthardware_pms/utils/undefined.dart';
 
 class FormOrderItem {
-  FormOrderItem({
+  const FormOrderItem({
     this.name,
     this.description,
     this.quantity = 0,

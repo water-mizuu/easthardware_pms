@@ -19,7 +19,7 @@ class ExpenseTypesTable {
     await database.insert(
       'expense_types',
       ExpenseType(name: 'Inventory Restock').toMap(),
-      conflictAlgorithm: ConflictAlgorithm.fail,
+      conflictAlgorithm: ConflictAlgorithm.replace,
     );
   }
 

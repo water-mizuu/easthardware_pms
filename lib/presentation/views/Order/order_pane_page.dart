@@ -27,30 +27,20 @@ class OrderPanePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Padding(
-          padding: AppPadding.panePadding.copyWith(bottom: 0.0),
-          child: const PageHeader(),
+    return const AnimatedSingleChildScrollView(
+      child: Padding(
+        padding: AppPadding.panePadding,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            PageHeader(),
+            Spacing.v16,
+            PageActions(),
+            Spacing.v16,
+            OrdersDataTable(),
+          ],
         ),
-        Spacing.v16,
-        Expanded(
-          child: AnimatedSingleChildScrollView(
-            child: Padding(
-              padding: AppPadding.panePadding.copyWith(top: 0.0),
-              child: const Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  PageActions(),
-                  Spacing.v16,
-                  OrdersDataTable(),
-                ],
-              ),
-            ),
-          ),
-        )
-      ],
+      ),
     );
   }
 }
