@@ -22,18 +22,18 @@ class UsersTable {
   static Future<void> createTable(DatabaseExecutor database) async {
     await database.execute('''
       CREATE TABLE IF NOT EXISTS $USERS_TABLE_NAME (
-      $USERS_ID INTEGER PRIMARY KEY AUTOINCREMENT,
-      $USERS_UID TEXT NOT NULL,
-      $USERS_USERNAME TEXT NOT NULL UNIQUE,
-      $USERS_PASSWORD_HASH BLOB NOT NULL,
-      $USERS_FIRST_NAME TEXT NOT NULL,
-      $USERS_LAST_NAME TEXT NOT NULL,
-      $USERS_ACCESS_LEVEL INTEGER NOT NULL,
-      $USERS_SALT INTEGER NOT NULL,
-      $USERS_ARCHIVED_STATUS INTEGER NOT NULL DEFAULT 0,
-      $USERS_CREATION_DATE STRING NOT NULL,
-      $USERS_LOGIN_STATUS INTEGER NOT NULL
-    )
+        $USERS_ID INTEGER PRIMARY KEY AUTOINCREMENT,
+        $USERS_UID TEXT NOT NULL,
+        $USERS_USERNAME TEXT NOT NULL UNIQUE,
+        $USERS_PASSWORD_HASH BLOB NOT NULL,
+        $USERS_FIRST_NAME TEXT NOT NULL,
+        $USERS_LAST_NAME TEXT NOT NULL,
+        $USERS_ACCESS_LEVEL INTEGER NOT NULL,
+        $USERS_SALT INTEGER NOT NULL,
+        $USERS_ARCHIVED_STATUS INTEGER NOT NULL DEFAULT 0,
+        $USERS_CREATION_DATE STRING NOT NULL,
+        $USERS_LOGIN_STATUS INTEGER NOT NULL
+      )
   ''');
     await _insertInitialAdmin(database);
   }
@@ -63,8 +63,11 @@ class UsersTable {
         passwordHash: passwordHash,
         salt: salt,
       );
-      await database.insert(UsersTable.USERS_TABLE_NAME, admin.toMap(),
-          conflictAlgorithm: ConflictAlgorithm.replace);
+      await database.insert(
+        UsersTable.USERS_TABLE_NAME,
+        admin.toMap(),
+        conflictAlgorithm: ConflictAlgorithm.ignore,
+      );
     }
 
     if (kDebugMode) {
@@ -83,8 +86,11 @@ class UsersTable {
         passwordHash: passwordHash,
         salt: salt,
       );
-      await database.insert(UsersTable.USERS_TABLE_NAME, admin.toMap(),
-          conflictAlgorithm: ConflictAlgorithm.replace);
+      await database.insert(
+        UsersTable.USERS_TABLE_NAME,
+        admin.toMap(),
+        conflictAlgorithm: ConflictAlgorithm.ignore,
+      );
     }
 
     if (kDebugMode) {
@@ -104,8 +110,11 @@ class UsersTable {
         salt: salt,
       );
 
-      await database.insert(UsersTable.USERS_TABLE_NAME, staff.toMap(),
-          conflictAlgorithm: ConflictAlgorithm.replace);
+      await database.insert(
+        UsersTable.USERS_TABLE_NAME,
+        staff.toMap(),
+        conflictAlgorithm: ConflictAlgorithm.ignore,
+      );
     }
   }
 }
