@@ -151,7 +151,7 @@ class CreateProductPage extends StatelessWidget {
                   child: const PageHeader(),
                 ),
                 const Expanded(child: ProductInformationFormContent()),
-              ].withSpacing(() => Spacing.v16),
+              ],
             ),
           ),
         );

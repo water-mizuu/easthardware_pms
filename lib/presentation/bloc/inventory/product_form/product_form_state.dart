@@ -3,7 +3,7 @@ part of 'product_form_bloc.dart';
 class ProductFormState extends Equatable {
   ProductFormState({
     this.name = '',
-    String? sku,
+    this.sku = '',
     this.categoryName = '',
     this.categoryId,
     this.description,
@@ -22,8 +22,7 @@ class ProductFormState extends Equatable {
     this.archivedStatus,
     this.formStatus = FormStatus.initial,
     this.errorMessage,
-  })  : sku = sku ?? const Uuid().v4().toString(),
-        secondaryUnits = secondaryUnits ?? [const FormUnit.empty()],
+  })  : secondaryUnits = secondaryUnits ?? [const FormUnit.empty()],
         creationDate = creationDate ?? DateTime.now(),
         deadStockThreshold = deadStockThreshold ?? DEFAULT_DEAD_STOCK_THRESHOLD.toString(),
         fastMovingThreshold = fastMovingThreshold ?? DEFAULT_FAST_MOVING_STOCK_THRESHOLD.toString();

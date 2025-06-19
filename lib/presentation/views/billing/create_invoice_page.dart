@@ -614,7 +614,8 @@ class _FormTableRowState extends State<FormTableRow> {
                                 child: Row(
                                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                   children: [
-                                    Text(product.name),
+                                    Flexible(
+                                        child: Text(product.name, overflow: TextOverflow.ellipsis)),
                                     Text(
                                       '${product.quantity.toString()} ${product.mainUnit}',
                                       style: product.quantity < product.criticalLevel
