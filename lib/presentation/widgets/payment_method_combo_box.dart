@@ -55,6 +55,7 @@ class _PaymentMethodComboBoxState extends State<PaymentMethodComboBox> {
       create: (context) => PaymentMethodFormCubit(),
       child: Builder(builder: (context) {
         return ComboBox(
+          isExpanded: true,
           value: widget.value,
           placeholder: const Text('Select Payment Method'),
           items: comboBoxItems,

@@ -11,7 +11,7 @@ class InvoiceFormState extends Equatable {
     this.subtotal,
     this.discount,
     this.discountType = DiscountType.value,
-    this.amountDue,
+    this.amountDue = 0,
     this.amountPaid,
     this.paymentDate,
     this.paymentMethod,
@@ -36,7 +36,7 @@ class InvoiceFormState extends Equatable {
   final double? subtotal;
   final double? discount;
   final DiscountType? discountType;
-  final double? amountDue;
+  final double amountDue;
 
   // For Payment
   final double? amountPaid;
@@ -122,11 +122,9 @@ class InvoiceFormState extends Equatable {
         referenceNumber: referenceNumber.or(this.referenceNumber),
         creatorId: creatorId.or(this.creatorId),
         creationDate: creationDate.or(this.creationDate),
-        invoiceDateErrorMessage:
-            invoiceDateErrorMessage.or(this.invoiceDateErrorMessage),
+        invoiceDateErrorMessage: invoiceDateErrorMessage.or(this.invoiceDateErrorMessage),
         dueDateErrorMessage: dueDateErrorMessage.or(this.dueDateErrorMessage),
-        discountErrorMessage:
-            discountErrorMessage.or(this.discountErrorMessage),
+        discountErrorMessage: discountErrorMessage.or(this.discountErrorMessage),
         dialogErrorMessage: dialogErrorMessage.or(this.dialogErrorMessage),
         status: status.or(this.status),
         action: action.or(this.action),

@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:easthardware_pms/domain/enums/enums.dart'
-    show AccessLevel, DataStatus, DiscountType;
+    show AccessLevel, DataStatus, DiscountType, FormStatus;
 import 'package:easthardware_pms/domain/models/invoice.dart';
 import 'package:easthardware_pms/domain/models/payment_method.dart';
 import 'package:easthardware_pms/presentation/bloc/authentication/'
@@ -69,31 +69,42 @@ class _CreatePaymentPageState extends State<CreatePaymentPage> {
         BlocProvider(create: (context) => PaymentMethodFormCubit()),
       ],
       child: Builder(builder: (context) {
-        return BlocBuilder<PaymentFormBloc, PaymentFormState>(
-          builder: (context, state) {
-            if (state.invoice == null) {
-              return const LoadingPage();
+        return BlocListener<PaymentFormBloc, PaymentFormState>(
+          listener: (context, state) {
+            if (state.status == FormStatus.submitting) {
+              final invoice = state.invoice?.copyWith(
+                amountPaid: state.amount,
+                paymentMethod: state.paymentMethod!.id!,
+                paymentDate: (state.invoice!.amountDue - state.amount) <= 0 ? DateTime.now() : null,
+              );
             }
-            return const Padding(
-              padding: AppPadding.panePadding,
-              child: Column(
-                children: [
-                  PageHeader(),
-                  Expanded(
-                    child: SingleChildScrollView(
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Spacing.v16,
-                          PaymentForm(),
-                        ],
+          },
+          child: BlocBuilder<PaymentFormBloc, PaymentFormState>(
+            builder: (context, state) {
+              if (state.invoice == null) {
+                return const LoadingPage();
+              }
+              return const Padding(
+                padding: AppPadding.panePadding,
+                child: Column(
+                  children: [
+                    PageHeader(),
+                    Expanded(
+                      child: SingleChildScrollView(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Spacing.v16,
+                            PaymentForm(),
+                          ],
+                        ),
                       ),
                     ),
-                  ),
-                ],
-              ),
-            );
-          },
+                  ],
+                ),
+              );
+            },
+          ),
         );
       }),
     );
@@ -613,7 +624,7 @@ class InvoiceProductSummary extends StatelessWidget {
                         textAlign: TextAlign.end,
                       ),
                       Text(
-                        total.toStringAsFixed(2),
+                        (total - context.watch<PaymentFormBloc>().state.amount).toStringAsFixed(2),
                         style: TextStyles.body.merge(TextStyles.strong),
                       ),
                     ],

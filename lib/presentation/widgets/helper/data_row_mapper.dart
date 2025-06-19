@@ -8,11 +8,10 @@ import 'package:easthardware_pms/domain/models/user.dart';
 import 'package:easthardware_pms/domain/models/user_log.dart';
 import 'package:easthardware_pms/presentation/models/data_cell_functions.dart';
 import 'package:easthardware_pms/presentation/models/form_product.dart';
-import 'package:easthardware_pms/presentation/widgets/layout/spacing.dart';
+import 'package:easthardware_pms/presentation/widgets/helper/currency_formatter.dart';
 import 'package:easthardware_pms/presentation/widgets/text.dart';
-import 'package:easthardware_pms/presentation/widgets/ui/badge.dart';
+import 'package:easthardware_pms/presentation/widgets/ui/badges.dart';
 import 'package:easthardware_pms/presentation/widgets/ui/compound_button.dart';
-import 'package:easthardware_pms/presentation/widgets/ui/data_row.dart';
 import 'package:fluent_ui/fluent_ui.dart';
 import 'package:flutter/material.dart' show DataCell, DataRow;
 import 'package:intl/intl.dart';
@@ -23,18 +22,16 @@ class DataRowMapper {
     required void Function()? editAction,
   }) {
     if (product.isBelowCriticalLevel == true) {
-      return WarningDataRow([
-        DataCell(Text(product.name)),
-        DataCell(Text(product.categoryName ?? '')),
-        DataCell(Text(product.salePrice.toString())),
-        DataCell(Text(product.orderCost.toString())),
-        DataCell(Row(
-          children: [
-            Text('${product.quantity.toString()} ${product.mainUnit}'),
-            Spacing.h12,
-            Icon(FluentIcons.alert_solid, color: Colors.red.lightest)
-          ],
-        )),
+      return DataRow(cells: [
+        DataCell(Align(alignment: Alignment.centerLeft, child: Text(product.name))),
+        DataCell(Align(alignment: Alignment.centerLeft, child: Text(product.categoryName ?? ''))),
+        DataCell(Align(
+            alignment: Alignment.centerLeft,
+            child: Text(CurrencyFormatter.compact(product.salePrice)))),
+        DataCell(Align(
+            alignment: Alignment.centerLeft,
+            child: Text('${product.quantity.toString()} ${product.mainUnit}'))),
+        DataCell(Row(children: [Badges.bad('Low Stock')])),
         if (editAction != null)
           DataCell(
             HyperlinkButton(
@@ -45,12 +42,16 @@ class DataRowMapper {
       ]);
     }
     if (product.isFastMovingStock == true) {
-      return SuccessDataRow([
-        DataCell(Text(product.name)),
-        DataCell(Text(product.categoryName!)),
-        DataCell(Text(product.salePrice.toString())),
-        DataCell(Text(product.orderCost.toString())),
-        DataCell(Text('${product.quantity.toString()} ${product.mainUnit}')),
+      return DataRow(cells: [
+        DataCell(Align(alignment: Alignment.centerLeft, child: Text(product.name))),
+        DataCell(Align(alignment: Alignment.centerLeft, child: Text(product.categoryName ?? ''))),
+        DataCell(Align(
+            alignment: Alignment.centerLeft,
+            child: Text(CurrencyFormatter.compact(product.salePrice)))),
+        DataCell(Align(
+            alignment: Alignment.centerLeft,
+            child: Text('${product.quantity.toString()} ${product.mainUnit}'))),
+        DataCell(Row(children: [Badges.good('Fast Moving')])),
         if (editAction != null)
           DataCell(
             HyperlinkButton(
@@ -61,12 +62,16 @@ class DataRowMapper {
       ]);
     }
     if (product.isDeadStock == true) {
-      return InfoDataRow([
-        DataCell(Text(product.name)),
-        DataCell(Text(product.categoryName!)),
-        DataCell(Text(product.salePrice.toString())),
-        DataCell(Text(product.orderCost.toString())),
-        DataCell(Text('${product.quantity.toString()} ${product.mainUnit}')),
+      return DataRow(cells: [
+        DataCell(Align(alignment: Alignment.centerLeft, child: Text(product.name))),
+        DataCell(Align(alignment: Alignment.centerLeft, child: Text(product.categoryName ?? ''))),
+        DataCell(Align(
+            alignment: Alignment.centerLeft,
+            child: Text(CurrencyFormatter.compact(product.salePrice)))),
+        DataCell(Align(
+            alignment: Alignment.centerLeft,
+            child: Text('${product.quantity.toString()} ${product.mainUnit}'))),
+        DataCell(Row(children: [Badges.dull('Dead Stock')])),
         if (editAction != null)
           DataCell(
             HyperlinkButton(
@@ -78,11 +83,13 @@ class DataRowMapper {
     }
 
     return DataRow(cells: [
-      DataCell(Text(product.name)),
-      DataCell(Text(product.categoryName!)),
-      DataCell(Text(product.salePrice.toString())),
-      DataCell(Text(product.orderCost.toString())),
-      DataCell(Text('${product.quantity.toString()} ${product.mainUnit}')),
+      DataCell(Align(alignment: Alignment.centerLeft, child: Text(product.name))),
+      DataCell(Align(alignment: Alignment.centerLeft, child: Text(product.categoryName!))),
+      DataCell(Align(alignment: Alignment.centerLeft, child: Text(product.salePrice.toString()))),
+      DataCell(Align(
+          alignment: Alignment.centerLeft,
+          child: Text('${product.quantity.toString()} ${product.mainUnit}'))),
+      const DataCell(SizedBox.shrink()),
       if (editAction != null)
         DataCell(
           HyperlinkButton(
@@ -149,18 +156,6 @@ class DataRowMapper {
     final invoiceCustomer =
         invoice.customerName.isNotEmpty ? invoice.customerName : "Unnamed Customer";
     final invoiceTotal = invoice.amountDue.toString();
-
-    final amountPaid = invoice.amountPaid ?? 0;
-    final isPaid = invoice.amountDue - amountPaid == 0;
-    final Widget statusBadge = isPaid
-        ? Badge(
-            color: Colors.green.light,
-            child: Text("Paid", style: TextStyle(color: Colors.green)),
-          )
-        : Badge(
-            color: Colors.red.light,
-            child: Text("Unpaid", style: TextStyle(color: Colors.red)),
-          );
     return DataRow(cells: [
       DataCell(Text(invoiceDate)),
       DataCell(Text(invoiceId)),

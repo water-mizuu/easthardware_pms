@@ -893,7 +893,7 @@ class InvoiceSummary extends StatelessWidget {
     return BlocBuilder<InvoiceFormBloc, InvoiceFormState>(builder: (context, state) {
       final subtotal = state.subtotal ?? 0.0;
       final discount = state.discount ?? 0.0;
-      final total = state.amountDue ?? 0.0;
+      final total = state.amountDue;
 
       return Row(
         crossAxisAlignment: CrossAxisAlignment.start,

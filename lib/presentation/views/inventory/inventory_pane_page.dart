@@ -417,11 +417,11 @@ class _ProductsDataTableState extends State<ProductsDataTable> {
   static const double cellHeight = 36.0;
 
   late final Map<String, SpanExtent> _rowExtents = {
-    "Name": const MaxSpanExtent(FixedSpanExtent(240.00), FractionalSpanExtent(0.33)),
-    "Category": const MaxSpanExtent(FixedSpanExtent(80.00), FractionalSpanExtent(0.33)),
+    "Name": const MaxSpanExtent(FixedSpanExtent(180.00), FractionalSpanExtent(0.264)),
+    "Category": const MaxSpanExtent(FixedSpanExtent(80.00), FractionalSpanExtent(0.2178)),
     "Price": const FixedSpanExtent(120),
-    "Cost": const FixedSpanExtent(120),
     "Quantity": const FixedSpanExtent(120),
+    "Status": const FixedSpanExtent(120),
     if (context.read<AuthenticationBloc>().state.user?.accessLevel == AccessLevel.administrator)
       "Actions": const MaxSpanExtent(FixedSpanExtent(80.00), RemainingSpanExtent()),
   };

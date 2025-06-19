@@ -111,16 +111,16 @@ class _ExpenseTypeComboBoxState extends State<ExpenseTypeComboBox> {
                                     TextButtonFilled(
                                       'Save',
                                       onPressed: () {
-                                        final value =
-                                            context.read<ExpenseTypeFormCubit>().state.name;
-                                        if (value.isNotEmpty &&
-                                            !expenseTypes.any((type) => type.name == value)) {
+                                        final value = context.read<ExpenseTypeFormCubit>().state;
+                                        if (value.name.isNotEmpty &&
+                                            !expenseTypes.any((type) => type.name == value.name)) {
                                           context
                                               .read<ExpenseTypeListBloc>()
-                                              .add(AddExpenseTypeEvent(ExpenseType(name: value)));
+                                              .add(AddExpenseTypeEvent(ExpenseType(
+                                                name: value.name,
+                                              )));
                                           Navigator.of(context).pop();
                                         }
-                                        ;
                                       },
                                     )
                                   ],
