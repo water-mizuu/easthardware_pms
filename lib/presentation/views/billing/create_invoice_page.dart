@@ -10,6 +10,7 @@ import 'package:easthardware_pms/presentation/bloc/inventory/unit_list/unit_list
 import 'package:easthardware_pms/presentation/bloc/security/user_log_list/user_log_list_bloc.dart';
 import 'package:easthardware_pms/presentation/models/form_product.dart';
 import 'package:easthardware_pms/presentation/router/app_routes.dart';
+import 'package:easthardware_pms/presentation/widgets/auto_auto_suggest_box.dart';
 import 'package:easthardware_pms/presentation/widgets/helper/currency_formatter.dart';
 import 'package:easthardware_pms/presentation/widgets/layout/spacing.dart';
 import 'package:easthardware_pms/presentation/widgets/text.dart';
@@ -593,7 +594,7 @@ class _FormTableRowState extends State<FormTableRow> {
                           right: BorderSide(width: 0.5, color: Colors.transparent),
                         ),
                       ),
-                      child: AutoSuggestBox.form(
+                      child: AutoAutoSuggestBox.form(
                         decoration: BoxDecorations.ghost,
                         foregroundDecoration: BoxDecorations.ghost,
                         items: [

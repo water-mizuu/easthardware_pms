@@ -249,7 +249,21 @@ class OrderPageForm extends StatelessWidget {
                 ),
               ),
               Spacing.h12,
-              const Spacer()
+              const Expanded(
+                flex: 2,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    BodyText('Expense Type'),
+                    Spacing.v8,
+                    ExpenseTypeComboBox(
+                      disabledPlaceholder: Text('Inventory Restock'),
+                      isDisabled: true,
+                      value: null,
+                    )
+                  ],
+                ),
+              ),
             ],
           ),
           Spacing.v12,

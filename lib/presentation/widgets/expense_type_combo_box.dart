@@ -10,14 +10,24 @@ import 'package:fluent_ui/fluent_ui.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class ExpenseTypeComboBox extends StatefulWidget {
+  factory ExpenseTypeComboBox.disabled() {
+    return ExpenseTypeComboBox(
+      value: null,
+      onExpenseTypeSelected: (value) {},
+    );
+  }
   const ExpenseTypeComboBox({
     super.key,
     required this.value,
-    required this.onExpenseTypeSelected,
+    this.onExpenseTypeSelected,
+    this.isDisabled = false,
+    this.disabledPlaceholder,
   });
 
-  final Function(ExpenseType value) onExpenseTypeSelected;
+  final Function(ExpenseType value)? onExpenseTypeSelected;
   final ExpenseType? value;
+  final bool? isDisabled;
+  final Widget? disabledPlaceholder;
   @override
   State<ExpenseTypeComboBox> createState() => _ExpenseTypeComboBoxState();
 }
@@ -51,74 +61,78 @@ class _ExpenseTypeComboBoxState extends State<ExpenseTypeComboBox> {
     return BlocProvider(
       create: (context) => ExpenseTypeFormCubit(),
       child: Builder(builder: (context) {
-        return ComboBox(
+        return ComboBox<ExpenseType?>(
           value: widget.value,
+          disabledPlaceholder: widget.disabledPlaceholder,
           isExpanded: true,
           placeholder: const Text('Select Expense Type'),
           items: comboBoxItems,
-          onChanged: (value) {
-            if (value is ExpenseType) {
-              widget.onExpenseTypeSelected(value);
-            } else {
-              unawaited(_flyoutController.showFlyout(
-                autoModeConfiguration: FlyoutAutoConfiguration(
-                  preferredMode: FlyoutPlacementMode.bottomRight,
-                ),
-                builder: (flyoutContext) {
-                  return FlyoutContent(
-                    child: ConstrainedBox(
-                      constraints: const BoxConstraints(maxWidth: 400.0),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const Text('Add New Expense Type', style: TextStyles.subtitle),
-                          const SizedBox(height: 8.0),
-                          TextFormBox(
-                            placeholder: 'Expense Type Name',
-                            validator: (value) {
-                              if (value == null || value.isEmpty) {
-                                return 'Expense Type name cannot be empty';
-                              }
-                              if (expenseTypes.any((type) => type.name == value)) {
-                                return 'Expense Type already exists';
-                              }
-                              if (value.length > 50) {
-                                return 'Expense Type name cannot exceed 50 characters';
-                              }
-                              return null;
-                            },
-                            onChanged: (value) {
-                              context.read<ExpenseTypeFormCubit>().onNameChanged(value);
-                            },
-                          ),
-                          Spacing.v16,
-                          Row(
-                            children: [
-                              const Spacer(flex: 2),
-                              TextButtonFilled(
-                                'Save',
-                                onPressed: () {
-                                  final value = context.read<ExpenseTypeFormCubit>().state.name;
-                                  if (value.isNotEmpty &&
-                                      !expenseTypes.any((type) => type.name == value)) {
-                                    context
-                                        .read<ExpenseTypeListBloc>()
-                                        .add(AddExpenseTypeEvent(ExpenseType(name: value)));
-                                    Navigator.of(context).pop();
-                                  }
-                                  ;
-                                },
-                              )
-                            ],
-                          )
-                        ],
+          onChanged: widget.isDisabled == true
+              ? null
+              : (value) {
+                  if (value is ExpenseType && widget.onExpenseTypeSelected != null) {
+                    widget.onExpenseTypeSelected!(value);
+                  } else {
+                    unawaited(_flyoutController.showFlyout(
+                      autoModeConfiguration: FlyoutAutoConfiguration(
+                        preferredMode: FlyoutPlacementMode.bottomRight,
                       ),
-                    ),
-                  );
+                      builder: (flyoutContext) {
+                        return FlyoutContent(
+                          child: ConstrainedBox(
+                            constraints: const BoxConstraints(maxWidth: 400.0),
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const Text('Add New Expense Type', style: TextStyles.subtitle),
+                                const SizedBox(height: 8.0),
+                                TextFormBox(
+                                  placeholder: 'Expense Type Name',
+                                  validator: (value) {
+                                    if (value == null || value.isEmpty) {
+                                      return 'Expense Type name cannot be empty';
+                                    }
+                                    if (expenseTypes.any((type) => type.name == value)) {
+                                      return 'Expense Type already exists';
+                                    }
+                                    if (value.length > 50) {
+                                      return 'Expense Type name cannot exceed 50 characters';
+                                    }
+                                    return null;
+                                  },
+                                  onChanged: (value) {
+                                    context.read<ExpenseTypeFormCubit>().onNameChanged(value);
+                                  },
+                                ),
+                                Spacing.v16,
+                                Row(
+                                  children: [
+                                    const Spacer(flex: 2),
+                                    TextButtonFilled(
+                                      'Save',
+                                      onPressed: () {
+                                        final value =
+                                            context.read<ExpenseTypeFormCubit>().state.name;
+                                        if (value.isNotEmpty &&
+                                            !expenseTypes.any((type) => type.name == value)) {
+                                          context
+                                              .read<ExpenseTypeListBloc>()
+                                              .add(AddExpenseTypeEvent(ExpenseType(name: value)));
+                                          Navigator.of(context).pop();
+                                        }
+                                        ;
+                                      },
+                                    )
+                                  ],
+                                )
+                              ],
+                            ),
+                          ),
+                        );
+                      },
+                    ));
+                  }
                 },
-              ));
-            }
-          },
         );
       }),
     );
