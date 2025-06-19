@@ -10,6 +10,7 @@ import 'package:easthardware_pms/presentation/widgets/layout/spacing.dart';
 import 'package:easthardware_pms/presentation/widgets/layout_mode_provider.dart';
 import 'package:easthardware_pms/presentation/widgets/text.dart';
 import 'package:easthardware_pms/utils/boxed.dart';
+import 'package:easthardware_pms/utils/uuid.dart';
 import 'package:fluent_ui/fluent_ui.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -52,32 +53,38 @@ class _ProductInformationFormContentState extends State<ProductInformationFormCo
       child: Form(
         key: context.read<ProductFormBloc>().formKey,
         child: AnimatedSingleChildScrollView(
-          child: Padding(
+          child: Container(
+            padding: AppPadding.panePadding,
             key: _bodyKey,
-            padding: EdgeInsets.only(
-              left: AppPadding.panePadding.left,
-              right: AppPadding.panePadding.right,
-              bottom: AppPadding.panePadding.bottom,
-            ),
             child: LayoutMode.builder(
               (context, layoutMode, keys) => switch (layoutMode) {
-                LayoutMode.wide => Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Expanded(child: LeftColumn(key: keys['leftColumn'])),
-                      Spacing.h16,
-                      Expanded(child: RightColumn(key: keys['rightColumn'])),
-                    ],
+                LayoutMode.wide => Container(
+                    padding: AppPadding.a16,
+                    decoration: BoxDecoration(
+                        color: Colors.white, borderRadius: BorderRadius.circular(4.0)),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(child: LeftColumn(key: keys['leftColumn'])),
+                        Spacing.h16,
+                        Expanded(child: RightColumn(key: keys['rightColumn'])),
+                      ],
+                    ),
                   ),
                 LayoutMode.constrained || LayoutMode.compact => FocusTraversalGroup(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        LeftColumn(key: keys['leftColumn']),
-                        Spacing.v16,
-                        RightColumn(key: keys['rightColumn']),
-                      ],
+                    child: Container(
+                      padding: AppPadding.a16,
+                      decoration: BoxDecoration(
+                          color: Colors.white, borderRadius: BorderRadius.circular(4.0)),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          LeftColumn(key: keys['leftColumn']),
+                          Spacing.v16,
+                          RightColumn(key: keys['rightColumn']),
+                        ],
+                      ),
                     ),
                   ),
               },
@@ -130,26 +137,22 @@ class SaleInformationSection extends StatelessWidget with ProductFormValidator {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: AppPadding.a16,
-      color: Colors.white,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          const SubheadingText('Sale Information'),
-          Spacing.v16,
-          const BodyText('Sale Price'),
-          Spacing.v4,
-          TextFormBox(
-            initialValue: context.read<ProductFormBloc>().state.price,
-            validator: validateProductPrice,
-            onChanged: (value) {
-              context.read<ProductFormBloc>().add(PriceFieldChangedEvent(value));
-            },
-          ),
-        ],
-      ),
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        const SubheadingText('Sale Information'),
+        Spacing.v16,
+        const BodyText('Sale Price'),
+        Spacing.v4,
+        TextFormBox(
+          initialValue: context.read<ProductFormBloc>().state.price,
+          validator: validateProductPrice,
+          onChanged: (value) {
+            context.read<ProductFormBloc>().add(PriceFieldChangedEvent(value));
+          },
+        ),
+      ],
     );
   }
 }
@@ -159,26 +162,22 @@ class OrderInformationSection extends StatelessWidget with ProductFormValidator 
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: AppPadding.a16,
-      color: Colors.white,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          const SubheadingText('Order Information'),
-          Spacing.v16,
-          const BodyText('Order Cost'),
-          Spacing.v4,
-          TextFormBox(
-            initialValue: context.read<ProductFormBloc>().state.cost,
-            validator: validateProductCost,
-            onChanged: (value) {
-              context.read<ProductFormBloc>().add(CostFieldChangedEvent(value));
-            },
-          ),
-        ],
-      ),
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        const SubheadingText('Order Information'),
+        Spacing.v16,
+        const BodyText('Order Cost'),
+        Spacing.v4,
+        TextFormBox(
+          initialValue: context.read<ProductFormBloc>().state.cost,
+          validator: validateProductCost,
+          onChanged: (value) {
+            context.read<ProductFormBloc>().add(CostFieldChangedEvent(value));
+          },
+        ),
+      ],
     );
   }
 }
@@ -188,13 +187,9 @@ class BasicInformationSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: AppPadding.a16,
-      color: Colors.white,
-      child: const Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [SubheadingText('Basic Information'), Spacing.v16, BasicInformationFields()],
-      ),
+    return const Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [SubheadingText('Basic Information'), Spacing.v16, BasicInformationFields()],
     );
   }
 }
@@ -236,7 +231,9 @@ class ProductNameField extends StatelessWidget with ProductFormValidator {
           initialValue: context.read<ProductFormBloc>().state.name,
           validator: validateProductName,
           onChanged: (value) {
-            context.read<ProductFormBloc>().add(NameFieldChangedEvent(value));
+            final bloc = context.read<ProductFormBloc>();
+            bloc.add(NameFieldChangedEvent(value));
+            bloc.add(SkuFieldChangedEvent(UUID.generate(value)));
           },
         )
       ],
@@ -256,7 +253,7 @@ class StockKeepingUnitField extends StatelessWidget {
         const BodyText('Stock Keeping Unit (SKU)'),
         Spacing.v4,
         TextFormBox(
-          initialValue: context.read<ProductFormBloc>().state.sku,
+          initialValue: context.watch<ProductFormBloc>().state.sku,
           placeholder: context.read<ProductFormBloc>().state.sku,
           onChanged: (value) {
             context.read<ProductFormBloc>().add(SkuFieldChangedEvent(value));
@@ -392,31 +389,27 @@ class SecondaryUnitsSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: AppPadding.a16,
-      color: Colors.white,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          const Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              SubheadingText('Secondary Units'),
-              AddNewUnitButton(),
-            ],
-          ),
-          Spacing.v8,
-          const Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              SecondaryUnitsLabel(),
-              Flexible(child: SecondaryUnitsFormGroup()),
-            ],
-          ),
-        ].withSpacing(() => Spacing.v4),
-      ),
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        const Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            SubheadingText('Secondary Units'),
+            AddNewUnitButton(),
+          ],
+        ),
+        Spacing.v8,
+        const Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            SecondaryUnitsLabel(),
+            Flexible(child: SecondaryUnitsFormGroup()),
+          ],
+        ),
+      ].withSpacing(() => Spacing.v4),
     );
   }
 }
@@ -455,10 +448,9 @@ class SecondaryUnitsLabel extends StatelessWidget {
             child: BodyText('Unit Name'),
           ),
         ),
-        Spacing.h16,
         IgnorePointer(child: Opacity(opacity: 0.0, child: Text('per'))),
-        Spacing.h16,
         Expanded(
+          flex: 2,
           child: Align(
             alignment: Alignment.centerLeft,
             child: BodyText('Equivalent'),
@@ -550,39 +542,6 @@ class _SecondaryUnitFieldState extends State<SecondaryUnitField> with ProductFor
             children: [
               Expanded(
                 child: TextFormBox(
-                  controller: _unitQuantityController,
-                  validator: (rawUnitQuantity) {
-                    final state = context.read<ProductFormBloc>().state;
-                    final secondaryUnit = state.secondaryUnits[widget.index];
-                    final FormUnit(:name, :mainQuantity, :unitQuantity) = secondaryUnit;
-                    assert(
-                      unitQuantity.value == rawUnitQuantity,
-                      "Unit quantity must match the input.",
-                    );
-
-                    return validateSecondaryUnitQuantity(
-                      secondaryName: name,
-                      mainQuantity: mainQuantity,
-                      unitQuantity: unitQuantity,
-                    );
-                  },
-                  placeholder: "Quantity",
-                  onChanged: (value) {
-                    final state = context.read<ProductFormBloc>().state;
-                    final secondaryUnit = state.secondaryUnits[widget.index];
-                    final FormUnit(:mainQuantity) = secondaryUnit;
-                    final event = SecondaryUnitFieldFactorChangedEvent(
-                      widget.index,
-                      mainQuantity: mainQuantity.value,
-                      unitQuantity: value,
-                    );
-
-                    context.read<ProductFormBloc>().add(event);
-                  },
-                ),
-              ),
-              Expanded(
-                child: TextFormBox(
                   controller: _nameController,
                   validator: (rawName) {
                     final state = context.read<ProductFormBloc>().state;
@@ -615,17 +574,51 @@ class _SecondaryUnitFieldState extends State<SecondaryUnitField> with ProductFor
                         .read<ProductFormBloc>()
                         .add(SecondaryUnitFieldNameChangedEvent(widget.index, name: value));
                   },
-                  placeholder: "Name (Singular)",
+                  placeholder: "Name",
                 ),
               ),
-            ].withSpacing(() => Spacing.h8),
+            ],
           ),
         ),
-        const Padding(padding: EdgeInsets.only(top: 8.0), child: Text("per")),
         Expanded(
+          flex: 2,
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              Expanded(
+                child: TextFormBox(
+                  controller: _unitQuantityController,
+                  validator: (rawUnitQuantity) {
+                    final state = context.read<ProductFormBloc>().state;
+                    final secondaryUnit = state.secondaryUnits[widget.index];
+                    final FormUnit(:name, :mainQuantity, :unitQuantity) = secondaryUnit;
+                    assert(
+                      unitQuantity.value == rawUnitQuantity,
+                      "Unit quantity must match the input.",
+                    );
+
+                    return validateSecondaryUnitQuantity(
+                      secondaryName: name,
+                      mainQuantity: mainQuantity,
+                      unitQuantity: unitQuantity,
+                    );
+                  },
+                  placeholder: "Quantity",
+                  onChanged: (value) {
+                    final state = context.read<ProductFormBloc>().state;
+                    final secondaryUnit = state.secondaryUnits[widget.index];
+                    final FormUnit(:mainQuantity) = secondaryUnit;
+                    final event = SecondaryUnitFieldFactorChangedEvent(
+                      widget.index,
+                      mainQuantity: mainQuantity.value,
+                      unitQuantity: value,
+                    );
+
+                    context.read<ProductFormBloc>().add(event);
+                  },
+                ),
+              ),
+              const Padding(padding: EdgeInsets.only(top: 8.0), child: Text("per")),
               Expanded(
                 child: TextFormBox(
                   controller: _mainQuantityController,
@@ -666,7 +659,7 @@ class _SecondaryUnitFieldState extends State<SecondaryUnitField> with ProductFor
                     return TextFormBox(
                       enabled: false,
                       controller: TextEditingController(text: state.mainUnit),
-                      placeholder: "Main Unit Name",
+                      placeholder: "...",
                     );
                   },
                 ),
