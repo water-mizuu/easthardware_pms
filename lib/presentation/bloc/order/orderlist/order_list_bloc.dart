@@ -31,8 +31,7 @@ class OrderListBloc extends Bloc<OrderListEvent, OrderListState> {
     emit(state.copyWith(status: DataStatus.loading));
     try {
       final orders = await _repository.getAllOrders();
-      print(
-          '[OrderListBloc] Orders fetched: count = \'${orders.length}\', orders = $orders');
+      print('[OrderListBloc] Orders fetched: count = \'${orders.length}\', orders = $orders');
       emit(state.copyWith(allOrders: orders, status: DataStatus.success));
     } catch (e) {
       print('[OrderListBloc] Error fetching orders: $e');
@@ -44,6 +43,7 @@ class OrderListBloc extends Bloc<OrderListEvent, OrderListState> {
     emit(state.copyWith(status: DataStatus.loading));
     try {
       final order = await _repository.insertOrder(event.order);
+      print('[OrderListBloc] Inserted Order ID: ${order.id}');
       final products = event.products
           .map((product) => orderProductRepository.insertOrderProduct(
                 product.copyWith(orderId: order.id),
@@ -52,8 +52,7 @@ class OrderListBloc extends Bloc<OrderListEvent, OrderListState> {
       await Future.wait(products);
       // Update product stock: add quantity for each product
       final updateStockFutures = event.products.map((product) {
-        return productRepository.updateProductStock(
-            product.productId, product.quantity);
+        return productRepository.updateProductStock(product.productId, product.quantity);
       }).toList();
       await Future.wait(updateStockFutures);
 
@@ -69,9 +68,7 @@ class OrderListBloc extends Bloc<OrderListEvent, OrderListState> {
     emit(state.copyWith(status: DataStatus.loading));
     try {
       await _repository.updateOrder(event.order);
-      final orders = state.allOrders
-          .map((o) => o.id == event.order.id ? event.order : o)
-          .toList();
+      final orders = state.allOrders.map((o) => o.id == event.order.id ? event.order : o).toList();
       emit(state.copyWith(allOrders: orders, status: DataStatus.success));
     } catch (e) {
       emit(state.copyWith(status: DataStatus.error));

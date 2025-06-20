@@ -480,7 +480,6 @@ class OrderFormBloc extends Bloc<OrderFormEvent, OrderFormState> {
       dialogErrorMessage: null,
       creationDate: event.creationDate,
       creatorId: event.creatorId,
-      orderId: event.id,
       status: FormStatus.submitting,
     ));
   }

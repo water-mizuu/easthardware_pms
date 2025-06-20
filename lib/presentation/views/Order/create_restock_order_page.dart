@@ -26,6 +26,7 @@ import 'package:easthardware_pms/presentation/widgets/ui/text_button.dart';
 import 'package:easthardware_pms/presentation/widgets/ui/text_form_boxes.dart';
 import 'package:easthardware_pms/utils/typed_routes.dart';
 import 'package:fluent_ui/fluent_ui.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:provider/provider.dart';
 
@@ -160,7 +161,6 @@ class OrderPageHeader extends StatelessWidget {
           onPressed: () {
             final creationDate = DateTime.now();
             final creatorId = context.read<AuthenticationBloc>().state.user?.id;
-            final orderId = context.read<OrderListBloc>().state.allOrders.length;
             final restockExpenseType =
                 ExpenseType(id: 0, name: 'Inventory Restock', archiveStatus: 0);
             context.read<OrderFormBloc>().add(ExpenseTypeChangedEvent(restockExpenseType));
@@ -168,7 +168,6 @@ class OrderPageHeader extends StatelessWidget {
                   SaveRestockOrderRequestEvent(
                     creationDate: creationDate,
                     creatorId: creatorId!,
-                    id: orderId,
                   ),
                 );
           },
@@ -643,6 +642,9 @@ class _RestockOrderFormTableRowState extends State<_RestockOrderFormTableRow> {
                             child: TextFormBoxes.ghost(
                               controller: _quantityController,
                               placeholder: '0',
+                              inputFormatters: [
+                                FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}')),
+                              ],
                             ),
                           ),
                           if (currentProduct.productId != null)
@@ -728,6 +730,7 @@ class _RestockOrderFormTableRowState extends State<_RestockOrderFormTableRow> {
                     child: TextFormBoxes.ghost(
                       controller: _rateController,
                       placeholder: '0.0',
+                      enabled: false,
                     ),
                   ),
                 ),

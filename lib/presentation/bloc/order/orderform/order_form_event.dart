@@ -137,26 +137,22 @@ class SaveRestockOrderRequestEvent extends OrderFormEvent {
   const SaveRestockOrderRequestEvent({
     required this.creationDate,
     required this.creatorId,
-    required this.id,
   });
   final DateTime creationDate;
   final dynamic creatorId;
-  final int? id;
 
   @override
-  List<Object?> get props => [creationDate, creatorId, id];
+  List<Object?> get props => [creationDate, creatorId];
 }
 
 class SaveExpenseOrderRequestEvent extends OrderFormEvent {
   const SaveExpenseOrderRequestEvent({
     required this.creationDate,
     required this.creatorId,
-    required this.id,
   });
   final DateTime creationDate;
   final dynamic creatorId;
-  final int? id;
 
   @override
-  List<Object?> get props => [creationDate, creatorId, id];
+  List<Object?> get props => [creationDate, creatorId];
 }

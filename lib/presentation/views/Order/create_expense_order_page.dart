@@ -137,12 +137,10 @@ class OrderPageHeader extends StatelessWidget {
           onPressed: () {
             final creationDate = DateTime.now();
             final creatorId = context.read<AuthenticationBloc>().state.user?.id;
-            final orderId = context.read<OrderListBloc>().state.allOrders.length;
             context.read<OrderFormBloc>().add(
                   SaveExpenseOrderRequestEvent(
                     creationDate: creationDate,
                     creatorId: creatorId!,
-                    id: orderId,
                   ),
                 );
           },
@@ -629,6 +627,9 @@ class _OrderFormTableRowState extends State<_OrderFormTableRow> {
                       child: TextFormBoxes.ghost(
                         controller: _rateController,
                         placeholder: '0.00',
+                        inputFormatters: [
+                          FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}')),
+                        ],
                       ),
                     ),
                   ),
