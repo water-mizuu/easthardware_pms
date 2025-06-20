@@ -6,7 +6,7 @@ class InventoryDisplayState with EquatableMixin {
     this.filteredProducts,
     this.searchQuery = '',
     this.category,
-    this.sortBy,
+    this.sortBy = InventoryDisplaySortBy.urgency,
   });
 
   InventoryDisplayState.empty()
@@ -14,27 +14,27 @@ class InventoryDisplayState with EquatableMixin {
         filteredProducts = null,
         searchQuery = '',
         category = null,
-        sortBy = null;
+        sortBy = InventoryDisplaySortBy.urgency;
 
   final WeakReference<List<Product>>? allProducts;
   final List<Product>? filteredProducts;
   final String searchQuery;
   final Category? category;
-  final InventoryDisplaySortBy? sortBy;
+  final InventoryDisplaySortBy sortBy;
 
   InventoryDisplayState Function({
     WeakReference<List<Product>>? allProducts,
     List<Product>? filteredProducts,
     String searchQuery,
     Category? category,
-    InventoryDisplaySortBy? sortBy,
+    InventoryDisplaySortBy sortBy,
   }) get copyWith {
     return ({
       Object? allProducts = undefined,
       Object? filteredProducts = undefined,
       Object? searchQuery = undefined,
       Object? category = undefined,
-      Object? sortBy = undefined,
+      Object sortBy = undefined,
     }) {
       return InventoryDisplayState(
         allProducts: allProducts.or(this.allProducts),
@@ -47,11 +47,5 @@ class InventoryDisplayState with EquatableMixin {
   }
 
   @override
-  List<Object?> get props => [
-        allProducts,
-        filteredProducts,
-        searchQuery,
-        category,
-        sortBy,
-      ];
+  List<Object?> get props => [allProducts, filteredProducts, searchQuery, category, sortBy];
 }

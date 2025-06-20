@@ -182,7 +182,7 @@ class DependencyInjector extends ChangeNotifier {
       BlocProvider(
         key: key(),
         create: (context) {
-          final state = _userLogListBloc?.state ?? const UserLogListState();
+          final state = _userLogListBloc?.state ?? UserLogListState();
 
           return _userLogListBloc = UserLogListBloc(_userRepository, _userLogRepository, state)
             ..addIf(_databaseHelper != null, const LoadUserLogsEvent());

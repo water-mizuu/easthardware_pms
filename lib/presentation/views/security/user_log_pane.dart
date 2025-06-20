@@ -3,6 +3,7 @@ import 'package:easthardware_pms/domain/models/user.dart';
 import 'package:easthardware_pms/presentation/bloc/security/user_list/user_list_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/security/user_log_list/user_log_list_bloc.dart';
 import 'package:easthardware_pms/presentation/router/app_routes.dart';
+import 'package:easthardware_pms/presentation/widgets/animated_single_child_scroll_view.dart';
 import 'package:easthardware_pms/presentation/widgets/helper/data_row_mapper.dart';
 import 'package:easthardware_pms/presentation/widgets/layout/spacing.dart';
 import 'package:easthardware_pms/presentation/widgets/text.dart';
@@ -10,8 +11,7 @@ import 'package:easthardware_pms/presentation/widgets/ui/data_table_place_holder
 import 'package:easthardware_pms/utils/typed_routes.dart';
 import 'package:fluent_ui/fluent_ui.dart';
 import 'package:flutter/material.dart' show DataColumn, DataTable;
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:scroll_animator/scroll_animator.dart';
+import 'package:provider/provider.dart';
 
 class UserLogPane extends StatelessWidget {
   const UserLogPane({super.key});
@@ -58,17 +58,24 @@ class PageActions extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        ComboBox<AccessLevel?>(
-          value: context.select((UserLogListBloc b) => b.state.accessLevelQuery),
-          onChanged: (value) {
-            context.read<UserLogListBloc>().add(AccessLevelQueryUpdatedEvent(value));
+        /// Wrap the thing in a builder to avoid rerendering the entire widget
+        ///   and localize the changes to just the ComboBox.
+        Selector(
+          selector: (_, UserLogListBloc bloc) => bloc.state.queryData.accessLevel,
+          builder: (context, accessLevel, _) {
+            return ComboBox<AccessLevel?>(
+              value: context.select((UserLogListBloc b) => b.state.queryData.accessLevel),
+              onChanged: (value) {
+                context.read<UserLogListBloc>().add(AccessLevelQueryUpdatedEvent(value));
+              },
+              placeholder: const Text('Level of Access'),
+              items: [
+                const ComboBoxItem(value: null, child: Text('All')),
+                for (final accessLevel in AccessLevel.values)
+                  ComboBoxItem(value: accessLevel, child: Text(accessLevel.toString())),
+              ],
+            );
           },
-          placeholder: const Text('Level of Access'),
-          items: [
-            const ComboBoxItem(value: null, child: Text('All')),
-            for (final accessLevel in AccessLevel.values)
-              ComboBoxItem(value: accessLevel, child: Text(accessLevel.toString())),
-          ],
         ),
         Expanded(
           child: TextBox(
@@ -78,46 +85,46 @@ class PageActions extends StatelessWidget {
             },
           ),
         ),
-        // Column(
-        //   children: [
-        //     const CaptionText('From Date'),
-        //     DatePicker(selected: null),
-        //   ],
-        // ),
-        // Column(
-        //   children: [
-        //     const CaptionText('To Date'),
-        //     DatePicker(selected: null),
-        //   ],
-        // ),
+        Column(
+          children: [
+            const CaptionText('From Date'),
+            Selector(
+              selector: (_, UserLogListBloc b) => b.state.queryData.startDate,
+              builder: (context, startDate, _) {
+                return DatePicker(
+                  selected: startDate,
+                  onChanged: (value) {
+                    context.read<UserLogListBloc>().add(StartDateQueryUpdatedEvent(value));
+                  },
+                );
+              },
+            ),
+          ],
+        ),
+        Column(
+          children: [
+            const CaptionText('To Date'),
+            Selector(
+              selector: (_, UserLogListBloc bloc) => bloc.state.queryData.endDate,
+              builder: (context, endDate, _) {
+                return DatePicker(
+                  selected: endDate,
+                  onChanged: (value) {
+                    context.read<UserLogListBloc>().add(EndDateQueryUpdatedEvent(value));
+                  },
+                );
+              },
+            ),
+          ],
+        ),
         const Spacer(flex: 2),
       ].withSpacing(() => Spacing.h16),
     );
   }
 }
 
-class UserLogDataTable extends StatefulWidget {
+class UserLogDataTable extends StatelessWidget {
   const UserLogDataTable({super.key});
-
-  @override
-  State<UserLogDataTable> createState() => _UserLogDataTableState();
-}
-
-class _UserLogDataTableState extends State<UserLogDataTable> {
-  late final AnimatedScrollController _scrollController;
-
-  @override
-  void initState() {
-    super.initState();
-
-    _scrollController = AnimatedScrollController(animationFactory: const ChromiumEaseInOut());
-  }
-
-  @override
-  void dispose() {
-    _scrollController.dispose();
-    super.dispose();
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -149,8 +156,7 @@ class _UserLogDataTableState extends State<UserLogDataTable> {
         return Expanded(
           child: DecoratedBox(
             decoration: const BoxDecoration(color: Colors.white),
-            child: SingleChildScrollView(
-              controller: _scrollController,
+            child: AnimatedSingleChildScrollView(
               child: DataTable(
                 columns: const [
                   DataColumn(label: Text('ID')),

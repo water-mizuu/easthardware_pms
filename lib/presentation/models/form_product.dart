@@ -3,8 +3,9 @@ import 'package:easthardware_pms/domain/models/invoice_product.dart';
 import 'package:easthardware_pms/domain/models/order_product.dart';
 import 'package:easthardware_pms/domain/models/product.dart';
 import 'package:easthardware_pms/utils/undefined.dart';
+import 'package:equatable/equatable.dart';
 
-class FormProduct {
+class FormProduct with EquatableMixin {
   factory FormProduct.fromProduct(Product product) {
     return FormProduct(
       productId: product.id,
@@ -47,16 +48,16 @@ class FormProduct {
 
   FormProduct Function({
     int? productId,
-    String? productName,
+    String productName,
     String? description,
-    double? quantity,
-    String? unit,
+    double quantity,
     int? unitId,
+    String unit,
     double? conversionFactor,
-    double? rate,
-    double? amount,
+    double rate,
+    double amount,
     double? discount,
-    DiscountType? discountType,
+    DiscountType discountType,
     String? errorMessage,
   }) get copyWith {
     return ({
@@ -132,6 +133,22 @@ class FormProduct {
       'discountType': discountType.name,
     };
   }
+
+  @override
+  List<Object?> get props => [
+        productId,
+        productName,
+        description,
+        quantity,
+        unitId,
+        unit,
+        conversionFactor,
+        rate,
+        amount,
+        discount,
+        discountType,
+        errorMessage,
+      ];
 }
 
 class EmptyFormProduct extends FormProduct {

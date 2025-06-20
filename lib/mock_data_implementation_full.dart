@@ -774,15 +774,15 @@ Future<void> generateMockData(DatabaseHelper databaseHelper) async {
   // STEP 5: CREATE EXPENSE TYPES
   final mockExpenseTypes = <model.ExpenseType?>[
     null,
-    model.ExpenseType(name: 'Equipment'),
-    model.ExpenseType(name: 'Utilities'),
-    model.ExpenseType(name: 'Rent'),
-    model.ExpenseType(name: 'Salaries'),
-    model.ExpenseType(name: 'Marketing'),
-    model.ExpenseType(name: 'Insurance'),
-    model.ExpenseType(name: 'Maintenance'),
-    model.ExpenseType(name: 'Office Supplies'),
-    model.ExpenseType(name: 'Transportation'),
+    const model.ExpenseType(name: 'Equipment'),
+    const model.ExpenseType(name: 'Utilities'),
+    const model.ExpenseType(name: 'Rent'),
+    const model.ExpenseType(name: 'Salaries'),
+    const model.ExpenseType(name: 'Marketing'),
+    const model.ExpenseType(name: 'Insurance'),
+    const model.ExpenseType(name: 'Maintenance'),
+    const model.ExpenseType(name: 'Office Supplies'),
+    const model.ExpenseType(name: 'Transportation'),
   ];
 
   // Add expense types to database

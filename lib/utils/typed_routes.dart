@@ -57,7 +57,7 @@ extension SafeNavigationExtension on BuildContext {
 
   /// Navigates to a route which requires an extra parameter.
   ///   The [extra] parameter should match the type signature of the route.
-  void navigateWithExtra<E extends Object, R extends AppRoute<E>>(R route, E extra) {
+  void navigateWithExtra<E, R extends AppRoute<E>>(R route, E extra) {
     final cubit = read<NavigationCubit>();
 
     if (cubit.state.route != route || cubit.state.extra != extra) {

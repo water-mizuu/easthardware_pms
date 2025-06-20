@@ -7,6 +7,7 @@ import 'package:easthardware_pms/domain/models/user.dart';
 import 'package:easthardware_pms/domain/models/user_log.dart';
 import 'package:easthardware_pms/domain/repository/user_log_repository.dart';
 import 'package:easthardware_pms/domain/repository/user_repository.dart';
+import 'package:easthardware_pms/presentation/views/dashboard/cards/sales_overview.dart';
 import 'package:easthardware_pms/utils/duration.dart';
 import 'package:easthardware_pms/utils/levenshtein.dart';
 import 'package:easthardware_pms/utils/notification.dart';
@@ -36,6 +37,8 @@ class UserLogListBloc extends Bloc<UserLogListEvent, UserLogListState> {
 
     on<SearchQueryUpdatedEvent>(_onSearchQueryUpdated, transformer: debounce(1.seconds));
     on<AccessLevelQueryUpdatedEvent>(_onAccessLevelQueryUpdated);
+    on<StartDateQueryUpdatedEvent>(_onStartDateQueryUpdated);
+    on<EndDateQueryUpdatedEvent>(_onEndDateQueryUpdated);
     on<_FilterUserLogsEvent>(_onFilterUserLogs);
   }
   final UserRepository _userRepository;
@@ -150,28 +153,63 @@ class UserLogListBloc extends Bloc<UserLogListEvent, UserLogListState> {
     }
   }
 
-  Future<void> _onFilterUserLogs(_FilterUserLogsEvent event, Emitter<UserLogListState> emit) async {
+  Future<void> _onAddLogoutLog(AddLogoutEvent event, Emitter<UserLogListState> emit) async {
+    try {
+      final userLog = UserLog.logout(user: event.user);
+      final insertedUserLog = await _userLogRepository.insertUserLog(userLog);
+      final userLogs = List<UserLog>.from(state.userLogs)..add(insertedUserLog);
+
+      emit(state.copyWith(userLogs: userLogs, status: DataStatus.success));
+    } catch (e) {
+      if (kDebugMode) {
+        print("BLoC Error inserting user log: $e");
+      }
+      emit(state.copyWith(status: DataStatus.error, errorMessage: e.toString()));
+    }
+  }
+
+  Future<void> _onFilterUserLogs(
+    _FilterUserLogsEvent event,
+    Emitter<UserLogListState> emit,
+  ) async {
     emit(state.copyWith(status: DataStatus.loading));
     try {
-      final query = state.query;
-      final assignedUsers = await state.userLogs //
+      /// We only get the logs that are within the date range specified in the query data.
+      ///   This is to avoid processing logs that are not relevant to the current query.
+      final logsWithinTheDate = state.userLogs
+          .where((log) => log.eventTime.isAfter(state.queryData.startDate))
+          .where((log) => log.eventTime.isBefore(state.queryData.endDate))
+          .toList();
+
+      /// We get the users assigned to each of the logs within the date range.
+      ///   This allows us to search stuff like "John Doe" and filter by access level.
+      final assignedUsers = await logsWithinTheDate //
           .map((log) => _userRepository.getUserById(log.userId))
           .toList()
           .wait;
 
+      /// We create a map of user IDs to their corresponding User objects for quick access.
+      ///   This is used to filter logs by access level and to display user information in the
+      ///   search results.
       final usersForEachLog = {
-        for (final (user, log) in assignedUsers.zip(state.userLogs)) log.id: user
+        for (final (user, log) in assignedUsers.zip(logsWithinTheDate)) log.id: user
       };
 
-      final selectedUserLogs = state.userLogs //
-          .where((log) =>
-              state.accessLevelQuery == null ||
-              state.accessLevelQuery == usersForEachLog[log.id]?.accessLevel)
+      /// We filter the logs based on the access level specified in the query data.
+      ///   If no access level is specified, we include all logs.
+      ///   We do this after fetching the users, as we cannot really "know" the access level
+      ///   of a log without knowing the user assigned to it.
+      final selectedUserLogs = logsWithinTheDate //
+          .where((l) =>
+              state.queryData.accessLevel == null ||
+              state.queryData.accessLevel == usersForEachLog[l.id]?.accessLevel)
           .toList();
 
+      /// We rank the logs based on the search query specified in the query data.
+      ///  This uses the Levenshtein distance algorithm to find the most relevant logs.
       final ranked = await Levenshtein.rankItems(
         selectedUserLogs,
-        query ?? '',
+        state.queryData.query ?? '',
         (log) => {
           log.id.toString(),
           log.event,
@@ -197,26 +235,11 @@ class UserLogListBloc extends Bloc<UserLogListEvent, UserLogListState> {
     }
   }
 
-  Future<void> _onAddLogoutLog(AddLogoutEvent event, Emitter<UserLogListState> emit) async {
-    try {
-      final userLog = UserLog.logout(user: event.user);
-      final insertedUserLog = await _userLogRepository.insertUserLog(userLog);
-      final userLogs = List<UserLog>.from(state.userLogs)..add(insertedUserLog);
-
-      emit(state.copyWith(userLogs: userLogs, status: DataStatus.success));
-    } catch (e) {
-      if (kDebugMode) {
-        print("BLoC Error inserting user log: $e");
-      }
-      emit(state.copyWith(status: DataStatus.error, errorMessage: e.toString()));
-    }
-  }
-
   Future<void> _onSearchQueryUpdated(
     SearchQueryUpdatedEvent event,
     Emitter<UserLogListState> emit,
   ) async {
-    emit(state.copyWith(query: event.query));
+    emit(state.copyWith(queryData: state.queryData.copyWith(query: event.query)));
     add(const _FilterUserLogsEvent());
   }
 
@@ -224,7 +247,23 @@ class UserLogListBloc extends Bloc<UserLogListEvent, UserLogListState> {
     AccessLevelQueryUpdatedEvent event,
     Emitter<UserLogListState> emit,
   ) async {
-    emit(state.copyWith(accessLevelQuery: event.accessLevel));
+    emit(state.copyWith(queryData: state.queryData.copyWith(accessLevel: event.accessLevel)));
+    add(const _FilterUserLogsEvent());
+  }
+
+  Future<void> _onStartDateQueryUpdated(
+    StartDateQueryUpdatedEvent event,
+    Emitter<UserLogListState> emit,
+  ) async {
+    emit(state.copyWith(queryData: state.queryData.copyWith(startDate: event.startDate)));
+    add(const _FilterUserLogsEvent());
+  }
+
+  Future<void> _onEndDateQueryUpdated(
+    EndDateQueryUpdatedEvent event,
+    Emitter<UserLogListState> emit,
+  ) async {
+    emit(state.copyWith(queryData: state.queryData.copyWith(endDate: event.endDate)));
     add(const _FilterUserLogsEvent());
   }
 }

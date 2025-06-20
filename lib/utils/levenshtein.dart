@@ -51,7 +51,7 @@ final class Levenshtein {
   ]) async {
     if (items.isEmpty || query.isEmpty) {
       // Return the original list if empty or query is empty
-      return items..sort((a, b) => comparator?.call(a, b) ?? 0);
+      return [...items]..sort((a, b) => comparator?.call(a, b) ?? 0);
     }
 
     /// This should contain the items that are being ranked.

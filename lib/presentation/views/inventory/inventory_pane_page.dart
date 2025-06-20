@@ -347,37 +347,32 @@ class SortByButton extends StatelessWidget {
     return DropDownButton(
       title: Padding(
         padding: AppPadding.a4,
-        child: selectedCategory != null
-            ? ButtonText(selectedCategory.name, overflow: TextOverflow.fade)
-            : const ButtonText('Sort By'),
+        child: ButtonText(selectedCategory.name, overflow: TextOverflow.fade),
       ),
       items: [
-        MenuFlyoutItem(
-          text: const BodyText('Name Ascending'),
-          onPressed: () {
-            _chooseSort(context, InventoryDisplaySortBy.nameAscending);
-          },
-        ),
-        MenuFlyoutItem(
-          text: const BodyText('Name Descending'),
-          onPressed: () {
-            _chooseSort(context, InventoryDisplaySortBy.nameDescending);
-          },
-        ),
+        _buildSortMenuItem(context, InventoryDisplaySortBy.nameAscending),
+        _buildSortMenuItem(context, InventoryDisplaySortBy.nameDescending),
         const MenuFlyoutSeparator(),
-        MenuFlyoutItem(
-          text: const BodyText('Stock Ascending'),
-          onPressed: () {
-            _chooseSort(context, InventoryDisplaySortBy.stockAscending);
-          },
-        ),
-        MenuFlyoutItem(
-          text: const BodyText('Stock Descending'),
-          onPressed: () {
-            _chooseSort(context, InventoryDisplaySortBy.stockDescending);
-          },
-        ),
+        _buildSortMenuItem(context, InventoryDisplaySortBy.stockAscending),
+        _buildSortMenuItem(context, InventoryDisplaySortBy.stockDescending),
+        const MenuFlyoutSeparator(),
+        _buildSortMenuItem(context, InventoryDisplaySortBy.priceAscending),
+        _buildSortMenuItem(context, InventoryDisplaySortBy.priceDescending),
+        const MenuFlyoutSeparator(),
+        _buildSortMenuItem(context, InventoryDisplaySortBy.urgency),
       ],
+    );
+  }
+
+  MenuFlyoutItem _buildSortMenuItem(
+    BuildContext context,
+    InventoryDisplaySortBy sortBy,
+  ) {
+    return MenuFlyoutItem(
+      text: BodyText(sortBy.name),
+      onPressed: () {
+        _chooseSort(context, sortBy);
+      },
     );
   }
 

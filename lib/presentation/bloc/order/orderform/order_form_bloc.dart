@@ -26,7 +26,7 @@ class OrderFormBloc extends Bloc<OrderFormEvent, OrderFormState> {
     on<MemoChangedEvent>(_onMemoChanged);
     on<ProductAddedEvent>(_onProductAdded);
     on<ProductRemovedEvent>(_onProductRemoved);
-    on<ProductSelectedEvent>(_onProductSelected);
+    // on<ProductSelectedEvent>(_onProductSelected);
     on<ProductUpdatedEvent>(_onProductUpdated);
     on<OrderItemAddedEvent>(_onOrderItemAdded);
     on<OrderItemRemovedEvent>(_onOrderItemRemoved);
@@ -38,27 +38,23 @@ class OrderFormBloc extends Bloc<OrderFormEvent, OrderFormState> {
     on<SaveExpenseOrderRequestEvent>(_onSaveExpenseOrderRequest);
   }
 
-  factory OrderFormBloc.RestockOrder() {
+  factory OrderFormBloc.fromRestockOrder(Product? product) {
     return OrderFormBloc(
-      OrderFormState.RestockOrder(null, null),
+      OrderFormState.restockOrder(product, null),
     );
   }
-  factory OrderFormBloc.ExpenseOrder() {
+  factory OrderFormBloc.fromExpenseOrder() {
     return OrderFormBloc(
-      OrderFormState.ExpenseOrder(null),
+      OrderFormState.expenseOrder(null),
     );
   }
-  factory OrderFormBloc.FromRestockOrder(Product? product, int? orderId) {
+  factory OrderFormBloc.fromExistingRestockOrder(Product? product, int? orderId) {
     // TODO: Implement
-    return OrderFormBloc(
-      OrderFormState.RestockOrder(product, orderId),
-    );
+    return OrderFormBloc(OrderFormState.restockOrder(product, orderId));
   }
-  factory OrderFormBloc.FromExpenseOrder(int? orderId) {
+  factory OrderFormBloc.fromExistingExpenseOrder(int? orderId) {
     // TODO: Implement
-    return OrderFormBloc(
-      OrderFormState.ExpenseOrder(orderId),
-    );
+    return OrderFormBloc(OrderFormState.expenseOrder(orderId));
   }
 
   final GlobalKey<FormState> formKey;
@@ -119,17 +115,21 @@ class OrderFormBloc extends Bloc<OrderFormEvent, OrderFormState> {
 
   void _onProductRemoved(ProductRemovedEvent event, Emitter<OrderFormState> emit) {
     final updatedProducts = List<FormProduct>.from(state.products!)..removeAt(event.index);
+    if (updatedProducts.isEmpty) {
+      updatedProducts.add(const EmptyFormProduct());
+    }
+
     emit(state.copyWith(products: updatedProducts));
   }
 
-  void _onProductSelected(ProductSelectedEvent event, Emitter<OrderFormState> emit) {
-    final updatedProducts = List<FormProduct>.from(state.products!);
-    if (event.index != -1) {
-      updatedProducts[event.index] =
-          FormProduct.fromProduct(event.product).copyWith(rate: event.product.orderCost, amount: 0);
-      emit(state.copyWith(products: updatedProducts));
-    }
-  }
+  // void _onProductSelected(ProductSelectedEvent event, Emitter<OrderFormState> emit) {
+  //   final updatedProducts = List<FormProduct>.from(state.products!);
+  //   if (event.index != -1) {
+  //     updatedProducts[event.index] =
+  //         FormProduct.fromProduct(event.product).copyWith(rate: event.product.orderCost, amount: 0);
+  //     emit(state.copyWith(products: updatedProducts));
+  //   }
+  // }
 
   void _onProductUpdated(ProductUpdatedEvent event, Emitter<OrderFormState> emit) {
     final updatedProducts = List<FormProduct>.from(state.products!);
@@ -143,6 +143,11 @@ class OrderFormBloc extends Bloc<OrderFormEvent, OrderFormState> {
       final amountDue = updatedProducts.fold<double>(
         0,
         (previousValue, element) => previousValue + (element.amount),
+      );
+
+      printBoxed(
+        'Updated product at index ${event.index} with amount:\n$adjustedProduct',
+        'OrderFormBloc',
       );
       emit(state.copyWith(products: updatedProducts, amountDue: amountDue));
     }
@@ -175,9 +180,9 @@ class OrderFormBloc extends Bloc<OrderFormEvent, OrderFormState> {
     formKey.currentState?.reset();
     // Emit the button pressed event to handle validation and submission
     if (state.orderType == OrderType.restock) {
-      emit(OrderFormState.RestockOrder(null, null));
+      emit(OrderFormState.restockOrder(null, null));
     } else if (state.orderType == OrderType.expense) {
-      emit(OrderFormState.ExpenseOrder(null));
+      emit(OrderFormState.expenseOrder(null));
     } else {
       emit(state.copyWith(status: FormStatus.error, dialogErrorMessage: 'Invalid order type.'));
     }

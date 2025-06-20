@@ -28,7 +28,7 @@ class CreateExpenseOrderPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (_) => OrderFormBloc.ExpenseOrder(),
+      create: (_) => OrderFormBloc.fromExpenseOrder(),
       child: MultiBlocListener(
         listeners: [
           BlocListener<OrderFormBloc, OrderFormState>(
@@ -438,18 +438,14 @@ class OrderProductDataTable extends StatelessWidget {
             ],
           ),
         ),
-        BlocBuilder<OrderFormBloc, OrderFormState>(
-            buildWhen: (previous, current) => previous.products != current.products,
-            builder: (context, state) {
-              return ListView.builder(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                itemCount: orderItems.length,
-                itemBuilder: (context, index) {
-                  return _OrderFormTableRow(index: index);
-                },
-              );
-            }),
+        ListView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          itemCount: orderItems.length,
+          itemBuilder: (context, index) {
+            return _OrderFormTableRow(index: index);
+          },
+        ),
       ],
     );
   }
@@ -472,6 +468,7 @@ class _OrderFormTableRowState extends State<_OrderFormTableRow> {
   @override
   void initState() {
     super.initState();
+
     final initialOrderItem = context.read<OrderFormBloc>().state.orderItems![widget.index];
     _descriptionController = TextEditingController(text: initialOrderItem.description ?? '');
     _quantityController = TextEditingController(text: initialOrderItem.quantity.toString());

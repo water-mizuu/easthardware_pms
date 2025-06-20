@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:easthardware_pms/domain/enums/enums.dart'
     show AccessLevel, DataStatus, FormStatus, OrderType;
@@ -10,11 +11,12 @@ import 'package:easthardware_pms/presentation/bloc/inventory/product_list/produc
 import 'package:easthardware_pms/presentation/bloc/inventory/unit_list/unit_list_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/order/orderform/order_form_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/order/orderlist/order_list_bloc.dart';
-import 'package:easthardware_pms/presentation/models/form_product.dart';
 import 'package:easthardware_pms/presentation/router/app_router.dart';
 import 'package:easthardware_pms/presentation/router/app_routes.dart';
 import 'package:easthardware_pms/presentation/widgets/animated_single_child_scroll_view.dart';
+import 'package:easthardware_pms/presentation/widgets/auto_auto_suggest_box.dart';
 import 'package:easthardware_pms/presentation/widgets/expense_type_combo_box.dart';
+import 'package:easthardware_pms/presentation/widgets/helper/currency_formatter.dart';
 import 'package:easthardware_pms/presentation/widgets/layout/spacing.dart';
 import 'package:easthardware_pms/presentation/widgets/payment_method_combo_box.dart';
 import 'package:easthardware_pms/presentation/widgets/text.dart';
@@ -24,11 +26,21 @@ import 'package:easthardware_pms/presentation/widgets/ui/form_table_column.dart'
 import 'package:easthardware_pms/presentation/widgets/ui/styles.dart';
 import 'package:easthardware_pms/presentation/widgets/ui/text_button.dart';
 import 'package:easthardware_pms/presentation/widgets/ui/text_form_boxes.dart';
+import 'package:easthardware_pms/utils/boxed.dart';
 import 'package:easthardware_pms/utils/typed_routes.dart';
 import 'package:fluent_ui/fluent_ui.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:provider/provider.dart';
+
+part 'create_restock_order_page/amount.dart';
+part 'create_restock_order_page/description.dart';
+part 'create_restock_order_page/header.dart';
+part 'create_restock_order_page/index.dart';
+part 'create_restock_order_page/product_name.dart';
+part 'create_restock_order_page/quantity_and_unit.dart';
+part 'create_restock_order_page/rate.dart';
+part 'create_restock_order_page/remove_button.dart';
 
 class CreateRestockOrderPage extends StatefulWidget {
   const CreateRestockOrderPage({this.product, super.key});
@@ -45,13 +57,14 @@ class _CreateRestockOrderPageState extends State<CreateRestockOrderPage> {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (_) => OrderFormBloc.FromRestockOrder(widget.product, widget.product?.id),
+      key: ValueKey(widget.product),
+      create: (_) => OrderFormBloc.fromRestockOrder(widget.product),
       child: MultiBlocListener(
         listeners: [
           BlocListener<OrderFormBloc, OrderFormState>(
-            listenWhen: (previous, current) =>
-                previous.status != current.status ||
-                previous.dialogErrorMessage != current.dialogErrorMessage,
+            listenWhen: (p, c) =>
+                p.status != c.status || //
+                p.dialogErrorMessage != c.dialogErrorMessage,
             listener: (context, state) {
               if (state.status == FormStatus.error && state.dialogErrorMessage != null) {
                 unawaited(showDialog<String>(
@@ -80,9 +93,9 @@ class _CreateRestockOrderPageState extends State<CreateRestockOrderPage> {
             },
           ),
           BlocListener<OrderListBloc, OrderListState>(
-            listenWhen: (previous, current) =>
-                previous.allOrders.length != current.allOrders.length &&
-                current.status == DataStatus.success,
+            listenWhen: (p, c) =>
+                p.allOrders.length != c.allOrders.length && //
+                c.status == DataStatus.success,
             listener: (context, state) {
               context.read<ProductListBloc>().add(const ReloadAllProductsEvent());
               if (context.read<AuthenticationBloc>().state.user!.accessLevel ==
@@ -121,7 +134,7 @@ class _CreateRestockOrderPageState extends State<CreateRestockOrderPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const OrderPageHeader(),
+              const _Header(),
               Spacing.v16,
               Expanded(
                 child: Container(
@@ -137,43 +150,6 @@ class _CreateRestockOrderPageState extends State<CreateRestockOrderPage> {
           ),
         ),
       ),
-    );
-  }
-}
-
-class OrderPageHeader extends StatelessWidget {
-  const OrderPageHeader({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        IconButton(
-          icon: const Icon(FluentIcons.back),
-          onPressed: () {
-            context.navigate(AppRoutes.admin.order);
-          },
-        ),
-        const DisplayText("Create Restock Order"),
-        const Spacer(flex: 1),
-        TextButtonFilled(
-          'Save Order',
-          onPressed: () {
-            final creationDate = DateTime.now();
-            final creatorId = context.read<AuthenticationBloc>().state.user?.id;
-            final restockExpenseType =
-                ExpenseType(id: 0, name: 'Inventory Restock', archiveStatus: 0);
-            context.read<OrderFormBloc>().add(ExpenseTypeChangedEvent(restockExpenseType));
-            context.read<OrderFormBloc>().add(
-                  SaveRestockOrderRequestEvent(
-                    creationDate: creationDate,
-                    creatorId: creatorId!,
-                  ),
-                );
-          },
-        ),
-        Spacing.h4,
-      ].withSpacing(() => Spacing.h16),
     );
   }
 }
@@ -216,8 +192,9 @@ class OrderPageForm extends StatelessWidget {
                     Spacing.v8,
                     TextFormBox(
                       initialValue: state.payeeName,
-                      onChanged: (value) =>
-                          context.read<OrderFormBloc>().add(PayeeNameChangedEvent(value)),
+                      onChanged: (value) => context //
+                          .read<OrderFormBloc>()
+                          .add(PayeeNameChangedEvent(value)),
                     ),
                     if (context.watch<OrderFormBloc>().state.payeeNameErrorMessage != null)
                       Text(
@@ -368,7 +345,7 @@ class _OrderSummaryAndMemo extends StatelessWidget {
                       style: TextStyle(fontWeight: FontWeight.bold),
                     ),
                     Text(
-                      "Php. ${total?.toStringAsFixed(2)}",
+                      CurrencyFormatter.full(total ?? 0.0),
                       style: const TextStyle(fontWeight: FontWeight.bold),
                     ),
                   ],
@@ -481,87 +458,26 @@ class OrderProductDataTable extends StatelessWidget {
   }
 }
 
-class _RestockOrderFormTableRow extends StatefulWidget {
+class _RestockOrderFormTableRow extends StatelessWidget {
   const _RestockOrderFormTableRow({required this.index});
+
   final int index;
 
   @override
-  State<_RestockOrderFormTableRow> createState() => _RestockOrderFormTableRowState();
-}
-
-class _RestockOrderFormTableRowState extends State<_RestockOrderFormTableRow> {
-  late TextEditingController _quantityController;
-  late TextEditingController _rateController;
-
-  @override
-  void initState() {
-    super.initState();
-
-    final initialProduct = context.read<OrderFormBloc>().state.products![widget.index];
-    _quantityController = TextEditingController(text: initialProduct.quantity.toString());
-    _rateController = TextEditingController(text: initialProduct.rate.toString());
-
-    _quantityController.addListener(() {
-      final bloc = context.read<OrderFormBloc>();
-      final currentProduct = bloc.state.products![widget.index];
-      final newValue = double.tryParse(_quantityController.text) ?? 0;
-      if (currentProduct.quantity != newValue) {
-        bloc.add(ProductUpdatedEvent(
-          currentProduct.copyWith(quantity: newValue, amount: newValue * currentProduct.rate),
-          widget.index,
-        ));
-      }
-    });
-
-    _rateController.addListener(() {
-      final bloc = context.read<OrderFormBloc>();
-      final currentProduct = bloc.state.products![widget.index];
-      final newValue = double.tryParse(_rateController.text) ?? 0;
-      if (currentProduct.rate != newValue) {
-        bloc.add(ProductUpdatedEvent(
-          currentProduct.copyWith(rate: newValue, amount: currentProduct.quantity * newValue),
-          widget.index,
-        ));
-      }
-    });
-  }
-
-  @override
-  void dispose() {
-    _quantityController.dispose();
-    _rateController.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
-    final products = context.select((ProductListBloc b) => b.state.allProducts);
-    final bloc = context.read<OrderFormBloc>();
-    final currentProduct = context.watch<OrderFormBloc>().state.products![widget.index];
+    final currentProduct = context.watch<OrderFormBloc>().state.products![index];
 
-    final newQuantity = currentProduct.quantity % 1 == 0
-        ? currentProduct.quantity.toInt().toString()
-        : currentProduct.quantity.toString();
-
-    final newRate = currentProduct.rate % 1 == 0
-        ? currentProduct.rate.toInt().toString()
-        : currentProduct.rate.toString();
-
-    if (_quantityController.text != newQuantity) {
-      _quantityController.text = newQuantity;
-    }
-
-    if (_rateController.text != newRate) {
-      _rateController.text = newRate;
-    }
-
-    return InheritedProvider<IndexedFormProduct>.value(
-      value: (widget.index, currentProduct),
+    return InheritedProvider<IndexedProductId>.value(
+      /// Instead of "prop drilling", we expose the index and the current product
+      ///   as a tuple to the children of this widget.
+      /// This allows us to access the index and the current product in the
+      ///   children without having to pass them down through the widget tree.
+      value: (index, currentProduct.productId),
       child: Container(
         decoration: BoxDecoration(
           color: currentProduct.errorMessage != null
               ? Colors.errorSecondaryColor
-              : widget.index % 2 == 0
+              : index % 2 == 0
                   ? const Color(0xFFFAFAFA)
                   : Colors.white,
           border: Border(bottom: BorderSide(color: Colors.grey[40])),
@@ -569,190 +485,15 @@ class _RestockOrderFormTableRowState extends State<_RestockOrderFormTableRow> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Row(
+            const Row(
               children: [
-                FormTableCell(
-                  child: SizedBox(
-                    height: 32.0,
-                    width: 32.0,
-                    child: Center(
-                      child: Text(
-                        (widget.index + 1).toString(),
-                      ),
-                    ),
-                  ),
-                ),
-                // Product
-                Expanded(
-                  flex: 2,
-                  child: Container(
-                    decoration: const BoxDecoration(
-                      border: Border(
-                        right: BorderSide(
-                          width: 0.5,
-                          color: Colors.transparent,
-                        ),
-                      ),
-                    ),
-                    child: AutoSuggestBox.form(
-                      decoration: BoxDecorations.ghost,
-                      foregroundDecoration: BoxDecorations.ghost,
-                      items: [
-                        for (final product in products)
-                          AutoSuggestBoxItem(
-                            value: product,
-                            label: product.name,
-                          ),
-                      ],
-                      onSelected: (value) {
-                        WidgetsBinding.instance.addPostFrameCallback((_) {
-                          if (currentProduct.productId == null) {
-                            final selectedProduct = value.value!;
-                            bloc.add(ProductSelectedEvent(
-                              selectedProduct.copyWith(orderCost: selectedProduct.orderCost),
-                              widget.index,
-                            ));
-                          } else if (currentProduct.productId != value.value!.id) {
-                            final selectedProduct = value.value!;
-                            bloc.add(ProductSelectedEvent(
-                              selectedProduct.copyWith(orderCost: selectedProduct.orderCost),
-                              widget.index,
-                            ));
-                          }
-                        });
-                      },
-                      placeholder: 'Select Product',
-                    ),
-                  ),
-                ),
-                // Description
-                const Expanded(
-                  flex: 2,
-                  child: _Description(),
-                ),
-                // Quantity + Unit
-                Expanded(
-                  child: FormTableCell(
-                    child: IntrinsicHeight(
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          Expanded(
-                            flex: 1,
-                            child: TextFormBoxes.ghost(
-                              controller: _quantityController,
-                              placeholder: '0',
-                              inputFormatters: [
-                                FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}')),
-                              ],
-                            ),
-                          ),
-                          if (currentProduct.productId != null)
-                            Expanded(
-                              flex: 2,
-                              child: DropDownButton(
-                                items: [
-                                  MenuFlyoutItem(
-                                      text: Text(
-                                        products
-                                            .firstWhere((p) => p.id == currentProduct.productId)
-                                            .mainUnit,
-                                      ),
-                                      onPressed: () {
-                                        bloc.add(ProductUpdatedEvent(
-                                          currentProduct.copyWith(
-                                            unitId: null,
-                                            rate: context
-                                                .read<ProductListBloc>()
-                                                .state
-                                                .allProducts
-                                                .firstWhere((p) => p.id == currentProduct.productId)
-                                                .orderCost,
-                                            unit: context
-                                                .read<ProductListBloc>()
-                                                .state
-                                                .allProducts
-                                                .firstWhere((p) => p.id == currentProduct.productId)
-                                                .mainUnit,
-                                            conversionFactor: 1.0,
-                                          ),
-                                          widget.index,
-                                        ));
-                                      }),
-                                  for (final unit in context
-                                      .read<UnitListBloc>()
-                                      .state
-                                      .units
-                                      .where((u) => u.productId == currentProduct.productId))
-                                    MenuFlyoutItem(
-                                      text: Text(unit.name),
-                                      onPressed: () {
-                                        bloc.add(ProductUpdatedEvent(
-                                          currentProduct.copyWith(unit: unit.name),
-                                          widget.index,
-                                        ));
-                                      },
-                                    ),
-                                ],
-                                buttonBuilder: (context, onOpen) {
-                                  return Button(
-                                      style: ButtonStyle(
-                                        padding: const WidgetStatePropertyAll(
-                                          EdgeInsetsDirectional.fromSTEB(0, 5, 0, 6),
-                                        ),
-                                        shape: WidgetStatePropertyAll(
-                                          RoundedRectangleBorder(
-                                            borderRadius: BorderRadius.circular(4.0),
-                                            side: const BorderSide(color: Colors.transparent),
-                                          ),
-                                        ),
-                                      ),
-                                      onPressed: onOpen,
-                                      child: Row(
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: [
-                                          Text(currentProduct.unit),
-                                          Spacing.h12,
-                                          const Icon(FluentIcons.chevron_down),
-                                        ],
-                                      ));
-                                },
-                              ),
-                            ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-                // Rate
-                Expanded(
-                  child: FormTableCell(
-                    child: TextFormBoxes.ghost(
-                      controller: _rateController,
-                      placeholder: '0.0',
-                      enabled: false,
-                    ),
-                  ),
-                ),
-                // Amount
-                Expanded(
-                  child: FormTableCell(
-                    child: TextFormBoxes.ghost(
-                      enabled: false,
-                      placeholder: currentProduct.amount.toStringAsFixed(2),
-                    ),
-                  ),
-                ),
-                widget.index > 0
-                    ? SizedBox(
-                        width: 82.0,
-                        child: Center(
-                          child: IconButton(
-                              icon: const Icon(FluentIcons.cancel),
-                              onPressed: () => bloc.add(ProductRemovedEvent(widget.index))),
-                        ),
-                      )
-                    : const SizedBox(width: 82.0)
+                _Index(),
+                Expanded(flex: 2, child: _ProductName()),
+                Expanded(flex: 2, child: _Description()),
+                Expanded(child: _QuantityAndUnit()),
+                Expanded(child: _Rate()),
+                Expanded(child: _Amount()),
+                _RemoveButton()
               ],
             ),
             if (currentProduct.errorMessage != null)
@@ -770,52 +511,4 @@ class _RestockOrderFormTableRowState extends State<_RestockOrderFormTableRow> {
   }
 }
 
-class _Description extends StatefulWidget {
-  const _Description();
-
-  @override
-  State<_Description> createState() => _DescriptionState();
-}
-
-class _DescriptionState extends State<_Description> {
-  late final TextEditingController _descriptionController;
-
-  @override
-  void initState() {
-    super.initState();
-
-    _descriptionController = TextEditingController(text: '');
-    _descriptionController.addListener(() {
-      final (index, currentProduct) = context.read<IndexedFormProduct>();
-
-      final newValue = _descriptionController.text.trim();
-      if (currentProduct.description != newValue) {
-        context
-            .read<OrderFormBloc>() //
-            .add(ProductUpdatedEvent(currentProduct.copyWith(description: newValue), index));
-      }
-    });
-  }
-
-  @override
-  void dispose() {
-    _descriptionController.dispose();
-
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final (index, currentProduct) = context.watch<IndexedFormProduct>();
-
-    return FormTableCell(
-      child: TextFormBoxes.ghost(
-        controller: _descriptionController,
-        enabled: currentProduct.productId != null,
-        placeholder: 'Sale Description',
-      ),
-    );
-  }
-}
-
-typedef IndexedFormProduct = (int, FormProduct);
+typedef IndexedProductId = (int, int?);

@@ -1,7 +1,7 @@
 import 'package:easthardware_pms/utils/undefined.dart';
 
 class ExpenseType {
-  ExpenseType({
+  const ExpenseType({
     this.id,
     required this.name,
     this.archiveStatus,
@@ -20,14 +20,17 @@ class ExpenseType {
   ExpenseType Function({
     int? id,
     String name,
+    int? archiveStatus,
   }) get copyWith {
     return ({
       Object? id = undefined,
       Object? name = undefined,
+      Object? archiveStatus = undefined,
     }) {
       return ExpenseType(
         id: id.or(this.id),
         name: name.or(this.name),
+        archiveStatus: archiveStatus.or(this.archiveStatus),
       );
     };
   }

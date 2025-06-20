@@ -24,14 +24,6 @@ class InventoryDisplayBloc extends Bloc<InventoryDisplayEvent, InventoryDisplayS
     on<_InventoryDisplayProcessQueryEvent>(_onProcessQuery, transformer: debounce(100.ms));
   }
 
-  @override
-  Future<void> onEvent(InventoryDisplayEvent event) async {
-    if (kDebugMode) {
-      print('InventoryDisplayBloc: onEvent: $event');
-    }
-    super.onEvent(event);
-  }
-
   Future<void> _onItemsUpdated(
     InventoryDisplayItemsUpdatedEvent event,
     Emitter<InventoryDisplayState> emit,
@@ -121,7 +113,45 @@ class InventoryDisplayBloc extends Bloc<InventoryDisplayEvent, InventoryDisplayS
         InventoryDisplaySortBy.nameDescending => (a, b) => b.name.compareTo(a.name),
         InventoryDisplaySortBy.stockAscending => (a, b) => a.quantity.compareTo(b.quantity),
         InventoryDisplaySortBy.stockDescending => (a, b) => b.quantity.compareTo(a.quantity),
-        null => null,
+        InventoryDisplaySortBy.priceAscending => (a, b) => a.salePrice.compareTo(b.salePrice),
+        InventoryDisplaySortBy.priceDescending => (a, b) => b.salePrice.compareTo(a.salePrice),
+        InventoryDisplaySortBy.urgency => (a, b) {
+            late final isAStockGone = a.quantity <= 0;
+            late final isBStockGone = b.quantity <= 0;
+
+            late final isAStockLow = a.quantity < a.criticalLevel;
+            late final isBStockLow = b.quantity < b.criticalLevel;
+
+            /// If they're both out of stock, sort by name.
+            if (isAStockGone && isBStockGone) {
+              return a.name.compareTo(b.name); // Both are out of stock
+            }
+
+            /// If only left is out of stock, return -1 (left is more urgent).
+            else if (isAStockGone) {
+              return -1; // A is out of stock, B is not
+            }
+
+            /// If only right is out of stock, return 1 (right is more urgent).
+            else if (isBStockGone) {
+              return 1; // B is out of stock, A is not
+            }
+
+            /// If they're both not zero stock, check if they're low stock.
+            ///   If both are low stock, sort by name.
+            else if (isAStockLow && isBStockLow) {
+              return a.name.compareTo(b.name); // Both are low stock
+            }
+
+            /// If only one is low stock, sort by urgency.
+            else if (isAStockLow) {
+              return -1; // A is low stock, B is not
+            } else if (isBStockLow) {
+              return 1; // B is low stock, A is not
+            }
+
+            return a.name.compareTo(b.name); // Both are in stock, sort by name
+          },
       },
     );
 

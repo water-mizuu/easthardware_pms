@@ -46,7 +46,11 @@ class AppRoutes {
     createPayment: AppRoute<Invoice>('/admin/create/payment'),
 
     //Order Sub Pages
-    createRestockOrder: AppRoute<Null>('/admin/create/restock_order'),
+    createRestockOrder: (
+      withProduct: AppRoute<Product>('/admin/create/restock_order'),
+      withoutProduct: AppRoute<Null>('/admin/create/restock_order'),
+      route: AppRoute<Product?>('/admin/create/restock_order'),
+    ),
     createExpenseOrder: AppRoute<Null>('/admin/create/expense_order'),
 
     // Security Sub Pages

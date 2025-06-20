@@ -57,7 +57,7 @@ class PageHeader extends StatelessWidget {
         TextButtonFilled(
           "Create Restock Order",
           onPressed: () {
-            context.navigate(AppRoutes.admin.createRestockOrder);
+            context.navigate(AppRoutes.admin.createRestockOrder.withoutProduct);
           },
         ),
         TextButtonFilled(

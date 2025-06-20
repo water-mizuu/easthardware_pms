@@ -24,6 +24,18 @@ class AccessLevelQueryUpdatedEvent implements UserLogListEvent {
   final AccessLevel? accessLevel;
 }
 
+class StartDateQueryUpdatedEvent implements UserLogListEvent {
+  const StartDateQueryUpdatedEvent(this.startDate);
+
+  final DateTime? startDate;
+}
+
+class EndDateQueryUpdatedEvent implements UserLogListEvent {
+  const EndDateQueryUpdatedEvent(this.endDate);
+
+  final DateTime? endDate;
+}
+
 class AddCreateEvent implements UserLogListEvent {
   const AddCreateEvent(this.item, this.user);
 

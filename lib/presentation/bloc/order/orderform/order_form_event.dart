@@ -79,15 +79,6 @@ class ProductUpdatedEvent extends OrderFormEvent {
   List<Object?> get props => [product, index];
 }
 
-class ProductSelectedEvent extends OrderFormEvent {
-  const ProductSelectedEvent(this.product, this.index);
-  final Product product;
-  final int index;
-
-  @override
-  List<Object?> get props => [product, index];
-}
-
 class ClearProductsEvent extends OrderFormEvent {
   const ClearProductsEvent();
 

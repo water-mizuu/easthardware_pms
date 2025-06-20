@@ -1,8 +1,9 @@
 import 'package:easthardware_pms/domain/models/product.dart';
 import 'package:easthardware_pms/presentation/bloc/inventory/product_list/product_list_bloc.dart';
+import 'package:easthardware_pms/presentation/router/app_routes.dart';
 import 'package:easthardware_pms/presentation/widgets/layout/spacing.dart';
 import 'package:easthardware_pms/presentation/widgets/text.dart';
-import 'package:easthardware_pms/utils/boxed.dart';
+import 'package:easthardware_pms/utils/typed_routes.dart';
 import 'package:fluent_ui/fluent_ui.dart';
 import 'package:provider/provider.dart';
 import 'package:scroll_animator/scroll_animator.dart';
@@ -37,18 +38,9 @@ class _LowerStockedProductsState extends State<LowerStockedProducts> {
             alignment: Alignment.topLeft,
             child: HyperlinkButton(
               onPressed: () {
-                /// FIXME: This is a placeholder for the actual navigation logic.
                 ///   Ideally, the createRestockOrder should accept a product that
                 ///     needs to be restocked, to allow the user to order automatically.
-                //
-                // context.navigateWithExtra(
-                //   AppRoutes.admin.createRestockOrder,
-                //   extra,
-                // );
-                printBoxed(
-                  "Tried to create order, but there is no implementation yet.",
-                  "LowerStockedProducts:Actions",
-                );
+                context.navigateWithExtra(AppRoutes.admin.createRestockOrder.withProduct, p);
               },
               child: const Text('Order'),
             ),
@@ -79,7 +71,10 @@ class _LowerStockedProductsState extends State<LowerStockedProducts> {
 
   @override
   Widget build(BuildContext context) {
-    final products = context.select((ProductListBloc b) => b.state.allProducts);
+    final products = context
+        .select((ProductListBloc b) => b.state.allProducts)
+        .where((p) => p.quantity < p.criticalLevel)
+        .toList();
     final matrix = [
       [
         for (final columnName in _rowExtents.keys)
@@ -98,33 +93,40 @@ class _LowerStockedProductsState extends State<LowerStockedProducts> {
         children: [
           const DisplayText('Lower Stocked Products'),
           Spacing.v16,
-          Expanded(
-            child: TableView.builder(
-              verticalDetails: ScrollableDetails.vertical(
-                controller: verticalScrollController,
+          if (products.isEmpty)
+            const Expanded(
+              child: Center(
+                child: Text('No products are below their critical level.'),
               ),
-              horizontalDetails: ScrollableDetails.horizontal(
-                controller: horizontalScrollController,
-              ),
-              rowCount: matrix.length,
-              columnCount: matrix.first.length,
-              pinnedRowCount: 1,
-              columnBuilder: (int index) => TableSpan(
-                extent: _rowExtents.values.elementAt(index).$1,
-              ),
-              rowBuilder: (int index) => const TableSpan(extent: FixedSpanExtent(cellHeight)),
-              cellBuilder: (BuildContext context, TableVicinity vicinity) {
-                final (y, x) = (vicinity.row, vicinity.column);
+            )
+          else
+            Expanded(
+              child: TableView.builder(
+                verticalDetails: ScrollableDetails.vertical(
+                  controller: verticalScrollController,
+                ),
+                horizontalDetails: ScrollableDetails.horizontal(
+                  controller: horizontalScrollController,
+                ),
+                rowCount: matrix.length,
+                columnCount: matrix.first.length,
+                pinnedRowCount: 1,
+                columnBuilder: (int index) => TableSpan(
+                  extent: _rowExtents.values.elementAt(index).$1,
+                ),
+                rowBuilder: (int index) => const TableSpan(extent: FixedSpanExtent(cellHeight)),
+                cellBuilder: (BuildContext context, TableVicinity vicinity) {
+                  final (y, x) = (vicinity.row, vicinity.column);
 
-                return TableViewCell(
-                  child: Padding(
-                    padding: const EdgeInsets.only(right: 8.0),
-                    child: matrix[y][x],
-                  ),
-                );
-              },
+                  return TableViewCell(
+                    child: Padding(
+                      padding: const EdgeInsets.only(right: 8.0),
+                      child: matrix[y][x],
+                    ),
+                  );
+                },
+              ),
             ),
-          ),
         ],
       ),
     );

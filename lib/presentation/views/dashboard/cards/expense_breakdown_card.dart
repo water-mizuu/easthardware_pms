@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:math';
 
 import 'package:easthardware_pms/domain/models/order.dart';
 import 'package:easthardware_pms/presentation/bloc/order/expense_type_list/expense_type_list_bloc.dart';
@@ -9,7 +8,6 @@ import 'package:easthardware_pms/presentation/widgets/layout/spacing.dart';
 import 'package:easthardware_pms/presentation/widgets/text.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:fluent_ui/fluent_ui.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 enum ExpenseBreakdownChoice {
@@ -73,20 +71,6 @@ class _ExpensesBreakdownCardGraphState extends State<_ExpensesBreakdownCardGraph
     final orders = context.watch<OrderListBloc>().state.allOrders;
     if (_orders != orders) {
       _orders = orders;
-      if (kDebugMode && orders.isEmpty) {
-        // For debugging purposes, we can generate some random data
-        _orders = List.generate(10, (index) {
-          return Order(
-            id: index,
-            payeeName: "Anonymous",
-            amountDue: Random().nextDouble() * 1000.0,
-            expenseType: index % 8,
-            orderDate: DateTime.now(), // Simulating 3 different expense types
-            paymentMethod: Random().nextInt(8),
-            referenceNumber: "REF-${index + 1}", creationDate: DateTime.now(), creatorId: 1,
-          );
-        });
-      }
       _updatePieChartData(_orders!);
     }
   }
@@ -188,6 +172,9 @@ class _ExpensesBreakdownCardGraphState extends State<_ExpensesBreakdownCardGraph
           .firstOrNull
           ?.name;
 
+      if (name == null) continue;
+
+      /// FIXME: Actually make this work.
       sections.add(
         PieChartSectionData(
           value: percentage,

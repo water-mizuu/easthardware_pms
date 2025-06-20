@@ -250,7 +250,7 @@ class _AdminNavigationViewState extends State<AdminNavigationView>
           navItem(
             icon: FluentIcons.text_document_edit,
             title: "Create Restock Order",
-            route: AppRoutes.admin.createRestockOrder,
+            route: AppRoutes.admin.createRestockOrder.withoutProduct,
           ),
           navItem(
             icon: FluentIcons.text_document_edit,

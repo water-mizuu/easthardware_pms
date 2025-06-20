@@ -1,7 +1,7 @@
 part of 'order_form_bloc.dart';
 
 class OrderFormState {
-  factory OrderFormState.RestockOrder(Product? product, int? orderId) {
+  factory OrderFormState.restockOrder(Product? product, int? orderId) {
     return OrderFormState(
       orderType: OrderType.restock,
       orderId: orderId,
@@ -13,7 +13,7 @@ class OrderFormState {
       ],
     );
   }
-  factory OrderFormState.ExpenseOrder(int? orderId) {
+  factory OrderFormState.expenseOrder(int? orderId) {
     return OrderFormState(
       orderType: OrderType.expense,
       orderId: orderId,
