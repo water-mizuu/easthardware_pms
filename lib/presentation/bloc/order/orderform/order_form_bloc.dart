@@ -40,24 +40,24 @@ class OrderFormBloc extends Bloc<OrderFormEvent, OrderFormState> {
 
   factory OrderFormBloc.RestockOrder() {
     return OrderFormBloc(
-      OrderFormState.RestockOrder(null),
+      OrderFormState.RestockOrder(null, null),
     );
   }
   factory OrderFormBloc.ExpenseOrder() {
     return OrderFormBloc(
-      OrderFormState.ExpenseOrder(),
+      OrderFormState.ExpenseOrder(null),
     );
   }
-  factory OrderFormBloc.FromRestockOrder(Product? product) {
+  factory OrderFormBloc.FromRestockOrder(Product? product, int? orderId) {
     // TODO: Implement
     return OrderFormBloc(
-      OrderFormState.RestockOrder(product),
+      OrderFormState.RestockOrder(product, orderId),
     );
   }
-  factory OrderFormBloc.FromExpenseOrder() {
+  factory OrderFormBloc.FromExpenseOrder(int? orderId) {
     // TODO: Implement
     return OrderFormBloc(
-      OrderFormState.ExpenseOrder(),
+      OrderFormState.ExpenseOrder(orderId),
     );
   }
 
@@ -175,9 +175,9 @@ class OrderFormBloc extends Bloc<OrderFormEvent, OrderFormState> {
     formKey.currentState?.reset();
     // Emit the button pressed event to handle validation and submission
     if (state.orderType == OrderType.restock) {
-      emit(OrderFormState.RestockOrder(null));
+      emit(OrderFormState.RestockOrder(null, null));
     } else if (state.orderType == OrderType.expense) {
-      emit(OrderFormState.ExpenseOrder());
+      emit(OrderFormState.ExpenseOrder(null));
     } else {
       emit(state.copyWith(status: FormStatus.error, dialogErrorMessage: 'Invalid order type.'));
     }
@@ -480,6 +480,7 @@ class OrderFormBloc extends Bloc<OrderFormEvent, OrderFormState> {
       dialogErrorMessage: null,
       creationDate: event.creationDate,
       creatorId: event.creatorId,
+      orderId: event.id,
       status: FormStatus.submitting,
     ));
   }

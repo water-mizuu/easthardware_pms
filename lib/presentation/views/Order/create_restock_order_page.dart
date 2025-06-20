@@ -44,7 +44,7 @@ class _CreateRestockOrderPageState extends State<CreateRestockOrderPage> {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (_) => OrderFormBloc.FromRestockOrder(widget.product),
+      create: (_) => OrderFormBloc.FromRestockOrder(widget.product, widget.product?.id),
       child: MultiBlocListener(
         listeners: [
           BlocListener<OrderFormBloc, OrderFormState>(

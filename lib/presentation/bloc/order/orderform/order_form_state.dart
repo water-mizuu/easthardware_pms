@@ -1,9 +1,10 @@
 part of 'order_form_bloc.dart';
 
 class OrderFormState {
-  factory OrderFormState.RestockOrder(Product? product) {
+  factory OrderFormState.RestockOrder(Product? product, int? orderId) {
     return OrderFormState(
       orderType: OrderType.restock,
+      orderId: orderId,
       products: [
         if (product == null)
           const EmptyFormProduct() //
@@ -12,14 +13,16 @@ class OrderFormState {
       ],
     );
   }
-  factory OrderFormState.ExpenseOrder() {
+  factory OrderFormState.ExpenseOrder(int? orderId) {
     return OrderFormState(
       orderType: OrderType.expense,
+      orderId: orderId,
       orderItems: [const FormOrderItem()],
     );
   }
   OrderFormState({
     required this.orderType,
+    required this.orderId,
     this.payeeName = '',
     DateTime? orderDate,
     this.paymentMethod,
@@ -44,6 +47,8 @@ class OrderFormState {
 
   // [OrderType] is an enum that defines the type of order (e.g., Restock, Expense)
   final OrderType orderType;
+  // [OrderId] is a field that can be used to track the order, which is null if not specified
+  final int? orderId;
   // [PayeeName] is the name of the person or entity to whom the order is made
   final String payeeName;
   // [OrderDate] is the date when the order was placed, useful for recording past expenses
@@ -78,6 +83,7 @@ class OrderFormState {
 
   OrderFormState Function({
     OrderType? orderType,
+    int? orderId,
     String? payeeName,
     DateTime? orderDate,
     PaymentMethod? paymentMethod,
@@ -100,6 +106,7 @@ class OrderFormState {
   }) get copyWith {
     return ({
       Object? orderType = undefined,
+      Object? orderId = undefined,
       Object? payeeName = undefined,
       Object? orderDate = undefined,
       Object? paymentMethod = undefined,
@@ -122,6 +129,7 @@ class OrderFormState {
     }) {
       return OrderFormState(
         orderType: orderType == undefined ? this.orderType : orderType as OrderType,
+        orderId: orderId == undefined ? this.orderId : orderId as int?,
         payeeName: payeeName == undefined ? this.payeeName : payeeName as String,
         orderDate: orderDate == undefined ? this.orderDate : orderDate as DateTime?,
         paymentMethod:
@@ -160,6 +168,7 @@ class OrderFormState {
 
   Order toOrder() {
     return Order(
+      id: orderId,
       payeeName: payeeName,
       expenseType: expenseType!.id!,
       orderDate: orderDate,
