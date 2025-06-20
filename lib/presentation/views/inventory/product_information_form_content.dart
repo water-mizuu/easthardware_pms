@@ -10,10 +10,12 @@ import 'package:easthardware_pms/presentation/widgets/animated_single_child_scro
 import 'package:easthardware_pms/presentation/widgets/layout/spacing.dart';
 import 'package:easthardware_pms/presentation/widgets/layout_mode_provider.dart';
 import 'package:easthardware_pms/presentation/widgets/text.dart';
+import 'package:easthardware_pms/presentation/widgets/ui/styles.dart';
 import 'package:easthardware_pms/utils/boxed.dart';
 import 'package:easthardware_pms/utils/uuid.dart';
 import 'package:fluent_ui/fluent_ui.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 const spacingBetweenNameAndForm = Spacing.v4;
@@ -144,6 +146,13 @@ class SaleInformationSection extends StatelessWidget with ProductFormValidator {
         const BodyText('Sale Price'),
         Spacing.v4,
         TextFormBox(
+          prefix: Padding(
+            padding: const EdgeInsets.only(left: 16.0),
+            child: Text('₱', style: TextStyles.onSurfaceVariant.merge(TextStyles.body)),
+          ),
+          inputFormatters: [
+            FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*')),
+          ],
           initialValue: context.read<ProductFormBloc>().state.price,
           validator: validateProductPrice,
           onChanged: (value) {
@@ -169,6 +178,13 @@ class OrderInformationSection extends StatelessWidget with ProductFormValidator 
         const BodyText('Order Cost'),
         Spacing.v4,
         TextFormBox(
+          prefix: Padding(
+            padding: const EdgeInsets.only(left: 16.0),
+            child: Text('₱', style: TextStyles.onSurfaceVariant.merge(TextStyles.body)),
+          ),
+          inputFormatters: [
+            FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*')),
+          ],
           initialValue: context.read<ProductFormBloc>().state.cost,
           validator: validateProductCost,
           onChanged: (value) {
@@ -362,6 +378,9 @@ class _CriticalLevelFieldState extends State<CriticalLevelField> {
         children: [
           const BodyText('Critical Level'),
           TextFormBox(
+            inputFormatters: [
+              FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*')),
+            ],
             controller: _controller,
             validator: (value) {
               if (value == null || value.trim().isEmpty) {
@@ -691,6 +710,9 @@ class QuantityUnitFields extends StatelessWidget with ProductFormValidator {
             children: [
               const BodyText('Quantity on Hand'),
               TextFormBox(
+                inputFormatters: [
+                  FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*')),
+                ],
                 initialValue: context.read<ProductFormBloc>().state.quantity,
                 validator: validateProductQuantity,
                 onChanged: (value) {
@@ -734,6 +756,9 @@ class DeadFastStockFields extends StatelessWidget with ProductFormValidator {
             children: [
               const BodyText('Dead Stock Threshold'),
               TextFormBox(
+                inputFormatters: [
+                  FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*')),
+                ],
                 initialValue: context.read<ProductFormBloc>().state.deadStockThreshold,
                 placeholder: context.read<ProductFormBloc>().state.deadStockThreshold,
                 validator: validateDeadStockThreshold,
@@ -751,6 +776,9 @@ class DeadFastStockFields extends StatelessWidget with ProductFormValidator {
             children: [
               const BodyText('Moving Stock Threshold'),
               TextFormBox(
+                inputFormatters: [
+                  FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*')),
+                ],
                 initialValue: context.read<ProductFormBloc>().state.fastMovingThreshold,
                 placeholder: context.read<ProductFormBloc>().state.fastMovingThreshold,
                 validator: validateFastMovingThreshold,
