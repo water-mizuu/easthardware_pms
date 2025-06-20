@@ -4,6 +4,7 @@ import 'package:easthardware_pms/presentation/bloc/inventory/'
 import 'package:easthardware_pms/presentation/bloc/inventory/product_form/product_form_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/inventory/'
     'product_form/product_form_validator.dart';
+import 'package:easthardware_pms/presentation/bloc/inventory/product_list/product_list_bloc.dart';
 import 'package:easthardware_pms/presentation/models/form_unit.dart';
 import 'package:easthardware_pms/presentation/widgets/animated_single_child_scroll_view.dart';
 import 'package:easthardware_pms/presentation/widgets/layout/spacing.dart';
@@ -217,6 +218,7 @@ class ProductNameField extends StatelessWidget with ProductFormValidator {
 
   @override
   Widget build(BuildContext context) {
+    final products = context.watch<ProductListBloc>().state.allProducts;
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -226,7 +228,7 @@ class ProductNameField extends StatelessWidget with ProductFormValidator {
         TextFormBox(
           autofocus: true,
           initialValue: context.read<ProductFormBloc>().state.name,
-          validator: validateProductName,
+          validator: (value) => validateProductName(value, products.map((e) => e.name).toList()),
           onChanged: (value) {
             final bloc = context.read<ProductFormBloc>();
             bloc.add(NameFieldChangedEvent(value));

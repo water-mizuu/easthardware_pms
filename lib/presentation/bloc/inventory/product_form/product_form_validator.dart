@@ -1,10 +1,14 @@
 import 'package:easthardware_pms/presentation/models/form_unit.dart';
 
 mixin ProductFormValidator {
-  String? validateProductName(String? value) {
+  String? validateProductName(String? value, List<String> existingNames) {
     if (value == null || value.trim().isEmpty) {
       return "Product name cannot be empty";
     }
+    if (existingNames.contains(value.trim())) {
+      return "Product name already exists";
+    }
+
     return null;
   }
 
