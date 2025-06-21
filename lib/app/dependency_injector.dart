@@ -6,6 +6,7 @@ import 'package:easthardware_pms/domain/repository/category_repository.dart';
 import 'package:easthardware_pms/domain/repository/expense_type_repository.dart';
 import 'package:easthardware_pms/domain/repository/invoice_product_repository.dart';
 import 'package:easthardware_pms/domain/repository/invoice_repository.dart';
+import 'package:easthardware_pms/domain/repository/order_item_repository.dart';
 import 'package:easthardware_pms/domain/repository/order_product_repository.dart';
 import 'package:easthardware_pms/domain/repository/order_repository.dart';
 import 'package:easthardware_pms/domain/repository/payment_method_repository.dart';
@@ -56,6 +57,7 @@ class DependencyInjector extends ChangeNotifier {
   late InvoiceProductRepository _invoiceProductRepository;
   late PaymentMethodRepository _paymentMethodRepository;
   late OrderProductRepository _orderProductRepository;
+  late OrderItemRepository _orderItemRepository;
   late OrderRepository _orderRepository;
   late ExpenseTypeRepository _expenseTypeRepository;
   late CategoryRepository _categoryRepository;
@@ -97,6 +99,7 @@ class DependencyInjector extends ChangeNotifier {
     _paymentMethodRepository = PaymentMethodRepository(databaseHelper);
     _paymentRepository = PaymentRepository(databaseHelper);
     _orderProductRepository = OrderProductRepository(databaseHelper);
+    _orderItemRepository = OrderItemRepository(databaseHelper);
     _orderRepository = OrderRepository(databaseHelper);
     _expenseTypeRepository = ExpenseTypeRepository(databaseHelper);
     _categoryRepository = CategoryRepository(databaseHelper);
@@ -125,6 +128,7 @@ class DependencyInjector extends ChangeNotifier {
       RepositoryProvider.value(value: _paymentMethodRepository),
       RepositoryProvider.value(value: _paymentRepository),
       RepositoryProvider.value(value: _orderProductRepository),
+      RepositoryProvider.value(value: _orderItemRepository),
       RepositoryProvider.value(value: _expenseTypeRepository),
       RepositoryProvider.value(value: _orderRepository),
       RepositoryProvider.value(value: _productRepository),
@@ -248,6 +252,7 @@ class DependencyInjector extends ChangeNotifier {
           return _orderListBloc = OrderListBloc(
             _orderRepository,
             _orderProductRepository,
+            _orderItemRepository,
             _productRepository,
             state,
           )..addIf(_databaseHelper != null, const FetchAllOrdersEvent());

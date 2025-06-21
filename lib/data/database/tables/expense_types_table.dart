@@ -18,7 +18,7 @@ class ExpenseTypesTable {
 
     await database.insert(
       'expense_types',
-      const ExpenseType(id: 0, name: 'Inventory Restock').toMap(),
+      const ExpenseType(id: 1, name: 'Inventory Restock').toMap(),
       conflictAlgorithm: ConflictAlgorithm.replace,
     );
   }

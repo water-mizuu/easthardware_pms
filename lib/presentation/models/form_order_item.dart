@@ -1,3 +1,4 @@
+import 'package:easthardware_pms/domain/models/order_item.dart';
 import 'package:easthardware_pms/utils/undefined.dart';
 
 class FormOrderItem {
@@ -34,12 +35,12 @@ class FormOrderItem {
       Object? errorMessage = undefined,
     }) {
       return FormOrderItem(
-        name: name == undefined ? this.name : name as String?,
-        description: description == undefined ? this.description : description as String?,
-        quantity: quantity == undefined ? this.quantity : quantity as double,
-        rate: rate == undefined ? this.rate : rate as double,
-        amount: amount == undefined ? this.amount : amount as double,
-        errorMessage: errorMessage == undefined ? this.errorMessage : errorMessage as String?,
+        name: name.or(this.name),
+        description: description.or(this.description),
+        quantity: quantity.or(this.quantity),
+        rate: rate.or(this.rate),
+        amount: amount.or(this.amount),
+        errorMessage: errorMessage.or(this.errorMessage),
       );
     };
   }
@@ -53,5 +54,16 @@ class FormOrderItem {
       'amount': amount,
       'errorMessage': errorMessage,
     };
+  }
+
+  OrderItem toOrderItem(int orderId) {
+    return OrderItem(
+      orderId: orderId,
+      name: name ?? '',
+      description: description ?? '',
+      quantity: quantity,
+      rate: rate,
+      amount: amount,
+    );
   }
 }

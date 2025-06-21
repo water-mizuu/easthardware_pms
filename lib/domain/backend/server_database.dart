@@ -9,6 +9,7 @@ import 'package:easthardware_pms/data/database/tables/categories_table.dart';
 import 'package:easthardware_pms/data/database/tables/expense_types_table.dart';
 import 'package:easthardware_pms/data/database/tables/invoice_products_table.dart';
 import 'package:easthardware_pms/data/database/tables/invoices_table.dart';
+import 'package:easthardware_pms/data/database/tables/order_items_table.dart';
 import 'package:easthardware_pms/data/database/tables/order_products_table.dart';
 import 'package:easthardware_pms/data/database/tables/orders_table.dart';
 import 'package:easthardware_pms/data/database/tables/payment_methods_table.dart';
@@ -53,6 +54,7 @@ Future<void> resetDatabase() async {
         await UnitsTable.dropTable(txn);
         await OrdersTable.dropTable(txn);
         await OrderProductsTable.dropTable(txn);
+        await OrderItemsTable.dropTable(txn);
         await InvoicesTable.dropTable(txn);
         await InvoiceProductsTable.dropTable(txn);
         await PaymentsTable.dropTable(txn);
@@ -69,6 +71,7 @@ Future<void> resetDatabase() async {
         await UnitsTable.createTable(txn);
         await OrdersTable.createTable(txn);
         await OrderProductsTable.createTable(txn);
+        await OrderItemsTable.createTable(txn);
         await InvoicesTable.createTable(txn);
         await InvoiceProductsTable.createTable(txn);
         await PaymentsTable.createTable(txn);
@@ -376,6 +379,7 @@ Future<Database> _getDatabase(int? savedHeartbeat) async {
         UnitsTable.createTable(db);
         OrdersTable.createTable(db);
         OrderProductsTable.createTable(db);
+        OrderItemsTable.createTable(db);
         InvoicesTable.createTable(db);
         InvoiceProductsTable.createTable(db);
         PaymentsTable.createTable(db);
@@ -393,6 +397,7 @@ Future<Database> _getDatabase(int? savedHeartbeat) async {
         await UnitsTable.dropTable(db);
         await OrdersTable.dropTable(db);
         await OrderProductsTable.dropTable(db);
+        await OrderItemsTable.dropTable(db);
         await InvoicesTable.dropTable(db);
         await InvoiceProductsTable.dropTable(db);
         await PaymentsTable.dropTable(db);
@@ -408,6 +413,7 @@ Future<Database> _getDatabase(int? savedHeartbeat) async {
         await UnitsTable.createTable(db);
         await OrdersTable.createTable(db);
         await OrderProductsTable.createTable(db);
+        await OrderItemsTable.createTable(db);
         await InvoicesTable.createTable(db);
         await InvoiceProductsTable.createTable(db);
         await PaymentsTable.createTable(db);
@@ -427,6 +433,7 @@ Future<Database> _getDatabase(int? savedHeartbeat) async {
         await UnitsTable.dropTable(db);
         await OrdersTable.dropTable(db);
         await OrderProductsTable.dropTable(db);
+        await OrderItemsTable.dropTable(db);
         await InvoicesTable.dropTable(db);
         await InvoiceProductsTable.dropTable(db);
         await PaymentsTable.dropTable(db);
@@ -442,6 +449,7 @@ Future<Database> _getDatabase(int? savedHeartbeat) async {
         await UnitsTable.createTable(db);
         await OrdersTable.createTable(db);
         await OrderProductsTable.createTable(db);
+        await OrderItemsTable.createTable(db);
         await InvoicesTable.createTable(db);
         await InvoiceProductsTable.createTable(db);
         await PaymentsTable.createTable(db);

@@ -12,8 +12,14 @@ import 'package:easthardware_pms/presentation/bloc/order/'
     'expense_type_list/expense_type_list_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/order/orderform/order_form_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/order/orderlist/order_list_bloc.dart';
+import 'package:easthardware_pms/presentation/bloc/security/user_log_list/user_log_list_bloc.dart';
 import 'package:easthardware_pms/presentation/router/app_router.dart';
 import 'package:easthardware_pms/presentation/router/app_routes.dart';
+import 'package:easthardware_pms/presentation/views/Order/order_widgets/amount.dart';
+import 'package:easthardware_pms/presentation/views/Order/order_widgets/description.dart';
+import 'package:easthardware_pms/presentation/views/Order/order_widgets/header.dart';
+import 'package:easthardware_pms/presentation/views/Order/order_widgets/index.dart';
+import 'package:easthardware_pms/presentation/views/Order/order_widgets/rate.dart';
 import 'package:easthardware_pms/presentation/widgets/animated_single_child_scroll_view.dart';
 import 'package:easthardware_pms/presentation/widgets/auto_auto_suggest_box.dart';
 import 'package:easthardware_pms/presentation/widgets/expense_type_combo_box.dart';
@@ -31,18 +37,15 @@ import 'package:easthardware_pms/utils/boxed.dart';
 import 'package:easthardware_pms/utils/notification.dart';
 import 'package:easthardware_pms/utils/typed_routes.dart';
 import 'package:fluent_ui/fluent_ui.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:provider/provider.dart';
 
-part 'create_restock_order_page/amount.dart';
-part 'create_restock_order_page/description.dart';
-part 'create_restock_order_page/header.dart';
-part 'create_restock_order_page/index.dart';
+import 'order_widgets/remove_button.dart';
+
 part 'create_restock_order_page/product_name.dart';
 part 'create_restock_order_page/quantity_and_unit.dart';
-part 'create_restock_order_page/rate.dart';
-part 'create_restock_order_page/remove_button.dart';
 
 class CreateRestockOrderPage extends StatefulWidget {
   const CreateRestockOrderPage({this.product, super.key});
@@ -85,42 +88,42 @@ class _CreateRestockOrderPageState extends State<CreateRestockOrderPage> {
                   ),
                 ));
               } else if (state.status == FormStatus.submitting) {
-                final order = state.toOrder();
+                final order = state.copyWith().toOrder();
+                if (kDebugMode) {
+                  print(
+                      'ID: ${order.id}, Payee: ${order.payeeName}, Expense Type: ${order.expenseType}, '
+                      'Payment Method: ${order.paymentMethod}, '
+                      'Reference Number: ${order.referenceNumber}, '
+                      'Order Date: ${order.orderDate}, Amount Due: ${order.amountDue}, '
+                      'Memo: ${order.memo}, Created By: ${order.creatorId}, Creation Date: ${order.creationDate},');
+                }
                 final products = state.products
                     ?.map((product) => product.toOrderProduct(order.id ?? 0))
                     .toList();
 
-                context.read<OrderListBloc>().add(AddOrderEvent(order, products!));
+                context.read<OrderListBloc>().add(AddProductOrderEvent(order, products!));
                 context.read<OrderFormBloc>().add(const FormSubmittedEvent());
               }
             },
           ),
           BlocListener<OrderListBloc, OrderListState>(
-            listenWhen: (p, c) =>
-                p.allOrders.length != c.allOrders.length && //
-                c.status == DataStatus.success,
-            listener: (context, state) {
-              context.read<ProductListBloc>().add(const ReloadAllProductsEvent());
-              if (context.read<AuthenticationBloc>().state.user!.accessLevel ==
-                  AccessLevel.administrator) {
-                context.navigate(AppRoutes.admin.order);
-                showNotification.success(
-                  title: "Success",
-                  message: "Order created successfully.",
-                );
-              } else {
-                showNotification.error(
-                  title: "What happened?",
-                  message: "A staff created an order.",
-                );
+              listenWhen: (p, c) =>
+                  p.allOrders.length != c.allOrders.length && //
+                  c.status == DataStatus.success,
+              listener: (context, state) {
+                context.read<ProductListBloc>().add(const ReloadAllProductsEvent());
+                final userName = context.read<AuthenticationBloc>().state.user!;
+                final orderId = state.allOrders.last.id;
+                context.read<UserLogListBloc>().add(AddCreateEvent('Order #$orderId', userName));
+                context.read<UserLogListBloc>().add(const LoadUserLogsEvent());
 
-                printBoxed(
-                  "Somehow, a staff created an order, but this should not happen.",
-                  "Create Restock Order Page",
+                showNotification(
+                  title: "Success",
+                  message: "Order $orderId has been successfully created.",
+                  severity: InfoBarSeverity.success,
                 );
-              }
-            },
-          ),
+                context.navigate(AppRoutes.admin.order);
+              }),
           BlocListener<OrderFormBloc, OrderFormState>(
             listener: (context, state) {
               final overlay = Overlay.of(overlayWidgetKey.currentContext!);
@@ -149,7 +152,7 @@ class _CreateRestockOrderPageState extends State<CreateRestockOrderPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const _Header(),
+              const Header(isRestock: true),
               Spacing.v16,
               Expanded(
                 child: Container(
@@ -502,13 +505,13 @@ class _RestockOrderFormTableRow extends StatelessWidget {
           children: [
             const Row(
               children: [
-                _Index(),
+                Index(isRestock: true),
                 Expanded(flex: 2, child: _ProductName()),
-                Expanded(flex: 2, child: _Description()),
+                Expanded(flex: 2, child: Description(isRestock: true)),
                 Expanded(child: _QuantityAndUnit()),
-                Expanded(child: _Rate()),
-                Expanded(child: _Amount()),
-                _RemoveButton()
+                Expanded(child: Rate(isRestock: true)),
+                Expanded(child: Amount(isRestock: true)),
+                RemoveButton(isRestock: true),
               ],
             ),
             if (currentProduct.errorMessage != null)

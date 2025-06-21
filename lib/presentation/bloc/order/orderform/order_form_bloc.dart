@@ -94,6 +94,7 @@ class OrderFormBloc extends Bloc<OrderFormEvent, OrderFormState> {
 
   void _onExpenseTypeChanged(ExpenseTypeChangedEvent event, Emitter<OrderFormState> emit) {
     try {
+      print("Changing expense type to: ${event.expenseType!.id}");
       emit(state.copyWith(
         expenseType: event.expenseType,
         expenseTypeErrorMessage: event.expenseType == null ? 'Expense type is required.' : null,
@@ -358,6 +359,7 @@ class OrderFormBloc extends Bloc<OrderFormEvent, OrderFormState> {
     }
 
     // If all validation passes, proceed with submission
+    print("Expense Order Emitting...");
     emit(state.copyWith(
       dialogErrorMessage: null,
       creationDate: event.creationDate,

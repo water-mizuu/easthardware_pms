@@ -1,13 +1,13 @@
 import 'dart:async';
-
 import 'package:easthardware_pms/domain/enums/enums.dart';
 import 'package:easthardware_pms/domain/models/payment_method.dart';
-import 'package:easthardware_pms/presentation/bloc/authentication/'
-    'authentication/authentication_bloc.dart';
+import 'package:easthardware_pms/presentation/bloc/authentication/authentication/authentication_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/order/orderform/order_form_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/order/orderform/order_form_validator.dart';
 import 'package:easthardware_pms/presentation/bloc/order/orderlist/order_list_bloc.dart';
+import 'package:easthardware_pms/presentation/bloc/security/user_log_list/user_log_list_bloc.dart';
 import 'package:easthardware_pms/presentation/router/app_routes.dart';
+import 'package:easthardware_pms/presentation/widgets/animated_single_child_scroll_view.dart';
 import 'package:easthardware_pms/presentation/widgets/expense_type_combo_box.dart';
 import 'package:easthardware_pms/presentation/widgets/helper/currency_formatter.dart';
 import 'package:easthardware_pms/presentation/widgets/layout/spacing.dart';
@@ -18,13 +18,32 @@ import 'package:easthardware_pms/presentation/widgets/ui/form_table_column.dart'
 import 'package:easthardware_pms/presentation/widgets/ui/styles.dart';
 import 'package:easthardware_pms/presentation/widgets/ui/text_button.dart';
 import 'package:easthardware_pms/presentation/widgets/ui/text_form_boxes.dart';
+import 'package:easthardware_pms/utils/notification.dart';
 import 'package:easthardware_pms/utils/typed_routes.dart';
 import 'package:fluent_ui/fluent_ui.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:provider/provider.dart';
+import 'package:easthardware_pms/presentation/views/Order/order_widgets/amount.dart';
+import 'package:easthardware_pms/presentation/views/Order/order_widgets/description.dart';
+import 'package:easthardware_pms/presentation/views/Order/order_widgets/header.dart';
+import 'package:easthardware_pms/presentation/views/Order/order_widgets/index.dart';
+import 'package:easthardware_pms/presentation/views/Order/order_widgets/rate.dart';
+import 'package:easthardware_pms/presentation/views/Order/order_widgets/remove_button.dart';
 
-class CreateExpenseOrderPage extends StatelessWidget {
+part 'create_expense_order_page/item_name.dart';
+part 'create_expense_order_page/quantity.dart';
+
+class CreateExpenseOrderPage extends StatefulWidget {
   const CreateExpenseOrderPage({super.key});
+
+  @override
+  State<CreateExpenseOrderPage> createState() => _CreateExpenseOrderPageState();
+}
+
+class _CreateExpenseOrderPageState extends State<CreateExpenseOrderPage> {
+  OverlayEntry? overlayEntry;
 
   @override
   Widget build(BuildContext context) {
@@ -33,9 +52,8 @@ class CreateExpenseOrderPage extends StatelessWidget {
       child: MultiBlocListener(
         listeners: [
           BlocListener<OrderFormBloc, OrderFormState>(
-            listenWhen: (previous, current) =>
-                previous.status != current.status ||
-                previous.dialogErrorMessage != current.dialogErrorMessage,
+            listenWhen: (p, c) =>
+                p.status != c.status || p.dialogErrorMessage != c.dialogErrorMessage,
             listener: (context, state) {
               if (state.status == FormStatus.error && state.dialogErrorMessage != null) {
                 unawaited(showDialog<String>(
@@ -54,100 +72,83 @@ class CreateExpenseOrderPage extends StatelessWidget {
                   ),
                 ));
               } else if (state.status == FormStatus.submitting) {
-                //   final order = state.copyWith().toOrder();
-                //   final products =
-                //       state.products.map((product) => product.toOrderProduct(order.id ?? 0)).toList();
-                //   context.read<OrderListBloc>().add(AddOrderEvent(order, products));
-                //   context.read<OrderFormBloc>().add(FormSubmittedEvent());
+                final order = state.copyWith().toOrder();
+                if (kDebugMode) {
+                  print(
+                    'ID: ${order.id}, Payee: ${order.payeeName}, Expense Type: ${order.expenseType}, '
+                    'Payment Method: ${order.paymentMethod}, '
+                    'Reference Number: ${order.referenceNumber}, '
+                    'Order Date: ${order.orderDate}, Amount Due: ${order.amountDue}, '
+                    'Memo: ${order.memo}, Created By: ${order.creatorId}, Creation Date: ${order.creationDate},',
+                  );
+                }
+                final orderItem = state.orderItems //
+                    ?.map((product) => product.toOrderItem(order.id ?? 0))
+                    .toList();
+                context.read<OrderListBloc>().add(AddItemOrderEvent(order, orderItem!));
+                context.read<OrderFormBloc>().add(const FormSubmittedEvent());
               }
             },
           ),
           BlocListener<OrderListBloc, OrderListState>(
-            listenWhen: (previous, current) =>
-                current.status == DataStatus.success &&
-                current.allOrders.length > previous.allOrders.length,
+            listenWhen: (p, c) =>
+                p.allOrders.length != c.allOrders.length && c.status == DataStatus.success,
             listener: (context, state) {
-              // Only navigate when we're sure the order has been added
-              if (context.read<AuthenticationBloc>().state.user!.accessLevel ==
-                  AccessLevel.administrator) {
-                context.navigate(AppRoutes.admin.order);
+              final userName = context.read<AuthenticationBloc>().state.user!;
+              final orderId = state.allOrders.last.id;
+              context.read<UserLogListBloc>().add(AddCreateEvent('Order #$orderId', userName));
+              context.read<UserLogListBloc>().add(const LoadUserLogsEvent());
+
+              showNotification(
+                title: "Success",
+                message: "Order $orderId has been successfully created.",
+                severity: InfoBarSeverity.success,
+              );
+              context.navigate(AppRoutes.admin.order);
+            },
+          ),
+          BlocListener<OrderFormBloc, OrderFormState>(
+            listener: (context, state) {
+              final overlay = Overlay.of(context);
+
+              if (state.status == FormStatus.submitting) {
+                if (overlayEntry == null) {
+                  overlayEntry = OverlayEntry(builder: (context) {
+                    return Container(
+                      color: Colors.black.withOpacity(0.2),
+                      child: const Center(child: ProgressRing()),
+                    );
+                  });
+                  overlay.insert(overlayEntry!);
+                }
               } else {
-                //context.navigate(AppRoutes.staff.order);
+                overlayEntry?.remove();
+                overlayEntry = null;
               }
             },
           ),
         ],
-        child: Stack(
-          children: [
-            Padding(
-              padding: AppPadding.panePadding,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  const OrderPageHeader(),
-                  Spacing.v16,
-                  Expanded(
-                    child: Container(
-                      padding: const EdgeInsets.all(16.0),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(4.0),
-                      ),
-                      child: const OrderPageForm(),
-                    ),
+        child: Padding(
+          padding: AppPadding.panePadding,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const Header(isRestock: false),
+              Spacing.v16,
+              Expanded(
+                child: Container(
+                  padding: const EdgeInsets.all(16.0),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(4.0),
                   ),
-                ],
+                  child: const OrderPageForm(),
+                ),
               ),
-            ),
-            BlocBuilder<OrderFormBloc, OrderFormState>(
-              builder: (context, state) {
-                if (state.status == FormStatus.submitting) {
-                  return Positioned.fill(
-                    child: Container(
-                      color: Colors.black.withOpacity(0.2),
-                      child: const Center(child: ProgressRing()),
-                    ),
-                  );
-                }
-                return const SizedBox.shrink();
-              },
-            ),
-          ],
+            ],
+          ),
         ),
       ),
-    );
-  }
-}
-
-class OrderPageHeader extends StatelessWidget {
-  const OrderPageHeader({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        IconButton(
-            icon: const Icon(FluentIcons.back),
-            onPressed: () {
-              context.navigate(AppRoutes.admin.order);
-            }),
-        const DisplayText("Create Expense Order"),
-        const Spacer(flex: 1),
-        TextButtonFilled(
-          'Save Order',
-          onPressed: () {
-            final creationDate = DateTime.now();
-            final creatorId = context.read<AuthenticationBloc>().state.user?.id;
-            context.read<OrderFormBloc>().add(
-                  SaveExpenseOrderRequestEvent(
-                    creationDate: creationDate,
-                    creatorId: creatorId!,
-                  ),
-                );
-          },
-        ),
-        Spacing.h4,
-      ].withSpacing(() => Spacing.h16),
     );
   }
 }
@@ -160,7 +161,7 @@ class OrderPageForm extends StatelessWidget with OrderFormValidator {
     final bloc = context.read<OrderFormBloc>();
     final state = context.watch<OrderFormBloc>().state;
 
-    return SingleChildScrollView(
+    return AnimatedSingleChildScrollView(
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -193,9 +194,9 @@ class OrderPageForm extends StatelessWidget with OrderFormValidator {
                       initialValue: state.payeeName,
                       onChanged: (value) => bloc.add(PayeeNameChangedEvent(value)),
                     ),
-                    if (context.watch<OrderFormBloc>().state.payeeNameErrorMessage != null)
+                    if (state.payeeNameErrorMessage != null)
                       Text(
-                        context.watch<OrderFormBloc>().state.payeeNameErrorMessage!,
+                        state.payeeNameErrorMessage!,
                         style: TextStyles.error,
                       ),
                   ],
@@ -209,14 +210,14 @@ class OrderPageForm extends StatelessWidget with OrderFormValidator {
                     const BodyText('Payment Method'),
                     Spacing.v8,
                     PaymentMethodComboBox(
-                      value: context.watch<OrderFormBloc>().state.paymentMethod,
+                      value: state.paymentMethod,
                       onPaymentMethodSelected: (PaymentMethod value) {
                         bloc.add(PaymentMethodChangedEvent(value));
                       },
                     ),
-                    if (context.watch<OrderFormBloc>().state.paymentMethodErrorMessage != null)
+                    if (state.paymentMethodErrorMessage != null)
                       Text(
-                        context.watch<OrderFormBloc>().state.paymentMethodErrorMessage!,
+                        state.paymentMethodErrorMessage!,
                         style: TextStyles.error,
                       ),
                   ],
@@ -239,9 +240,9 @@ class OrderPageForm extends StatelessWidget with OrderFormValidator {
                       initialValue: state.referenceNumber,
                       onChanged: (value) => bloc.add(ReferenceNumberChangedEvent(value)),
                     ),
-                    if (context.watch<OrderFormBloc>().state.referenceNumberErrorMessage != null)
+                    if (state.referenceNumberErrorMessage != null)
                       Text(
-                        context.watch<OrderFormBloc>().state.referenceNumberErrorMessage!,
+                        state.referenceNumberErrorMessage!,
                         style: TextStyles.error,
                       ),
                   ],
@@ -256,12 +257,12 @@ class OrderPageForm extends StatelessWidget with OrderFormValidator {
                     const BodyText('Order Date'),
                     Spacing.v8,
                     DatePicker(
-                      selected: context.watch<OrderFormBloc>().state.orderDate,
+                      selected: state.orderDate,
                       onChanged: (date) => bloc.add(OrderDateChangedEvent(date)),
                     ),
-                    if (context.watch<OrderFormBloc>().state.orderDateErrorMessage != null)
+                    if (state.orderDateErrorMessage != null)
                       Text(
-                        context.watch<OrderFormBloc>().state.orderDateErrorMessage!,
+                        state.orderDateErrorMessage!,
                         style: TextStyles.error,
                       ),
                   ],
@@ -281,9 +282,9 @@ class OrderPageForm extends StatelessWidget with OrderFormValidator {
                         bloc.add(ExpenseTypeChangedEvent(value));
                       },
                     ),
-                    if (context.watch<OrderFormBloc>().state.expenseTypeErrorMessage != null)
+                    if (state.expenseTypeErrorMessage != null)
                       Text(
-                        context.watch<OrderFormBloc>().state.expenseTypeErrorMessage!,
+                        state.expenseTypeErrorMessage!,
                         style: TextStyles.error,
                       ),
                   ],
@@ -294,7 +295,7 @@ class OrderPageForm extends StatelessWidget with OrderFormValidator {
           Spacing.v12,
           const _OrderTableActions(),
           Spacing.v4,
-          const OrderProductDataTable(),
+          const OrderItemDataTable(),
           Spacing.v12,
           const _OrderSummaryAndMemo(),
         ].withSpacing(() => Spacing.v12),
@@ -310,8 +311,10 @@ class _OrderSummaryAndMemo extends StatelessWidget {
   Widget build(BuildContext context) {
     final state = context.watch<OrderFormBloc>().state;
     final bloc = context.read<OrderFormBloc>();
-    final total = state.orderItems!
-        .fold<double>(0.0, (previousValue, element) => previousValue + (element.amount));
+    final total = state.orderItems
+            ?.fold<double>(0.0, (previousValue, element) => previousValue + element.amount) ??
+        0.0;
+
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -339,9 +342,14 @@ class _OrderSummaryAndMemo extends StatelessWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Text("Total"),
-                    Text(CurrencyFormatter.full(total),
-                        style: const TextStyle(fontWeight: FontWeight.bold)),
+                    const Text(
+                      "Total",
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    Text(
+                      CurrencyFormatter.full(total),
+                      style: const TextStyle(fontWeight: FontWeight.bold),
+                    ),
                   ],
                 ),
               ],
@@ -391,31 +399,8 @@ class _OrderTableActions extends StatelessWidget {
   }
 }
 
-class SectionHeader extends StatelessWidget {
-  const SectionHeader(this.title, {super.key});
-  final String title;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 12),
-      decoration: BoxDecoration(
-        border: Border(bottom: BorderSide(color: Colors.grey[40], width: 1)),
-      ),
-      child: Text(
-        title,
-        style: TextStyle(
-          fontSize: 16,
-          fontWeight: FontWeight.w600,
-          color: Colors.grey[150],
-        ),
-      ),
-    );
-  }
-}
-
-class OrderProductDataTable extends StatelessWidget {
-  const OrderProductDataTable({super.key});
+class OrderItemDataTable extends StatelessWidget {
+  const OrderItemDataTable({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -444,7 +429,7 @@ class OrderProductDataTable extends StatelessWidget {
           physics: const NeverScrollableScrollPhysics(),
           itemCount: orderItems.length,
           itemBuilder: (context, index) {
-            return _OrderFormTableRow(index: index);
+            return _ExpenseOrderFormTableRow(index: index);
           },
         ),
       ],
@@ -452,224 +437,53 @@ class OrderProductDataTable extends StatelessWidget {
   }
 }
 
-class _OrderFormTableRow extends StatefulWidget {
-  const _OrderFormTableRow({required this.index});
+class _ExpenseOrderFormTableRow extends StatelessWidget {
+  const _ExpenseOrderFormTableRow({required this.index});
+
   final int index;
 
   @override
-  State<_OrderFormTableRow> createState() => _OrderFormTableRowState();
-}
-
-class _OrderFormTableRowState extends State<_OrderFormTableRow> {
-  late final TextEditingController _descriptionController;
-  late final TextEditingController _quantityController;
-  late final TextEditingController _rateController;
-  late final TextEditingController _amountController;
-
-  @override
-  void initState() {
-    super.initState();
-
-    final initialOrderItem = context.read<OrderFormBloc>().state.orderItems![widget.index];
-    _descriptionController = TextEditingController(text: initialOrderItem.description ?? '');
-    _quantityController = TextEditingController(text: initialOrderItem.quantity.toString());
-    _rateController = TextEditingController(text: initialOrderItem.rate.toString());
-    _amountController = TextEditingController(text: initialOrderItem.amount.toString());
-
-    _descriptionController.addListener(() {
-      final bloc = context.read<OrderFormBloc>();
-      final currentItem = bloc.state.orderItems![widget.index];
-      final newValue = _descriptionController.text;
-      if (currentItem.description != newValue) {
-        bloc.add(OrderItemUpdatedEvent(
-          currentItem.copyWith(description: newValue),
-          widget.index,
-        ));
-      }
-    });
-
-    _quantityController.addListener(() {
-      final bloc = context.read<OrderFormBloc>();
-      final currentItem = bloc.state.orderItems![widget.index];
-      final newValue = double.tryParse(_quantityController.text) ?? 0;
-      if (currentItem.quantity != newValue) {
-        bloc.add(OrderItemUpdatedEvent(
-          currentItem.copyWith(quantity: newValue, amount: newValue * (currentItem.rate)),
-          widget.index,
-        ));
-      }
-    });
-
-    _rateController.addListener(() {
-      final bloc = context.read<OrderFormBloc>();
-      final currentItem = bloc.state.orderItems![widget.index];
-      final newValue = double.tryParse(_rateController.text) ?? 0;
-      if (currentItem.rate != newValue) {
-        bloc.add(OrderItemUpdatedEvent(
-          currentItem.copyWith(rate: newValue, amount: newValue * (currentItem.quantity)),
-          widget.index,
-        ));
-      }
-    });
-  }
-
-  @override
-  void dispose() {
-    _descriptionController.dispose();
-    _quantityController.dispose();
-    _rateController.dispose();
-    _amountController.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
-    return BlocBuilder<OrderFormBloc, OrderFormState>(
-      buildWhen: (previous, current) {
-        return previous.orderItems != current.orderItems ||
-            previous.orderItems![widget.index] != current.orderItems![widget.index];
-      },
-      builder: (context, state) {
-        final bloc = context.read<OrderFormBloc>();
-        final currentOrderItem = state.orderItems![widget.index];
+    final currentOrderItem = context.watch<OrderFormBloc>().state.orderItems![index];
 
-        final newDescription = currentOrderItem.description ?? '';
-        final newQuantity = currentOrderItem.quantity % 1 == 0
-            ? currentOrderItem.quantity.toInt().toString()
-            : currentOrderItem.quantity.toString();
-
-        final newRate = currentOrderItem.rate % 1 == 0
-            ? currentOrderItem.rate.toInt().toString()
-            : currentOrderItem.rate.toString();
-
-        final newAmount = currentOrderItem.amount % 1 == 0
-            ? currentOrderItem.amount.toInt().toString()
-            : currentOrderItem.amount.toString();
-
-        if (_descriptionController.text != newDescription) {
-          _descriptionController.text = newDescription;
-        }
-
-        if (_quantityController.text != newQuantity) {
-          _quantityController.text = newQuantity;
-        }
-
-        if (_rateController.text != newRate) {
-          _rateController.text = newRate;
-        }
-
-        if (_amountController.text != newAmount) {
-          _amountController.text = newAmount;
-        }
-
-        return Container(
-          decoration: BoxDecoration(
-            color: currentOrderItem.errorMessage != null
-                ? Colors.errorSecondaryColor
-                : widget.index % 2 == 0
-                    ? const Color(0xFFFAFAFA)
-                    : Colors.white,
-            border: Border(bottom: BorderSide(color: Colors.grey[40])),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Row(
-                children: [
-                  FormTableCell(
-                    child: SizedBox(
-                      width: 32.0,
-                      child: Center(child: Text('${widget.index + 1}')),
-                    ),
-                  ),
-                  // Item Name
-                  Expanded(
-                    flex: 2,
-                    child: FormTableCell(
-                      child: TextFormBoxes.ghost(
-                        placeholder: 'Order Item',
-                        onChanged: (value) {
-                          bloc.add(OrderItemUpdatedEvent(
-                            currentOrderItem,
-                            widget.index,
-                          ));
-                        },
-                      ),
-                    ),
-                  ),
-                  // Details/Specs
-                  Expanded(
-                    flex: 2,
-                    child: FormTableCell(
-                      child: TextFormBoxes.ghost(
-                        controller: _descriptionController,
-                        placeholder: 'Description',
-                      ),
-                    ),
-                  ),
-                  // Quantity
-                  Expanded(
-                    child: FormTableCell(
-                      child: TextFormBoxes.ghost(
-                        controller: _quantityController,
-                        placeholder: '0',
-                        inputFormatters: [
-                          FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}')),
-                        ],
-                      ),
-                    ),
-                  ),
-                  // Rate
-                  Expanded(
-                    child: FormTableCell(
-                      child: TextFormBoxes.ghost(
-                        controller: _rateController,
-                        placeholder: '0.00',
-                        inputFormatters: [
-                          FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}')),
-                        ],
-                      ),
-                    ),
-                  ),
-                  // Amount - Read only
-                  Expanded(
-                    child: FormTableCell(
-                      child: TextFormBoxes.ghost(
-                        controller: _amountController,
-                        enabled: false,
-                        placeholder: '0.00',
-                      ),
-                    ),
-                  ),
-                  widget.index > 0
-                      ? SizedBox(
-                          width: 82.0,
-                          child: Center(
-                            child: IconButton(
-                              icon: const Icon(FluentIcons.delete),
-                              onPressed: () {
-                                context
-                                    .read<OrderFormBloc>()
-                                    .add(OrderItemRemovedEvent(widget.index));
-                              },
-                            ),
-                          ),
-                        )
-                      : const SizedBox(width: 82.0)
-                ],
-              ),
-              if (currentOrderItem.errorMessage != null)
-                Padding(
-                  padding: const EdgeInsets.only(left: 32, top: 4, bottom: 4),
-                  child: Text(
-                    currentOrderItem.errorMessage!,
-                    style: TextStyle(color: Colors.red.lightest, fontSize: 12),
-                  ),
+    return InheritedProvider<IndexedOrderItem>.value(
+      value: (index, currentOrderItem),
+      child: Container(
+        decoration: BoxDecoration(
+          color: currentOrderItem.errorMessage != null
+              ? Colors.errorSecondaryColor
+              : index % 2 == 0
+                  ? const Color(0xFFFAFAFA)
+                  : Colors.white,
+          border: Border(bottom: BorderSide(color: Colors.grey[40])),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            const Row(
+              children: [
+                Index(isRestock: false),
+                Expanded(flex: 2, child: _ItemName()),
+                Expanded(flex: 2, child: Description(isRestock: false)),
+                Expanded(child: _Quantity()),
+                Expanded(child: Rate(isRestock: false)),
+                Expanded(child: Amount(isRestock: false)),
+                RemoveButton(isRestock: false),
+              ],
+            ),
+            if (currentOrderItem.errorMessage != null)
+              Padding(
+                padding: const EdgeInsets.only(left: 32, top: 4, bottom: 4),
+                child: Text(
+                  currentOrderItem.errorMessage!,
+                  style: TextStyles.error,
                 ),
-            ],
-          ),
-        );
-      },
+              ),
+          ],
+        ),
+      ),
     );
   }
 }
+
+typedef IndexedOrderItem = (int, dynamic);

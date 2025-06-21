@@ -330,7 +330,7 @@ class DataRowMapper {
     ]);
   }
 
-  static DataRow mapOrderToRow(Order order, void Function() onViewPressed) {
+  static DataRow mapOrderToRow(Order order, void Function() onEditPressed) {
     final orderId = order.id?.toString() ?? 'N/A';
     final orderDate = DateFormat.yMMMMd().format(order.orderDate);
     final payee = order.payeeName.isNotEmpty == true ? order.payeeName : 'Unknown Payee';
@@ -344,7 +344,7 @@ class DataRowMapper {
       DataCell(Text(payee)),
       DataCell(Text(expenseType)),
       DataCell(Text(amount)),
-      DataCell(HyperlinkButton(onPressed: onViewPressed, child: const Text('View'))),
+      DataCell(HyperlinkButton(onPressed: onEditPressed, child: const Text('Edit'))),
     ]);
   }
 
