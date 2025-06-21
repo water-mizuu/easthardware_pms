@@ -48,6 +48,7 @@ class Order {
   final DateTime? paymentDate;
   final DateTime creationDate;
   final int creatorId;
+
   Order Function({
     int? id,
     String uid,

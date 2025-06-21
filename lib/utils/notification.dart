@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:easthardware_pms/presentation/router/app_router.dart';
 import 'package:easthardware_pms/utils/boxed.dart';
 import 'package:fluent_ui/fluent_ui.dart';
@@ -16,7 +18,7 @@ void showNotification({
     );
     return; // No context available, cannot show notification
   }
-  displayInfoBar(
+  unawaited(displayInfoBar(
     innerContext,
     duration: duration,
     alignment: Alignment.bottomCenter,
@@ -31,5 +33,76 @@ void showNotification({
         severity: severity,
       );
     },
-  );
+  ));
+}
+
+extension ShowNotificationHelper on void Function({
+  required String title,
+  required String message,
+  InfoBarSeverity severity,
+  Duration duration,
+}) {
+  // /// ![Info InfoBar](https://docs.microsoft.com/en-us/windows/uwp/design/controls-and-patterns/images/infobar-default-hyperlink.png)
+  // info,
+
+  // /// ![Warning InfoBar](https://docs.microsoft.com/en-us/windows/uwp/design/controls-and-patterns/images/infobar-warning-title-message.png)
+  // warning,
+
+  // /// ![Error InfoBar](https://docs.microsoft.com/en-us/windows/uwp/design/controls-and-patterns/images/infobar-error-no-close.png)
+  // error,
+
+  // /// ![Success InfoBar](https://docs.microsoft.com/en-us/windows/uwp/design/controls-and-patterns/images/infobar-success-content-wrapping.png)
+  // success,
+
+  void info({
+    required String title,
+    required String message,
+    Duration duration = const Duration(seconds: 3),
+  }) {
+    this(
+      title: title,
+      message: message,
+      severity: InfoBarSeverity.info,
+      duration: duration,
+    );
+  }
+
+  void warning({
+    required String title,
+    required String message,
+    Duration duration = const Duration(seconds: 3),
+  }) {
+    this(
+      title: title,
+      message: message,
+      severity: InfoBarSeverity.warning,
+      duration: duration,
+    );
+  }
+
+  void error({
+    required String title,
+    required String message,
+    Duration duration = const Duration(seconds: 3),
+  }) {
+    this(
+      title: title,
+      message: message,
+      severity: InfoBarSeverity.error,
+      duration: duration,
+    );
+  }
+
+  void success({
+    required String title,
+    required String message,
+    Duration duration = const Duration(seconds: 3),
+  }) {
+    this(
+      title: title,
+      message: message,
+      severity: InfoBarSeverity.success,
+      duration: duration,
+    );
+  }
 }

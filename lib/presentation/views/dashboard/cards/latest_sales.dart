@@ -2,6 +2,7 @@ import 'dart:math';
 
 import 'package:easthardware_pms/domain/models/invoice.dart';
 import 'package:easthardware_pms/presentation/bloc/billing/invoicelist/invoice_list_bloc.dart';
+import 'package:easthardware_pms/presentation/bloc/payment/payment_method_list/payment_method_list_bloc.dart';
 import 'package:easthardware_pms/presentation/widgets/helper/currency_formatter.dart';
 import 'package:easthardware_pms/presentation/widgets/layout/spacing.dart';
 import 'package:easthardware_pms/presentation/widgets/text.dart';
@@ -78,7 +79,7 @@ class _RecentSalesTableState extends State<RecentSalesTable> {
         FixedSpanExtent(240.00),
         FractionalSpanExtent(0.33),
       ),
-      (i) => Text(i.customerName),
+      (i) => Text(i.customerName.isEmpty ? "Unnamed Customer" : i.customerName),
     ),
     "Total": (const FixedSpanExtent(120), (i) => Text(CurrencyFormatter.full(i.amountDue))),
     "Payment Method": (
@@ -86,9 +87,21 @@ class _RecentSalesTableState extends State<RecentSalesTable> {
         FixedSpanExtent(120.00),
         FractionalSpanExtent(0.33),
       ),
-      (i) => Text({0: "Cash", 1: "GCash"}[i.paymentMethod] ?? ""),
+      (i) => Builder(builder: (context) {
+            final paymentMethods = context.watch<PaymentMethodListBloc>().state.paymentMethods;
+            final paymentMethodId = i.paymentMethod;
+            if (paymentMethodId == null) return const Text("");
+            final paymentMethod = paymentMethods //
+                .where((e) => e.id == paymentMethodId)
+                .firstOrNull;
+
+            return Text(paymentMethod?.name ?? "");
+          }),
     ),
-    "Date": (const FixedSpanExtent(120), (i) => Text(i.invoiceDate.toString())),
+    "Date": (
+      const FixedSpanExtent(120),
+      (i) => Text(i.invoiceDate.toLocal().toString().split(' ')[0])
+    ),
   };
 
   @override

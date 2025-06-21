@@ -23,14 +23,22 @@ class _Header extends StatelessWidget {
 
             /// The expense type is hardcoded to be 'Inventory Restock'
             ///   for restock orders.
-            const restockExpenseType = ExpenseType(
-              id: 0,
-              name: 'Inventory Restock',
-              archiveStatus: 0,
-            );
+            final restockExpenseType = context
+                .read<ExpenseTypeListBloc>()
+                .state
+                .expenseTypes
+                .where((e) => e.id == 0)
+                .firstOrNull;
+            if (restockExpenseType == null) {
+              showNotification.error(
+                title: 'Expense Type not found',
+                message: 'The expense type for restock orders is not defined.',
+              );
+              return;
+            }
 
             context.read<OrderFormBloc>()
-              ..add(const ExpenseTypeChangedEvent(restockExpenseType))
+              ..add(ExpenseTypeChangedEvent(restockExpenseType))
               ..add(
                 SaveRestockOrderRequestEvent(
                   creationDate: creationDate,

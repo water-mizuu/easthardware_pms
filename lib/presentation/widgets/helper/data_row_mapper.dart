@@ -20,7 +20,34 @@ class DataRowMapper {
   static DataRow mapProductToRow(
     Product product, {
     required void Function()? editAction,
+    required void Function()? orderAction,
   }) {
+    final editButton = Align(
+      alignment: Alignment.centerLeft,
+      child: HyperlinkButton(
+        onPressed: editAction,
+        child: const Text('Edit'),
+      ),
+    );
+    final orderButton = Align(
+      alignment: Alignment.centerLeft,
+      child: HyperlinkButton(
+        onPressed: orderAction,
+        child: const Text('Order'),
+      ),
+    );
+
+    final actionsCell = DataCell(
+      Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (editAction != null) editButton,
+          if (orderAction != null) orderButton,
+        ],
+      ),
+    );
+
+    /// FIXME: Determine the logic for fast moving and dead stock
     if (product.isBelowCriticalLevel == true) {
       return DataRow(cells: [
         DataCell(
@@ -52,18 +79,11 @@ class DataRowMapper {
             children: [Badges.bad('Low Stock')],
           ),
         ),
-        if (editAction != null)
-          DataCell(
-            Align(
-              alignment: Alignment.centerLeft,
-              child: HyperlinkButton(
-                onPressed: editAction,
-                child: const Text('Edit'),
-              ),
-            ),
-          )
+        actionsCell,
       ]);
     }
+
+    /// FIXME: Determine the logic for fast moving and dead stock
     if (product.isFastMovingStock == true) {
       return DataRow(cells: [
         DataCell(
@@ -97,18 +117,11 @@ class DataRowMapper {
             children: [Badges.good('Fast Moving')],
           ),
         ),
-        if (editAction != null)
-          DataCell(
-            Align(
-              alignment: Alignment.centerLeft,
-              child: HyperlinkButton(
-                onPressed: editAction,
-                child: const Text('Edit'),
-              ),
-            ),
-          )
+        actionsCell,
       ]);
     }
+
+    /// FIXME: Determine the logic for fast moving and dead stock
     if (product.isDeadStock == true) {
       return DataRow(cells: [
         DataCell(
@@ -142,16 +155,7 @@ class DataRowMapper {
             children: [Badges.dull('Dead Stock')],
           ),
         ),
-        if (editAction != null)
-          DataCell(
-            Align(
-              alignment: Alignment.centerLeft,
-              child: HyperlinkButton(
-                onPressed: editAction,
-                child: const Text('Edit'),
-              ),
-            ),
-          )
+        actionsCell,
       ]);
     }
 
@@ -183,16 +187,7 @@ class DataRowMapper {
         ),
       ),
       const DataCell(SizedBox.shrink()),
-      if (editAction != null)
-        DataCell(
-          Align(
-            alignment: Alignment.centerLeft,
-            child: HyperlinkButton(
-              onPressed: editAction,
-              child: const Text('Edit'),
-            ),
-          ),
-        )
+      actionsCell,
     ]);
   }
 

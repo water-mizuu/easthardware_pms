@@ -9,6 +9,7 @@ class _Description extends StatefulWidget {
 
 class _DescriptionState extends State<_Description> {
   late final TextEditingController _descriptionController;
+  late int? _currentProductId;
 
   @override
   void initState() {
@@ -26,6 +27,23 @@ class _DescriptionState extends State<_Description> {
             .add(ProductUpdatedEvent(currentFormProduct.copyWith(description: newValue), index));
       }
     });
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
+    final (index, currentProductId) = context.watch<IndexedProductId>();
+    if (_currentProductId != currentProductId) {
+      _currentProductId = currentProductId;
+      final currentProduct = context
+          .read<ProductListBloc>()
+          .state
+          .allProducts //
+          .firstWhere((p) => p.id == currentProductId);
+
+      _descriptionController.text = currentProduct.description ?? '';
+    }
   }
 
   @override

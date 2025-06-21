@@ -43,4 +43,15 @@ class FormOrderItem {
       );
     };
   }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'name': name,
+      'description': description,
+      'quantity': quantity,
+      'rate': rate,
+      'amount': amount,
+      'errorMessage': errorMessage,
+    };
+  }
 }

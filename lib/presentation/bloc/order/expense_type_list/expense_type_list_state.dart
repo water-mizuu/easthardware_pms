@@ -1,6 +1,6 @@
 part of 'expense_type_list_bloc.dart';
 
-class ExpenseTypeListState {
+class ExpenseTypeListState with EquatableMixin {
   const ExpenseTypeListState({
     this.expenseTypes = const [],
     this.status = DataStatus.initial,
@@ -14,14 +14,16 @@ class ExpenseTypeListState {
     DataStatus? status,
   }) get copyWith {
     return ({
-      Object? expenseTypes = const [],
-      Object? status = DataStatus.initial,
+      Object? expenseTypes = undefined,
+      Object? status = undefined,
     }) {
       return ExpenseTypeListState(
-        expenseTypes:
-            expenseTypes == const [] ? this.expenseTypes : expenseTypes as List<ExpenseType>,
-        status: status == DataStatus.initial ? this.status : status as DataStatus,
+        expenseTypes: expenseTypes.or(this.expenseTypes),
+        status: status.or(this.status),
       );
     };
   }
+
+  @override
+  List<Object?> get props => [expenseTypes, status];
 }

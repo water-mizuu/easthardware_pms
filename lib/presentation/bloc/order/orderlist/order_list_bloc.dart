@@ -2,8 +2,8 @@ import 'package:bloc/bloc.dart';
 import 'package:easthardware_pms/domain/enums/enums.dart';
 import 'package:easthardware_pms/domain/models/order.dart';
 import 'package:easthardware_pms/domain/models/order_product.dart';
-import 'package:easthardware_pms/domain/repository/order_repository.dart';
 import 'package:easthardware_pms/domain/repository/order_product_repository.dart';
+import 'package:easthardware_pms/domain/repository/order_repository.dart';
 import 'package:easthardware_pms/domain/repository/product_repository.dart';
 import 'package:equatable/equatable.dart';
 
@@ -43,13 +43,13 @@ class OrderListBloc extends Bloc<OrderListEvent, OrderListState> {
     emit(state.copyWith(status: DataStatus.loading));
     try {
       final order = await _repository.insertOrder(event.order);
-      print('[OrderListBloc] Inserted Order ID: ${order.id}');
-      final products = event.products
-          .map((product) => orderProductRepository.insertOrderProduct(
-                product.copyWith(orderId: order.id),
-              ))
-          .toList();
-      await Future.wait(products);
+      // print('[OrderListBloc] Inserted Order ID: ${order.id}');
+
+      await event.products
+          .map((p) => orderProductRepository.insertOrderProduct(p.copyWith(orderId: order.id)))
+          .toList()
+          .wait;
+
       // Update product stock: add quantity for each product
       final updateStockFutures = event.products.map((product) {
         return productRepository.updateProductStock(product.productId, product.quantity);

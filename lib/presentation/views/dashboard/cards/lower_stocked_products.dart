@@ -75,6 +75,7 @@ class _LowerStockedProductsState extends State<LowerStockedProducts> {
         .select((ProductListBloc b) => b.state.allProducts)
         .where((p) => p.quantity < p.criticalLevel)
         .toList();
+
     final matrix = [
       [
         for (final columnName in _rowExtents.keys)

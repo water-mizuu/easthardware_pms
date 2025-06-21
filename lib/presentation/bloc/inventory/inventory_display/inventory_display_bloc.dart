@@ -9,7 +9,6 @@ import 'package:easthardware_pms/utils/duration.dart';
 import 'package:easthardware_pms/utils/levenshtein.dart';
 import 'package:easthardware_pms/utils/undefined.dart';
 import 'package:equatable/equatable.dart';
-import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 part 'inventory_display_event.dart';
@@ -47,11 +46,6 @@ class InventoryDisplayBloc extends Bloc<InventoryDisplayEvent, InventoryDisplayS
     Emitter<InventoryDisplayState> emit,
   ) async {
     final allProducts = state.allProducts;
-    if (kDebugMode) {
-      print('Search query: ${event.searchQuery}');
-      print('All products: ${allProducts?.target?.map((p) => p.toMap()).toList()}');
-    }
-
     if (allProducts == null || allProducts.target == null || allProducts.target!.isEmpty) {
       emit(state.copyWith(
         searchQuery: event.searchQuery,

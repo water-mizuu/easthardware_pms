@@ -468,12 +468,22 @@ class _ProductsDataTableState extends State<ProductsDataTable> {
                 Text(columnName, style: const TextStyle(fontWeight: FontWeight.w600)),
             ],
             for (final product in displayProducts) //
-              if (DataRowMapper.mapProductToRow(product,
-                      editAction: loggedInUser == AccessLevel.administrator
-                          ? () {
-                              context.navigateWithExtra(AppRoutes.admin.editProduct, product);
-                            }
-                          : null)
+              if (DataRowMapper.mapProductToRow(
+                product,
+                editAction: loggedInUser == AccessLevel.administrator
+                    ? () {
+                        context.navigateWithExtra(AppRoutes.admin.editProduct, product);
+                      }
+                    : null,
+                orderAction: loggedInUser == AccessLevel.administrator
+                    ? () {
+                        context.navigateWithExtra(
+                          AppRoutes.admin.createRestockOrder.withProduct,
+                          product,
+                        );
+                      }
+                    : null,
+              )
                   case final row)
                 [
                   for (final cell in row.cells)

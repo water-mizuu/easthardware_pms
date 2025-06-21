@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:convert';
 import 'dart:math';
 
 import 'package:easthardware_pms/domain/models/invoice.dart';
@@ -8,6 +7,7 @@ import 'package:easthardware_pms/presentation/bloc/billing/invoicelist/invoice_l
 import 'package:easthardware_pms/presentation/widgets/layout/spacing.dart';
 import 'package:easthardware_pms/presentation/widgets/text.dart';
 import 'package:easthardware_pms/utils/boxed.dart';
+import 'package:easthardware_pms/utils/number_string.dart';
 import 'package:easthardware_pms/utils/try_future.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:fluent_ui/fluent_ui.dart';
@@ -185,7 +185,7 @@ class _TopProductActivityState extends State<TopProductActivity> {
   }
 
   Future<BarChartData?> _createBarChartData(List<Invoice> invoices) async {
-    final productOccurrences = <(int, String), int>{};
+    final productSales = <(int, String), double>{};
     final invoiceProductRepository = context.read<InvoiceProductRepository>();
 
     final chosenLimit = _productActivityChoice.value;
@@ -213,16 +213,23 @@ class _TopProductActivityState extends State<TopProductActivity> {
     for (final product in products.expand((l) => l)) {
       final productId = product.productId;
       final name = product.productName;
-      final quantity = product.quantity;
+
+      /// We need to account for the conversion factor of the product to the main unit.
+      ///   For example, if a product's main unit is 1 box, 10 pc per box and
+      ///   we sold 15 pcs, we need to convert that to boxes.
       final conversion = product.conversionFactor;
-      printBoxed(const JsonEncoder.withIndent("  ").convert(product.toMap()), "Product");
+      var quantity = product.quantity;
+      if (conversion != null && conversion > 0) {
+        quantity *= conversion;
+      }
+
       final compositeKey = (productId, name);
 
-      productOccurrences[compositeKey] ??= 0;
-      productOccurrences[compositeKey] = productOccurrences[compositeKey]! + 1;
+      productSales[compositeKey] ??= 0;
+      productSales[compositeKey] = productSales[compositeKey]! + quantity;
     }
 
-    final topProducts = productOccurrences.entries
+    final topProducts = productSales.entries
         .toList()
         .sorted((a, b) => b.value.compareTo(a.value))
         .take(productDisplayLimit)
@@ -234,7 +241,7 @@ class _TopProductActivityState extends State<TopProductActivity> {
       touchTooltipData: BarTouchTooltipData(
         getTooltipColor: (touchedSpot) => Colors.grey[20],
         getTooltipItem: (group, groupIndex, rod, rodIndex) {
-          final occurrences = rod.toY.toInt();
+          final occurrences = rod.toY.toNumberString();
 
           return BarTooltipItem(
             '$occurrences sales\nfor ${chosenLimit.description}',

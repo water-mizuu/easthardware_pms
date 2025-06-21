@@ -91,7 +91,6 @@ class OrderFormState {
     ExpenseType? expenseType,
     String? memo,
     double? amountDue,
-    DateTime? paymentDate,
     DateTime? creationDate,
     int? creatorId,
     List<FormProduct>? products,
@@ -114,7 +113,6 @@ class OrderFormState {
       Object? expenseType = undefined,
       Object? memo = undefined,
       Object? amountDue = undefined,
-      Object? paymentDate = undefined,
       Object? creationDate = undefined,
       Object? creatorId = undefined,
       Object? products = undefined,
@@ -128,40 +126,27 @@ class OrderFormState {
       Object? dialogErrorMessage = undefined,
     }) {
       return OrderFormState(
-        orderType: orderType == undefined ? this.orderType : orderType as OrderType,
-        orderId: orderId == undefined ? this.orderId : orderId as int?,
-        payeeName: payeeName == undefined ? this.payeeName : payeeName as String,
-        orderDate: orderDate == undefined ? this.orderDate : orderDate as DateTime?,
-        paymentMethod:
-            paymentMethod == undefined ? this.paymentMethod : paymentMethod as PaymentMethod?,
-        referenceNumber:
-            referenceNumber == undefined ? this.referenceNumber : referenceNumber as String,
-        expenseType: expenseType == undefined ? this.expenseType : expenseType as ExpenseType?,
-        memo: memo == undefined ? this.memo : memo as String?,
-        amountDue: amountDue == undefined ? this.amountDue : amountDue as double,
-        creationDate: creationDate == undefined ? this.creationDate : creationDate as DateTime?,
-        creatorId: creatorId == undefined ? this.creatorId : creatorId as int?,
-        products: products == undefined ? this.products : products as List<FormProduct>?,
-        orderItems: orderItems == undefined ? this.orderItems : orderItems as List<FormOrderItem>?,
-        status: status == undefined ? this.status : status as FormStatus,
-        payeeNameErrorMessage: payeeNameErrorMessage == undefined
-            ? this.payeeNameErrorMessage
-            : payeeNameErrorMessage as String?,
-        orderDateErrorMessage: orderDateErrorMessage == undefined
-            ? this.orderDateErrorMessage
-            : orderDateErrorMessage as String?,
-        paymentMethodErrorMessage: paymentMethodErrorMessage == undefined
-            ? this.paymentMethodErrorMessage
-            : paymentMethodErrorMessage as String?,
-        expenseTypeErrorMessage: expenseType == undefined
-            ? this.expenseTypeErrorMessage
-            : expenseTypeErrorMessage as String?,
-        referenceNumberErrorMessage: referenceNumber == undefined
-            ? this.referenceNumberErrorMessage
-            : referenceNumberErrorMessage as String?,
-        dialogErrorMessage: dialogErrorMessage == undefined
-            ? this.dialogErrorMessage
-            : dialogErrorMessage as String?,
+        orderType: orderType.or(this.orderType),
+        orderId: orderId.or(this.orderId),
+        payeeName: payeeName.or(this.payeeName),
+        orderDate: orderDate.or(this.orderDate),
+        paymentMethod: paymentMethod.or(this.paymentMethod),
+        referenceNumber: referenceNumber.or(this.referenceNumber),
+        expenseType: expenseType.or(this.expenseType),
+        memo: memo.or(this.memo),
+        amountDue: amountDue.or(this.amountDue),
+        creationDate: creationDate.or(this.creationDate),
+        creatorId: creatorId.or(this.creatorId),
+        products: products.or(this.products),
+        orderItems: orderItems.or(this.orderItems),
+        status: status.or(this.status),
+        payeeNameErrorMessage: payeeNameErrorMessage.or(this.payeeNameErrorMessage),
+        orderDateErrorMessage: orderDateErrorMessage.or(this.orderDateErrorMessage),
+        paymentMethodErrorMessage: paymentMethodErrorMessage.or(this.paymentMethodErrorMessage),
+        expenseTypeErrorMessage: expenseTypeErrorMessage.or(this.expenseTypeErrorMessage),
+        referenceNumberErrorMessage:
+            referenceNumberErrorMessage.or(this.referenceNumberErrorMessage),
+        dialogErrorMessage: dialogErrorMessage.or(this.dialogErrorMessage),
       );
     };
   }
@@ -179,5 +164,23 @@ class OrderFormState {
       creationDate: creationDate,
       creatorId: creatorId!,
     );
+  }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'orderType': orderType.name,
+      'orderId': orderId,
+      'payeeName': payeeName,
+      'orderDate': orderDate.toIso8601String(),
+      'paymentMethod': paymentMethod?.name,
+      'referenceNumber': referenceNumber,
+      'expenseType': expenseType?.toMap(),
+      'memo': memo,
+      'amountDue': amountDue,
+      'creationDate': creationDate.toIso8601String(),
+      'creatorId': creatorId,
+      'products': products?.map((p) => p.toMap()).toList(),
+      'orderItems': orderItems?.map((oi) => oi.toMap()).toList(),
+    };
   }
 }

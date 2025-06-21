@@ -69,18 +69,11 @@ class _QuantityAndUnitState extends State<_QuantityAndUnit> {
     /// Get the current form product ID.
     final (index, currentProductId) = context.watch<IndexedProductId>();
 
-    printBoxed("Current form product ID: $currentProductId", "QuantityAndUnit");
-
     /// [currentProduct] is late as there is a chance that the variable is not used.
     ///   This happens when the product is not selected yet.
     final currentProduct = (context.read<ProductListBloc>().state.allProducts)
         .where((p) => p.id == currentProductId)
         .firstOrNull;
-
-    printBoxed(
-      "Current product: \n${const JsonEncoder.withIndent("  ").convert(currentProduct?.toMap())}",
-      "QuantityAndUnit",
-    );
 
     return FormTableCell(
       child: IntrinsicHeight(

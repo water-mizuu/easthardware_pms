@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:bloc/bloc.dart';
 import 'package:easthardware_pms/domain/enums/enums.dart' show FormStatus, OrderType;
 import 'package:easthardware_pms/domain/models/expense_type.dart';
@@ -58,6 +60,22 @@ class OrderFormBloc extends Bloc<OrderFormEvent, OrderFormState> {
   }
 
   final GlobalKey<FormState> formKey;
+
+  @override
+  void onEvent(OrderFormEvent event) {
+    // ignore: invalid_use_of_visible_for_testing_member
+    super.onEvent(event);
+
+    printBoxed(event, 'OrderFormBloc');
+  }
+
+  @override
+  void emit(OrderFormState state) {
+    // ignore: invalid_use_of_visible_for_testing_member
+    super.emit(state);
+
+    printBoxed(const JsonEncoder.withIndent('. ').convert(state.toMap()), 'OrderFormBloc');
+  }
 
   void _onPayeeNameChanged(PayeeNameChangedEvent event, Emitter<OrderFormState> emit) {
     emit(state.copyWith(
@@ -218,17 +236,25 @@ class OrderFormBloc extends Bloc<OrderFormEvent, OrderFormState> {
 
     emit(state.copyWith(
       payeeName: state.payeeName,
-      payeeNameErrorMessage: state.payeeName.trim().isEmpty ? 'Payee name is required.' : null,
+      payeeNameErrorMessage: state.payeeName.trim().isEmpty //
+          ? 'Payee name is required.'
+          : null,
       referenceNumber: state.referenceNumber,
-      referenceNumberErrorMessage:
-          state.referenceNumber.trim().isEmpty ? 'Reference number is required.' : null,
+      referenceNumberErrorMessage: state.referenceNumber.trim().isEmpty //
+          ? 'Reference number is required.'
+          : null,
       paymentMethod: state.paymentMethod,
-      paymentMethodErrorMessage: state.paymentMethod == null ? 'Payment method is required.' : null,
+      paymentMethodErrorMessage: state.paymentMethod == null //
+          ? 'Payment method is required.'
+          : null,
       expenseType: state.expenseType,
-      expenseTypeErrorMessage: state.expenseType == null ? 'Expense type is required.' : null,
+      expenseTypeErrorMessage: state.expenseType == null //
+          ? 'Expense type is required.'
+          : null,
       orderDate: state.orderDate,
-      orderDateErrorMessage:
-          state.orderDate.isAfter(DateTime.now()) ? 'Order date cannot be in the future.' : null,
+      orderDateErrorMessage: state.orderDate.isAfter(DateTime.now()) //
+          ? 'Order date cannot be in the future.'
+          : null,
     ));
 
     final orderDateErrorMessage = state.orderDateErrorMessage;
@@ -267,11 +293,7 @@ class OrderFormBloc extends Bloc<OrderFormEvent, OrderFormState> {
         state.copyWith(
           status: FormStatus.error,
           orderItems: orderItems
-              .map(
-                (item) => item.copyWith(
-                  errorMessage: 'Order items cannot be empty',
-                ),
-              )
+              .map((item) => item.copyWith(errorMessage: 'Order items cannot be empty'))
               .toList(),
           dialogErrorMessage: 'Please add at least one order item.',
         ),

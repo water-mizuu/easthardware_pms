@@ -789,7 +789,7 @@ Future<void> generateMockData(DatabaseHelper databaseHelper) async {
   final expenseTypeIds = <int>[];
   for (final expenseType in mockExpenseTypes) {
     if (expenseType == null) {
-      expenseTypeIds.add(expenseTypeIds.length);
+      expenseTypeIds.add(expenseTypeIds.length + 1);
       continue;
     }
 
@@ -940,9 +940,4 @@ Future<void> generateMockData(DatabaseHelper databaseHelper) async {
 
     await orderRepository.updateOrder(updatedOrder);
   }
-}
-
-// Helper function to call the mock data generation from the server bloc
-Future<void> addMockDataToDatabase(DatabaseHelper databaseHelper) async {
-  await generateMockData(databaseHelper);
 }

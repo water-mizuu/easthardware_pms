@@ -1,14 +1,15 @@
 import 'dart:async';
-import 'dart:convert';
 
 import 'package:easthardware_pms/domain/enums/enums.dart'
     show AccessLevel, DataStatus, FormStatus, OrderType;
-import 'package:easthardware_pms/domain/models/expense_type.dart';
 import 'package:easthardware_pms/domain/models/payment_method.dart';
 import 'package:easthardware_pms/domain/models/product.dart';
-import 'package:easthardware_pms/presentation/bloc/authentication/authentication/authentication_bloc.dart';
+import 'package:easthardware_pms/presentation/bloc/authentication/'
+    'authentication/authentication_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/inventory/product_list/product_list_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/inventory/unit_list/unit_list_bloc.dart';
+import 'package:easthardware_pms/presentation/bloc/order/'
+    'expense_type_list/expense_type_list_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/order/orderform/order_form_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/order/orderlist/order_list_bloc.dart';
 import 'package:easthardware_pms/presentation/router/app_router.dart';
@@ -27,6 +28,7 @@ import 'package:easthardware_pms/presentation/widgets/ui/styles.dart';
 import 'package:easthardware_pms/presentation/widgets/ui/text_button.dart';
 import 'package:easthardware_pms/presentation/widgets/ui/text_form_boxes.dart';
 import 'package:easthardware_pms/utils/boxed.dart';
+import 'package:easthardware_pms/utils/notification.dart';
 import 'package:easthardware_pms/utils/typed_routes.dart';
 import 'package:fluent_ui/fluent_ui.dart';
 import 'package:flutter/services.dart';
@@ -83,10 +85,11 @@ class _CreateRestockOrderPageState extends State<CreateRestockOrderPage> {
                   ),
                 ));
               } else if (state.status == FormStatus.submitting) {
-                final order = state.copyWith().toOrder();
+                final order = state.toOrder();
                 final products = state.products
                     ?.map((product) => product.toOrderProduct(order.id ?? 0))
                     .toList();
+
                 context.read<OrderListBloc>().add(AddOrderEvent(order, products!));
                 context.read<OrderFormBloc>().add(const FormSubmittedEvent());
               }
@@ -101,8 +104,20 @@ class _CreateRestockOrderPageState extends State<CreateRestockOrderPage> {
               if (context.read<AuthenticationBloc>().state.user!.accessLevel ==
                   AccessLevel.administrator) {
                 context.navigate(AppRoutes.admin.order);
+                showNotification.success(
+                  title: "Success",
+                  message: "Order created successfully.",
+                );
               } else {
-                //context.navigate(AppRoutes.staff.order);
+                showNotification.error(
+                  title: "What happened?",
+                  message: "A staff created an order.",
+                );
+
+                printBoxed(
+                  "Somehow, a staff created an order, but this should not happen.",
+                  "Create Restock Order Page",
+                );
               }
             },
           ),
@@ -311,7 +326,7 @@ class _OrderSummaryAndMemo extends StatelessWidget {
     final bloc = context.read<OrderFormBloc>();
     final total = state.orderType == OrderType.restock
         ? state.products?.fold(0.0, (sum, product) => sum + product.amount)
-        : state.orderItems?.fold(0.0, (sum, item) => sum + (item.amount));
+        : state.orderItems?.fold(0.0, (sum, item) => sum + item.amount);
 
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
