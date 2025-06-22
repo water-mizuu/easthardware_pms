@@ -13,6 +13,7 @@ import 'package:easthardware_pms/presentation/widgets/helper/currency_formatter.
 import 'package:easthardware_pms/presentation/widgets/text.dart';
 import 'package:easthardware_pms/presentation/widgets/ui/badges.dart';
 import 'package:easthardware_pms/presentation/widgets/ui/compound_button.dart';
+import 'package:easthardware_pms/presentation/widgets/ui/styles.dart';
 import 'package:fluent_ui/fluent_ui.dart';
 import 'package:flutter/material.dart' show DataCell, DataRow;
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -165,13 +166,19 @@ class DataRowMapper {
       DataCell(
         Align(
           alignment: Alignment.centerLeft,
-          child: Text(product.name),
+          child: Text(
+            product.name,
+            style: TextStyles.body,
+          ),
         ),
       ),
       DataCell(
         Align(
           alignment: Alignment.centerLeft,
-          child: Text(product.categoryName!),
+          child: Text(
+            product.categoryName!,
+            style: TextStyles.body,
+          ),
         ),
       ),
       DataCell(
@@ -179,13 +186,17 @@ class DataRowMapper {
           alignment: Alignment.centerLeft,
           child: Text(
             CurrencyFormatter.full(product.salePrice),
+            style: TextStyles.body,
           ),
         ),
       ),
       DataCell(
         Align(
           alignment: Alignment.centerLeft,
-          child: Text('${product.quantity.toString()} ${product.mainUnit}'),
+          child: Text(
+            '${product.quantity.toString()} ${product.mainUnit}',
+            style: TextStyles.body,
+          ),
         ),
       ),
       const DataCell(SizedBox.shrink()),

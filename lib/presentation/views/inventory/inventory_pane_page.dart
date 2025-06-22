@@ -19,9 +19,22 @@ import 'package:easthardware_pms/presentation/widgets/layout_mode_provider.dart'
 import 'package:easthardware_pms/presentation/widgets/text.dart';
 import 'package:easthardware_pms/presentation/widgets/ui/data_table_place_holder.dart';
 import 'package:easthardware_pms/presentation/widgets/ui/kpi_card.dart';
+import 'package:easthardware_pms/presentation/widgets/ui/styles.dart';
 import 'package:easthardware_pms/presentation/widgets/ui/text_button.dart';
+import 'package:easthardware_pms/utils/boxed.dart';
 import 'package:easthardware_pms/utils/typed_routes.dart';
 import 'package:fluent_ui/fluent_ui.dart';
+import 'package:flutter/material.dart'
+    show
+        CardTheme,
+        DataCell,
+        DataColumn,
+        DataRow,
+        DataTableSource,
+        DataTableThemeData,
+        PaginatedDataTable,
+        Theme,
+        ThemeData;
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:scroll_animator/scroll_animator.dart';
 import 'package:two_dimensional_scrollables/two_dimensional_scrollables.dart';
@@ -409,6 +422,113 @@ class ProductsDataTable extends StatefulWidget {
 }
 
 class _ProductsDataTableState extends State<ProductsDataTable> {
+  int? _sortColumnIndex;
+  bool _sortAscending = true;
+  @override
+  Widget build(BuildContext context) {
+    final products = context.watch<ProductListBloc>().state.allProducts;
+    return TableThemeData(
+      child: PaginatedDataTable(
+          horizontalMargin: 20,
+          columnSpacing: 0,
+          checkboxHorizontalMargin: 0,
+          sortColumnIndex: _sortColumnIndex,
+          sortAscending: _sortAscending,
+          columns: [
+            DataColumn(
+              label: ConstrainedBox(
+                constraints: const BoxConstraints(minWidth: 150),
+                child: const Text('Name', style: TextStyles.strong),
+              ),
+            ),
+            DataColumn(
+              label: ConstrainedBox(
+                constraints: const BoxConstraints(minWidth: 150),
+                child: const Text('Category', style: TextStyles.strong),
+              ),
+            ),
+            DataColumn(
+              label: ConstrainedBox(
+                constraints: const BoxConstraints(minWidth: 75),
+                child: const Text('Sale Price', style: TextStyles.strong),
+              ),
+            ),
+            DataColumn(
+              label: ConstrainedBox(
+                constraints: const BoxConstraints(minWidth: 75),
+                child: const Text('Quantity', style: TextStyles.strong),
+              ),
+            ),
+            DataColumn(
+              label: ConstrainedBox(
+                constraints: const BoxConstraints(minWidth: 75),
+                child: const Text('Status', style: TextStyles.strong),
+              ),
+            ),
+            const DataColumn(label: Spacer()),
+          ],
+          source: ProductDataSource(products)),
+    );
+  }
+}
+
+class TableThemeData extends StatelessWidget {
+  const TableThemeData({
+    super.key,
+    required this.child,
+  });
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return Theme(
+      data: ThemeData(
+        dataTableTheme: const DataTableThemeData(
+          columnSpacing: 0,
+          dividerThickness: 0,
+          headingRowHeight: 36.0,
+          dataRowMinHeight: 42.0,
+          dataRowMaxHeight: 48.0,
+        ),
+        cardTheme: CardTheme(
+          margin: EdgeInsets.zero,
+          elevation: 0,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4.0)),
+          color: Colors.white,
+        ),
+      ),
+      child: child,
+    );
+  }
+}
+
+class ProductDataSource extends DataTableSource {
+  ProductDataSource(this.products);
+  final List<Product> products;
+  @override
+  DataRow? getRow(int index) {
+    final product = products[index];
+    return DataRowMapper.mapProductToRow(product, editAction: () {}, orderAction: () {});
+  }
+
+  @override
+  bool get isRowCountApproximate => false;
+
+  @override
+  int get rowCount => products.length;
+
+  @override
+  int get selectedRowCount => 0;
+}
+
+class OldProductsDataTable extends StatefulWidget {
+  const OldProductsDataTable({super.key});
+
+  @override
+  State<OldProductsDataTable> createState() => _OldProductsDataTableState();
+}
+
+class _OldProductsDataTableState extends State<OldProductsDataTable> {
   static const double cellHeight = 36.0;
 
   late final Map<String, SpanExtent> _rowExtents = {

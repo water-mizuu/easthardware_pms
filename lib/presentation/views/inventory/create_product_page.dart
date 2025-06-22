@@ -29,7 +29,7 @@ class CreateProductPage extends StatelessWidget {
         .add(
           AddProductEvent(
             category: Category(name: state.categoryName),
-            product: state.toProduct(),
+            product: state.copyWith(creationDate: DateTime.now()).toProduct(),
             units: [
               for (final unit in state.secondaryUnits)
                 if (unit.name.isNotEmpty) unit.toUnit()

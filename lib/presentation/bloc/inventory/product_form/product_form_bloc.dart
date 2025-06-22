@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math';
 
 import 'package:bloc/bloc.dart';
 import 'package:easthardware_pms/domain/constants/constants.dart';
@@ -19,7 +20,7 @@ part 'product_form_state.dart';
 class ProductFormBloc extends Bloc<ProductFormEvent, ProductFormState> {
   ProductFormBloc()
       : formKey = GlobalKey<FormState>(),
-        super(ProductFormState()) {
+        super(const ProductFormState()) {
     on<NameFieldChangedEvent>(_onNameChanged);
     on<SkuFieldChangedEvent>(_onSkuChanged);
     on<CategoryFieldChangedEvent>(_onCategoryChanged);
@@ -29,13 +30,15 @@ class ProductFormBloc extends Bloc<ProductFormEvent, ProductFormState> {
     on<CostFieldChangedEvent>(_onCostChanged);
     on<QuantityFieldChangedEvent>(_onQuantityChanged);
     on<MainUnitFieldChangedEvent>(_onMainUnitChanged);
+    on<CriticalLevelFieldChangedEvent>(_onCriticalLevelChanged);
+    on<MinReorderDelayFieldChangedEvent>(_onMinReorderDelayChanged);
+    on<MaxReorderDelayFieldChangedEvent>(_onMaxReorderDelayChanged);
+    on<DeadstockFieldChangedEvent>(_onDeadStockChanged);
+    on<FastMovingStockFieldChangedEvent>(_onFastMovingStockChanged);
     on<SecondaryUnitFieldNameChangedEvent>(_onSecondaryUnitNameChanged);
     on<SecondaryUnitFieldFactorChangedEvent>(_onSecondaryUnitFactorChanged);
     on<SecondaryUnitFieldAddedEvent>(_onSecondaryUnitAdded);
     on<SecondaryUnitFieldDeletedEvent>(_onSecondaryUnitDeleted);
-    on<CriticalLevelFieldChangedEvent>(_onCriticalLevelChanged);
-    on<DeadstockFieldChangedEvent>(_onDeadStockChanged);
-    on<FastMovingStockFieldChangedEvent>(_onFastMovingStockChanged);
     on<ProductStatusChangedEvent>(_onProductStatusChanged);
     on<FormButtonPressedEvent>(_onButtonPressed);
     on<FormResetEvent>(_onFormReset);
@@ -99,26 +102,16 @@ class ProductFormBloc extends Bloc<ProductFormEvent, ProductFormState> {
   }
 
   void _onQuantityChanged(QuantityFieldChangedEvent event, Emitter<ProductFormState> emit) {
-    final quantity = event.quantity.trim();
+    final quantity = event.quantity;
     // Implementing requested feature for default critical level
-    // Is quantity is numeric
-    // If true, and criticalLevel is not empty, calculate default critical level
-    // If false, do nothing
-    if (quantity.isNotEmpty && double.tryParse(quantity) == null) {
-      emit(state.copyWith(quantity: quantity));
-      return;
-    }
-    if (state.criticalLevel.isEmpty) {
+
+    if (state.criticalLevel == 0) {
       emit(state.copyWith(isCriticalLevelEdited: false));
     }
 
     if (!state.isCriticalLevelEdited) {
-      // If critical level is not edited, calculate default critical level
-      // If critical level is empty, calculate default critical level
-
-      final quantityValue = double.parse(quantity);
-      final criticalLevel = quantityValue * 0.3;
-      emit(state.copyWith(quantity: quantity, criticalLevel: criticalLevel.toString()));
+      final criticalLevel = double.parse((quantity / 3.0).toStringAsFixed(2));
+      emit(state.copyWith(quantity: quantity, criticalLevel: criticalLevel));
     } else {
       emit(state.copyWith(quantity: quantity));
     }
@@ -157,19 +150,21 @@ class ProductFormBloc extends Bloc<ProductFormEvent, ProductFormState> {
     return emit(state.copyWith(secondaryUnits: alternativeUnits));
   }
 
-  void _onSecondaryUnitAdded(SecondaryUnitFieldAddedEvent event, Emitter<ProductFormState> emit) {
-    final alternativeUnits = List<FormUnit>.from(state.secondaryUnits);
-    alternativeUnits.add(const FormUnit.empty());
-    emit(state.copyWith(secondaryUnits: alternativeUnits));
+  void _onMinReorderDelayChanged(
+    MinReorderDelayFieldChangedEvent event,
+    Emitter<ProductFormState> emit,
+  ) {
+    final minReorderDelay = event.minReorderDelay;
+    emit(state.copyWith(minReorderDelay: minReorderDelay));
   }
 
-  void _onSecondaryUnitDeleted(
-      SecondaryUnitFieldDeletedEvent event, Emitter<ProductFormState> emit) {
-    final updated = [...state.secondaryUnits];
-    if (updated.length > 1) {
-      updated.removeAt(event.index);
-      emit(state.copyWith(secondaryUnits: updated));
-    }
+  void _onMaxReorderDelayChanged(
+    MaxReorderDelayFieldChangedEvent event,
+    Emitter<ProductFormState> emit,
+  ) {
+    final maxReorderDelay = event.maxReorderDelay;
+    printBoxed(maxReorderDelay);
+    return emit(state.copyWith(maxReorderDelay: maxReorderDelay));
   }
 
   void _onCriticalLevelChanged(
@@ -187,6 +182,21 @@ class ProductFormBloc extends Bloc<ProductFormEvent, ProductFormState> {
       FastMovingStockFieldChangedEvent event, Emitter<ProductFormState> emit) {
     final threshold = event.threshold;
     return emit(state.copyWith(fastMovingThreshold: threshold));
+  }
+
+  void _onSecondaryUnitAdded(SecondaryUnitFieldAddedEvent event, Emitter<ProductFormState> emit) {
+    final alternativeUnits = List<FormUnit>.from(state.secondaryUnits);
+    alternativeUnits.add(const FormUnit.empty());
+    emit(state.copyWith(secondaryUnits: alternativeUnits));
+  }
+
+  void _onSecondaryUnitDeleted(
+      SecondaryUnitFieldDeletedEvent event, Emitter<ProductFormState> emit) {
+    final updated = [...state.secondaryUnits];
+    if (updated.length > 1) {
+      updated.removeAt(event.index);
+      emit(state.copyWith(secondaryUnits: updated));
+    }
   }
 
   void _onProductStatusChanged(ProductStatusChangedEvent event, Emitter<ProductFormState> emit) {
@@ -235,7 +245,7 @@ class ProductFormBloc extends Bloc<ProductFormEvent, ProductFormState> {
   }
 
   void _onFormReset(FormResetEvent event, Emitter emit) {
-    emit(ProductFormInitial());
+    emit(const ProductFormInitial());
   }
 
   void _onProductLoaded(ProductLoadedEvent event, Emitter emit) {
@@ -248,16 +258,16 @@ class ProductFormBloc extends Bloc<ProductFormEvent, ProductFormState> {
         categoryName: event.product.categoryName ?? '',
         categoryId: event.product.categoryId,
         description: event.product.description,
-        price: event.product.salePrice.toString(),
-        cost: event.product.orderCost.toString(),
-        quantity: event.product.quantity.toString(),
+        price: event.product.salePrice,
+        cost: event.product.orderCost,
+        quantity: event.product.quantity,
         mainUnit: event.product.mainUnit,
         secondaryUnits: event.secondaryUnits.isEmpty
             ? [const FormUnit.empty()]
             : event.secondaryUnits.map(FormUnit.fromUnit).toList(),
-        criticalLevel: event.product.criticalLevel.toString(),
-        deadStockThreshold: event.product.deadStockThreshold.toString(),
-        fastMovingThreshold: event.product.fastMovingStockThreshold.toString(),
+        criticalLevel: event.product.criticalLevel,
+        deadStockThreshold: event.product.deadStockThreshold,
+        fastMovingThreshold: event.product.fastMovingStockThreshold,
         archivedStatus: event.product.archiveStatus,
         formStatus: FormStatus.initial,
       ));

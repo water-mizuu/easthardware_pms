@@ -174,14 +174,7 @@ class PageForm extends StatelessWidget {
                   bottom: BorderSide(color: Colors.grey[40], width: 1),
                 ),
               ),
-              child: Text(
-                "Billing Information",
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.grey[150],
-                ),
-              ),
+              child: const Text("Billing Information", style: TextStyles.title),
             ),
             // Form Row 1 - Customer Name
             Row(
@@ -326,14 +319,7 @@ class TableActions extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: 24.0),
       child: Row(
         children: [
-          Text(
-            "Items",
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w600,
-              color: Colors.grey[150],
-            ),
-          ),
+          const Text("Items", style: TextStyles.title),
           const Spacer(),
           TextButton(
             'Clear Items',

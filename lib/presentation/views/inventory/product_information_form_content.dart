@@ -107,6 +107,8 @@ class LeftColumn extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           BasicInformationSection(),
+          Spacing.v16,
+          StockKeepingInformationSection(),
         ],
       ),
     );
@@ -141,7 +143,7 @@ class SaleInformationSection extends StatelessWidget with ProductFormValidator {
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        const SubheadingText('Sale Information'),
+        const Text('Sale Information', style: TextStyles.title),
         Spacing.v16,
         const BodyText('Sale Price'),
         Spacing.v4,
@@ -153,10 +155,14 @@ class SaleInformationSection extends StatelessWidget with ProductFormValidator {
           inputFormatters: [
             FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*')),
           ],
-          initialValue: context.read<ProductFormBloc>().state.price,
+          initialValue: context.read<ProductFormBloc>().state.price == 0
+              ? ''
+              : context.read<ProductFormBloc>().state.price.toString(),
           validator: validateProductPrice,
           onChanged: (value) {
-            context.read<ProductFormBloc>().add(PriceFieldChangedEvent(value));
+            context
+                .read<ProductFormBloc>()
+                .add(PriceFieldChangedEvent(double.tryParse(value) ?? 0));
           },
         ),
       ],
@@ -185,10 +191,12 @@ class OrderInformationSection extends StatelessWidget with ProductFormValidator 
           inputFormatters: [
             FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*')),
           ],
-          initialValue: context.read<ProductFormBloc>().state.cost,
+          initialValue: context.read<ProductFormBloc>().state.cost == 0
+              ? ''
+              : context.read<ProductFormBloc>().state.cost.toString(),
           validator: validateProductCost,
           onChanged: (value) {
-            context.read<ProductFormBloc>().add(CostFieldChangedEvent(value));
+            context.read<ProductFormBloc>().add(CostFieldChangedEvent(double.tryParse(value) ?? 0));
           },
         ),
       ],
@@ -203,7 +211,43 @@ class BasicInformationSection extends StatelessWidget {
   Widget build(BuildContext context) {
     return const Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [SubheadingText('Basic Information'), Spacing.v16, BasicInformationFields()],
+      children: [
+        Text('Basic Information', style: TextStyles.title),
+        Spacing.v16,
+        BasicInformationFields(),
+      ],
+    );
+  }
+}
+
+class StockKeepingInformationSection extends StatelessWidget {
+  const StockKeepingInformationSection({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return const Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Text('Stock Keeping Information', style: TextStyles.title),
+        Spacing.v16,
+        StockKeepingFields(),
+      ],
+    );
+  }
+}
+
+class StockKeepingFields extends StatelessWidget {
+  const StockKeepingFields({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: const [
+        CriticalLevelField(),
+        ReorderDelayFields(),
+        DeadFastStockFields(),
+      ].withSpacing(() => Spacing.v8),
     );
   }
 }
@@ -222,8 +266,6 @@ class BasicInformationFields extends StatelessWidget {
         const CategoryField(),
         const DescriptionField(),
         const QuantityUnitFields(),
-        const CriticalLevelField(),
-        const DeadFastStockFields(),
       ].withSpacing(() => Spacing.v8),
     );
   }
@@ -354,7 +396,7 @@ class _CriticalLevelFieldState extends State<CriticalLevelField> {
     super.initState();
 
     final bloc = context.read<ProductFormBloc>();
-    _controller = TextEditingController(text: bloc.state.criticalLevel);
+    _controller = TextEditingController(text: bloc.state.criticalLevel.toString());
   }
 
   @override
@@ -370,13 +412,13 @@ class _CriticalLevelFieldState extends State<CriticalLevelField> {
         return prev.criticalLevel != curr.criticalLevel && !curr.isCriticalLevelEdited;
       },
       listener: (context, state) {
-        _controller.text = state.criticalLevel;
+        _controller.text = state.criticalLevel.toString();
       },
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const BodyText('Critical Level'),
+          const BodyText('Initial Critical Level'),
           TextFormBox(
             inputFormatters: [
               FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*')),
@@ -393,11 +435,87 @@ class _CriticalLevelFieldState extends State<CriticalLevelField> {
               return null;
             },
             onChanged: (value) {
-              context.read<ProductFormBloc>().add(CriticalLevelFieldChangedEvent(value));
+              context
+                  .read<ProductFormBloc>()
+                  .add(CriticalLevelFieldChangedEvent(double.tryParse(value) ?? 0));
             },
           ),
         ].withSpacing(() => spacingBetweenNameAndForm),
       ),
+    );
+  }
+}
+
+class ReorderDelayFields extends StatelessWidget with ProductFormValidator {
+  const ReorderDelayFields({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        const BodyText('Reorder Delay'),
+        Spacing.v4,
+        Row(
+          children: [
+            Expanded(
+              child: TextFormBox(
+                suffix: Padding(
+                  padding: const EdgeInsets.only(top: 8.0),
+                  child: Text(
+                    'days min.',
+                    style: TextStyles.onSurfaceVariant.merge(TextStyles.body),
+                  ),
+                ),
+                inputFormatters: [
+                  FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*')),
+                ],
+                initialValue: context.read<ProductFormBloc>().state.minReorderDelay == 0
+                    ? ''
+                    : context.read<ProductFormBloc>().state.minReorderDelay.toString(),
+                validator: (value) => validateMinReorderDelay(
+                  value,
+                  context.read<ProductFormBloc>().state.maxReorderDelay,
+                ),
+                onChanged: (value) {
+                  context
+                      .read<ProductFormBloc>()
+                      .add(MinReorderDelayFieldChangedEvent(int.tryParse(value) ?? 0));
+                },
+              ),
+            ),
+            Spacing.h8,
+            const Text('to', style: TextStyles.body),
+            Spacing.h8,
+            Expanded(
+                child: TextFormBox(
+              suffix: Padding(
+                padding: const EdgeInsets.only(top: 8.0),
+                child: Text(
+                  'days max.',
+                  style: TextStyles.onSurfaceVariant.merge(TextStyles.body),
+                ),
+              ),
+              inputFormatters: [
+                FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*')),
+              ],
+              initialValue: context.read<ProductFormBloc>().state.maxReorderDelay == 0
+                  ? ''
+                  : context.read<ProductFormBloc>().state.maxReorderDelay.toString(),
+              validator: (value) => validateMaxReorderDelay(
+                value,
+                context.read<ProductFormBloc>().state.minReorderDelay,
+              ),
+              onChanged: (value) {
+                context
+                    .read<ProductFormBloc>()
+                    .add(MaxReorderDelayFieldChangedEvent(int.tryParse(value) ?? 0));
+              },
+            ))
+          ],
+        )
+      ],
     );
   }
 }
@@ -414,7 +532,7 @@ class SecondaryUnitsSection extends StatelessWidget {
         const Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            SubheadingText('Secondary Units'),
+            Text('Secondary Units', style: TextStyles.title),
             AddNewUnitButton(),
           ],
         ),
@@ -713,10 +831,14 @@ class QuantityUnitFields extends StatelessWidget with ProductFormValidator {
                 inputFormatters: [
                   FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*')),
                 ],
-                initialValue: context.read<ProductFormBloc>().state.quantity,
+                initialValue: context.read<ProductFormBloc>().state.quantity == 0
+                    ? ''
+                    : context.read<ProductFormBloc>().state.quantity.toString(),
                 validator: validateProductQuantity,
                 onChanged: (value) {
-                  context.read<ProductFormBloc>().add(QuantityFieldChangedEvent(value));
+                  context
+                      .read<ProductFormBloc>()
+                      .add(QuantityFieldChangedEvent(double.tryParse(value) ?? 0));
                 },
               ),
             ].withSpacing(() => spacingBetweenNameAndForm),
@@ -759,17 +881,24 @@ class DeadFastStockFields extends StatelessWidget with ProductFormValidator {
                 inputFormatters: [
                   FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*')),
                 ],
-                initialValue: context.read<ProductFormBloc>().state.deadStockThreshold,
-                placeholder: context.read<ProductFormBloc>().state.deadStockThreshold,
+                initialValue: context.read<ProductFormBloc>().state.deadStockThreshold == 0
+                    ? ''
+                    : context.read<ProductFormBloc>().state.deadStockThreshold.toString(),
                 validator: validateDeadStockThreshold,
-                suffix: const Padding(padding: AppPadding.a4, child: GrayText('Days')),
+                suffix: Padding(
+                  padding: const EdgeInsets.only(top: 8.0),
+                  child: Text('days', style: TextStyles.onSurfaceVariant.merge(TextStyles.body)),
+                ),
                 onChanged: (value) {
-                  context.read<ProductFormBloc>().add(DeadstockFieldChangedEvent(value));
+                  context
+                      .read<ProductFormBloc>()
+                      .add(DeadstockFieldChangedEvent(double.tryParse(value) ?? 0));
                 },
               ),
             ].withSpacing(() => spacingBetweenNameAndForm),
           ),
         ),
+        const IgnorePointer(child: Opacity(opacity: 0.0, child: Text('per'))),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -779,18 +908,24 @@ class DeadFastStockFields extends StatelessWidget with ProductFormValidator {
                 inputFormatters: [
                   FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*')),
                 ],
-                initialValue: context.read<ProductFormBloc>().state.fastMovingThreshold,
-                placeholder: context.read<ProductFormBloc>().state.fastMovingThreshold,
+                initialValue: context.read<ProductFormBloc>().state.fastMovingThreshold == 0
+                    ? ''
+                    : context.read<ProductFormBloc>().state.fastMovingThreshold.toString(),
                 validator: validateFastMovingThreshold,
-                suffix: const Padding(padding: AppPadding.a4, child: GrayText('Days')),
+                suffix: Padding(
+                  padding: const EdgeInsets.only(top: 8.0),
+                  child: Text('days', style: TextStyles.onSurfaceVariant.merge(TextStyles.body)),
+                ),
                 onChanged: (value) {
-                  context.read<ProductFormBloc>().add(FastMovingStockFieldChangedEvent(value));
+                  context
+                      .read<ProductFormBloc>()
+                      .add(FastMovingStockFieldChangedEvent(double.tryParse(value) ?? 0));
                 },
               ),
             ].withSpacing(() => spacingBetweenNameAndForm),
           ),
         ),
-      ].withSpacing(() => Spacing.h16),
+      ].withSpacing(() => Spacing.h4),
     );
   }
 }

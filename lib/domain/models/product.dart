@@ -14,6 +14,8 @@ class Product {
     required this.quantity,
     required this.mainUnit,
     required this.criticalLevel,
+    required this.minReorderDelay,
+    required this.maxReorderDelay,
     required this.deadStockThreshold,
     required this.fastMovingStockThreshold,
     required this.creationDate,
@@ -35,6 +37,8 @@ class Product {
       orderCost: (map['order_cost'] as num).toDouble(),
       quantity: (map['quantity'] as num).toDouble(),
       mainUnit: map['main_unit']?.toString() ?? '',
+      minReorderDelay: map['min_reorder_delay'] as int,
+      maxReorderDelay: map['max_reorder_delay'] as int,
       criticalLevel: (map['critical_level'] as num).toDouble(),
       deadStockThreshold: (map['dead_stock_threshold'] as num).toDouble(),
       fastMovingStockThreshold: (map['fast_moving_threshold'] as num).toDouble(),
@@ -56,6 +60,8 @@ class Product {
   final double orderCost;
   final double quantity;
   final String mainUnit;
+  final int minReorderDelay;
+  final int maxReorderDelay;
   final double criticalLevel;
   final double deadStockThreshold;
   final double fastMovingStockThreshold;
@@ -77,6 +83,8 @@ class Product {
     double orderCost,
     double quantity,
     String mainUnit,
+    int minReorderDelay,
+    int maxReorderDelay,
     double criticalLevel,
     double deadStockThreshold,
     double fastMovingStockThreshold,
@@ -98,6 +106,8 @@ class Product {
       Object? orderCost = undefined,
       Object? quantity = undefined,
       Object? mainUnit = undefined,
+      Object? minReorderDelay = undefined,
+      Object? maxReorderDelay = undefined,
       Object? criticalLevel = undefined,
       Object? deadStockThreshold = undefined,
       Object? fastMovingStockThreshold = undefined,
@@ -119,6 +129,8 @@ class Product {
         orderCost: orderCost.or(this.orderCost),
         quantity: quantity.or(this.quantity),
         mainUnit: mainUnit.or(this.mainUnit),
+        minReorderDelay: minReorderDelay.or(this.minReorderDelay),
+        maxReorderDelay: maxReorderDelay.or(this.maxReorderDelay),
         criticalLevel: criticalLevel.or(this.criticalLevel),
         deadStockThreshold: deadStockThreshold.or(this.deadStockThreshold),
         fastMovingStockThreshold: fastMovingStockThreshold.or(this.fastMovingStockThreshold),
@@ -142,6 +154,8 @@ class Product {
       'quantity': quantity,
       'main_unit': mainUnit,
       'description': description,
+      'min_reorder_delay': minReorderDelay,
+      'max_reorder_delay': maxReorderDelay,
       'critical_level': criticalLevel,
       'dead_stock_threshold': deadStockThreshold,
       'fast_moving_threshold': fastMovingStockThreshold,

@@ -81,6 +81,37 @@ mixin ProductFormValidator {
     return null;
   }
 
+  String? validateMinReorderDelay(String? value, int maxReorderDelay) {
+    print('Validating min: $value against max: $maxReorderDelay');
+    if (value == null || value.trim().isEmpty) {
+      return "Minimum reorder delay cannot be empty.";
+    }
+    final delay = int.tryParse(value);
+    if (delay == null || delay < 0) {
+      return "Minimum reorder delay must be a non-negative integer.";
+    }
+    if (delay > maxReorderDelay) {
+      return "Minimum reorder delay cannot be greater than maximum order delay.";
+    }
+    return null;
+  }
+
+  String? validateMaxReorderDelay(String? value, int minReorderDelay) {
+    print('Validating max: $value against min: $minReorderDelay');
+
+    if (value == null || value.trim().isEmpty) {
+      return "Maximum reorder delay cannot be empty.";
+    }
+    final delay = int.tryParse(value);
+    if (delay == null || delay < 0) {
+      return "Maximum reorder delay must be a non-negative integer.";
+    }
+    if (delay < minReorderDelay) {
+      return "Maximum reorder delay cannot be less than minimum order delay.";
+    }
+    return null;
+  }
+
   String? validateSecondaryUnitName({
     required SecondaryUnitFormName? name,
     required SecondaryUnitFormUnitQuantity? unitQuantity,

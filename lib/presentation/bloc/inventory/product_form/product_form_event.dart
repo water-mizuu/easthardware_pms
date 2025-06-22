@@ -33,17 +33,17 @@ class DescriptionChangedEvent extends ProductFormEvent {
 
 class PriceFieldChangedEvent extends ProductFormEvent {
   const PriceFieldChangedEvent(this.price);
-  final String price;
+  final double price;
 }
 
 class CostFieldChangedEvent extends ProductFormEvent {
   const CostFieldChangedEvent(this.cost);
-  final String cost;
+  final double cost;
 }
 
 class QuantityFieldChangedEvent extends ProductFormEvent {
   const QuantityFieldChangedEvent(this.quantity);
-  final String quantity;
+  final double quantity;
 }
 
 class MainUnitFieldChangedEvent extends ProductFormEvent {
@@ -78,17 +78,27 @@ class SecondaryUnitFieldDeletedEvent extends ProductFormEvent {
 
 class CriticalLevelFieldChangedEvent extends ProductFormEvent {
   const CriticalLevelFieldChangedEvent(this.criticalLevel);
-  final String criticalLevel;
+  final double criticalLevel;
+}
+
+class MinReorderDelayFieldChangedEvent extends ProductFormEvent {
+  const MinReorderDelayFieldChangedEvent(this.minReorderDelay);
+  final int minReorderDelay;
+}
+
+class MaxReorderDelayFieldChangedEvent extends ProductFormEvent {
+  const MaxReorderDelayFieldChangedEvent(this.maxReorderDelay);
+  final int maxReorderDelay;
 }
 
 class DeadstockFieldChangedEvent extends ProductFormEvent {
   const DeadstockFieldChangedEvent(this.threshold);
-  final String threshold;
+  final double threshold;
 }
 
 class FastMovingStockFieldChangedEvent extends ProductFormEvent {
   const FastMovingStockFieldChangedEvent(this.threshold);
-  final String threshold;
+  final double threshold;
 }
 
 class ProductStatusChangedEvent extends ProductFormEvent {

@@ -1,53 +1,54 @@
 part of 'product_form_bloc.dart';
 
 class ProductFormState extends Equatable {
-  ProductFormState({
+  const ProductFormState({
     this.name = '',
     this.sku = '',
     this.categoryName = '',
     this.categoryId,
     this.description,
-    this.price = '',
-    this.cost = '',
-    this.quantity = '',
+    this.price = 0,
+    this.cost = 0,
+    this.quantity = 0,
     this.mainUnit = '',
-    List<FormUnit>? secondaryUnits,
-    this.criticalLevel = '',
+    this.secondaryUnits = const [FormUnit.empty()],
+    this.criticalLevel = 0,
     this.isCriticalLevelEdited = false,
-    String? deadStockThreshold,
-    String? fastMovingThreshold,
-    DateTime? creationDate,
+    this.minReorderDelay = 0,
+    this.maxReorderDelay = 0,
+    this.deadStockThreshold = DEFAULT_DEAD_STOCK_THRESHOLD,
+    this.fastMovingThreshold = DEFAULT_FAST_MOVING_STOCK_THRESHOLD,
+    this.creationDate,
     this.creatorId,
     this.productId,
     this.archivedStatus,
     this.formStatus = FormStatus.initial,
     this.errorMessage,
-  })  : secondaryUnits = secondaryUnits ?? [const FormUnit.empty()],
-        creationDate = creationDate ?? DateTime.now(),
-        deadStockThreshold = deadStockThreshold ?? DEFAULT_DEAD_STOCK_THRESHOLD.toString(),
-        fastMovingThreshold = fastMovingThreshold ?? DEFAULT_FAST_MOVING_STOCK_THRESHOLD.toString();
+  });
 
   factory ProductFormState.fromProduct(Product product, List<Unit> units) {
     return ProductFormState(
+      productId: product.id!,
       name: product.name,
       sku: product.sku,
       categoryId: product.categoryId,
       categoryName: product.categoryName!,
       description: product.description,
-      price: product.salePrice.toString(),
-      cost: product.orderCost.toString(),
-      quantity: product.quantity.toString(),
+      price: product.salePrice,
+      cost: product.orderCost,
+      quantity: product.quantity,
       mainUnit: product.mainUnit,
-      criticalLevel: product.criticalLevel.toString(),
-      deadStockThreshold: product.deadStockThreshold.toString(),
-      fastMovingThreshold: product.fastMovingStockThreshold.toString(),
+      criticalLevel: product.criticalLevel,
+      minReorderDelay: product.minReorderDelay,
+      maxReorderDelay: product.maxReorderDelay,
+      deadStockThreshold: product.deadStockThreshold,
+      fastMovingThreshold: product.fastMovingStockThreshold,
       secondaryUnits: units.isEmpty //
           ? [const FormUnit.empty()]
           : units.map(FormUnit.fromUnit).toList(),
       creationDate: DateTime.parse(product.creationDate),
       creatorId: product.creatorId,
       archivedStatus: product.archiveStatus,
-      productId: product.id!,
       errorMessage: null,
     );
   }
@@ -63,23 +64,26 @@ class ProductFormState extends Equatable {
   final int? categoryId;
 
   final String? description;
-  final String price;
-  final String cost;
-  final String quantity;
+  final double price;
+  final double cost;
+  final double quantity;
   final String mainUnit;
-  final String criticalLevel;
+  final double criticalLevel;
+  // Reorder Delay in days
+  final int minReorderDelay;
+  final int maxReorderDelay;
 
   // Form specific attribute to handle automated critical level creation
   final bool isCriticalLevelEdited;
 
-  final String deadStockThreshold;
-  final String fastMovingThreshold;
+  final double deadStockThreshold;
+  final double fastMovingThreshold;
 
   // Product Secondary Units
   final List<FormUnit> secondaryUnits;
 
   // Product Creation Information, Hidden from Form
-  final DateTime creationDate;
+  final DateTime? creationDate;
   final int? archivedStatus;
   final int? creatorId;
 
@@ -95,15 +99,17 @@ class ProductFormState extends Equatable {
     String categoryName,
     int? categoryId,
     String? description,
-    String price,
-    String cost,
-    String quantity,
+    double price,
+    double cost,
+    double quantity,
     String mainUnit,
     List<FormUnit> secondaryUnits,
-    String criticalLevel,
+    double criticalLevel,
+    int minReorderDelay,
+    int maxReorderDelay,
     bool isCriticalLevelEdited,
-    String deadStockThreshold,
-    String fastMovingThreshold,
+    double deadStockThreshold,
+    double fastMovingThreshold,
     DateTime creationDate,
     int? archivedStatus,
     int? creatorId,
@@ -123,6 +129,8 @@ class ProductFormState extends Equatable {
       Object? mainUnit = undefined,
       Object? secondaryUnits = undefined,
       Object? criticalLevel = undefined,
+      Object? minReorderDelay = undefined,
+      Object? maxReorderDelay = undefined,
       Object? isCriticalLevelEdited = undefined,
       Object? deadStockThreshold = undefined,
       Object? fastMovingThreshold = undefined,
@@ -145,6 +153,8 @@ class ProductFormState extends Equatable {
         mainUnit: mainUnit.or(this.mainUnit),
         secondaryUnits: secondaryUnits.or(this.secondaryUnits),
         criticalLevel: criticalLevel.or(this.criticalLevel),
+        minReorderDelay: minReorderDelay.or(this.minReorderDelay),
+        maxReorderDelay: maxReorderDelay.or(this.maxReorderDelay),
         isCriticalLevelEdited: isCriticalLevelEdited.or(this.isCriticalLevelEdited),
         deadStockThreshold: deadStockThreshold.or(this.deadStockThreshold),
         fastMovingThreshold: fastMovingThreshold.or(this.fastMovingThreshold),
@@ -171,6 +181,8 @@ class ProductFormState extends Equatable {
         mainUnit,
         secondaryUnits,
         criticalLevel,
+        minReorderDelay,
+        maxReorderDelay,
         isCriticalLevelEdited,
         deadStockThreshold,
         fastMovingThreshold,
@@ -188,20 +200,22 @@ class ProductFormState extends Equatable {
       name: name,
       categoryId: categoryId,
       description: description,
-      salePrice: double.parse(price),
-      orderCost: double.parse(cost),
-      quantity: double.parse(quantity),
+      salePrice: price,
+      orderCost: cost,
+      quantity: quantity,
       mainUnit: mainUnit,
-      criticalLevel: double.parse(criticalLevel),
-      deadStockThreshold: double.parse(deadStockThreshold),
-      fastMovingStockThreshold: double.parse(deadStockThreshold),
-      creationDate: creationDate.toIso8601String(),
+      criticalLevel: criticalLevel,
+      deadStockThreshold: deadStockThreshold,
+      fastMovingStockThreshold: fastMovingThreshold,
+      creationDate: creationDate!.toIso8601String(),
       creatorId: creatorId!,
       archiveStatus: archivedStatus!,
+      minReorderDelay: minReorderDelay,
+      maxReorderDelay: maxReorderDelay,
     );
   }
 }
 
 class ProductFormInitial extends ProductFormState {
-  ProductFormInitial() : super();
+  const ProductFormInitial() : super();
 }
