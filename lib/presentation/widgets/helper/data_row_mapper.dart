@@ -213,6 +213,17 @@ class DataRowMapper {
     ]);
   }
 
+  static DataRow mapExpenseTypeToRow(dynamic expenseType, int orderCount, Function()? action) {
+    return DataRow(cells: [
+      DataCell(Text(expenseType.id!.toString())),
+      DataCell(Text(expenseType.name.toString())),
+      DataCell(Text(orderCount.toString())),
+      DataCell(action == null
+          ? const Text('', style: TextStyle(fontStyle: FontStyle.italic, color: Colors.grey))
+          : HyperlinkButton(onPressed: action, child: const Text('Edit'))),
+    ]);
+  }
+
   static DataRow mapUserToRow(
     User user,
     bool isLoggedIn,

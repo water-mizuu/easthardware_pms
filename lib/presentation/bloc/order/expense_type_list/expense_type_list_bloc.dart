@@ -52,9 +52,9 @@ class ExpenseTypeListBloc extends Bloc<ExpenseTypeListEvent, ExpenseTypeListStat
     emit(state.copyWith(status: DataStatus.loading));
     try {
       final expenseType = await _repository.updateExpenseType(event.expenseType);
-      final expenseTypes = List<ExpenseType>.from(state.expenseTypes)
-        ..removeWhere((e) => e.id == expenseType.id)
-        ..add(expenseType);
+      final expenseTypes = state.expenseTypes.map((e) {
+        return e.id == expenseType.id ? expenseType : e;
+      }).toList();
       emit(state.copyWith(expenseTypes: expenseTypes, status: DataStatus.success));
     } catch (e) {
       emit(state.copyWith(status: DataStatus.error));

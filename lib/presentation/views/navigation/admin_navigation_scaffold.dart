@@ -260,7 +260,7 @@ class _AdminNavigationViewState extends State<AdminNavigationView>
           navItem(
             icon: FluentIcons.reservation_orders,
             title: 'Manage Expense Type',
-            // route: AppRoutes.admin.createOrder,
+            route: AppRoutes.admin.manageExpenseType,
           ),
         ],
       ),

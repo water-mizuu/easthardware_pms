@@ -2,6 +2,7 @@ import 'package:easthardware_pms/domain/models/product.dart';
 import 'package:easthardware_pms/presentation/router/app_routes.dart';
 import 'package:easthardware_pms/presentation/views/Order/create_expense_order_page.dart';
 import 'package:easthardware_pms/presentation/views/Order/create_restock_order_page.dart';
+import 'package:easthardware_pms/presentation/views/Order/manage_expense_type_page.dart';
 import 'package:easthardware_pms/presentation/views/Order/order_pane_page.dart';
 import 'package:easthardware_pms/presentation/views/Reports/report_list_pane.dart';
 import 'package:easthardware_pms/presentation/views/authentication/login_page.dart';
@@ -188,6 +189,10 @@ final router = GoRouter(
                 TypedGoRoute(
                   route: AppRoutes.admin.createExpenseOrder,
                   builder: (context, state) => const CreateExpenseOrderPage(),
+                ),
+                TypedGoRoute(
+                  route: AppRoutes.admin.manageExpenseType,
+                  builder: (context, state) => const ManageExpenseTypePage(),
                 ),
               ],
             ),

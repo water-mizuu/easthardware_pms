@@ -52,6 +52,7 @@ class AppRoutes {
       route: AppRoute<Product?>('/admin/create/restock_order'),
     ),
     createExpenseOrder: AppRoute<Null>('/admin/create/expense_order'),
+    manageExpenseType: AppRoute<Null>('/admin/manage/expense_type'),
 
     // Security Sub Pages
     users: AppRoute<Null>('/admin/users'),
