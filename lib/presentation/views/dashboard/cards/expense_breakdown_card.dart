@@ -258,7 +258,7 @@ class _ExpensesBreakdownCardGraphState extends State<_ExpensesBreakdownCardGraph
       sections.add(
         PieChartSectionData(
           value: percentage,
-          title: percentage > 5 ? '${percentage.toStringAsFixed(1)}%' : '',
+          title: percentage > 4 ? '${percentage.toStringAsFixed(1)}%' : '',
           radius: 64.0,
           badgeWidget: Opacity(
             opacity: 0.0,

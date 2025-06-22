@@ -1,15 +1,12 @@
 import 'dart:async';
 
-import 'package:easthardware_pms/domain/enums/enums.dart'
-    show AccessLevel, DataStatus, FormStatus, OrderType;
+import 'package:easthardware_pms/domain/enums/enums.dart' show DataStatus, FormStatus, OrderType;
 import 'package:easthardware_pms/domain/models/payment_method.dart';
 import 'package:easthardware_pms/domain/models/product.dart';
 import 'package:easthardware_pms/presentation/bloc/authentication/'
     'authentication/authentication_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/inventory/product_list/product_list_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/inventory/unit_list/unit_list_bloc.dart';
-import 'package:easthardware_pms/presentation/bloc/order/'
-    'expense_type_list/expense_type_list_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/order/orderform/order_form_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/order/orderlist/order_list_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/security/user_log_list/user_log_list_bloc.dart';
@@ -33,7 +30,6 @@ import 'package:easthardware_pms/presentation/widgets/ui/form_table_column.dart'
 import 'package:easthardware_pms/presentation/widgets/ui/styles.dart';
 import 'package:easthardware_pms/presentation/widgets/ui/text_button.dart';
 import 'package:easthardware_pms/presentation/widgets/ui/text_form_boxes.dart';
-import 'package:easthardware_pms/utils/boxed.dart';
 import 'package:easthardware_pms/utils/notification.dart';
 import 'package:easthardware_pms/utils/typed_routes.dart';
 import 'package:fluent_ui/fluent_ui.dart';
@@ -60,9 +56,14 @@ class _CreateRestockOrderPageState extends State<CreateRestockOrderPage> {
   OverlayEntry? overlayEntry;
 
   @override
+  Never setState(void Function() fn) {
+    throw Error();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      key: ValueKey(widget.product),
+      key: UniqueKey(),
       create: (_) => OrderFormBloc.fromRestockOrder(widget.product),
       child: MultiBlocListener(
         listeners: [
@@ -152,7 +153,7 @@ class _CreateRestockOrderPageState extends State<CreateRestockOrderPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const Header(isRestock: true),
+              const Header(),
               Spacing.v16,
               Expanded(
                 child: Container(
@@ -505,13 +506,13 @@ class _RestockOrderFormTableRow extends StatelessWidget {
           children: [
             const Row(
               children: [
-                Index(isRestock: true),
+                Index(),
                 Expanded(flex: 2, child: _ProductName()),
-                Expanded(flex: 2, child: Description(isRestock: true)),
+                Expanded(flex: 2, child: Description()),
                 Expanded(child: _QuantityAndUnit()),
-                Expanded(child: Rate(isRestock: true)),
-                Expanded(child: Amount(isRestock: true)),
-                RemoveButton(isRestock: true),
+                Expanded(child: Rate()),
+                Expanded(child: Amount()),
+                RemoveButton(),
               ],
             ),
             if (currentProduct.errorMessage != null)

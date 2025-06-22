@@ -1,3 +1,5 @@
+import 'package:easthardware_pms/domain/enums/enums.dart';
+import 'package:easthardware_pms/presentation/bloc/order/orderform/order_form_bloc.dart';
 import 'package:easthardware_pms/presentation/views/Order/create_expense_order_page.dart';
 import 'package:easthardware_pms/presentation/views/Order/create_restock_order_page.dart';
 import 'package:easthardware_pms/presentation/widgets/ui/form_table_cell.dart';
@@ -5,23 +7,19 @@ import 'package:fluent_ui/fluent_ui.dart';
 import 'package:provider/provider.dart';
 
 class Index extends StatelessWidget {
-  const Index({super.key, required this.isRestock});
-  final bool isRestock;
+  const Index({super.key});
 
   @override
   Widget build(BuildContext context) {
     int index;
 
-    try {
-      if (isRestock) {
-        final (restockIndex, _) = context.watch<IndexedProductId>();
-        index = restockIndex;
-      } else {
-        final (expenseIndex, _) = Provider.of<IndexedOrderItem>(context);
-        index = expenseIndex;
-      }
-    } catch (e) {
-      index = 0;
+    final isRestock = context.select((OrderFormBloc b) => b.state.orderType == OrderType.restock);
+    if (isRestock) {
+      final (restockIndex, _) = context.watch<IndexedProductId>();
+      index = restockIndex;
+    } else {
+      final (expenseIndex, _) = context.watch<IndexedOrderItem>();
+      index = expenseIndex;
     }
 
     return FormTableCell(

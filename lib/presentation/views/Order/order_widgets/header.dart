@@ -1,20 +1,24 @@
-import 'package:easthardware_pms/domain/models/expense_type.dart';
+import 'package:easthardware_pms/domain/enums/enums.dart';
 import 'package:easthardware_pms/presentation/bloc/authentication/authentication/authentication_bloc.dart';
+import 'package:easthardware_pms/presentation/bloc/order/expense_type_list/expense_type_list_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/order/orderform/order_form_bloc.dart';
 import 'package:easthardware_pms/presentation/router/app_routes.dart';
 import 'package:easthardware_pms/presentation/widgets/layout/spacing.dart';
 import 'package:easthardware_pms/presentation/widgets/text.dart';
 import 'package:easthardware_pms/presentation/widgets/ui/text_button.dart';
+import 'package:easthardware_pms/utils/notification.dart';
 import 'package:easthardware_pms/utils/typed_routes.dart';
 import 'package:fluent_ui/fluent_ui.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class Header extends StatelessWidget {
-  const Header({super.key, required this.isRestock});
-  final bool isRestock;
+  const Header({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final isRestock = context.select((OrderFormBloc b) => b.state.orderType == OrderType.restock);
+
     return Row(
       children: [
         IconButton(
@@ -40,19 +44,22 @@ class Header extends StatelessWidget {
 
     if (creatorId == null) {
       // Optional: Show error dialog/snack bar
-      print('Error: creatorId is null.');
+      if (kDebugMode) {
+        print('Error: creatorId is null.');
+      }
+      showNotification.success(
+        title: 'Error',
+        message: 'You must be logged in to save an order.',
+      );
       return;
     }
 
     if (isRestock) {
-      const restockExpenseType = ExpenseType(
-        id: 1,
-        name: 'Inventory Restock',
-        archiveStatus: 0,
-      );
+      final restockExpenseType = (context.read<ExpenseTypeListBloc>().state.expenseTypes)
+          .firstWhere((type) => type.name == 'Inventory Restock');
 
       context.read<OrderFormBloc>()
-        ..add(const ExpenseTypeChangedEvent(restockExpenseType))
+        ..add(ExpenseTypeChangedEvent(restockExpenseType))
         ..add(
           SaveRestockOrderRequestEvent(
             creationDate: creationDate,

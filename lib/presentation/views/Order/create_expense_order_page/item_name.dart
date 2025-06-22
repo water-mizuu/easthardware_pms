@@ -13,19 +13,21 @@ class _ItemNameState extends State<_ItemName> {
   @override
   void initState() {
     super.initState();
-    final (index, orderItem) = Provider.of<IndexedOrderItem>(context, listen: false);
+
+    final (index, orderItem) = context.read<IndexedOrderItem>();
     _controller = TextEditingController(text: orderItem.name ?? '');
 
     _controller.addListener(() {
-      final bloc = context.read<OrderFormBloc>();
-      final (currentIndex, currentItem) = Provider.of<IndexedOrderItem>(context, listen: false);
+      final (currentIndex, currentItem) = context.read<IndexedOrderItem>();
       final newValue = _controller.text;
 
       if (currentItem.name != newValue) {
-        bloc.add(OrderItemUpdatedEvent(
-          currentItem.copyWith(name: newValue),
-          currentIndex,
-        ));
+        context //
+            .read<OrderFormBloc>()
+            .add(OrderItemUpdatedEvent(
+              currentItem.copyWith(name: newValue),
+              currentIndex,
+            ));
       }
     });
   }

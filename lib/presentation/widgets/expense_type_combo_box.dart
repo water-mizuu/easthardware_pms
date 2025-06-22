@@ -52,10 +52,13 @@ class _ExpenseTypeComboBoxState extends State<ExpenseTypeComboBox> {
         ),
       ),
       for (final type in expenseTypes) ...[
-        ComboBoxItem(
-          value: type,
-          child: Text(type.name),
-        ),
+        /// ID 1 is reserved for 'Inventory Restock' expense, which
+        ///   should only be used in the 'create restock order' page.
+        if (type.id != 1)
+          ComboBoxItem(
+            value: type,
+            child: Text(type.name),
+          ),
       ],
     ];
     return BlocProvider(

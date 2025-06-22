@@ -1,12 +1,21 @@
 import 'dart:async';
+
 import 'package:easthardware_pms/domain/enums/enums.dart';
 import 'package:easthardware_pms/domain/models/payment_method.dart';
-import 'package:easthardware_pms/presentation/bloc/authentication/authentication/authentication_bloc.dart';
+import 'package:easthardware_pms/presentation/bloc/authentication/'
+    'authentication/authentication_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/order/orderform/order_form_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/order/orderform/order_form_validator.dart';
 import 'package:easthardware_pms/presentation/bloc/order/orderlist/order_list_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/security/user_log_list/user_log_list_bloc.dart';
+import 'package:easthardware_pms/presentation/models/form_order_item.dart';
 import 'package:easthardware_pms/presentation/router/app_routes.dart';
+import 'package:easthardware_pms/presentation/views/Order/order_widgets/amount.dart';
+import 'package:easthardware_pms/presentation/views/Order/order_widgets/description.dart';
+import 'package:easthardware_pms/presentation/views/Order/order_widgets/header.dart';
+import 'package:easthardware_pms/presentation/views/Order/order_widgets/index.dart';
+import 'package:easthardware_pms/presentation/views/Order/order_widgets/rate.dart';
+import 'package:easthardware_pms/presentation/views/Order/order_widgets/remove_button.dart';
 import 'package:easthardware_pms/presentation/widgets/animated_single_child_scroll_view.dart';
 import 'package:easthardware_pms/presentation/widgets/expense_type_combo_box.dart';
 import 'package:easthardware_pms/presentation/widgets/helper/currency_formatter.dart';
@@ -25,12 +34,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:provider/provider.dart';
-import 'package:easthardware_pms/presentation/views/Order/order_widgets/amount.dart';
-import 'package:easthardware_pms/presentation/views/Order/order_widgets/description.dart';
-import 'package:easthardware_pms/presentation/views/Order/order_widgets/header.dart';
-import 'package:easthardware_pms/presentation/views/Order/order_widgets/index.dart';
-import 'package:easthardware_pms/presentation/views/Order/order_widgets/rate.dart';
-import 'package:easthardware_pms/presentation/views/Order/order_widgets/remove_button.dart';
 
 part 'create_expense_order_page/item_name.dart';
 part 'create_expense_order_page/quantity.dart';
@@ -133,7 +136,7 @@ class _CreateExpenseOrderPageState extends State<CreateExpenseOrderPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const Header(isRestock: false),
+              const Header(),
               Spacing.v16,
               Expanded(
                 child: Container(
@@ -462,13 +465,13 @@ class _ExpenseOrderFormTableRow extends StatelessWidget {
           children: [
             const Row(
               children: [
-                Index(isRestock: false),
+                Index(),
                 Expanded(flex: 2, child: _ItemName()),
-                Expanded(flex: 2, child: Description(isRestock: false)),
+                Expanded(flex: 2, child: Description()),
                 Expanded(child: _Quantity()),
-                Expanded(child: Rate(isRestock: false)),
-                Expanded(child: Amount(isRestock: false)),
-                RemoveButton(isRestock: false),
+                Expanded(child: Rate()),
+                Expanded(child: Amount()),
+                RemoveButton(),
               ],
             ),
             if (currentOrderItem.errorMessage != null)
@@ -486,4 +489,4 @@ class _ExpenseOrderFormTableRow extends StatelessWidget {
   }
 }
 
-typedef IndexedOrderItem = (int, dynamic);
+typedef IndexedOrderItem = (int, FormOrderItem);

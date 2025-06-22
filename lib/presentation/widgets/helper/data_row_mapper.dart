@@ -6,6 +6,7 @@ import 'package:easthardware_pms/domain/models/product.dart';
 import 'package:easthardware_pms/domain/models/unit.dart';
 import 'package:easthardware_pms/domain/models/user.dart';
 import 'package:easthardware_pms/domain/models/user_log.dart';
+import 'package:easthardware_pms/presentation/bloc/order/expense_type_list/expense_type_list_bloc.dart';
 import 'package:easthardware_pms/presentation/models/data_cell_functions.dart';
 import 'package:easthardware_pms/presentation/models/form_product.dart';
 import 'package:easthardware_pms/presentation/widgets/helper/currency_formatter.dart';
@@ -14,6 +15,7 @@ import 'package:easthardware_pms/presentation/widgets/ui/badges.dart';
 import 'package:easthardware_pms/presentation/widgets/ui/compound_button.dart';
 import 'package:fluent_ui/fluent_ui.dart';
 import 'package:flutter/material.dart' show DataCell, DataRow;
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 
 class DataRowMapper {
@@ -335,14 +337,26 @@ class DataRowMapper {
     final orderDate = DateFormat.yMMMMd().format(order.orderDate);
     final payee = order.payeeName.isNotEmpty == true ? order.payeeName : 'Unknown Payee';
     // Map expenseType to label
-    final expenseType = order.expenseType.toString();
-    final amount = order.amountDue.toString();
+    // final expenseType = order.expenseType.toString();
+    final amount = CurrencyFormatter.full(order.amountDue);
 
     return DataRow(cells: [
       DataCell(Text(orderId)),
       DataCell(Text(orderDate)),
       DataCell(Text(payee)),
-      DataCell(Text(expenseType)),
+      DataCell(Builder(builder: (context) {
+        final expenseType = order.expenseType;
+        final expenseTypeLabel = context
+                .read<ExpenseTypeListBloc>()
+                .state
+                .expenseTypes
+                .where((e) => e.id == expenseType)
+                .firstOrNull
+                ?.name ??
+            'Unknown';
+
+        return Text(expenseTypeLabel);
+      })),
       DataCell(Text(amount)),
       DataCell(HyperlinkButton(onPressed: onEditPressed, child: const Text('Edit'))),
     ]);
@@ -381,7 +395,7 @@ class DataRowMapper {
 
       // Description (TextFormBox)
       DataCell(TextFormBox(
-        controller: TextEditingController(text: product.description ?? ''),
+        initialValue: product.description,
         onChanged: (value) => functions.onDescriptionChanged(value),
       )),
 
