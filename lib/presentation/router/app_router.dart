@@ -4,7 +4,6 @@ import 'package:easthardware_pms/presentation/views/Order/create_expense_order_p
 import 'package:easthardware_pms/presentation/views/Order/create_restock_order_page.dart';
 import 'package:easthardware_pms/presentation/views/Order/manage_expense_type_page.dart';
 import 'package:easthardware_pms/presentation/views/Order/order_pane_page.dart';
-import 'package:easthardware_pms/presentation/views/Reports/report_list_pane.dart';
 import 'package:easthardware_pms/presentation/views/authentication/login_page.dart';
 import 'package:easthardware_pms/presentation/views/authentication/new_password_page.dart';
 import 'package:easthardware_pms/presentation/views/authentication/reset_password_page.dart';
@@ -20,6 +19,9 @@ import 'package:easthardware_pms/presentation/views/navigation/admin_navigation_
 import 'package:easthardware_pms/presentation/views/navigation/staff_navigation_scaffold.dart';
 import 'package:easthardware_pms/presentation/views/payment/create_payment_page.dart';
 import 'package:easthardware_pms/presentation/views/payment/payments_pane_page.dart';
+import 'package:easthardware_pms/presentation/views/reports/'
+    'inventory_report/inventory_report.dart';
+import 'package:easthardware_pms/presentation/views/reports/report_list_pane.dart';
 import 'package:easthardware_pms/presentation/views/search/search_page.dart';
 import 'package:easthardware_pms/presentation/views/search/search_top_bar.dart';
 import 'package:easthardware_pms/presentation/views/security/create_user_page.dart';
@@ -199,12 +201,16 @@ final router = GoRouter(
 
             // Reports Shell
             StatefulShellBranch(
-              //initialLocation: AppRoutes.admin.users.path,
+              initialLocation: AppRoutes.admin.reports.path,
               routes: [
                 TypedGoRoute(
                   route: AppRoutes.admin.reports,
                   builder: (context, state) => const ReportListPane(),
-                )
+                ),
+                TypedGoRoute(
+                  route: AppRoutes.admin.inventoryReport,
+                  builder: (context, state) => const InventoryReportPage(),
+                ),
               ],
             ),
 

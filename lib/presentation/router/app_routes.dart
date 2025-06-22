@@ -37,7 +37,6 @@ class AppRoutes {
       invoices: AppRoute<Null>('/admin/search/invoices'),
       orders: AppRoute<Null>('/admin/search/orders'),
     ),
-    // search: AppRoute<Null>('/admin/search'),
 
     // Billing Sub Pages
     createInvoice: AppRoute<Null>('/admin/create/invoice'),
@@ -51,8 +50,12 @@ class AppRoutes {
       withoutProduct: AppRoute<Null>('/admin/create/restock_order'),
       route: AppRoute<Product?>('/admin/create/restock_order'),
     ),
+
     createExpenseOrder: AppRoute<Null>('/admin/create/expense_order'),
     manageExpenseType: AppRoute<Null>('/admin/manage/expense_type'),
+
+    // Reports Sub Pages
+    inventoryReport: AppRoute<Null>('/admin/reports/inventory'),
 
     // Security Sub Pages
     users: AppRoute<Null>('/admin/users'),

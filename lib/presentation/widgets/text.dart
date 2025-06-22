@@ -78,11 +78,13 @@ class BodyText extends StatelessWidget {
     this.data, {
     this.textAlign = TextAlign.left,
     this.overflow,
+    this.fontWeight,
     super.key,
   });
   final String data;
   final TextAlign textAlign;
   final TextOverflow? overflow;
+  final FontWeight? fontWeight;
 
   @override
   Widget build(BuildContext context) {
@@ -90,8 +92,9 @@ class BodyText extends StatelessWidget {
       data,
       textAlign: textAlign,
       overflow: overflow,
-      style: const TextStyle(
+      style: TextStyle(
         fontSize: 14.0,
+        fontWeight: fontWeight,
       ),
     );
   }

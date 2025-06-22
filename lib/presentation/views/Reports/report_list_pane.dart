@@ -1,6 +1,9 @@
+import 'package:easthardware_pms/presentation/router/app_routes.dart';
 import 'package:easthardware_pms/presentation/widgets/info_card.dart';
 import 'package:easthardware_pms/presentation/widgets/layout/spacing.dart';
 import 'package:easthardware_pms/presentation/widgets/text.dart';
+import 'package:easthardware_pms/utils/context_is_staff.dart';
+import 'package:easthardware_pms/utils/typed_routes.dart';
 import 'package:fluent_ui/fluent_ui.dart';
 
 class ReportListPane extends StatelessWidget {
@@ -44,9 +47,15 @@ class ProductServiceReports extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const ReportItemCard(
+          ReportItemCard(
             title: 'Inventory Report',
-            // onPressed: () => context.navigate(AppRoutes.inventoryReport),
+            onPressed: () {
+              /// FIXME: Add support for staff access
+
+              if (context.isAdmin) {
+                context.navigate(AppRoutes.admin.inventoryReport);
+              }
+            },
           ),
         ].withSpacing(() => Spacing.v4),
       ),

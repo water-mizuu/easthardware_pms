@@ -6,6 +6,7 @@ class Spacing {
   static const Widget v8 = SizedBox(height: 8);
   static const Widget v12 = SizedBox(height: 12);
   static const Widget v16 = SizedBox(height: 16);
+  static const Widget v24 = SizedBox(height: 24);
   static const Widget v32 = SizedBox(height: 32);
   static const Widget v64 = SizedBox(height: 64);
 

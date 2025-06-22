@@ -21,13 +21,11 @@ import 'package:easthardware_pms/presentation/widgets/ui/data_table_place_holder
 import 'package:easthardware_pms/presentation/widgets/ui/kpi_card.dart';
 import 'package:easthardware_pms/presentation/widgets/ui/styles.dart';
 import 'package:easthardware_pms/presentation/widgets/ui/text_button.dart';
-import 'package:easthardware_pms/utils/boxed.dart';
 import 'package:easthardware_pms/utils/typed_routes.dart';
 import 'package:fluent_ui/fluent_ui.dart';
 import 'package:flutter/material.dart'
     show
         CardTheme,
-        DataCell,
         DataColumn,
         DataRow,
         DataTableSource,
@@ -423,7 +421,7 @@ class ProductsDataTable extends StatefulWidget {
 
 class _ProductsDataTableState extends State<ProductsDataTable> {
   int? _sortColumnIndex;
-  bool _sortAscending = true;
+  final bool _sortAscending = true;
   @override
   Widget build(BuildContext context) {
     final products = context.watch<ProductListBloc>().state.allProducts;

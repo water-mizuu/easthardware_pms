@@ -63,6 +63,9 @@ dependencies:
   async: ^2.11.0
   http: ^1.4.0
   dart_bloc_concurrency: ^2.0.0
+  printing: ^5.14.2
+  pdf: ^3.11.3
+  file_picker: ^10.2.0
 
 dev_dependencies:
   flutter_test:

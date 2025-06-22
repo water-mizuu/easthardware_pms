@@ -147,7 +147,7 @@ class _ExpensesBreakdownCardGraphState extends State<_ExpensesBreakdownCardGraph
     }());
   }
 
-  Future<PieChartData> _createPieChartData() async {
+  Future<PieChartData?> _createPieChartData() async {
     final pieTouchData = PieTouchData(
       enabled: true,
       touchCallback: (event, response) {
@@ -230,6 +230,9 @@ class _ExpensesBreakdownCardGraphState extends State<_ExpensesBreakdownCardGraph
     );
 
     final sections = await _createPieChartSections();
+    if (sections.isEmpty) {
+      return null; // No sections to display
+    }
 
     return PieChartData(
       pieTouchData: pieTouchData,

@@ -13,6 +13,9 @@ set(APPLICATION_ID "com.example.easthardware_pms")
 # versions of CMake.
 cmake_policy(SET CMP0063 NEW)
 
+set(PDFIUM_VERSION "4929" CACHE STRING "" FORCE)
+set(PDFIUM_ARCH "x64" CACHE STRING "" FORCE)
+
 # Load bundled libraries from the lib/ directory relative to the binary.
 set(CMAKE_INSTALL_RPATH "$ORIGIN/lib")
 

@@ -1,0 +1,864 @@
+import 'dart:async';
+import 'dart:math';
+
+import 'package:easthardware_pms/domain/models/product.dart';
+import 'package:easthardware_pms/presentation/bloc/inventory/inventory_display/'
+    'inventory_display_enum.dart';
+import 'package:easthardware_pms/presentation/bloc/inventory/inventory_report/'
+    'inventory_report_bloc.dart';
+import 'package:easthardware_pms/presentation/bloc/inventory/product_list/product_list_bloc.dart';
+import 'package:easthardware_pms/presentation/router/app_router.dart';
+import 'package:easthardware_pms/presentation/router/app_routes.dart';
+import 'package:easthardware_pms/presentation/widgets/animated_single_child_scroll_view.dart';
+import 'package:easthardware_pms/presentation/widgets/helper/currency_formatter.dart';
+import 'package:easthardware_pms/presentation/widgets/layout/spacing.dart';
+import 'package:easthardware_pms/presentation/widgets/text.dart';
+import 'package:easthardware_pms/presentation/widgets/ui/styles.dart';
+import 'package:easthardware_pms/presentation/widgets/ui/text_button.dart';
+import 'package:easthardware_pms/utils/boxed.dart';
+import 'package:easthardware_pms/utils/notification.dart';
+import 'package:easthardware_pms/utils/number_string.dart';
+import 'package:easthardware_pms/utils/typed_routes.dart';
+import 'package:fluent_ui/fluent_ui.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:pdf/pdf.dart';
+import 'package:pdf/widgets.dart' as pw;
+import 'package:printing/printing.dart';
+
+extension type const ProductColumn._(
+    (
+      String name,
+      int flex,
+      pw.TableColumnWidth width,
+      String Function(Product) value,
+      Color? Function(Product)? color,
+    ) record) {
+  const ProductColumn({
+    required String name,
+    int flex = 1,
+    required pw.TableColumnWidth width,
+    required String Function(Product) value,
+    Color? Function(Product)? color,
+  }) : this._(
+          (
+            name,
+            flex,
+            width,
+            value,
+            color,
+          ),
+        );
+
+  String get name => record.$1;
+  int get flex => record.$2;
+  pw.TableColumnWidth get width => record.$3;
+  String Function(Product) get value => record.$4;
+  Color? Function(Product)? get color => record.$5;
+}
+
+final productColumns = <ProductColumn>[
+  ProductColumn(
+    name: "Product Name",
+    flex: 2,
+    width: const pw.IntrinsicColumnWidth(),
+    value: (Product p) => p.name,
+  ),
+  ProductColumn(
+    name: "Category",
+    width: const pw.IntrinsicColumnWidth(),
+    value: (Product p) => p.categoryName ?? '-',
+  ),
+  ProductColumn(
+    name: "Sale Price",
+    width: const pw.IntrinsicColumnWidth(),
+    value: (Product p) => CurrencyFormatter.full(p.salePrice, "Php "),
+  ),
+  ProductColumn(
+    name: "Order Cost",
+    width: const pw.IntrinsicColumnWidth(),
+    value: (Product p) => CurrencyFormatter.full(p.orderCost, "Php "),
+  ),
+  ProductColumn(
+    name: "Status",
+    width: const pw.IntrinsicColumnWidth(),
+    value: (Product p) {
+      /// TODO: Confirm if this is the correct logic for status
+      if (p.archiveStatus == 1) {
+        return 'Archived';
+      } else if (p.isBelowCriticalLevel == true) {
+        return 'Low Stock';
+      } else if (p.isDeadStock == true) {
+        return 'Out of Stock';
+      }
+      return '-';
+    },
+    color: (Product p) {
+      if (p.archiveStatus == 1) {
+        return Colors.grey;
+      } else if (p.isBelowCriticalLevel == true) {
+        return Colors.orange;
+      } else if (p.isDeadStock == true) {
+        return Colors.red;
+      }
+      return null;
+    },
+  ),
+  ProductColumn(
+    name: "Critical Level",
+    width: const pw.IntrinsicColumnWidth(),
+    value: (Product p) => "${p.criticalLevel.toNumberString()} ${p.mainUnit}",
+  ),
+  ProductColumn(
+    name: "Qty on Hand",
+    width: const pw.IntrinsicColumnWidth(),
+    value: (Product p) => "${p.quantity.toNumberString()} ${p.mainUnit}",
+  ),
+];
+
+class InventoryReportPage extends StatelessWidget {
+  const InventoryReportPage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocProvider(
+      create: (_) => InventoryReportBloc(context.read<ProductListBloc>().state.allProducts),
+      child: Builder(builder: (context) {
+        return BlocListener<ProductListBloc, ProductListState>(
+          listenWhen: (p, c) => p.allProducts != c.allProducts,
+          listener: (context, state) {
+            context.read<InventoryReportBloc>().add(
+                  InventoryReportUpdateProductsEvent(state.allProducts),
+                );
+          },
+          child: const Padding(
+            padding: AppPadding.panePadding,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                InventoryReportHeader(),
+                Spacing.v16,
+                Expanded(
+                  child: AnimatedSingleChildScrollView(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        InventoryReportOptions(),
+                        Spacing.v24,
+                        InventoryReportPreview(),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      }),
+    );
+  }
+}
+
+class InventoryReportHeader extends StatelessWidget {
+  const InventoryReportHeader({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        IconButton(
+          icon: const Icon(FluentIcons.back),
+          onPressed: () => context.navigate(AppRoutes.admin.inventory),
+        ),
+        Spacing.h16,
+        const DisplayText('Inventory Report'),
+      ],
+    );
+  }
+}
+
+class InventoryReportOptions extends StatelessWidget {
+  const InventoryReportOptions({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        const SubheadingText('Report Options'),
+        Spacing.v12,
+        Container(
+          padding: AppPadding.cardPadding,
+          color: FluentTheme.of(context).cardColor,
+          child: const Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              _DateSelection(),
+              Spacing.v8,
+              _SortBy(),
+              Spacing.v16,
+              _GenerateButtons(),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _SortBy extends StatelessWidget {
+  const _SortBy();
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        const Text('Sort By: '),
+        Spacing.h8,
+        BlocSelector<InventoryReportBloc, InventoryReportState, InventoryDisplaySortBy>(
+          selector: (state) => state.queryData.sortBy,
+          builder: (context, sortBy) {
+            return ComboBox<InventoryDisplaySortBy>(
+              value: sortBy,
+              items: [
+                for (final value in InventoryDisplaySortBy.values)
+                  ComboBoxItem(
+                    value: value,
+                    child: Text(value.name),
+                  ),
+              ],
+              onChanged: (value) {
+                if (value != null) {
+                  context.read<InventoryReportBloc>().add(
+                        InventoryReportSetSortByEvent(value),
+                      );
+                }
+              },
+            );
+          },
+        ),
+      ],
+    );
+  }
+}
+
+class _DateSelection extends StatelessWidget {
+  const _DateSelection();
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocSelector<InventoryReportBloc, InventoryReportState, DateTime>(
+      selector: (state) => state.effectiveSelectedDate,
+      builder: (context, selectedDate) {
+        return Row(
+          children: [
+            const Text('Report Date: '),
+            Spacing.h8,
+            DatePicker(
+              selected: selectedDate,
+              onChanged: (value) => context.read<InventoryReportBloc>().add(
+                    InventoryReportSetDateEvent(value),
+                  ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+}
+
+class _GenerateButtons extends StatelessWidget {
+  const _GenerateButtons();
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<InventoryReportBloc, InventoryReportState>(
+      builder: (context, reportState) {
+        final filteredProducts = reportState.queryData.filteredProducts ??
+            context.read<ProductListBloc>().state.allProducts;
+
+        return Row(
+          children: [
+            const Expanded(child: SizedBox.shrink()),
+            TextButtonFilled(
+              'Print PDF',
+              onPressed: reportState.isGenerating
+                  ? null
+                  : () => unawaited(_previewReport(context, reportState, filteredProducts)),
+            ),
+          ],
+        );
+      },
+    );
+  }
+}
+
+class InventoryReportPreview extends StatelessWidget {
+  const InventoryReportPreview({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<ProductListBloc, ProductListState>(
+      builder: (context, state) {
+        return const Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            SubheadingText('Report Preview'),
+            Spacing.v12,
+            _SummarySection(),
+            Spacing.v12,
+            _ProductTablePreview(),
+          ],
+        );
+      },
+    );
+  }
+}
+
+class _SummarySection extends StatelessWidget {
+  const _SummarySection();
+
+  @override
+  Widget build(BuildContext context) {
+    final state = context.watch<ProductListBloc>().state;
+    final allProductsCount = state.allProducts.length;
+    final lowStockCount = state.lowStockProducts.length;
+    final fastMovingCount = state.fastMovingProducts.length;
+    final deadCount = state.deadStockProducts.length;
+    final archivedProducts = state.allProducts.where((p) => p.archiveStatus == 1).length;
+
+    return Container(
+      padding: AppPadding.cardPadding,
+      color: FluentTheme.of(context).cardColor,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              Expanded(
+                child: _buildSummaryItem(
+                  'Total Products',
+                  allProductsCount.toString(),
+                  FluentIcons.product_list,
+                ),
+              ),
+              Expanded(
+                child: _buildSummaryItem(
+                  'Low Stock Items',
+                  lowStockCount.toString(),
+                  FluentIcons.warning,
+                ),
+              ),
+              Expanded(
+                child: _buildSummaryItem(
+                  'Out of Stock',
+                  deadCount.toString(),
+                  FluentIcons.error,
+                ),
+              ),
+            ].withSpacing(() => Spacing.h8),
+          ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              const Expanded(flex: 1, child: SizedBox.shrink()),
+              Expanded(
+                flex: 3,
+                child: _buildSummaryItem(
+                  'Active Products',
+                  fastMovingCount.toString(),
+                  FluentIcons.product_list,
+                ),
+              ),
+              Spacing.h8,
+              const Expanded(flex: 1, child: SizedBox.shrink()),
+              Expanded(
+                flex: 3,
+                child: _buildSummaryItem(
+                  'Archived Products',
+                  archivedProducts.toString(),
+                  FluentIcons.warning,
+                ),
+              ),
+              const Expanded(flex: 1, child: SizedBox.shrink()),
+            ],
+          ),
+        ].withSpacing(() => Spacing.v8),
+      ),
+    );
+  }
+
+  Widget _buildSummaryItem(String label, String value, IconData icon) {
+    return Builder(builder: (context) {
+      return Column(
+        children: [
+          Icon(icon, size: 32),
+          Spacing.v8,
+          HeadingText(value),
+          Text(label, style: TextStyles.caption),
+        ],
+      );
+    });
+  }
+}
+
+class _ProductTablePreview extends StatelessWidget {
+  const _ProductTablePreview();
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocSelector<InventoryReportBloc, InventoryReportState, List<Product>?>(
+      selector: (state) => state.queryData.filteredProducts,
+      builder: (context, filteredProducts) {
+        final products = filteredProducts ?? context.read<ProductListBloc>().state.allProducts;
+
+        return Container(
+          padding: AppPadding.cardPadding,
+          color: FluentTheme.of(context).cardColor,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(6.0),
+                decoration: const BoxDecoration(
+                  borderRadius: BorderRadius.only(
+                    topLeft: Radius.circular(8),
+                    topRight: Radius.circular(8),
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    for (final ProductColumn(:name, :flex) in productColumns)
+                      Expanded(flex: flex, child: BodyText(name, fontWeight: FontWeight.w600)),
+                  ].withSpacing(() => Spacing.h4),
+                ),
+              ),
+              ListView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                itemCount: products.length,
+                itemBuilder: (context, index) {
+                  final product = products[index];
+                  return Container(
+                    padding: const EdgeInsets.all(6.0),
+                    decoration: BoxDecoration(
+                      border: Border(
+                        bottom: BorderSide(
+                          color: FluentTheme.of(context).menuColor,
+                          width: 0.5,
+                        ),
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        for (final ProductColumn(:flex, :value, :color) in productColumns)
+                          Expanded(
+                            flex: flex,
+                            child: Text(
+                              value(product),
+                              style: TextStyles.body.copyWith(color: color?.call(product)),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                      ].withSpacing(() => Spacing.h4),
+                    ),
+                  );
+                },
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+}
+
+// Static methods for PDF operations
+Future<void> _previewReport(
+  BuildContext context,
+  InventoryReportState reportState,
+  List<Product> products,
+) async {
+  context.read<InventoryReportBloc>().add(const InventoryReportSetGeneratingEvent(true));
+
+  try {
+    /// Create the PDF overlay.
+    final overlayEntry = OverlayEntry(
+      builder: (_) => LayoutBuilder(builder: (_, constraints) {
+        return ColoredBox(
+          color: Colors.black.withOpacity(0.2),
+          child: Center(
+            child: IntrinsicHeight(
+              child: Container(
+                padding: const EdgeInsets.all(16.0),
+                color: Colors.white,
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    ConstrainedBox(
+                      constraints: BoxConstraints(
+                        maxHeight: 800,
+                        minHeight: min(constraints.maxHeight, 800),
+                        maxWidth: 600,
+                        minWidth: min(constraints.maxWidth, 600),
+                      ),
+                      child: PdfPreview(
+                        build: (format) => _generatePDF(
+                          format,
+                          products,
+                          reportState.effectiveSelectedDate,
+                        ),
+                        useActions: false,
+                      ),
+                    ),
+                    Spacing.h16,
+                    Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        IconButton(
+                          icon: const Icon(FluentIcons.print, size: 24.0),
+                          onPressed: () async {
+                            // Show print preview
+                            final didPrint = await Printing.layoutPdf(
+                              onLayout: (format) async => _generatePDF(
+                                format,
+                                products,
+                                reportState.effectiveSelectedDate,
+                              ),
+                              name:
+                                  'Inventory_Report_${reportState.effectiveSelectedDate.day}-${reportState.effectiveSelectedDate.month}-'
+                                  '${reportState.effectiveSelectedDate.year}.pdf',
+                            );
+
+                            if (!context.mounted) return;
+                            if (didPrint) {
+                              context
+                                  .read<InventoryReportBloc>()
+                                  .add(const InventoryReportRemoveOverlayEvent());
+                            }
+                          },
+                        ),
+                        IconButton(
+                          icon: const Icon(FluentIcons.cancel, size: 24.0),
+                          onPressed: () {
+                            context
+                                .read<InventoryReportBloc>()
+                                .add(const InventoryReportRemoveOverlayEvent());
+                          },
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        );
+      }),
+    );
+
+    if (!context.mounted) return;
+    context.read<InventoryReportBloc>().add(InventoryReportSetOverlayEvent(overlayEntry));
+    Overlay.of(overlayWidgetKey.currentContext!).insert(overlayEntry);
+  } catch (e, st) {
+    if (context.mounted) {
+      showNotification.error(title: 'Error', message: 'Failed to generate report: $e');
+      printBoxed('$e\n$st', 'PDF Generation');
+    }
+  } finally {
+    if (context.mounted) {
+      context.read<InventoryReportBloc>().add(const InventoryReportSetGeneratingEvent(false));
+    }
+  }
+}
+
+const _cellPadding = pw.EdgeInsets.symmetric(horizontal: 8.0, vertical: 2.0);
+
+// Future<void> _saveReport(
+//   BuildContext context,
+//   InventoryReportNotifier notifier,
+//   List<Product> products,
+// ) async {
+//   notifier.setGenerating(true);
+
+//   try {
+//     final pdf = await _generatePDF(products, notifier.selectedDate);
+//     final defaultFileName =
+//         'Inventory_Report_${notifier.selectedDate.day}-${notifier.selectedDate.month}-${notifier.selectedDate.year}.pdf';
+
+//     // Show native file picker dialog to choose save location
+//     final outputFile = await FilePicker.platform.saveFile(
+//       dialogTitle: 'Save Inventory Report',
+//       fileName: defaultFileName,
+//       type: FileType.custom,
+//       allowedExtensions: ['pdf'],
+//     );
+
+//     if (outputFile != null) {
+//       // User selected a location, save the file
+//       final file = File(outputFile);
+//       await file.writeAsBytes(pdf);
+
+//       if (context.mounted) {
+//         showNotification.success(
+//           title: 'Success',
+//           message: 'PDF saved successfully to: $outputFile',
+//         );
+//       }
+//     } else {
+//       // User cancelled the dialog
+//       if (context.mounted) {
+//         showNotification.info(
+//           title: 'Cancelled',
+//           message: 'Save operation cancelled',
+//         );
+//       }
+//     }
+//   } catch (e) {
+//     if (context.mounted) {
+//       showNotification.error(
+//         title: 'Error',
+//         message: 'Failed to save report: $e',
+//       );
+//     }
+//   } finally {
+//     notifier.setGenerating(false);
+//   }
+// }
+
+// PDF generation methods
+Future<Uint8List> _generatePDF(
+  PdfPageFormat format,
+  List<Product> products,
+  DateTime selectedDate,
+) async {
+  final pdf = pw.Document();
+  final logo = await rootBundle.load('assets/icons/app.png');
+
+  pdf.addPage(
+    pw.MultiPage(
+      pageFormat: format,
+      margin: const pw.EdgeInsets.all(20),
+      header: (context) => _buildPdfHeader(context, logo, selectedDate),
+      build: (context) {
+        return [
+          // Summary (only on first page)
+          _buildSummary(context, products),
+          pw.SizedBox(height: 15),
+
+          // Product Table
+          pw.Table(
+            border: pw.TableBorder.symmetric(),
+            columnWidths: {
+              for (final (index, ProductColumn(:width)) in productColumns.indexed) index: width,
+            },
+            children: [
+              // Table Header
+              _buildPdfProductHeader(),
+
+              // Table Rows
+              for (final product in products) _buildPdfProductItem(product),
+
+              _buildBottomRow(products),
+            ],
+          ),
+        ];
+      },
+    ),
+  );
+
+  return pdf.save();
+}
+
+pw.Widget _buildSummary(pw.Context context, List<Product> products) {
+  final totalProducts = products.where((p) => p.archiveStatus != 1).length;
+  final lowStockCount = products.where((p) => p.isBelowCriticalLevel == true).length;
+  final fastMovingCount = products.where((p) => p.isFastMovingStock == true).length;
+  final deadStockCount = products.where((p) => p.isDeadStock == true).length;
+  final archivedProducts = products.where((p) => p.archiveStatus == 1).length;
+
+  return pw.Column(
+    children: [
+      pw.Row(
+        mainAxisAlignment: pw.MainAxisAlignment.spaceAround,
+        children: [
+          _buildPdfSummaryItem(
+            'Total Products',
+            totalProducts.toString(),
+          ),
+          _buildPdfSummaryItem(
+            'Low Stock',
+            lowStockCount.toString(),
+          ),
+          _buildPdfSummaryItem(
+            'Out of Stock',
+            deadStockCount.toString(),
+          ),
+        ],
+      ),
+      pw.Row(
+        mainAxisAlignment: pw.MainAxisAlignment.spaceAround,
+        children: [
+          _buildPdfSummaryItem(
+            'Fast Moving Products',
+            fastMovingCount.toString(),
+          ),
+          _buildPdfSummaryItem(
+            'Archived Products',
+            archivedProducts.toString(),
+          ),
+        ],
+      ),
+    ],
+  );
+}
+
+pw.Widget _buildPdfHeader(pw.Context context, ByteData logo, DateTime selectedDate) {
+  return pw.Column(
+    mainAxisSize: pw.MainAxisSize.min,
+    children: [
+      pw.Row(
+        mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+        children: [
+          pw.Column(
+            crossAxisAlignment: pw.CrossAxisAlignment.start,
+            children: [
+              pw.Row(
+                children: [
+                  pw.Image(
+                    pw.MemoryImage(logo.buffer.asUint8List()),
+                    width: 18,
+                    height: 18,
+                  ),
+                  pw.SizedBox(width: 8),
+                  pw.Text(
+                    'East Hardware',
+                    style: const pw.TextStyle(fontSize: 18),
+                  ),
+                ],
+              ),
+              pw.Text(
+                'Inventory Report',
+                style: const pw.TextStyle(fontSize: 14),
+              ),
+            ],
+          ),
+          pw.Column(
+            crossAxisAlignment: pw.CrossAxisAlignment.end,
+            children: [
+              pw.Text(
+                'Report Date: ${selectedDate.day}/${selectedDate.month}/${selectedDate.year}',
+                style: const pw.TextStyle(fontSize: 10),
+              ),
+              pw.Text(
+                'Generated: ${DateTime.now().day}/${DateTime.now().month}/${DateTime.now().year}',
+                style: const pw.TextStyle(fontSize: 10),
+              ),
+              pw.Text(
+                'Page ${context.pageNumber} of ${context.pagesCount}',
+                style: const pw.TextStyle(fontSize: 10),
+              ),
+            ],
+          ),
+        ],
+      ),
+      pw.SizedBox(height: 15),
+    ],
+  );
+}
+
+pw.Widget _buildPdfSummaryItem(String label, String value) {
+  return pw.Column(
+    children: [
+      pw.Text(value, style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold)),
+      pw.Text(label, style: const pw.TextStyle(fontSize: 10)),
+    ],
+  );
+}
+
+pw.TableRow _buildPdfProductHeader() {
+  return pw.TableRow(
+    decoration: const pw.BoxDecoration(
+      border: pw.Border(
+        bottom: pw.BorderSide(color: PdfColors.grey400, width: 0.5),
+      ),
+    ),
+    children: [
+      for (final ProductColumn(:name) in productColumns)
+        pw.Padding(
+          padding: _cellPadding,
+          child: pw.Text(
+            name,
+            style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 9),
+          ),
+        ),
+    ],
+  );
+}
+
+pw.TableRow _buildPdfProductItem(Product product) {
+  return pw.TableRow(
+    children: [
+      for (final ProductColumn(:value, :color) in productColumns)
+        if (color?.call(product)?.value case final color)
+          pw.Padding(
+            padding: _cellPadding,
+            child: pw.Text(
+              value(product),
+              style: pw.TextStyle(
+                fontSize: 8,
+                color: color == null ? null : PdfColor.fromInt(color),
+              ),
+              softWrap: false,
+              overflow: pw.TextOverflow.span,
+            ),
+          ),
+    ],
+  );
+}
+
+pw.TableRow _buildBottomRow(List<Product> products) {
+  final totalQuantity = products.fold(0.0, (sum, p) => sum + p.quantity);
+
+  return pw.TableRow(
+    decoration: const pw.BoxDecoration(
+      border: pw.Border(
+        top: pw.BorderSide(color: PdfColors.grey400, width: 0.5),
+      ),
+    ),
+    children: [
+      pw.Padding(
+        padding: _cellPadding,
+        child: pw.Text(
+          'Total',
+          style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 9),
+        ),
+      ),
+      for (final (_) in productColumns.skip(1).take(productColumns.length - 2))
+        pw.Padding(
+          padding: _cellPadding,
+          child: pw.Text(
+            '',
+            style: const pw.TextStyle(fontSize: 8),
+            softWrap: false,
+            overflow: pw.TextOverflow.span,
+          ),
+        ),
+      pw.Padding(
+        padding: _cellPadding,
+        child: pw.Text(
+          '${totalQuantity.toNumberString()} items',
+          style: const pw.TextStyle(fontSize: 8),
+        ),
+      ),
+    ],
+  );
+}
