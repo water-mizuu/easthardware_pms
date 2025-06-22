@@ -94,6 +94,8 @@ class CreateInvoicePage extends StatelessWidget {
                 context.read<UserLogListBloc>().add(
                       AddCreateEvent('Invoice #${latest.id}', authState.user!),
                     );
+                context.read<UserLogListBloc>().add(const LoadUserLogsEvent());
+
                 switch (formState.action) {
                   case InvoicePostAction.create:
                     context.read<InvoiceFormBloc>().add(const FormSubmittedEvent());

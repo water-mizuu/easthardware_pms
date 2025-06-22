@@ -123,6 +123,7 @@ class CreateProductPage extends StatelessWidget {
                   ..read<UnitListBloc>().add(const ReloadUnitsEvent())
                   ..read<UserLogListBloc>()
                       .add(AddCreateEvent('Product ${latest.id}', authState.user!))
+                  ..read<UserLogListBloc>().add(const LoadUserLogsEvent())
                   ..read<ProductFormBloc>().add(FormSubmittedEvent());
               },
             )
