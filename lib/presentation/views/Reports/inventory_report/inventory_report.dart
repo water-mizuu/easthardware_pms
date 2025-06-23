@@ -8,8 +8,9 @@ import 'package:easthardware_pms/presentation/bloc/inventory/inventory_report/'
     'inventory_report_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/inventory/product_list/product_list_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/order/orderlist/order_list_bloc.dart';
-import 'package:easthardware_pms/presentation/router/app_router.dart';
 import 'package:easthardware_pms/presentation/router/app_routes.dart';
+import 'package:easthardware_pms/presentation/views/dashboard/cards/sales_overview.dart';
+import 'package:easthardware_pms/presentation/views/reports/pdf_helpers/pdf_commons.dart';
 import 'package:easthardware_pms/presentation/views/reports/pdf_helpers/pdf_generation.dart';
 import 'package:easthardware_pms/presentation/widgets/animated_single_child_scroll_view.dart';
 import 'package:easthardware_pms/presentation/widgets/helper/currency_formatter.dart';
@@ -28,15 +29,16 @@ import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:provider/provider.dart';
 
-extension type const ProductColumn._(
-    (
-      String name,
-      int flex,
-      pw.TableColumnWidth width,
-      String Function(Product) value,
-      Color? Function(Product)? color,
-    ) record) {
-  const ProductColumn({
+typedef _ProductColumnRecord = (
+  String name,
+  int flex,
+  pw.TableColumnWidth width,
+  String Function(Product) value,
+  Color? Function(Product)? color,
+);
+
+extension type const _ProductColumn._(_ProductColumnRecord record) {
+  const _ProductColumn({
     required String name,
     int flex = 1,
     required pw.TableColumnWidth width,
@@ -59,61 +61,34 @@ extension type const ProductColumn._(
   Color? Function(Product)? get color => record.$5;
 }
 
-final productColumns = <ProductColumn>[
-  ProductColumn(
+final productColumns = <_ProductColumn>[
+  _ProductColumn(
     name: "Product Name",
     flex: 2,
     width: const pw.IntrinsicColumnWidth(),
     value: (Product p) => p.name,
   ),
-  ProductColumn(
+  _ProductColumn(
     name: "Category",
     width: const pw.IntrinsicColumnWidth(),
     value: (Product p) => p.categoryName ?? '-',
   ),
-  ProductColumn(
+  _ProductColumn(
     name: "Sale Price",
     width: const pw.IntrinsicColumnWidth(),
     value: (Product p) => CurrencyFormatter.full(p.salePrice, "Php "),
   ),
-  ProductColumn(
+  _ProductColumn(
     name: "Order Cost",
     width: const pw.IntrinsicColumnWidth(),
     value: (Product p) => CurrencyFormatter.full(p.orderCost, "Php "),
   ),
-  ProductColumn(
-    name: "Status",
-    width: const pw.IntrinsicColumnWidth(),
-    value: (Product p) {
-      /// TODO: Confirm if this is the correct logic for status
-      if (p.archiveStatus == 1) {
-        return 'Archived';
-      } else if (p.isBelowCriticalLevel == true) {
-        return 'Low Stock';
-      } else if (p.isDeadStock == true) {
-        return 'Out of Stock';
-      } else if (p.isFastMovingStock == true) {
-        return 'Fast Moving';
-      }
-      return '-';
-    },
-    color: (Product p) {
-      if (p.archiveStatus == 1) {
-        return Colors.grey;
-      } else if (p.isBelowCriticalLevel == true) {
-        return Colors.orange;
-      } else if (p.isDeadStock == true) {
-        return Colors.red;
-      }
-      return null;
-    },
-  ),
-  ProductColumn(
+  _ProductColumn(
     name: "Critical Level",
     width: const pw.IntrinsicColumnWidth(),
     value: (Product p) => "${p.criticalLevel.toNumberString()} ${p.mainUnit}",
   ),
-  ProductColumn(
+  _ProductColumn(
     name: "Qty on Hand",
     width: const pw.IntrinsicColumnWidth(),
     value: (Product p) => "${p.quantity.toNumberString()} ${p.mainUnit}",
@@ -457,7 +432,7 @@ class _ProductTablePreview extends StatelessWidget {
                 ),
                 child: Row(
                   children: [
-                    for (final ProductColumn(:name, :flex) in productColumns)
+                    for (final _ProductColumn(:name, :flex) in productColumns)
                       Expanded(flex: flex, child: BodyText(name, fontWeight: FontWeight.w600)),
                   ].withSpacing(() => Spacing.h4),
                 ),
@@ -480,7 +455,7 @@ class _ProductTablePreview extends StatelessWidget {
                     ),
                     child: Row(
                       children: [
-                        for (final ProductColumn(:flex, :value, :color) in productColumns)
+                        for (final _ProductColumn(:flex, :value, :color) in productColumns)
                           Expanded(
                             flex: flex,
                             child: Text(
@@ -517,7 +492,7 @@ class _ProductTablePreview extends StatelessWidget {
                           style: TextStyles.body.copyWith(fontWeight: FontWeight.bold),
                         ),
                       ),
-                      for (final (index, ProductColumn(:flex)) in productColumns.indexed)
+                      for (final (index, _ProductColumn(:flex)) in productColumns.indexed)
                         if (index != 0 && index != productColumns.length - 1)
                           Expanded(
                             flex: flex,
@@ -555,23 +530,22 @@ Future<void> _previewReport(
 
   try {
     /// Create the PDF overlay.
-    final overlayEntry = OverlayEntry(builder: (_) {
+
+    showPdfOverlay(builder: (_, overlayEntry) {
       return MultiProvider(
         providers: [
           BlocProvider.value(value: context.read<InventoryReportBloc>()),
           BlocProvider.value(value: context.read<ProductListBloc>()),
         ],
         child: PdfOverlay(
-          generatorCreator: () => InventoryReportPdfGenerator(
+          overlayEntry: overlayEntry,
+          generatorCreator: () => _InventoryReportPdfGenerator(
             products: products,
-            selectedDate: reportState.queryData.date ?? DateTime.now(),
+            selectedDate: reportState.queryData.date ?? DateTime.now().zeroedTime(),
           ),
         ),
       );
     });
-
-    context.read<InventoryReportBloc>().add(InventoryReportSetOverlayEvent(overlayEntry));
-    Overlay.of(overlayWidgetKey.currentContext!).insert(overlayEntry);
   } catch (e, st) {
     if (context.mounted) {
       showNotification.error(title: 'Error', message: 'Failed to generate report: $e');
@@ -587,8 +561,8 @@ Future<void> _previewReport(
 const _cellPadding = pw.EdgeInsets.symmetric(horizontal: 8.0, vertical: 2.0);
 
 // PDF generation methods
-final class InventoryReportPdfGenerator implements PdfGenerator {
-  const InventoryReportPdfGenerator({
+final class _InventoryReportPdfGenerator with PdfCommons implements PdfGenerator {
+  const _InventoryReportPdfGenerator({
     required this.products,
     required this.selectedDate,
   });
@@ -608,7 +582,7 @@ final class InventoryReportPdfGenerator implements PdfGenerator {
       pw.MultiPage(
         pageFormat: format,
         margin: const pw.EdgeInsets.all(20),
-        header: (context) => _buildPdfHeader(context, logo, selectedDate),
+        header: (context) => buildPdfHeader(context, logo, selectedDate),
         build: (context) {
           return [
             // Summary (only on first page)
@@ -619,7 +593,7 @@ final class InventoryReportPdfGenerator implements PdfGenerator {
             pw.Table(
               border: pw.TableBorder.symmetric(),
               columnWidths: {
-                for (final (index, ProductColumn(:width)) in productColumns.indexed) index: width,
+                for (final (index, _ProductColumn(:width)) in productColumns.indexed) index: width,
               },
               children: [
                 // Table Header
@@ -673,60 +647,6 @@ final class InventoryReportPdfGenerator implements PdfGenerator {
     );
   }
 
-  pw.Widget _buildPdfHeader(pw.Context context, ByteData logo, DateTime selectedDate) {
-    return pw.Column(
-      mainAxisSize: pw.MainAxisSize.min,
-      children: [
-        pw.Row(
-          mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
-          children: [
-            pw.Column(
-              crossAxisAlignment: pw.CrossAxisAlignment.start,
-              children: [
-                pw.Row(
-                  children: [
-                    pw.Image(
-                      pw.MemoryImage(logo.buffer.asUint8List()),
-                      width: 18,
-                      height: 18,
-                    ),
-                    pw.SizedBox(width: 8),
-                    pw.Text(
-                      'East Hardware',
-                      style: const pw.TextStyle(fontSize: 18),
-                    ),
-                  ],
-                ),
-                pw.Text(
-                  'Inventory Report',
-                  style: const pw.TextStyle(fontSize: 14),
-                ),
-              ],
-            ),
-            pw.Column(
-              crossAxisAlignment: pw.CrossAxisAlignment.end,
-              children: [
-                pw.Text(
-                  'Report Date: ${selectedDate.day}/${selectedDate.month}/${selectedDate.year}',
-                  style: const pw.TextStyle(fontSize: 10),
-                ),
-                pw.Text(
-                  'Generated: ${DateTime.now().day}/${DateTime.now().month}/${DateTime.now().year}',
-                  style: const pw.TextStyle(fontSize: 10),
-                ),
-                pw.Text(
-                  'Page ${context.pageNumber} of ${context.pagesCount}',
-                  style: const pw.TextStyle(fontSize: 10),
-                ),
-              ],
-            ),
-          ],
-        ),
-        pw.SizedBox(height: 15),
-      ],
-    );
-  }
-
   pw.Widget _buildPdfSummaryItem(String label, String value) {
     return pw.Column(
       children: [
@@ -744,7 +664,7 @@ final class InventoryReportPdfGenerator implements PdfGenerator {
         ),
       ),
       children: [
-        for (final ProductColumn(:name) in productColumns)
+        for (final _ProductColumn(:name) in productColumns)
           pw.Padding(
             padding: _cellPadding,
             child: pw.Text(
@@ -759,7 +679,7 @@ final class InventoryReportPdfGenerator implements PdfGenerator {
   pw.TableRow _buildPdfProductItem(Product product) {
     return pw.TableRow(
       children: [
-        for (final ProductColumn(:value, :color) in productColumns)
+        for (final _ProductColumn(:value, :color) in productColumns)
           if (color?.call(product)?.value case final color)
             pw.Padding(
               padding: _cellPadding,

@@ -73,10 +73,12 @@ class BusinessSalesReports extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const ReportItemCard(
+          ReportItemCard(
             title: 'Sales by Product',
-            // onPressed: () => context.navigate(AppRoutes.salesByProductReport),
+            onPressed: () => context.navigate(AppRoutes.admin.salesByProductReport),
           ),
+
+          // TODO: Do this.
           const ReportItemCard(
             title: 'Sales by Category',
             // onPressed: () => context.navigate(AppRoutes.salesByCategoryReport),
@@ -97,6 +99,7 @@ class BusinessExpensesReports extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // TODO: Do this.
           const ReportItemCard(
             title: 'Expense Report',
             // onPressed: () => context.navigate(AppRoutes.expenseReport),
@@ -117,10 +120,12 @@ class BusinessRevenueReports extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // TODO: Do this.
           const ReportItemCard(
             title: 'Profit and Loss Report',
             // onPressed: () => context.navigate(AppRoutes.profitLossReport),
           ),
+          // TODO: Do this.
           const ReportItemCard(
             title: 'Business Snapshot Report',
             // onPressed: () => context.navigate(AppRoutes.businessSnapshotReport),
@@ -158,10 +163,7 @@ class ReportItemCard extends StatelessWidget {
             child: Row(
               children: [
                 Expanded(
-                  child: Text(
-                    title,
-                    style: FluentTheme.of(context).typography.body,
-                  ),
+                  child: Text(title, style: FluentTheme.of(context).typography.body),
                 ),
               ],
             ),

@@ -40,8 +40,6 @@ class InventoryReportBloc extends Bloc<InventoryReportEvent, InventoryReportStat
     on<InventoryReportInitializeEvent>(_onInitialize);
     on<InventoryReportSetGeneratingEvent>(_onSetGenerating);
     on<InventoryReportSetDateEvent>(_onSetDate);
-    on<InventoryReportSetOverlayEvent>(_onSetOverlay);
-    on<InventoryReportRemoveOverlayEvent>(_onRemoveOverlay);
     on<InventoryReportUpdateInvoicesEvent>(_onUpdateInvoices);
     on<InventoryReportUpdateOrdersEvent>(_onUpdateOrders);
     on<InventoryReportUpdateProductsEvent>(_onUpdateProducts);
@@ -74,21 +72,6 @@ class InventoryReportBloc extends Bloc<InventoryReportEvent, InventoryReportStat
     emit(state.copyWith(queryData: state.queryData.copyWith(date: event.date)));
 
     await _updateQueryData(emit);
-  }
-
-  void _onSetOverlay(
-    InventoryReportSetOverlayEvent event,
-    Emitter<InventoryReportState> emit,
-  ) {
-    emit(state.copyWith(overlayEntry: event.overlayEntry));
-  }
-
-  void _onRemoveOverlay(
-    InventoryReportRemoveOverlayEvent event,
-    Emitter<InventoryReportState> emit,
-  ) {
-    state.overlayEntry?.remove();
-    emit(state.copyWith(overlayEntry: null));
   }
 
   Future<void> _onUpdateOrders(
