@@ -365,8 +365,37 @@ class _OrderPageFormState extends State<_OrderPageForm> {
   }
 }
 
-class _OrderSummaryAndMemo extends StatelessWidget {
+class _OrderSummaryAndMemo extends StatefulWidget {
   const _OrderSummaryAndMemo();
+
+  @override
+  State<_OrderSummaryAndMemo> createState() => _OrderSummaryAndMemoState();
+}
+
+class _OrderSummaryAndMemoState extends State<_OrderSummaryAndMemo> {
+  late final TextEditingController _memoController;
+
+  @override
+  void initState() {
+    super.initState();
+    _memoController = TextEditingController();
+  }
+
+  @override
+  void dispose() {
+    _memoController.dispose();
+    super.dispose();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final state = context.watch<OrderFormBloc>().state;
+
+    if (_memoController.text != state.memo) {
+      _memoController.text = state.memo ?? '';
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -386,6 +415,7 @@ class _OrderSummaryAndMemo extends StatelessWidget {
               const BodyText('Memo'),
               Spacing.v8,
               TextBox(
+                controller: _memoController,
                 minLines: 3,
                 maxLines: 3,
                 onChanged: (value) => bloc.add(MemoChangedEvent(value)),
