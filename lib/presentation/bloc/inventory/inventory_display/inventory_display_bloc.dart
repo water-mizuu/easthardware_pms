@@ -37,7 +37,7 @@ class InventoryDisplayBloc extends Bloc<InventoryDisplayEvent, InventoryDisplayS
       return;
     }
 
-    emit(state.copyWith(allProducts: event.allProducts));
+    emit(state.copyWith(allProducts: allProducts));
     add(const _InventoryDisplayProcessQueryEvent());
   }
 
@@ -152,55 +152,7 @@ class InventoryDisplayBloc extends Bloc<InventoryDisplayEvent, InventoryDisplayS
         if (product.description case final description?) description,
         if (product.categoryName case final categoryName?) categoryName,
       },
-      switch (state.sortBy) {
-        InventoryDisplaySortBy.nameAscending => (a, b) => a.name.compareTo(b.name),
-        InventoryDisplaySortBy.nameDescending => (a, b) => b.name.compareTo(a.name),
-        InventoryDisplaySortBy.categoryAscending => (a, b) =>
-            (a.categoryName ?? '').compareTo(b.categoryName ?? ''),
-        InventoryDisplaySortBy.categoryDescending => (a, b) =>
-            (b.categoryName ?? '').compareTo(a.categoryName ?? ''),
-        InventoryDisplaySortBy.stockAscending => (a, b) => a.quantity.compareTo(b.quantity),
-        InventoryDisplaySortBy.stockDescending => (a, b) => b.quantity.compareTo(a.quantity),
-        InventoryDisplaySortBy.priceAscending => (a, b) => a.salePrice.compareTo(b.salePrice),
-        InventoryDisplaySortBy.priceDescending => (a, b) => b.salePrice.compareTo(a.salePrice),
-        InventoryDisplaySortBy.urgency => (a, b) {
-            late final isAStockGone = a.quantity <= 0;
-            late final isBStockGone = b.quantity <= 0;
-
-            late final isAStockLow = a.quantity < a.criticalLevel;
-            late final isBStockLow = b.quantity < b.criticalLevel;
-
-            /// If they're both out of stock, sort by name.
-            if (isAStockGone && isBStockGone) {
-              return a.name.compareTo(b.name); // Both are out of stock
-            }
-
-            /// If only left is out of stock, return -1 (left is more urgent).
-            else if (isAStockGone) {
-              return -1; // A is out of stock, B is not
-            }
-
-            /// If only right is out of stock, return 1 (right is more urgent).
-            else if (isBStockGone) {
-              return 1; // B is out of stock, A is not
-            }
-
-            /// If they're both not zero stock, check if they're low stock.
-            ///   If both are low stock, sort by name.
-            else if (isAStockLow && isBStockLow) {
-              return a.name.compareTo(b.name); // Both are low stock
-            }
-
-            /// If only one is low stock, sort by urgency.
-            else if (isAStockLow) {
-              return -1; // A is low stock, B is not
-            } else if (isBStockLow) {
-              return 1; // B is low stock, A is not
-            }
-
-            return a.name.compareTo(b.name); // Both are in stock, sort by name
-          },
-      },
+      state.sortBy.compareProducts,
     );
 
     // Sort direction is now handled in the _onSort method
