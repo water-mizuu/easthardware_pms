@@ -2,9 +2,7 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:math';
 
-import 'package:easthardware_pms/domain/models/product.dart';
 import 'package:easthardware_pms/presentation/bloc/inventory/inventory_report/inventory_report_bloc.dart';
-import 'package:easthardware_pms/presentation/bloc/inventory/product_list/product_list_bloc.dart';
 import 'package:easthardware_pms/presentation/widgets/layout/spacing.dart';
 import 'package:easthardware_pms/presentation/widgets/text.dart';
 import 'package:easthardware_pms/presentation/widgets/ui/text_button.dart';
@@ -26,16 +24,23 @@ enum PageOrientation {
   final String name;
 }
 
-abstract base class PdfGenerator {
-  /// Generates a PDF document with the given [format], [products], and [selectedDate].
-  Future<Uint8List> generatePdf(
-    PdfPageFormat? format,
-    List<Product> products,
-    DateTime selectedDate,
-  );
+abstract interface class PdfGenerator {
+  String get fileName;
+
+  /// Generates a PDF document with the given [format].
+  Future<Uint8List> generatePdf(PdfPageFormat? format);
 }
 
 class PdfGenerationState with ChangeNotifier {
+  String? _fileName;
+  String? get fileName => _fileName;
+  set fileName(String? name) {
+    if (_fileName != name) {
+      _fileName = name;
+      notifyListeners();
+    }
+  }
+
   PageOrientation _orientation = PageOrientation.portrait;
   PageOrientation get orientation => _orientation;
   set orientation(PageOrientation orientation) {
@@ -69,30 +74,38 @@ class PdfGenerationState with ChangeNotifier {
   }
 }
 
-class InventoryReportOverlay extends StatelessWidget {
-  const InventoryReportOverlay({super.key});
+/// This PDF generation
+class PdfOverlay extends StatelessWidget {
+  const PdfOverlay({required this.generatorCreator, super.key});
+
+  final PdfGenerator Function() generatorCreator;
 
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-      create: (_) => PdfGenerationState(),
-      child: LayoutBuilder(
-        builder: (_, constraints) {
-          return Provider.value(
-            value: constraints,
-            child: ColoredBox(
-              color: Colors.black.withOpacity(0.2),
-              child: const Center(child: _InventoryReportOverlayBody()),
-            ),
-          );
-        },
-      ),
+    return Provider<PdfGenerator>(
+      create: (_) => generatorCreator(),
+      child: Builder(builder: (context) {
+        return ChangeNotifierProvider(
+          create: (_) => PdfGenerationState()..fileName = context.read<PdfGenerator>().fileName,
+          child: LayoutBuilder(
+            builder: (_, constraints) {
+              return Provider.value(
+                value: constraints,
+                child: ColoredBox(
+                  color: Colors.black.withOpacity(0.2),
+                  child: const Center(child: _PdfOverlayBody()),
+                ),
+              );
+            },
+          ),
+        );
+      }),
     );
   }
 }
 
-class _InventoryReportOverlayBody extends StatelessWidget {
-  const _InventoryReportOverlayBody();
+class _PdfOverlayBody extends StatelessWidget {
+  const _PdfOverlayBody();
 
   @override
   Widget build(BuildContext context) {
@@ -142,16 +155,27 @@ class _Header extends StatelessWidget {
             children: [
               DisplayText('Print or Save PDF'),
               Spacing.v4,
-              GrayText('To print the report, click the print icon below.')
+              GrayText('To print the report, click the print icon below.'),
+              GrayText('To zoom and drag, double click the preview. '
+                  'To move to different pages, double tap again.')
             ],
           ),
-          AspectRatio(
-            aspectRatio: 1.0,
-            child: Button(
-              child: const Icon(FluentIcons.cancel),
-              onPressed: () {
-                context.read<InventoryReportBloc>().add(const InventoryReportRemoveOverlayEvent());
-              },
+          Spacing.h12,
+          Center(
+            child: SizedBox(
+              width: 36.0,
+              height: 36.0,
+              child: Button(
+                style: const ButtonStyle(
+                  padding: WidgetStatePropertyAll(EdgeInsets.zero),
+                ),
+                onPressed: () {
+                  context
+                      .read<InventoryReportBloc>()
+                      .add(const InventoryReportRemoveOverlayEvent());
+                },
+                child: const Icon(FluentIcons.cancel, size: 12.0),
+              ),
             ),
           ),
         ],
@@ -183,10 +207,6 @@ class _MenuChoices extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final reportState = context.watch<InventoryReportBloc>().state;
-    final products = context.watch<InventoryReportBloc>().state.queryData.filteredProducts ??
-        context.read<ProductListBloc>().state.allProducts;
-
     return IntrinsicWidth(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -199,7 +219,7 @@ class _MenuChoices extends StatelessWidget {
                 child: TextButton(
                   'Save as PDF',
                   onPressed: () async {
-                    await _saveReport(context, context.read<InventoryReportBloc>(), products);
+                    await _saveReport(context);
                   },
                 ),
               ),
@@ -210,14 +230,8 @@ class _MenuChoices extends StatelessWidget {
                   // Show print preview
                   final didPrint = await Printing.layoutPdf(
                     format: context.read<PdfGenerationState>().pageFormat,
-                    onLayout: (format) => context.read<PdfGenerator>().generatePdf(
-                          format,
-                          products,
-                          reportState.effectiveSelectedDate,
-                        ),
-                    name: 'Inventory_Report_${reportState.effectiveSelectedDate.day}-'
-                        '${reportState.effectiveSelectedDate.month}-'
-                        '${reportState.effectiveSelectedDate.year}.pdf',
+                    onLayout: (format) => context.read<PdfGenerator>().generatePdf(format),
+                    name: context.read<PdfGenerator>().fileName,
                   );
 
                   if (!context.mounted) return;
@@ -305,11 +319,9 @@ class _PdfPreview extends StatelessWidget {
   Widget build(BuildContext context) {
     final constraints = context.watch<BoxConstraints>();
     final generationState = context.watch<PdfGenerationState>();
-    final reportState = context.watch<InventoryReportBloc>().state;
-    final products = context.watch<InventoryReportBloc>().state.queryData.filteredProducts ??
-        context.read<ProductListBloc>().state.allProducts;
 
-    return ConstrainedBox(
+    return Container(
+      decoration: BoxDecoration(border: Border.all(color: Colors.grey, width: 1.0)),
       constraints: BoxConstraints(
         maxHeight: 480,
         minHeight: min(constraints.maxHeight, 480),
@@ -321,11 +333,7 @@ class _PdfPreview extends StatelessWidget {
         build: (_) async {
           final generator = context.read<PdfGenerator>();
 
-          return await generator.generatePdf(
-            generationState.pageFormat,
-            products,
-            reportState.effectiveSelectedDate,
-          );
+          return await generator.generatePdf(generationState.pageFormat);
         },
         useActions: false,
       ),
@@ -333,17 +341,12 @@ class _PdfPreview extends StatelessWidget {
   }
 }
 
-Future<void> _saveReport(
-  BuildContext context,
-  InventoryReportBloc bloc,
-  List<Product> products,
-) async {
-  bloc.add(const InventoryReportSetGeneratingEvent(true));
-
+Future<void> _saveReport(BuildContext context) async {
   try {
-    final dateTime = bloc.state.effectiveSelectedDate;
+    final dateTime = DateTime.now();
+    final pageFormat = context.read<PdfGenerationState>().pageFormat;
     final generator = context.read<PdfGenerator>();
-    final pdf = await generator.generatePdf(PdfPageFormat.letter, products, dateTime);
+    final pdf = await generator.generatePdf(pageFormat);
     final defaultFileName = 'Inventory_Report_${dateTime.day}-' //
         '${dateTime.month}-'
         '${dateTime.year}.pdf';
@@ -377,7 +380,5 @@ Future<void> _saveReport(
         message: 'Failed to save report: $e',
       );
     }
-  } finally {
-    bloc.add(const InventoryReportSetGeneratingEvent(false));
   }
 }

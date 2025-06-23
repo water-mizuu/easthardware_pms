@@ -289,7 +289,7 @@ class _GenerateButtons extends StatelessWidget {
         return Row(
           children: [
             TextButtonFilled(
-              'Print PDF',
+              'Print or Save Report',
               onPressed: reportState.isGenerating
                   ? null
                   : () => unawaited(_previewReport(context, reportState, filteredProducts)),
@@ -306,20 +306,16 @@ class InventoryReportPreview extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<ProductListBloc, ProductListState>(
-      builder: (context, state) {
-        return const Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            SubheadingText('Report Preview'),
-            Spacing.v12,
-            _SummarySection(),
-            Spacing.v12,
-            _ProductTablePreview(),
-          ],
-        );
-      },
+    return const Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        SubheadingText('Report Preview'),
+        Spacing.v12,
+        _SummarySection(),
+        Spacing.v12,
+        _ProductTablePreview(),
+      ],
     );
   }
 }
@@ -329,72 +325,55 @@ class _SummarySection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final state = context.watch<ProductListBloc>().state;
-    final allProductsCount = state.allProducts.length;
-    final lowStockCount = state.lowStockProducts.length;
-    final fastMovingCount = state.fastMovingProducts.length;
-    final deadCount = state.deadStockProducts.length;
-    final archivedProducts = state.allProducts.where((p) => p.archiveStatus == 1).length;
+    final products = context.watch<ProductListBloc>().state.allProducts;
+    final totalProducts = products.where((p) => p.archiveStatus != 1).length;
+    final lowStockCount = products.where((p) => p.isBelowCriticalLevel == true).length;
+    final fastMovingCount = products.where((p) => p.isFastMovingStock == true).length;
+    final deadStockCount = products.where((p) => p.isDeadStock == true).length;
+    final archivedProducts = products.where((p) => p.archiveStatus == 1).length;
 
     return Container(
       padding: AppPadding.cardPadding,
       color: FluentTheme.of(context).cardColor,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
-              Expanded(
-                child: _buildSummaryItem(
-                  'Total Products',
-                  allProductsCount.toString(),
-                  FluentIcons.product_list,
-                ),
-              ),
-              Expanded(
-                child: _buildSummaryItem(
-                  'Low Stock Items',
-                  lowStockCount.toString(),
-                  FluentIcons.warning,
-                ),
-              ),
-              Expanded(
-                child: _buildSummaryItem(
-                  'Out of Stock',
-                  deadCount.toString(),
-                  FluentIcons.error,
-                ),
-              ),
-            ].withSpacing(() => Spacing.h8),
+          Expanded(
+            child: _buildSummaryItem(
+              'Total Products',
+              totalProducts.toString(),
+              FluentIcons.product_list,
+            ),
           ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
-              const Expanded(flex: 1, child: SizedBox.shrink()),
-              Expanded(
-                flex: 3,
-                child: _buildSummaryItem(
-                  'Active Products',
-                  fastMovingCount.toString(),
-                  FluentIcons.product_list,
-                ),
-              ),
-              Spacing.h8,
-              const Expanded(flex: 1, child: SizedBox.shrink()),
-              Expanded(
-                flex: 3,
-                child: _buildSummaryItem(
-                  'Archived Products',
-                  archivedProducts.toString(),
-                  FluentIcons.warning,
-                ),
-              ),
-              const Expanded(flex: 1, child: SizedBox.shrink()),
-            ],
+          Expanded(
+            child: _buildSummaryItem(
+              'Low Stock Items',
+              lowStockCount.toString(),
+              FluentIcons.warning,
+            ),
           ),
-        ].withSpacing(() => Spacing.v8),
+          Expanded(
+            child: _buildSummaryItem(
+              'Out of Stock',
+              deadStockCount.toString(),
+              FluentIcons.error,
+            ),
+          ),
+          Expanded(
+            child: _buildSummaryItem(
+              'Active Products',
+              fastMovingCount.toString(),
+              FluentIcons.product_list,
+            ),
+          ),
+          Expanded(
+            child: _buildSummaryItem(
+              'Archived Products',
+              archivedProducts.toString(),
+              FluentIcons.warning,
+            ),
+          ),
+        ].withSpacing(() => Spacing.h8),
       ),
     );
   }
@@ -432,6 +411,7 @@ class _ProductTablePreview extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(6.0),
                 decoration: const BoxDecoration(
+                  border: Border(bottom: BorderSide(color: Colors.grey)),
                   borderRadius: BorderRadius.only(
                     topLeft: Radius.circular(8),
                     topRight: Radius.circular(8),
@@ -476,6 +456,49 @@ class _ProductTablePreview extends StatelessWidget {
                   );
                 },
               ),
+              Container(
+                padding: const EdgeInsets.all(6.0),
+                decoration: BoxDecoration(
+                  border: Border(
+                    bottom: BorderSide(
+                      color: FluentTheme.of(context).menuColor,
+                      width: 0.5,
+                    ),
+                  ),
+                ),
+                child: DecoratedBox(
+                  decoration: const BoxDecoration(
+                    border: Border(top: BorderSide(color: Colors.grey)),
+                  ),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        flex: productColumns.first.flex,
+                        child: Text(
+                          'Total',
+                          style: TextStyles.body.copyWith(fontWeight: FontWeight.bold),
+                        ),
+                      ),
+                      for (final (index, ProductColumn(:flex)) in productColumns.indexed)
+                        if (index != 0 && index != productColumns.length - 1)
+                          Expanded(
+                            flex: flex,
+                            child: const Text(
+                              '',
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                      Expanded(
+                        flex: productColumns.last.flex,
+                        child: Text(
+                          '${products.fold(0.0, (sum, p) => sum + p.quantity).toNumberString()} items',
+                          style: TextStyles.body,
+                        ),
+                      ),
+                    ].withSpacing(() => Spacing.h4),
+                  ),
+                ),
+              ),
             ],
           ),
         );
@@ -499,9 +522,13 @@ Future<void> _previewReport(
         providers: [
           BlocProvider.value(value: context.read<InventoryReportBloc>()),
           BlocProvider.value(value: context.read<ProductListBloc>()),
-          InheritedProvider<PdfGenerator>(create: (_) => InventoryReportPdfGenerator()),
         ],
-        child: const InventoryReportOverlay(),
+        child: PdfOverlay(
+          generatorCreator: () => InventoryReportPdfGenerator(
+            products: products,
+            selectedDate: reportState.effectiveSelectedDate,
+          ),
+        ),
       );
     });
 
@@ -522,13 +549,20 @@ Future<void> _previewReport(
 const _cellPadding = pw.EdgeInsets.symmetric(horizontal: 8.0, vertical: 2.0);
 
 // PDF generation methods
-final class InventoryReportPdfGenerator extends PdfGenerator {
+final class InventoryReportPdfGenerator implements PdfGenerator {
+  const InventoryReportPdfGenerator({
+    required this.products,
+    required this.selectedDate,
+  });
+
+  final List<Product> products;
+  final DateTime selectedDate;
+
   @override
-  Future<Uint8List> generatePdf(
-    PdfPageFormat? format,
-    List<Product> products,
-    DateTime selectedDate,
-  ) async {
+  String get fileName => 'Inventory_Report_${selectedDate.toIso8601String().split('T').first}.pdf';
+
+  @override
+  Future<Uint8List> generatePdf(PdfPageFormat? format) async {
     final pdf = pw.Document();
     final logo = await rootBundle.load('assets/icons/app.png');
 
@@ -574,37 +608,28 @@ final class InventoryReportPdfGenerator extends PdfGenerator {
     final deadStockCount = products.where((p) => p.isDeadStock == true).length;
     final archivedProducts = products.where((p) => p.archiveStatus == 1).length;
 
-    return pw.Column(
+    return pw.Row(
+      mainAxisAlignment: pw.MainAxisAlignment.spaceAround,
       children: [
-        pw.Row(
-          mainAxisAlignment: pw.MainAxisAlignment.spaceAround,
-          children: [
-            _buildPdfSummaryItem(
-              'Total Products',
-              totalProducts.toString(),
-            ),
-            _buildPdfSummaryItem(
-              'Low Stock',
-              lowStockCount.toString(),
-            ),
-            _buildPdfSummaryItem(
-              'Out of Stock',
-              deadStockCount.toString(),
-            ),
-          ],
+        _buildPdfSummaryItem(
+          'Total Products',
+          totalProducts.toString(),
         ),
-        pw.Row(
-          mainAxisAlignment: pw.MainAxisAlignment.spaceAround,
-          children: [
-            _buildPdfSummaryItem(
-              'Fast Moving Products',
-              fastMovingCount.toString(),
-            ),
-            _buildPdfSummaryItem(
-              'Archived Products',
-              archivedProducts.toString(),
-            ),
-          ],
+        _buildPdfSummaryItem(
+          'Low Stock',
+          lowStockCount.toString(),
+        ),
+        _buildPdfSummaryItem(
+          'Out of Stock',
+          deadStockCount.toString(),
+        ),
+        _buildPdfSummaryItem(
+          'Fast Moving Products',
+          fastMovingCount.toString(),
+        ),
+        _buildPdfSummaryItem(
+          'Archived Products',
+          archivedProducts.toString(),
         ),
       ],
     );
