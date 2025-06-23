@@ -70,8 +70,58 @@ class InventoryDisplayBloc extends Bloc<InventoryDisplayEvent, InventoryDisplayS
     InventoryDisplaySortEvent event,
     Emitter<InventoryDisplayState> emit,
   ) {
-    emit(state.copyWith(sortBy: event.sortBy));
+    // Check if we're selecting the same sort type that's already active
+    if (state.sortBy == event.sortBy) {
+      // Toggle the sort direction if the same sort type is selected again
+      emit(state.copyWith(sortAscending: !state.sortAscending));
+
+      // Determine the appropriate sort type based on the field and direction
+      final newSortBy = _getSortTypeBasedOnDirection(event.sortBy, !state.sortAscending);
+      emit(state.copyWith(sortBy: newSortBy));
+    } else {
+      // Default to ascending order for new sort type
+      emit(state.copyWith(
+        sortBy: event.sortBy,
+        sortAscending: true,
+      ));
+    }
+
     add(const _InventoryDisplayProcessQueryEvent());
+  }
+
+  // Helper method to get the correct sort type based on direction
+  InventoryDisplaySortBy _getSortTypeBasedOnDirection(
+    InventoryDisplaySortBy currentSort,
+    bool ascending,
+  ) {
+    switch (currentSort) {
+      case InventoryDisplaySortBy.nameAscending:
+      case InventoryDisplaySortBy.nameDescending:
+        return ascending
+            ? InventoryDisplaySortBy.nameAscending
+            : InventoryDisplaySortBy.nameDescending;
+
+      case InventoryDisplaySortBy.categoryAscending:
+      case InventoryDisplaySortBy.categoryDescending:
+        return ascending
+            ? InventoryDisplaySortBy.categoryAscending
+            : InventoryDisplaySortBy.categoryDescending;
+
+      case InventoryDisplaySortBy.stockAscending:
+      case InventoryDisplaySortBy.stockDescending:
+        return ascending
+            ? InventoryDisplaySortBy.stockAscending
+            : InventoryDisplaySortBy.stockDescending;
+
+      case InventoryDisplaySortBy.priceAscending:
+      case InventoryDisplaySortBy.priceDescending:
+        return ascending
+            ? InventoryDisplaySortBy.priceAscending
+            : InventoryDisplaySortBy.priceDescending;
+
+      case InventoryDisplaySortBy.urgency:
+        return InventoryDisplaySortBy.urgency; // This doesn't have a reverse direction
+    }
   }
 
   Future<void> _onProcessQuery(
@@ -105,6 +155,10 @@ class InventoryDisplayBloc extends Bloc<InventoryDisplayEvent, InventoryDisplayS
       switch (state.sortBy) {
         InventoryDisplaySortBy.nameAscending => (a, b) => a.name.compareTo(b.name),
         InventoryDisplaySortBy.nameDescending => (a, b) => b.name.compareTo(a.name),
+        InventoryDisplaySortBy.categoryAscending => (a, b) =>
+            (a.categoryName ?? '').compareTo(b.categoryName ?? ''),
+        InventoryDisplaySortBy.categoryDescending => (a, b) =>
+            (b.categoryName ?? '').compareTo(a.categoryName ?? ''),
         InventoryDisplaySortBy.stockAscending => (a, b) => a.quantity.compareTo(b.quantity),
         InventoryDisplaySortBy.stockDescending => (a, b) => b.quantity.compareTo(a.quantity),
         InventoryDisplaySortBy.priceAscending => (a, b) => a.salePrice.compareTo(b.salePrice),
@@ -149,6 +203,7 @@ class InventoryDisplayBloc extends Bloc<InventoryDisplayEvent, InventoryDisplayS
       },
     );
 
+    // Sort direction is now handled in the _onSort method
     emit(state.copyWith(filteredProducts: result));
   }
 }

@@ -25,6 +25,13 @@ class Badges extends StatelessWidget {
       text: text,
     );
   }
+
+  factory Badges.normal(String text) {
+    return Badges(
+      color: Colors.blue,
+      text: text,
+    );
+  }
   const Badges({
     super.key,
     required this.color,

@@ -12,7 +12,9 @@ import 'package:easthardware_pms/presentation/bloc/inventory/inventory_display/'
 import 'package:easthardware_pms/presentation/bloc/inventory/inventory_display/'
     'inventory_display_enum.dart';
 import 'package:easthardware_pms/presentation/bloc/inventory/product_list/product_list_bloc.dart';
+import 'package:easthardware_pms/presentation/bloc/inventory/unit_list/unit_list_bloc.dart';
 import 'package:easthardware_pms/presentation/router/app_routes.dart';
+import 'package:easthardware_pms/presentation/views/inventory/product_information_content_dialog.dart';
 import 'package:easthardware_pms/presentation/widgets/helper/data_row_mapper.dart';
 import 'package:easthardware_pms/presentation/widgets/layout/spacing.dart';
 import 'package:easthardware_pms/presentation/widgets/layout_mode_provider.dart';
@@ -20,6 +22,7 @@ import 'package:easthardware_pms/presentation/widgets/text.dart';
 import 'package:easthardware_pms/presentation/widgets/ui/data_table_place_holder.dart';
 import 'package:easthardware_pms/presentation/widgets/ui/kpi_card.dart';
 import 'package:easthardware_pms/presentation/widgets/ui/styles.dart';
+import 'package:easthardware_pms/presentation/widgets/ui/table_theme_data.dart';
 import 'package:easthardware_pms/presentation/widgets/ui/text_button.dart';
 import 'package:easthardware_pms/utils/typed_routes.dart';
 import 'package:fluent_ui/fluent_ui.dart';
@@ -420,93 +423,178 @@ class ProductsDataTable extends StatefulWidget {
 }
 
 class _ProductsDataTableState extends State<ProductsDataTable> {
-  int? _sortColumnIndex;
-  final bool _sortAscending = true;
+  int? _getSortColumnIndex(InventoryDisplaySortBy sortBy) {
+    switch (sortBy) {
+      case InventoryDisplaySortBy.nameAscending:
+      case InventoryDisplaySortBy.nameDescending:
+        return 0; // Index of the Name column
+
+      case InventoryDisplaySortBy.categoryAscending:
+      case InventoryDisplaySortBy.categoryDescending:
+        return 1; // Index of the Category column
+
+      case InventoryDisplaySortBy.priceAscending:
+      case InventoryDisplaySortBy.priceDescending:
+        return 2; // Index of the Sale Price column
+
+      case InventoryDisplaySortBy.stockAscending:
+      case InventoryDisplaySortBy.stockDescending:
+        return 3; // Index of the Quantity column
+
+      case InventoryDisplaySortBy.urgency:
+        return 4; // Index of the Status column
+
+      default:
+        return null; // No column is being sorted
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    final products = context.watch<ProductListBloc>().state.allProducts;
-    return TableThemeData(
-      child: PaginatedDataTable(
+    return BlocBuilder<InventoryDisplayBloc, InventoryDisplayState>(
+      buildWhen: (prev, curr) =>
+          prev.filteredProducts != curr.filteredProducts || //
+          prev.sortBy != curr.sortBy,
+      builder: (context, inventoryState) {
+        final productListState = context.watch<ProductListBloc>().state;
+        final inventoryDisplayBloc = context.select((InventoryDisplayBloc b) => b);
+        final notArchived =
+            productListState.allProducts.where((p) => p.archiveStatus == 0).toList();
+        final filtered = inventoryState.filteredProducts;
+
+        return TableThemeData(
+            child: PaginatedDataTable(
+          showFirstLastButtons: true,
+          showCheckboxColumn: false,
           horizontalMargin: 20,
-          columnSpacing: 0,
+          columnSpacing: 16,
+          sortColumnIndex: _getSortColumnIndex(inventoryState.sortBy),
+          sortAscending: inventoryState.sortAscending,
           checkboxHorizontalMargin: 0,
-          sortColumnIndex: _sortColumnIndex,
-          sortAscending: _sortAscending,
           columns: [
             DataColumn(
               label: ConstrainedBox(
-                constraints: const BoxConstraints(minWidth: 150),
+                constraints: const BoxConstraints(minWidth: 120),
                 child: const Text('Name', style: TextStyles.strong),
               ),
+              onSort: (_, __) {
+                // Simply toggle between ascending and descending based on current sort type
+                if (inventoryState.sortBy == InventoryDisplaySortBy.nameAscending ||
+                    inventoryState.sortBy == InventoryDisplaySortBy.nameDescending) {
+                  // If already sorting by name, just dispatch the same sort type to toggle direction
+                  inventoryDisplayBloc.add(InventoryDisplaySortEvent(inventoryState.sortBy));
+                } else {
+                  // If not already sorting by name, start with ascending
+                  inventoryDisplayBloc
+                      .add(const InventoryDisplaySortEvent(InventoryDisplaySortBy.nameAscending));
+                }
+              },
             ),
             DataColumn(
               label: ConstrainedBox(
-                constraints: const BoxConstraints(minWidth: 150),
+                constraints: const BoxConstraints(minWidth: 120),
                 child: const Text('Category', style: TextStyles.strong),
               ),
+              onSort: (_, __) {
+                if (inventoryState.sortBy == InventoryDisplaySortBy.categoryAscending ||
+                    inventoryState.sortBy == InventoryDisplaySortBy.categoryDescending) {
+                  inventoryDisplayBloc.add(InventoryDisplaySortEvent(inventoryState.sortBy));
+                } else {
+                  inventoryDisplayBloc.add(
+                      const InventoryDisplaySortEvent(InventoryDisplaySortBy.categoryAscending));
+                }
+              },
             ),
             DataColumn(
               label: ConstrainedBox(
-                constraints: const BoxConstraints(minWidth: 75),
+                constraints: const BoxConstraints(minWidth: 60),
                 child: const Text('Sale Price', style: TextStyles.strong),
               ),
+              onSort: (_, __) {
+                if (inventoryState.sortBy == InventoryDisplaySortBy.priceAscending ||
+                    inventoryState.sortBy == InventoryDisplaySortBy.priceDescending) {
+                  inventoryDisplayBloc.add(InventoryDisplaySortEvent(inventoryState.sortBy));
+                } else {
+                  inventoryDisplayBloc
+                      .add(const InventoryDisplaySortEvent(InventoryDisplaySortBy.priceAscending));
+                }
+              },
             ),
             DataColumn(
               label: ConstrainedBox(
-                constraints: const BoxConstraints(minWidth: 75),
+                constraints: const BoxConstraints(minWidth: 60),
                 child: const Text('Quantity', style: TextStyles.strong),
               ),
+              onSort: (_, __) {
+                if (inventoryState.sortBy == InventoryDisplaySortBy.stockAscending ||
+                    inventoryState.sortBy == InventoryDisplaySortBy.stockDescending) {
+                  inventoryDisplayBloc.add(InventoryDisplaySortEvent(inventoryState.sortBy));
+                } else {
+                  inventoryDisplayBloc
+                      .add(const InventoryDisplaySortEvent(InventoryDisplaySortBy.stockAscending));
+                }
+              },
             ),
             DataColumn(
               label: ConstrainedBox(
-                constraints: const BoxConstraints(minWidth: 75),
+                constraints: const BoxConstraints(minWidth: 60),
                 child: const Text('Status', style: TextStyles.strong),
               ),
+              onSort: (_, __) {
+                inventoryDisplayBloc.add(
+                  const InventoryDisplaySortEvent(InventoryDisplaySortBy.urgency),
+                );
+              },
             ),
-            const DataColumn(label: Spacer()),
+            DataColumn(
+              label: ConstrainedBox(
+                constraints: const BoxConstraints(minWidth: 60),
+                child: const Text('', style: TextStyles.strong),
+              ),
+            ),
           ],
-          source: ProductDataSource(products)),
-    );
-  }
-}
-
-class TableThemeData extends StatelessWidget {
-  const TableThemeData({
-    super.key,
-    required this.child,
-  });
-  final Widget child;
-
-  @override
-  Widget build(BuildContext context) {
-    return Theme(
-      data: ThemeData(
-        dataTableTheme: const DataTableThemeData(
-          columnSpacing: 0,
-          dividerThickness: 0,
-          headingRowHeight: 36.0,
-          dataRowMinHeight: 42.0,
-          dataRowMaxHeight: 48.0,
-        ),
-        cardTheme: CardTheme(
-          margin: EdgeInsets.zero,
-          elevation: 0,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4.0)),
-          color: Colors.white,
-        ),
-      ),
-      child: child,
+          source: ProductDataSource(context: context, products: filtered ?? notArchived),
+        ));
+      },
     );
   }
 }
 
 class ProductDataSource extends DataTableSource {
-  ProductDataSource(this.products);
+  ProductDataSource({
+    required this.context,
+    required this.products,
+  });
+
   final List<Product> products;
+  final BuildContext context;
   @override
   DataRow? getRow(int index) {
+    final accessLevel = context.read<AuthenticationBloc>().state.user?.accessLevel;
     final product = products[index];
-    return DataRowMapper.mapProductToRow(product, editAction: () {}, orderAction: () {});
+    return DataRowMapper.mapProductToRow(
+      product,
+      viewAction: () {
+        unawaited(
+          showDialog(
+            barrierDismissible: true,
+            context: context,
+            builder: (dialogContext) {
+              return ProductInformationContentDialog(
+                dialogContext: dialogContext,
+                product: product,
+              );
+            },
+          ),
+        );
+      },
+      editAction: accessLevel == AccessLevel.administrator
+          ? () => context.navigateWithExtra(AppRoutes.admin.editProduct, product)
+          : null,
+      orderAction: accessLevel == AccessLevel.administrator
+          ? () => context.navigateWithExtra(AppRoutes.admin.createRestockOrder.withProduct, product)
+          : null,
+    );
   }
 
   @override
@@ -517,129 +605,4 @@ class ProductDataSource extends DataTableSource {
 
   @override
   int get selectedRowCount => 0;
-}
-
-class OldProductsDataTable extends StatefulWidget {
-  const OldProductsDataTable({super.key});
-
-  @override
-  State<OldProductsDataTable> createState() => _OldProductsDataTableState();
-}
-
-class _OldProductsDataTableState extends State<OldProductsDataTable> {
-  static const double cellHeight = 36.0;
-
-  late final Map<String, SpanExtent> _rowExtents = {
-    "Name": const MaxSpanExtent(FixedSpanExtent(180.00), FractionalSpanExtent(0.264)),
-    "Category": const MaxSpanExtent(FixedSpanExtent(80.00), FractionalSpanExtent(0.2178)),
-    "Price": const FixedSpanExtent(120),
-    "Quantity": const FixedSpanExtent(120),
-    "Status": const FixedSpanExtent(120),
-    if (context.read<AuthenticationBloc>().state.user?.accessLevel == AccessLevel.administrator)
-      "Actions": const MaxSpanExtent(FixedSpanExtent(80.00), RemainingSpanExtent()),
-  };
-
-  late final AnimatedScrollController _verticalScrollController;
-  late final AnimatedScrollController _horizontalScrollController;
-
-  @override
-  void initState() {
-    super.initState();
-
-    _verticalScrollController =
-        AnimatedScrollController(animationFactory: const ChromiumEaseInOut());
-    _horizontalScrollController =
-        AnimatedScrollController(animationFactory: const ChromiumEaseInOut());
-  }
-
-  @override
-  void dispose() {
-    _verticalScrollController.dispose();
-    _horizontalScrollController.dispose();
-
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      color: FluentTheme.of(context).cardColor,
-      padding: AppPadding.cardPadding,
-      child: BlocBuilder<ProductListBloc, ProductListState>(
-        builder: (context, state) {
-          if (state.status == DataStatus.loading) {
-            return const Center(child: ProgressRing());
-          }
-
-          final notArchived = state.allProducts.where((p) => p.archiveStatus == 0).toList();
-          final filtered = context.select((InventoryDisplayBloc b) => b.state.filteredProducts);
-          final displayProducts = filtered ?? notArchived;
-
-          if (displayProducts.isEmpty || state.status != DataStatus.success) {
-            return const DataTablePlaceHolder(FluentIcons.product_list, 'Products');
-          }
-
-          final loggedInUser = context.select((AuthenticationBloc b) => b.state.user?.accessLevel);
-          final matrix = [
-            [
-              for (final columnName in _rowExtents.keys)
-                Text(columnName, style: const TextStyle(fontWeight: FontWeight.w600)),
-            ],
-            for (final product in displayProducts) //
-              if (DataRowMapper.mapProductToRow(
-                product,
-                editAction: loggedInUser == AccessLevel.administrator
-                    ? () {
-                        context.navigateWithExtra(AppRoutes.admin.editProduct, product);
-                      }
-                    : null,
-                orderAction: loggedInUser == AccessLevel.administrator
-                    ? () {
-                        context.navigateWithExtra(
-                          AppRoutes.admin.createRestockOrder.withProduct,
-                          product,
-                        );
-                      }
-                    : null,
-              )
-                  case final row)
-                [
-                  for (final cell in row.cells)
-                    ColoredBox(
-                      color: row.color?.resolve({}) ?? Colors.transparent,
-                      child: cell.child,
-                    )
-                ]
-          ];
-
-          return ConstrainedBox(
-            constraints: BoxConstraints(
-              minHeight: cellHeight * 4,
-              maxHeight: cellHeight * max(4, matrix.length),
-            ),
-            child: TableView.builder(
-              verticalDetails: ScrollableDetails.vertical(
-                controller: _verticalScrollController,
-              ),
-              horizontalDetails: ScrollableDetails.horizontal(
-                controller: _horizontalScrollController,
-              ),
-
-              /// Fixed counts for easier rendering.
-              columnCount: _rowExtents.length,
-              rowCount: matrix.length,
-
-              /// Use the extents defined in _rowExtents.
-              columnBuilder: (index) => TableSpan(extent: _rowExtents.values.elementAt(index)),
-              rowBuilder: (index) => const TableSpan(extent: FixedSpanExtent(cellHeight)),
-
-              /// We refer to the matrix to get the cell content.
-              cellBuilder: (_, vicinity) =>
-                  TableViewCell(child: matrix[vicinity.row][vicinity.column]),
-            ),
-          );
-        },
-      ),
-    );
-  }
 }

@@ -14,6 +14,7 @@ class Product {
     required this.quantity,
     required this.mainUnit,
     required this.criticalLevel,
+    this.reorderPoint,
     required this.minReorderDelay,
     required this.maxReorderDelay,
     required this.deadStockThreshold,
@@ -40,13 +41,14 @@ class Product {
       minReorderDelay: map['min_reorder_delay'] as int,
       maxReorderDelay: map['max_reorder_delay'] as int,
       criticalLevel: (map['critical_level'] as num).toDouble(),
+      reorderPoint: map['reorder_point'] != null ? (map['reorder_point'] as num).toDouble() : null,
       deadStockThreshold: (map['dead_stock_threshold'] as num).toDouble(),
       fastMovingStockThreshold: (map['fast_moving_threshold'] as num).toDouble(),
       creationDate: map['creation_date']?.toString() ?? '',
       creatorId: map['creator_id'] as int,
       archiveStatus: map['archive_status'] as int,
       isBelowCriticalLevel: map['is_below_critical_level'] == 1,
-      isFastMovingStock: map['is_fast_moving_stock'] == 1,
+      isFastMovingStock: map['is_fast_moving'] == 1,
       isDeadStock: map['is_dead_stock'] == 1,
     );
   }
@@ -63,6 +65,7 @@ class Product {
   final int minReorderDelay;
   final int maxReorderDelay;
   final double criticalLevel;
+  final double? reorderPoint;
   final double deadStockThreshold;
   final double fastMovingStockThreshold;
   final String creationDate;
@@ -86,6 +89,7 @@ class Product {
     int minReorderDelay,
     int maxReorderDelay,
     double criticalLevel,
+    double? reorderPoint,
     double deadStockThreshold,
     double fastMovingStockThreshold,
     String creationDate,
@@ -109,6 +113,7 @@ class Product {
       Object? minReorderDelay = undefined,
       Object? maxReorderDelay = undefined,
       Object? criticalLevel = undefined,
+      Object? reorderPoint = undefined,
       Object? deadStockThreshold = undefined,
       Object? fastMovingStockThreshold = undefined,
       Object? creationDate = undefined,
@@ -132,6 +137,7 @@ class Product {
         minReorderDelay: minReorderDelay.or(this.minReorderDelay),
         maxReorderDelay: maxReorderDelay.or(this.maxReorderDelay),
         criticalLevel: criticalLevel.or(this.criticalLevel),
+        reorderPoint: reorderPoint.or(this.reorderPoint),
         deadStockThreshold: deadStockThreshold.or(this.deadStockThreshold),
         fastMovingStockThreshold: fastMovingStockThreshold.or(this.fastMovingStockThreshold),
         creationDate: creationDate.or(this.creationDate),

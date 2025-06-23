@@ -22,83 +22,94 @@ import 'package:intl/intl.dart';
 class DataRowMapper {
   static DataRow mapProductToRow(
     Product product, {
+    required void Function()? viewAction,
     required void Function()? editAction,
     required void Function()? orderAction,
   }) {
-    final editButton = Align(
-      alignment: Alignment.centerLeft,
-      child: HyperlinkButton(
-        onPressed: editAction,
-        child: const Text('Edit'),
-      ),
-    );
-    final orderButton = Align(
-      alignment: Alignment.centerLeft,
-      child: HyperlinkButton(
-        onPressed: orderAction,
-        child: const Text('Order'),
-      ),
-    );
-
     final actionsCell = DataCell(
-      Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          if (editAction != null) editButton,
-          if (orderAction != null) orderButton,
+      DropDownButton(
+        title: const Text('Actions', style: TextStyles.body),
+        items: [
+          if (editAction != null)
+            MenuFlyoutItem(
+              text: const Text('Edit Product', style: TextStyles.body),
+              onPressed: editAction,
+            ),
+          if (orderAction != null)
+            MenuFlyoutItem(
+              text: const Text('Place Order', style: TextStyles.body),
+              onPressed: orderAction,
+            )
         ],
       ),
     );
 
-    /// FIXME: Determine the logic for fast moving and dead stock
     if (product.isBelowCriticalLevel == true) {
-      return DataRow(cells: [
-        DataCell(
-          Align(
-            alignment: Alignment.centerLeft,
-            child: Text(product.name),
-          ),
-        ),
-        DataCell(Align(
-          alignment: Alignment.centerLeft,
-          child: Text(product.categoryName ?? ''),
-        )),
-        DataCell(
-          Align(
-            alignment: Alignment.centerLeft,
-            child: Text(
-              CurrencyFormatter.full(product.salePrice),
+      return DataRow(
+        onSelectChanged: viewAction != null ? (_) => viewAction() : null,
+        cells: [
+          DataCell(
+            Align(
+              alignment: Alignment.centerLeft,
+              child: Text(
+                product.name,
+                style: TextStyles.body,
+              ),
             ),
           ),
-        ),
-        DataCell(
-          Align(
+          DataCell(Align(
             alignment: Alignment.centerLeft,
-            child: Text('${product.quantity.toString()} ${product.mainUnit}'),
+            child: Text(
+              product.categoryName ?? '',
+              style: TextStyles.body,
+            ),
+          )),
+          DataCell(
+            Align(
+              alignment: Alignment.centerLeft,
+              child: Text(
+                CurrencyFormatter.full(product.salePrice),
+                style: TextStyles.body,
+              ),
+            ),
           ),
-        ),
-        DataCell(
-          Row(
-            children: [Badges.bad('Low Stock')],
+          DataCell(
+            Align(
+              alignment: Alignment.centerLeft,
+              child: Text(
+                '${product.quantity.toString()} ${product.mainUnit}',
+                style: TextStyles.body,
+              ),
+            ),
           ),
-        ),
-        actionsCell,
-      ]);
+          DataCell(
+            Row(
+              children: [Badges.bad('Low Stock')],
+            ),
+          ),
+          actionsCell,
+        ],
+      );
     }
 
-    /// FIXME: Determine the logic for fast moving and dead stock
     if (product.isFastMovingStock == true) {
       return DataRow(cells: [
         DataCell(
           Align(
             alignment: Alignment.centerLeft,
-            child: Text(product.name),
+            child: Text(
+              product.name,
+              style: TextStyles.body,
+            ),
           ),
         ),
         DataCell(
           Align(
             alignment: Alignment.centerLeft,
-            child: Text(product.categoryName ?? ''),
+            child: Text(
+              product.categoryName ?? '',
+              style: TextStyles.body,
+            ),
           ),
         ),
         DataCell(
@@ -106,13 +117,17 @@ class DataRowMapper {
             alignment: Alignment.centerLeft,
             child: Text(
               CurrencyFormatter.full(product.salePrice),
+              style: TextStyles.body,
             ),
           ),
         ),
         DataCell(
           Align(
             alignment: Alignment.centerLeft,
-            child: Text('${product.quantity.toString()} ${product.mainUnit}'),
+            child: Text(
+              '${product.quantity.toString()} ${product.mainUnit}',
+              style: TextStyles.body,
+            ),
           ),
         ),
         DataCell(
@@ -124,19 +139,72 @@ class DataRowMapper {
       ]);
     }
 
-    /// FIXME: Determine the logic for fast moving and dead stock
     if (product.isDeadStock == true) {
-      return DataRow(cells: [
+      return DataRow(
+        onSelectChanged: viewAction != null ? (_) => viewAction() : null,
+        cells: [
+          DataCell(
+            Align(
+              alignment: Alignment.centerLeft,
+              child: Text(product.name),
+            ),
+          ),
+          DataCell(
+            Align(
+              alignment: Alignment.centerLeft,
+              child: Text(
+                product.categoryName ?? 'Uncategorized',
+                style: TextStyles.body,
+              ),
+            ),
+          ),
+          DataCell(
+            Align(
+              alignment: Alignment.centerLeft,
+              child: Text(
+                CurrencyFormatter.full(product.salePrice),
+                style: TextStyles.body,
+              ),
+            ),
+          ),
+          DataCell(
+            Align(
+              alignment: Alignment.centerLeft,
+              child: Text(
+                '${product.quantity.toString()} ${product.mainUnit}',
+                style: TextStyles.body,
+              ),
+            ),
+          ),
+          DataCell(
+            Row(
+              children: [Badges.dull('Dead Stock')],
+            ),
+          ),
+          actionsCell,
+        ],
+      );
+    }
+
+    return DataRow(
+      onSelectChanged: viewAction != null ? (_) => viewAction() : null,
+      cells: [
         DataCell(
           Align(
             alignment: Alignment.centerLeft,
-            child: Text(product.name),
+            child: Text(
+              product.name,
+              style: TextStyles.body,
+            ),
           ),
         ),
         DataCell(
           Align(
             alignment: Alignment.centerLeft,
-            child: Text(product.categoryName ?? ''),
+            child: Text(
+              product.categoryName ?? 'Uncategorized',
+              style: TextStyles.body,
+            ),
           ),
         ),
         DataCell(
@@ -144,64 +212,27 @@ class DataRowMapper {
             alignment: Alignment.centerLeft,
             child: Text(
               CurrencyFormatter.full(product.salePrice),
+              style: TextStyles.body,
             ),
           ),
         ),
         DataCell(
           Align(
             alignment: Alignment.centerLeft,
-            child: Text('${product.quantity.toString()} ${product.mainUnit}'),
+            child: Text(
+              '${product.quantity.toString()} ${product.mainUnit}',
+              style: TextStyles.body,
+            ),
           ),
         ),
         DataCell(
           Row(
-            children: [Badges.dull('Dead Stock')],
+            children: [Badges.normal('Normal')],
           ),
         ),
         actionsCell,
-      ]);
-    }
-
-    return DataRow(cells: [
-      DataCell(
-        Align(
-          alignment: Alignment.centerLeft,
-          child: Text(
-            product.name,
-            style: TextStyles.body,
-          ),
-        ),
-      ),
-      DataCell(
-        Align(
-          alignment: Alignment.centerLeft,
-          child: Text(
-            product.categoryName!,
-            style: TextStyles.body,
-          ),
-        ),
-      ),
-      DataCell(
-        Align(
-          alignment: Alignment.centerLeft,
-          child: Text(
-            CurrencyFormatter.full(product.salePrice),
-            style: TextStyles.body,
-          ),
-        ),
-      ),
-      DataCell(
-        Align(
-          alignment: Alignment.centerLeft,
-          child: Text(
-            '${product.quantity.toString()} ${product.mainUnit}',
-            style: TextStyles.body,
-          ),
-        ),
-      ),
-      const DataCell(SizedBox.shrink()),
-      actionsCell,
-    ]);
+      ],
+    );
   }
 
   static DataRow mapCategoryToRow(Category category, int productCount, Function() action) {
