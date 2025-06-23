@@ -174,7 +174,7 @@ final router = GoRouter(
                   builder: (context, state) => const PaymentsPanePage(),
                 ),
                 TypedGoRoute(
-                  route: AppRoutes.admin.createPayment,
+                  route: AppRoutes.admin.createPayment.route,
                   builder: (context, state) => CreatePaymentPage(invoice: state.extra),
                 ),
               ],

@@ -4,11 +4,13 @@ import 'package:easthardware_pms/presentation/bloc/payment/payment_method_list/'
     'payment_method_list_bloc.dart';
 import 'package:easthardware_pms/presentation/cubit/payment/payment_display/'
     'payment_display_cubit.dart';
+import 'package:easthardware_pms/presentation/router/app_routes.dart';
 import 'package:easthardware_pms/presentation/views/payment/components/payment_data_source.dart';
 import 'package:easthardware_pms/presentation/widgets/layout/spacing.dart';
 import 'package:easthardware_pms/presentation/widgets/ui/styles.dart';
 import 'package:easthardware_pms/presentation/widgets/ui/table_theme_data.dart';
 import 'package:easthardware_pms/presentation/widgets/ui/text_button.dart';
+import 'package:easthardware_pms/utils/typed_routes.dart';
 import 'package:fluent_ui/fluent_ui.dart';
 import 'package:flutter/material.dart' show DataColumn, PaginatedDataTable;
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -57,13 +59,19 @@ class PageHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Row(
+    return Row(
       children: [
-        Text(
+        const Text(
           'Payments',
           style: TextStyles.display,
         ),
-        Spacer(),
+        const Spacer(),
+        TextButtonFilled(
+          'Add Payment',
+          onPressed: () {
+            context.navigate(AppRoutes.admin.createPayment.withoutInvoice);
+          },
+        ),
       ],
     );
   }
@@ -87,13 +95,7 @@ class PageActions extends StatelessWidget {
                 onChanged: (value) => context.read<PaymentDisplayCubit>().search(value),
               ),
             ),
-            const Spacer(flex: 2),
-            TextButtonFilled(
-              'Add Payment',
-              onPressed: () {
-                // Show payment form dialog
-              },
-            ),
+            const Spacer(flex: 2)
           ].withSpacing(() => Spacing.h8),
         ),
       ],
@@ -122,11 +124,14 @@ class PaymentsDataTable extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<PaymentMethodListBloc, PaymentMethodListState>(
+    return BlocBuilder<PaymentDisplayCubit, PaymentDisplayState>(
       builder: (context, methodState) {
-        return BlocBuilder<PaymentDisplayCubit, PaymentDisplayState>(
+        return BlocBuilder<PaymentListBloc, PaymentListState>(
           builder: (context, state) {
-            final payments = state.filteredPayments ?? state.allPayments;
+            final paymentBloc = context.read<PaymentDisplayCubit>();
+            final payments = paymentBloc.state.allPayments;
+            final paymentMethodBloc = context.read<PaymentMethodListBloc>();
+            final paymentMethods = paymentMethodBloc.state.paymentMethods;
 
             return Expanded(
               child: DecoratedBox(
@@ -142,7 +147,7 @@ class PaymentsDataTable extends StatelessWidget {
                         child: PaginatedDataTable(
                           source: PaymentDataSource(
                             payments: payments,
-                            paymentMethods: methodState.paymentMethods,
+                            paymentMethods: paymentMethods,
                             context: context,
                             onEdit: (payment) {
                               // Handle edit payment
@@ -155,44 +160,56 @@ class PaymentsDataTable extends StatelessWidget {
                           rowsPerPage: 10,
                           columnSpacing: 50,
                           showCheckboxColumn: false,
-                          sortAscending: state.sortAscending,
-                          sortColumnIndex: _getSortColumnIndex(state.sortBy),
+                          sortAscending: paymentBloc.state.sortAscending,
+                          sortColumnIndex: _getSortColumnIndex(paymentBloc.state.sortBy),
                           columns: [
                             DataColumn(
-                              label: const Text('Date', style: TextStyles.tableHeader),
+                              label: const Expanded(
+                                child: Text('Date', style: TextStyles.tableHeader),
+                              ),
                               onSort: (_, __) {
                                 context.read<PaymentDisplayCubit>().sort(
-                                      state.sortBy == PaymentDisplaySortBy.dateAscending
+                                      paymentBloc.state.sortBy == PaymentDisplaySortBy.dateAscending
                                           ? PaymentDisplaySortBy.dateDescending
                                           : PaymentDisplaySortBy.dateAscending,
                                     );
                               },
                             ),
                             DataColumn(
-                              label: const Text('Amount', style: TextStyles.tableHeader),
+                              label: const Expanded(
+                                child: Text('Amount', style: TextStyles.tableHeader),
+                              ),
                               onSort: (_, __) {
                                 context.read<PaymentDisplayCubit>().sort(
-                                      state.sortBy == PaymentDisplaySortBy.amountAscending
+                                      paymentBloc.state.sortBy ==
+                                              PaymentDisplaySortBy.amountAscending
                                           ? PaymentDisplaySortBy.amountDescending
                                           : PaymentDisplaySortBy.amountAscending,
                                     );
                               },
                             ),
                             DataColumn(
-                              label: const Text('Reference', style: TextStyles.tableHeader),
+                              label: const Expanded(
+                                child: Text('Reference', style: TextStyles.tableHeader),
+                              ),
                               onSort: (_, __) {
                                 context.read<PaymentDisplayCubit>().sort(
-                                      state.sortBy == PaymentDisplaySortBy.referenceAscending
+                                      paymentBloc.state.sortBy ==
+                                              PaymentDisplaySortBy.referenceAscending
                                           ? PaymentDisplaySortBy.referenceDescending
                                           : PaymentDisplaySortBy.referenceAscending,
                                     );
                               },
                             ),
                             const DataColumn(
-                              label: Text('Payment Method', style: TextStyles.tableHeader),
+                              label: Expanded(
+                                child: Text('Payment Method', style: TextStyles.tableHeader),
+                              ),
                             ),
                             const DataColumn(
-                              label: Text('Actions', style: TextStyles.tableHeader),
+                              label: Expanded(
+                                child: Text('Actions', style: TextStyles.tableHeader),
+                              ),
                             ),
                           ],
                         ),

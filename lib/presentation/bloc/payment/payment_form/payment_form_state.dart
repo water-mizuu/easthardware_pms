@@ -69,6 +69,15 @@ class PaymentFormState {
         creatorId: creatorId == undefined ? this.creatorId : creatorId as int?,
         creationDate: creationDate == undefined ? this.creationDate : creationDate as DateTime?,
         status: status == undefined ? this.status : status as FormStatus,
+        paymentMethodError: paymentMethodError == undefined
+            ? this.paymentMethodError
+            : paymentMethodError as String?,
+        referenceNumberError: referenceNumberError == undefined
+            ? this.referenceNumberError
+            : referenceNumberError as String?,
+        amountReceivedError: amountReceivedError == undefined
+            ? this.amountReceivedError
+            : amountReceivedError as String?,
       );
     };
   }

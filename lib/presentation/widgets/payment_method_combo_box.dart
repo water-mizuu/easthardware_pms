@@ -15,10 +15,14 @@ class PaymentMethodComboBox extends StatefulWidget {
     super.key,
     required this.value,
     required this.onPaymentMethodSelected,
+    this.isDisabled,
+    this.disabledPlaceholder,
   });
 
   final Function(PaymentMethod value) onPaymentMethodSelected;
   final PaymentMethod? value;
+  final bool? isDisabled;
+  final Widget? disabledPlaceholder;
 
   @override
   State<PaymentMethodComboBox> createState() => _PaymentMethodComboBoxState();
@@ -32,6 +36,7 @@ class _PaymentMethodComboBoxState extends State<PaymentMethodComboBox> {
     final paymentMethods = context.select((PaymentMethodListBloc b) => b.state.paymentMethods);
     final comboBoxItems = [
       ComboBoxItem(
+        value: null,
         child: FlyoutTarget(
           controller: _flyoutController,
           child: const Row(
@@ -54,81 +59,84 @@ class _PaymentMethodComboBoxState extends State<PaymentMethodComboBox> {
     return BlocProvider(
       create: (context) => PaymentMethodFormCubit(),
       child: Builder(builder: (context) {
-        return ComboBox(
+        return ComboBox<PaymentMethod?>(
           isExpanded: true,
           value: widget.value,
           placeholder: const Text('Select Payment Method'),
           items: comboBoxItems,
-          onChanged: (value) {
-            if (value is PaymentMethod) {
-              widget.onPaymentMethodSelected(value);
-            } else {
-              unawaited(_flyoutController.showFlyout(
-                autoModeConfiguration: FlyoutAutoConfiguration(
-                  preferredMode: FlyoutPlacementMode.bottomRight,
-                ),
-                builder: (flyoutContext) {
-                  return FlyoutContent(
-                    child: ConstrainedBox(
-                      constraints: const BoxConstraints(maxWidth: 400.0),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          const Text('New Payment Method', style: TextStyles.subtitle),
-                          Spacing.v16,
-                          const Text('Name', style: TextStyles.body),
-                          Spacing.v8,
-                          TextFormBox(
-                            validator: (value) {
-                              if (value == null || value.isEmpty) {
-                                return 'Payment method name cannot be empty';
-                              }
-                              if (value.length < 3) {
-                                return 'Payment method name must be at least 3 characters long';
-                              }
-                              if (paymentMethods.any((method) => method.name == value)) {
-                                return 'Payment method already exists';
-                              }
-                              return null;
-                            },
-                            inputFormatters: [
-                              FilteringTextInputFormatter.allow(RegExp(r'^[a-zA-Z0-9\s]+$'))
-                            ],
-                            onChanged: (value) {
-                              context.read<PaymentMethodFormCubit>().onFormNameChanged(value);
-                            },
-                          ),
-                          Spacing.v16,
-                          Row(
-                            children: [
-                              const Spacer(flex: 2),
-                              TextButtonFilled(
-                                'Save',
-                                onPressed: () {
-                                  final bloc = context.read<PaymentMethodListBloc>();
-                                  final paymentMethodFormState =
-                                      context.read<PaymentMethodFormCubit>().state;
-                                  if (paymentMethods
-                                      .map((e) => e.name)
-                                      .contains(paymentMethodFormState.name)) {
-                                    return;
-                                  }
-                                  final paymentMethod = paymentMethodFormState.toPaymentMethod();
-                                  bloc.add(AddPaymentMethodEvent(paymentMethod));
-                                  Navigator.of(flyoutContext).pop();
-                                },
-                              )
-                            ],
-                          ),
-                        ],
+          onChanged: widget.isDisabled == true
+              ? null
+              : (value) {
+                  if (value is PaymentMethod) {
+                    widget.onPaymentMethodSelected(value);
+                  } else {
+                    unawaited(_flyoutController.showFlyout(
+                      autoModeConfiguration: FlyoutAutoConfiguration(
+                        preferredMode: FlyoutPlacementMode.bottomRight,
                       ),
-                    ),
-                  );
+                      builder: (flyoutContext) {
+                        return FlyoutContent(
+                          child: ConstrainedBox(
+                            constraints: const BoxConstraints(maxWidth: 400.0),
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: [
+                                const Text('New Payment Method', style: TextStyles.subtitle),
+                                Spacing.v16,
+                                const Text('Name', style: TextStyles.body),
+                                Spacing.v8,
+                                TextFormBox(
+                                  validator: (value) {
+                                    if (value == null || value.isEmpty) {
+                                      return 'Payment method name cannot be empty';
+                                    }
+                                    if (value.length < 3) {
+                                      return 'Payment method name must be at least 3 characters long';
+                                    }
+                                    if (paymentMethods.any((method) => method.name == value)) {
+                                      return 'Payment method already exists';
+                                    }
+                                    return null;
+                                  },
+                                  inputFormatters: [
+                                    FilteringTextInputFormatter.allow(RegExp(r'^[a-zA-Z0-9\s]+$'))
+                                  ],
+                                  onChanged: (value) {
+                                    context.read<PaymentMethodFormCubit>().onFormNameChanged(value);
+                                  },
+                                ),
+                                Spacing.v16,
+                                Row(
+                                  children: [
+                                    const Spacer(flex: 2),
+                                    TextButtonFilled(
+                                      'Save',
+                                      onPressed: () {
+                                        final bloc = context.read<PaymentMethodListBloc>();
+                                        final paymentMethodFormState =
+                                            context.read<PaymentMethodFormCubit>().state;
+                                        if (paymentMethods
+                                            .map((e) => e.name)
+                                            .contains(paymentMethodFormState.name)) {
+                                          return;
+                                        }
+                                        final paymentMethod =
+                                            paymentMethodFormState.toPaymentMethod();
+                                        bloc.add(AddPaymentMethodEvent(paymentMethod));
+                                        Navigator.of(flyoutContext).pop();
+                                      },
+                                    )
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      },
+                    ));
+                  }
                 },
-              ));
-            }
-          },
         );
       }),
     );

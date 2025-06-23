@@ -10,12 +10,6 @@ import 'package:fluent_ui/fluent_ui.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class ExpenseTypeComboBox extends StatefulWidget {
-  factory ExpenseTypeComboBox.disabled() {
-    return ExpenseTypeComboBox(
-      value: null,
-      onExpenseTypeSelected: (value) {},
-    );
-  }
   const ExpenseTypeComboBox({
     super.key,
     required this.value,

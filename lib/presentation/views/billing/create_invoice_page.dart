@@ -103,7 +103,7 @@ class CreateInvoicePage extends StatelessWidget {
 
                   case InvoicePostAction.payment:
                     if (authState.user!.accessLevel == AccessLevel.administrator) {
-                      context.navigateWithExtra(AppRoutes.admin.createPayment, latest);
+                      context.navigateWithExtra(AppRoutes.admin.createPayment.withInvoice, latest);
                     } else {
                       // context.navigateWithExtra(AppRoutes.staff.receivePayment, latest);
                     }

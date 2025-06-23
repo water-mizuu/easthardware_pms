@@ -401,9 +401,11 @@ class ProductsDataTable extends StatelessWidget {
           checkboxHorizontalMargin: 0,
           columns: [
             DataColumn(
-              label: ConstrainedBox(
-                constraints: const BoxConstraints(minWidth: 120),
-                child: const Text('Name', style: TextStyles.strong),
+              label: Expanded(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(minWidth: 120),
+                  child: const Text('Name', style: TextStyles.strong),
+                ),
               ),
               onSort: (_, __) {
                 // Simply toggle between ascending and descending based on current sort type
@@ -419,9 +421,11 @@ class ProductsDataTable extends StatelessWidget {
               },
             ),
             DataColumn(
-              label: ConstrainedBox(
-                constraints: const BoxConstraints(minWidth: 120),
-                child: const Text('Category', style: TextStyles.strong),
+              label: Expanded(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(minWidth: 120),
+                  child: const Text('Category', style: TextStyles.strong),
+                ),
               ),
               onSort: (_, __) {
                 if (inventoryState.sortBy == InventoryDisplaySortBy.categoryAscending ||
@@ -434,9 +438,11 @@ class ProductsDataTable extends StatelessWidget {
               },
             ),
             DataColumn(
-              label: ConstrainedBox(
-                constraints: const BoxConstraints(minWidth: 60),
-                child: const Text('Sale Price', style: TextStyles.strong),
+              label: Expanded(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(minWidth: 60),
+                  child: const Text('Sale Price', style: TextStyles.strong),
+                ),
               ),
               onSort: (_, __) {
                 if (inventoryState.sortBy == InventoryDisplaySortBy.priceAscending ||
@@ -449,9 +455,11 @@ class ProductsDataTable extends StatelessWidget {
               },
             ),
             DataColumn(
-              label: ConstrainedBox(
-                constraints: const BoxConstraints(minWidth: 60),
-                child: const Text('Quantity', style: TextStyles.strong),
+              label: Expanded(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(minWidth: 60),
+                  child: const Text('Quantity', style: TextStyles.strong),
+                ),
               ),
               onSort: (_, __) {
                 if (inventoryState.sortBy == InventoryDisplaySortBy.stockAscending ||
@@ -464,9 +472,11 @@ class ProductsDataTable extends StatelessWidget {
               },
             ),
             DataColumn(
-              label: ConstrainedBox(
-                constraints: const BoxConstraints(minWidth: 60),
-                child: const Text('Status', style: TextStyles.strong),
+              label: Expanded(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(minWidth: 60),
+                  child: const Text('Status', style: TextStyles.strong),
+                ),
               ),
               onSort: (_, __) {
                 inventoryDisplayBloc.add(
@@ -475,9 +485,11 @@ class ProductsDataTable extends StatelessWidget {
               },
             ),
             DataColumn(
-              label: ConstrainedBox(
-                constraints: const BoxConstraints(minWidth: 60),
-                child: const Text('', style: TextStyles.strong),
+              label: Expanded(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(minWidth: 60),
+                  child: const Text('', style: TextStyles.strong),
+                ),
               ),
             ),
           ],
