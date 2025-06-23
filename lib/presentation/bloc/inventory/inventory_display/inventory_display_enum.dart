@@ -9,7 +9,8 @@ enum InventoryDisplaySortBy {
   stockDescending('Stock Descending'),
   priceAscending('Price Ascending'),
   priceDescending('Price Descending'),
-  urgency('Urgency');
+  urgencyAscending('Urgency Ascending'),
+  urgencyDescending('Urgency Descending');
 
   const InventoryDisplaySortBy(this.name);
   final String name;
@@ -41,7 +42,7 @@ enum InventoryDisplaySortBy {
         return a.salePrice.compareTo(b.salePrice);
       case InventoryDisplaySortBy.priceDescending:
         return b.salePrice.compareTo(a.salePrice);
-      case InventoryDisplaySortBy.urgency:
+      case InventoryDisplaySortBy.urgencyAscending:
         late final isAStockGone = a.quantity <= 0;
         late final isBStockGone = b.quantity <= 0;
 
@@ -67,6 +68,8 @@ enum InventoryDisplaySortBy {
         }
 
         return a.name.compareTo(b.name); // Both are in stock, sort by name
+      case InventoryDisplaySortBy.urgencyDescending:
+        return -compareProducts(a, b); // Reverse urgency order
     }
   }
 }

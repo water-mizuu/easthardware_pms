@@ -37,7 +37,6 @@ class InventoryPanePage extends StatefulWidget {
 
 class _InventoryPanePageState extends State<InventoryPanePage> {
   late final AnimatedScrollController _scrollController;
-  late final InventoryDisplayBloc _inventoryDisplayBloc;
   WeakReference<List<Product>>? _productListBlocRef;
 
   @override
@@ -45,32 +44,26 @@ class _InventoryPanePageState extends State<InventoryPanePage> {
     super.initState();
 
     _scrollController = AnimatedScrollController(animationFactory: const ChromiumEaseInOut());
-    _inventoryDisplayBloc = InventoryDisplayBloc();
-  }
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-
-    final productList = context.watch<ProductListBloc>().state.allProducts;
-    if (productList != _productListBlocRef?.target) {
-      _productListBlocRef = WeakReference(productList);
-      _inventoryDisplayBloc.add(InventoryDisplayItemsUpdatedEvent(_productListBlocRef!));
-    }
-  }
-
-  @override
-  void dispose() {
-    _scrollController.dispose();
-    unawaited(_inventoryDisplayBloc.close());
-
-    super.dispose();
+    context //
+        .read<InventoryDisplayBloc>()
+        .add(
+          InventoryDisplayItemsUpdatedEvent(
+              WeakReference(context.read<ProductListBloc>().state.allProducts)),
+        );
   }
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider.value(
-      value: _inventoryDisplayBloc,
+    return BlocListener<ProductListBloc, ProductListState>(
+      listenWhen: (prev, curr) => prev.allProducts != curr.allProducts,
+      listener: (context, state) {
+        final productList = state.allProducts;
+
+        _productListBlocRef = WeakReference(productList);
+        context
+            .read<InventoryDisplayBloc>()
+            .add(InventoryDisplayItemsUpdatedEvent(_productListBlocRef!));
+      },
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -273,7 +266,6 @@ class SearchRow extends StatelessWidget {
           ),
         ),
         const CategoryButton(),
-        const SortByButton(),
         const Spacer(flex: 2),
       ].withSpacing(() => Spacing.h8),
     );
@@ -339,50 +331,6 @@ class _CategoryButtonState extends State<CategoryButton> {
   }
 }
 
-class SortByButton extends StatelessWidget {
-  const SortByButton({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    final selectedCategory = context.select((InventoryDisplayBloc b) => b.state.sortBy);
-
-    return DropDownButton(
-      title: Padding(
-        padding: AppPadding.a4,
-        child: ButtonText(selectedCategory.name, overflow: TextOverflow.fade),
-      ),
-      items: [
-        _buildSortMenuItem(context, InventoryDisplaySortBy.nameAscending),
-        _buildSortMenuItem(context, InventoryDisplaySortBy.nameDescending),
-        const MenuFlyoutSeparator(),
-        _buildSortMenuItem(context, InventoryDisplaySortBy.stockAscending),
-        _buildSortMenuItem(context, InventoryDisplaySortBy.stockDescending),
-        const MenuFlyoutSeparator(),
-        _buildSortMenuItem(context, InventoryDisplaySortBy.priceAscending),
-        _buildSortMenuItem(context, InventoryDisplaySortBy.priceDescending),
-        const MenuFlyoutSeparator(),
-        _buildSortMenuItem(context, InventoryDisplaySortBy.urgency),
-      ],
-    );
-  }
-
-  MenuFlyoutItem _buildSortMenuItem(
-    BuildContext context,
-    InventoryDisplaySortBy sortBy,
-  ) {
-    return MenuFlyoutItem(
-      text: BodyText(sortBy.name),
-      onPressed: () {
-        _chooseSort(context, sortBy);
-      },
-    );
-  }
-
-  void _chooseSort(BuildContext context, InventoryDisplaySortBy sortBy) {
-    context.read<InventoryDisplayBloc>().add(InventoryDisplaySortEvent(sortBy));
-  }
-}
-
 class ProductListSection extends StatelessWidget {
   const ProductListSection({super.key});
 
@@ -403,14 +351,9 @@ class ProductListSection extends StatelessWidget {
   }
 }
 
-class ProductsDataTable extends StatefulWidget {
+class ProductsDataTable extends StatelessWidget {
   const ProductsDataTable({super.key});
 
-  @override
-  State<ProductsDataTable> createState() => _ProductsDataTableState();
-}
-
-class _ProductsDataTableState extends State<ProductsDataTable> {
   int? _getSortColumnIndex(InventoryDisplaySortBy sortBy) {
     switch (sortBy) {
       case InventoryDisplaySortBy.nameAscending:
@@ -429,7 +372,7 @@ class _ProductsDataTableState extends State<ProductsDataTable> {
       case InventoryDisplaySortBy.stockDescending:
         return 3; // Index of the Quantity column
 
-      case InventoryDisplaySortBy.urgency:
+      case InventoryDisplaySortBy.urgencyAscending:
         return 4; // Index of the Status column
 
       default:
@@ -440,9 +383,6 @@ class _ProductsDataTableState extends State<ProductsDataTable> {
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<InventoryDisplayBloc, InventoryDisplayState>(
-      buildWhen: (prev, curr) =>
-          prev.filteredProducts != curr.filteredProducts || //
-          prev.sortBy != curr.sortBy,
       builder: (context, inventoryState) {
         final productListState = context.watch<ProductListBloc>().state;
         final inventoryDisplayBloc = context.select((InventoryDisplayBloc b) => b);
@@ -530,7 +470,7 @@ class _ProductsDataTableState extends State<ProductsDataTable> {
               ),
               onSort: (_, __) {
                 inventoryDisplayBloc.add(
-                  const InventoryDisplaySortEvent(InventoryDisplaySortBy.urgency),
+                  const InventoryDisplaySortEvent(InventoryDisplaySortBy.urgencyAscending),
                 );
               },
             ),

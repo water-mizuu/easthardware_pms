@@ -77,6 +77,7 @@ class InventoryDisplayBloc extends Bloc<InventoryDisplayEvent, InventoryDisplayS
 
       // Determine the appropriate sort type based on the field and direction
       final newSortBy = _getSortTypeBasedOnDirection(event.sortBy, !state.sortAscending);
+
       emit(state.copyWith(sortBy: newSortBy));
     } else {
       // Default to ascending order for new sort type
@@ -98,29 +99,32 @@ class InventoryDisplayBloc extends Bloc<InventoryDisplayEvent, InventoryDisplayS
       case InventoryDisplaySortBy.nameAscending:
       case InventoryDisplaySortBy.nameDescending:
         return ascending
-            ? InventoryDisplaySortBy.nameAscending
-            : InventoryDisplaySortBy.nameDescending;
+            ? InventoryDisplaySortBy.nameDescending
+            : InventoryDisplaySortBy.nameAscending;
 
       case InventoryDisplaySortBy.categoryAscending:
       case InventoryDisplaySortBy.categoryDescending:
         return ascending
-            ? InventoryDisplaySortBy.categoryAscending
-            : InventoryDisplaySortBy.categoryDescending;
+            ? InventoryDisplaySortBy.categoryDescending
+            : InventoryDisplaySortBy.categoryAscending;
 
       case InventoryDisplaySortBy.stockAscending:
       case InventoryDisplaySortBy.stockDescending:
         return ascending
-            ? InventoryDisplaySortBy.stockAscending
-            : InventoryDisplaySortBy.stockDescending;
+            ? InventoryDisplaySortBy.stockDescending
+            : InventoryDisplaySortBy.stockAscending;
 
       case InventoryDisplaySortBy.priceAscending:
       case InventoryDisplaySortBy.priceDescending:
         return ascending
-            ? InventoryDisplaySortBy.priceAscending
-            : InventoryDisplaySortBy.priceDescending;
+            ? InventoryDisplaySortBy.priceDescending
+            : InventoryDisplaySortBy.priceAscending;
 
-      case InventoryDisplaySortBy.urgency:
-        return InventoryDisplaySortBy.urgency; // This doesn't have a reverse direction
+      case InventoryDisplaySortBy.urgencyAscending:
+      case InventoryDisplaySortBy.urgencyDescending:
+        return ascending
+            ? InventoryDisplaySortBy.urgencyDescending
+            : InventoryDisplaySortBy.urgencyAscending;
     }
   }
 

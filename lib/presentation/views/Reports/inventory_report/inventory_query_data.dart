@@ -19,7 +19,7 @@ class InventoryQueryData {
         filteredProducts = const [],
         searchQuery = '',
         category = null,
-        sortBy = InventoryDisplaySortBy.urgency;
+        sortBy = InventoryDisplaySortBy.urgencyAscending;
 
   final DateTime? date;
   final List<Product>? filteredProducts;

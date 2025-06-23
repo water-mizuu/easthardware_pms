@@ -2,57 +2,91 @@ import 'dart:async';
 
 import 'package:easthardware_pms/domain/enums/enums.dart';
 import 'package:easthardware_pms/domain/models/category.dart';
+
 import 'package:easthardware_pms/presentation/bloc/inventory/category_list/category_list_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/inventory/product_list/product_list_bloc.dart';
+import 'package:easthardware_pms/presentation/cubit/inventory/category_display/category_display_cubit.dart';
 import 'package:easthardware_pms/presentation/cubit/inventory/category_form/category_form_cubit.dart';
 import 'package:easthardware_pms/presentation/router/app_routes.dart';
-import 'package:easthardware_pms/presentation/widgets/helper/data_row_mapper.dart';
+import 'package:easthardware_pms/presentation/views/inventory/category_data_source.dart';
 import 'package:easthardware_pms/presentation/widgets/layout/spacing.dart';
 import 'package:easthardware_pms/presentation/widgets/text.dart';
+import 'package:easthardware_pms/presentation/widgets/ui/styles.dart';
+import 'package:easthardware_pms/presentation/widgets/ui/table_theme_data.dart';
 import 'package:easthardware_pms/presentation/widgets/ui/text_button.dart';
 import 'package:easthardware_pms/utils/show_single_dialog.dart';
 import 'package:easthardware_pms/utils/typed_routes.dart';
 import 'package:fluent_ui/fluent_ui.dart';
-import 'package:flutter/material.dart' show DataColumn, DataTable;
+import 'package:flutter/material.dart' show DataColumn, PaginatedDataTable;
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
-class ManageCategoriesPage extends StatelessWidget {
+class ManageCategoriesPage extends StatefulWidget {
   const ManageCategoriesPage({super.key});
 
   @override
+  State<ManageCategoriesPage> createState() => _ManageCategoriesPageState();
+}
+
+class _ManageCategoriesPageState extends State<ManageCategoriesPage> {
+  @override
+  initState() {
+    super.initState();
+    context.read<CategoryDisplayCubit>().updateCategories(
+          context.read<CategoryListBloc>().state.categories,
+        );
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: AppPadding.panePadding,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: const [
-          PageHeader(),
-          PageActions(),
-          PageTable(),
-        ].withSpacing(() => Spacing.v16),
+    return BlocListener<CategoryListBloc, CategoryListState>(
+      listenWhen: (previous, current) => previous.categories != current.categories,
+      listener: (context, state) {
+        context.read<CategoryDisplayCubit>().updateCategories(state.categories);
+      },
+      child: Padding(
+        padding: AppPadding.panePadding,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: const [
+            PageHeader(),
+            PageActions(),
+            CategoriesDataTable(),
+          ].withSpacing(() => Spacing.v16),
+        ),
       ),
     );
   }
 }
 
-class PageTable extends StatelessWidget {
-  const PageTable({
+class CategoriesDataTable extends StatelessWidget {
+  const CategoriesDataTable({
     super.key,
   });
+
+  int? _getSortColumnIndex(CategoryDisplaySortBy sortBy) {
+    switch (sortBy) {
+      case CategoryDisplaySortBy.nameAscending:
+      case CategoryDisplaySortBy.nameDescending:
+        return 0; // Index of the Name column
+      case CategoryDisplaySortBy.productCountAscending:
+      case CategoryDisplaySortBy.productCountDescending:
+        return 1; // Index of the Products column
+      default:
+        return null; // No column is being sorted
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<ProductListBloc, ProductListState>(
-      builder: (context, state) {
-        final activeProducts = context
-            .read<ProductListBloc>()
-            .state
-            .allProducts
-            .where((product) => product.archiveStatus == 0);
-        return BlocBuilder<CategoryListBloc, CategoryListState>(
+      builder: (context, productState) {
+        final activeProducts =
+            productState.allProducts.where((product) => product.archiveStatus == 0);
+
+        return BlocBuilder<CategoryDisplayCubit, CategoryDisplayState>(
           builder: (context, state) {
-            final categories = context.read<CategoryListBloc>().state.categories;
+            final categories = state.allCategories;
             final categoryRowMap = <int, int>{};
 
             for (final p in activeProducts) {
@@ -61,27 +95,69 @@ class PageTable extends StatelessWidget {
 
             return Expanded(
               child: DecoratedBox(
-                decoration:
-                    BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(4)),
-                child: DataTable(
-                  columns: const [
-                    DataColumn(label: Text('ID')),
-                    DataColumn(label: Text("Category Name")),
-                    DataColumn(label: Text("Products")),
-                    DataColumn(label: Text("Action")),
-                  ],
-                  rows: categories
-                      .map(
-                        (category) => DataRowMapper.mapCategoryToRow(
-                          category,
-                          categoryRowMap[category.id] ?? 0,
-                          () {
-                            unawaited(showContentDialog(context, category));
-                          },
+                decoration: BoxDecoration(
+                    color: FluentTheme.of(context).acrylicBackgroundColor,
+                    borderRadius: BorderRadius.circular(4)),
+                child: categories!.isEmpty
+                    ? const Center(child: BodyText('No categories available'))
+                    : TableThemeData(
+                        child: PaginatedDataTable(
+                          showFirstLastButtons: true,
+                          showCheckboxColumn: false,
+                          horizontalMargin: 20,
+                          columnSpacing: 16,
+                          sortColumnIndex: _getSortColumnIndex(state.sortBy),
+                          sortAscending: state.sortAscending,
+                          checkboxHorizontalMargin: 0,
+                          columns: [
+                            DataColumn(
+                              label: ConstrainedBox(
+                                constraints: const BoxConstraints(minWidth: 120, maxWidth: 200),
+                                child: const Flexible(
+                                  child: Text('Category Name', style: TextStyles.strong),
+                                ),
+                              ),
+                              onSort: (_, __) {
+                                if (state.sortBy == CategoryDisplaySortBy.nameAscending ||
+                                    state.sortBy == CategoryDisplaySortBy.nameDescending) {
+                                  context.read<CategoryDisplayCubit>().sort(state.sortBy);
+                                } else {
+                                  context
+                                      .read<CategoryDisplayCubit>()
+                                      .sort(CategoryDisplaySortBy.nameAscending);
+                                }
+                              },
+                            ),
+                            DataColumn(
+                              label: ConstrainedBox(
+                                constraints: const BoxConstraints(minWidth: 80),
+                                child: const Text('No. of Products', style: TextStyles.strong),
+                              ),
+                              onSort: (_, __) {
+                                if (state.sortBy == CategoryDisplaySortBy.productCountAscending ||
+                                    state.sortBy == CategoryDisplaySortBy.productCountDescending) {
+                                  context.read<CategoryDisplayCubit>().sort(state.sortBy);
+                                } else {
+                                  context
+                                      .read<CategoryDisplayCubit>()
+                                      .sort(CategoryDisplaySortBy.productCountAscending);
+                                }
+                              },
+                            ),
+                            DataColumn(
+                              label: ConstrainedBox(
+                                constraints: const BoxConstraints(minWidth: 80),
+                                child: const Text('Action', style: TextStyles.strong),
+                              ),
+                            ),
+                          ],
+                          source: CategoryDataSource(
+                            context: context,
+                            categories: categories,
+                            categoryProductCounts: categoryRowMap,
+                          ),
                         ),
-                      )
-                      .toList(),
-                ),
+                      ),
               ),
             );
           },
@@ -99,10 +175,11 @@ class PageHeader extends StatelessWidget {
     return Row(
       children: [
         IconButton(
-          icon: const Icon(FluentIcons.back),
-          onPressed: () => context.navigate(AppRoutes.admin.inventory),
-        ),
-        const DisplayText('Manage Categories'),
+            icon: const Icon(FluentIcons.back),
+            onPressed: () => context.navigate(AppRoutes.admin.inventory)),
+        const Text('Manage Categories', style: TextStyles.display),
+        const Spacer(),
+        TextButtonFilled('Add Category', onPressed: () => unawaited(showContentDialog(context)))
       ].withSpacing(() => Spacing.h16),
     );
   }
@@ -113,19 +190,38 @@ class PageActions extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
+    String? validator(String query) {
+      final allCategories = context.read<CategoryListBloc>().state.categories;
+      if (query.isEmpty) {
+        context.read<CategoryDisplayCubit>().updateCategories(allCategories);
+      } else {
+        final filteredCategories = allCategories
+            .where((category) => category.name.toLowerCase().contains(query.toLowerCase()))
+            .toList();
+        context.read<CategoryDisplayCubit>().updateCategories(filteredCategories);
+      }
+      return null;
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        const SubheadingText('List of Categories'),
-        const Expanded(child: TextBox(placeholder: 'Search')),
-        const Spacer(flex: 2),
-        TextButtonFilled('Add Category', onPressed: () => showContentDialog(context))
-      ].withSpacing(() => Spacing.h8),
+        const Text('List of Categories', style: TextStyles.subtitle),
+        Spacing.v4,
+        Row(
+          children: [
+            Expanded(child: TextBox(placeholder: 'Search by category name', onChanged: validator)),
+            const Spacer(flex: 2),
+          ].withSpacing(() => Spacing.h8),
+        ),
+      ],
     );
   }
 }
 
 Future<void> showContentDialog(BuildContext context, [Category? category]) async {
   await showSingleDialog(
+    barrierDismissible: true,
     (context) {
       final bloc = context.read<CategoryListBloc>();
       final existingNames = bloc.state.categories.map((category) => category.name).toList();
@@ -147,6 +243,18 @@ Future<void> showContentDialog(BuildContext context, [Category? category]) async
                   break;
                 case FormStatus.submitted:
                   if (context.mounted) {
+                    // After a category is added or updated, refresh the CategoryListCubit
+                    final parentContext = Navigator.of(context).context;
+                    Future.delayed(const Duration(milliseconds: 100), () {
+                      if (parentContext.mounted) {
+                        final updatedCategories =
+                            parentContext.read<CategoryListBloc>().state.categories;
+                        parentContext
+                            .read<CategoryDisplayCubit>()
+                            .updateCategories(updatedCategories);
+                      }
+                    });
+
                     context.pop();
                     context.read<CategoryFormCubit>().onFormReset();
                   }
@@ -155,21 +263,24 @@ Future<void> showContentDialog(BuildContext context, [Category? category]) async
               }
             },
             child: ContentDialog(
-              title: SubheadingText(isAdding ? 'Create a new Category' : 'Edit ${category.name}'),
+              title: Text(
+                isAdding ? 'Create a new Category' : 'Edit ${category.name}',
+                style: TextStyles.title,
+              ),
               content: Form(
                 key: formKey,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const BodyText('Name'),
+                    const Text('Name', style: TextStyles.body),
                     TextFormBox(
                       validator: (value) {
                         if (value == null || value.trim().isEmpty) {
                           return 'Name cannot be empty';
                         }
                         if (existingNames.contains(value.trim()) && isAdding) {
-                          return 'Category already exist';
+                          return 'Category already exists';
                         }
                         return null;
                       },

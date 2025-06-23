@@ -25,6 +25,7 @@ import 'package:easthardware_pms/presentation/bloc/authentication/new_password_f
 import 'package:easthardware_pms/presentation/bloc/authentication/reset_form/reset_form_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/billing/invoicelist/invoice_list_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/inventory/category_list/category_list_bloc.dart';
+import 'package:easthardware_pms/presentation/bloc/inventory/inventory_display/inventory_display_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/inventory/product_list/product_list_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/inventory/unit_list/unit_list_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/order/expense_type_list/expense_type_list_bloc.dart';
@@ -36,6 +37,7 @@ import 'package:easthardware_pms/presentation/bloc/security/security_questions/'
 import 'package:easthardware_pms/presentation/bloc/security/user_list/user_list_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/security/user_log_list/user_log_list_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/server/server_bloc.dart';
+import 'package:easthardware_pms/presentation/cubit/inventory/category_display/category_display_cubit.dart';
 import 'package:easthardware_pms/presentation/cubit/navigation/navigation_cubit.dart';
 import 'package:easthardware_pms/presentation/widgets/bottom_text.dart';
 import 'package:flutter/foundation.dart';
@@ -286,7 +288,15 @@ class DependencyInjector extends ChangeNotifier {
 
           return _loginFormBloc = LoginFormBloc(state);
         },
-      )
+      ),
+      BlocProvider(
+        key: key(),
+        create: (context) => InventoryDisplayBloc(),
+      ),
+      BlocProvider(
+        key: key(),
+        create: (context) => CategoryDisplayCubit(),
+      ),
     ];
   }
 

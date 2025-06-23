@@ -42,3 +42,16 @@ enum OrderType {
   restock,
   expense,
 }
+
+enum CategoryDisplaySortBy {
+  nameAscending('Name Ascending'),
+  nameDescending('Name Descending'),
+  productCountAscending('Product Count Ascending'),
+  productCountDescending('Product Count Descending');
+
+  const CategoryDisplaySortBy(this.name);
+  final String name;
+
+  @override
+  String toString() => name;
+}

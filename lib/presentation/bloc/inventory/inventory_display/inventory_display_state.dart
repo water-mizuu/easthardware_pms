@@ -6,7 +6,7 @@ class InventoryDisplayState with EquatableMixin {
     this.filteredProducts,
     this.searchQuery = '',
     this.category,
-    this.sortBy = InventoryDisplaySortBy.urgency,
+    this.sortBy = InventoryDisplaySortBy.urgencyAscending,
     this.sortAscending = true,
   });
 
@@ -15,7 +15,7 @@ class InventoryDisplayState with EquatableMixin {
         filteredProducts = null,
         searchQuery = '',
         category = null,
-        sortBy = InventoryDisplaySortBy.urgency,
+        sortBy = InventoryDisplaySortBy.urgencyAscending,
         sortAscending = true;
 
   final WeakReference<List<Product>>? allProducts;

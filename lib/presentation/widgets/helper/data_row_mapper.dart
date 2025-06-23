@@ -77,7 +77,7 @@ class DataRowMapper {
             Align(
               alignment: Alignment.centerLeft,
               child: Text(
-                '${product.quantity.toString()} ${product.mainUnit}',
+                '${product.quantity.toString()} ${product.mainUnit}(s)',
                 style: TextStyles.body,
               ),
             ),
@@ -125,7 +125,7 @@ class DataRowMapper {
           Align(
             alignment: Alignment.centerLeft,
             child: Text(
-              '${product.quantity.toString()} ${product.mainUnit}',
+              '${product.quantity.toString()} ${product.mainUnit}(s)',
               style: TextStyles.body,
             ),
           ),
@@ -171,7 +171,7 @@ class DataRowMapper {
             Align(
               alignment: Alignment.centerLeft,
               child: Text(
-                '${product.quantity.toString()} ${product.mainUnit}',
+                '${product.quantity.toString()} ${product.mainUnit}(s)',
                 style: TextStyles.body,
               ),
             ),
@@ -220,7 +220,7 @@ class DataRowMapper {
           Align(
             alignment: Alignment.centerLeft,
             child: Text(
-              '${product.quantity.toString()} ${product.mainUnit}',
+              '${product.quantity.toString()} ${product.mainUnit}(s)',
               style: TextStyles.body,
             ),
           ),
@@ -237,18 +237,17 @@ class DataRowMapper {
 
   static DataRow mapCategoryToRow(Category category, int productCount, Function() action) {
     return DataRow(cells: [
-      DataCell(Text(category.id!.toString())),
-      DataCell(Text(category.name.toString())),
-      DataCell(Text(productCount.toString())),
-      DataCell(HyperlinkButton(onPressed: action, child: const Text('Edit'))),
+      DataCell(Text(category.name, style: TextStyles.body)),
+      DataCell(Text(productCount.toString(), style: TextStyles.body)),
+      DataCell(Button(onPressed: action, child: const Text('Edit', style: TextStyles.body))),
     ]);
   }
 
   static DataRow mapExpenseTypeToRow(dynamic expenseType, int orderCount, Function()? action) {
     return DataRow(cells: [
-      DataCell(Text(expenseType.id!.toString())),
-      DataCell(Text(expenseType.name.toString())),
-      DataCell(Text(orderCount.toString())),
+      DataCell(Text(expenseType.id!.toString(), style: TextStyles.body)),
+      DataCell(Text(expenseType.name.toString(), style: TextStyles.body)),
+      DataCell(Text(orderCount.toString(), style: TextStyles.body)),
       DataCell(action == null
           ? const Text('', style: TextStyle(fontStyle: FontStyle.italic, color: Colors.grey))
           : HyperlinkButton(onPressed: action, child: const Text('Edit'))),
