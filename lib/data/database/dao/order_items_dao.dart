@@ -6,13 +6,13 @@ import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 abstract interface class OrderItemsDao {
   factory OrderItemsDao(DatabaseHelper? databaseHelper) = OrderItemsDaoImpl._;
-
   Future<List<OrderItem>> getAllOrderItems();
   Future<OrderItem?> getOrderItemById(int id);
   Future<OrderItem> insertOrderItem(OrderItem OrderItem);
   Future<OrderItem> updateOrderItem(OrderItem OrderItem);
   Future<void> deleteOrderItem(int id);
   Future<List<OrderItem>> getOrderItemsByOrderId(int orderId);
+  Future<void> deleteOrderItemByOrderId(int orderId);
 }
 
 final class OrderItemsDaoImpl extends DaoBase implements OrderItemsDao {
@@ -95,5 +95,15 @@ final class OrderItemsDaoImpl extends DaoBase implements OrderItemsDao {
     return List.generate(maps.length, (i) {
       return OrderItem.fromMap(maps[i]);
     });
+  }
+  
+   @override
+  Future<void> deleteOrderItemByOrderId(int orderId) async{
+    final db = databaseHelper.database;
+    await db.delete(
+      OrderItemsTable.TABLE_NAME,
+      where: '${OrderItemsTable.ORDER_ITEMS_ORDER_ID} = ?',
+      whereArgs: [orderId],
+    );
   }
 }

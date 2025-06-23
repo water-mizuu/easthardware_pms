@@ -106,6 +106,7 @@ class _RateState extends State<Rate> {
       child: TextFormBoxes.ghost(
         controller: _controller,
         placeholder: placeholder,
+        enabled: _isRestock ? false : true,
         inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}'))],
       ),
     );

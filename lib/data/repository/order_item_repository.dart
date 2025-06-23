@@ -13,12 +13,12 @@ class OrderItemRepositoryImpl implements OrderItemRepository {
   @override
   Future<void> deleteOrderItem(int id) async {
     if (id <= 0) {
-      throw ArgumentError('Invalid order product ID');
+      throw ArgumentError('Invalid order item ID');
     }
     try {
       return await _orderItemsDao.deleteOrderItem(id);
     } catch (e) {
-      throw DatabaseException('Failed to delete order product: $e');
+      throw DatabaseException('Failed to delete order item: $e');
     }
   }
 
@@ -27,19 +27,19 @@ class OrderItemRepositoryImpl implements OrderItemRepository {
     try {
       return await _orderItemsDao.getAllOrderItems();
     } catch (e) {
-      throw DatabaseException('Failed to fetch all order products: $e');
+      throw DatabaseException('Failed to fetch all order items: $e');
     }
   }
 
   @override
   Future<OrderItem?> getOrderItemById(int id) async {
     if (id <= 0) {
-      throw ArgumentError('Invalid order product ID');
+      throw ArgumentError('Invalid order item ID');
     }
     try {
       return await _orderItemsDao.getOrderItemById(id);
     } catch (e) {
-      throw DatabaseException('Failed to fetch order product by ID: $e');
+      throw DatabaseException('Failed to fetch order item by ID: $e');
     }
   }
 
@@ -51,31 +51,43 @@ class OrderItemRepositoryImpl implements OrderItemRepository {
     try {
       return await _orderItemsDao.getOrderItemsByOrderId(orderId);
     } catch (e) {
-      throw DatabaseException('Failed to fetch order products by order ID: $e');
+      throw DatabaseException('Failed to fetch order items by order ID: $e');
     }
   }
 
   @override
   Future<OrderItem> insertOrderItem(OrderItem orderItem) async {
-    _validateOrderProduct(orderItem);
+    _validateOrderItem(orderItem);
     try {
       return await _orderItemsDao.insertOrderItem(orderItem);
     } catch (e) {
-      throw DatabaseException('Failed to insert order product: $e');
+      throw DatabaseException('Failed to insert order item: $e');
     }
   }
 
   @override
   Future<OrderItem> updateOrderItem(OrderItem orderItem) async {
-    _validateOrderProduct(orderItem);
+    _validateOrderItem(orderItem);
     try {
       return await _orderItemsDao.updateOrderItem(orderItem);
     } catch (e) {
-      throw DatabaseException('Failed to update order product: $e');
+      throw DatabaseException('Failed to update order item: $e');
     }
   }
 
-  void _validateOrderProduct(OrderItem orderItem) {
+  @override
+  Future<void> deleteOrderItemByOrderId(int orderId) async {
+    if (orderId <= 0) {
+      throw ArgumentError('Invalid order ID');
+    }
+    try {
+      await _orderItemsDao.deleteOrderItemByOrderId(orderId);
+    } catch (e) {
+      throw DatabaseException('Failed to delete order items by order ID: $e');
+    }
+  }
+
+  void _validateOrderItem(OrderItem orderItem) {
     if (orderItem.quantity <= 0) {
       throw ArgumentError('Quantity should be greater than 0');
     }

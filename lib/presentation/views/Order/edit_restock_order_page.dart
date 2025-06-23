@@ -44,11 +44,12 @@ class EditRestockOrderPage extends StatefulWidget {
   State<EditRestockOrderPage> createState() => _EditRestockOrderPageState();
 }
 
-// Global key for overlay entry
-final overlayWidgetKey = GlobalKey();
+// // Global key for overlay entry
+// final overlayWidgetKey = GlobalKey();
 
 class _EditRestockOrderPageState extends State<EditRestockOrderPage> {
-  OverlayEntry? overlayEntry;
+  // OverlayEntry? overlayEntry;
+
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
@@ -75,7 +76,7 @@ class _EditRestockOrderPageState extends State<EditRestockOrderPage> {
               .firstWhere((e) => e.id == widget.order.expenseType);
 
           // Load the existing order data into the form using the LoadExistingOrderEvent
-          bloc.add(LoadExistingOrderEvent(
+          bloc.add(LoadExistingRestockOrderEvent(
             order: widget.order,
             products: orderProducts,
             paymentMethod: paymentMethod,
@@ -112,7 +113,7 @@ class _EditRestockOrderPageState extends State<EditRestockOrderPage> {
                 final products = state.products
                     ?.map((product) => product.toOrderProduct(order.id ?? 0))
                     .toList();
-                context.read<OrderListBloc>().add(UpdateOrderEvent(order, products!));
+                context.read<OrderListBloc>().add(UpdateRestockOrderEvent(order, products!));
               }
             },
           ),

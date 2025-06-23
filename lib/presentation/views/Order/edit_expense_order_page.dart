@@ -1,12 +1,16 @@
 import 'dart:async';
 
 import 'package:easthardware_pms/domain/enums/enums.dart';
+import 'package:easthardware_pms/domain/models/order.dart';
 import 'package:easthardware_pms/domain/models/payment_method.dart';
+import 'package:easthardware_pms/domain/repository/order_item_repository.dart';
 import 'package:easthardware_pms/presentation/bloc/authentication/'
     'authentication/authentication_bloc.dart';
+import 'package:easthardware_pms/presentation/bloc/order/expense_type_list/expense_type_list_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/order/orderform/order_form_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/order/orderform/order_form_validator.dart';
 import 'package:easthardware_pms/presentation/bloc/order/orderlist/order_list_bloc.dart';
+import 'package:easthardware_pms/presentation/bloc/payment/payment_method_list/payment_method_list_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/security/user_log_list/user_log_list_bloc.dart';
 import 'package:easthardware_pms/presentation/models/form_order_item.dart';
 import 'package:easthardware_pms/presentation/router/app_routes.dart';
@@ -34,20 +38,53 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:provider/provider.dart';
 
-class CreateExpenseOrderPage extends StatefulWidget {
-  const CreateExpenseOrderPage({super.key});
+class EditExpenseOrderPage extends StatefulWidget {
+  const EditExpenseOrderPage({required this.order, super.key});
+
+  final Order order;
 
   @override
-  State<CreateExpenseOrderPage> createState() => _CreateExpenseOrderPageState();
+  State<EditExpenseOrderPage> createState() => _EditExpenseOrderPageState();
 }
 
-class _CreateExpenseOrderPageState extends State<CreateExpenseOrderPage> {
-  OverlayEntry? overlayEntry;
+class _EditExpenseOrderPageState extends State<EditExpenseOrderPage> {
+  // OverlayEntry? overlayEntry;
 
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (_) => OrderFormBloc.fromExpenseOrder(),
+      key: UniqueKey(),
+      create: (context) {
+        final bloc = OrderFormBloc.fromExistingExpenseOrder(widget.order.id);
+
+        // Load order details asynchronously using the widget.order that's passed in
+        Future.microtask(() async {
+          final orderItemRepository = context.read<OrderItemRepository>();
+          final paymentMethodListBloc = context.read<PaymentMethodListBloc>();
+          final expenseTypeListBloc = context.read<ExpenseTypeListBloc>();
+
+          // Get the order items for this order
+          final orderItems = await orderItemRepository.getOrderItemByOrderId(widget.order.id!);
+
+          // Find the payment method from the payment method ID
+          final paymentMethod = paymentMethodListBloc.state.paymentMethods
+              .firstWhere((p) => p.id == widget.order.paymentMethod);
+
+          // Find the expense type from the expense type ID
+          final expenseType = expenseTypeListBloc.state.expenseTypes.firstWhere((e) =>
+              e.id ==
+              widget.order
+                  .expenseType); // Load the existing order data into the form using the LoadExistingExpenseOrderEvent
+          bloc.add(LoadExistingExpenseOrderEvent(
+            order: widget.order,
+            orderItems: orderItems,
+            paymentMethod: paymentMethod,
+            expenseType: expenseType,
+          ));
+        });
+
+        return bloc;
+      },
       child: MultiBlocListener(
         listeners: [
           BlocListener<OrderFormBloc, OrderFormState>(
@@ -72,35 +109,25 @@ class _CreateExpenseOrderPageState extends State<CreateExpenseOrderPage> {
                 ));
               } else if (state.status == FormStatus.submitting) {
                 final order = state.copyWith().toOrder();
-                if (kDebugMode) {
-                  print(
-                    'ID: ${order.id}, Payee: ${order.payeeName}, Expense Type: ${order.expenseType}, '
-                    'Payment Method: ${order.paymentMethod}, '
-                    'Reference Number: ${order.referenceNumber}, '
-                    'Order Date: ${order.orderDate}, Amount Due: ${order.amountDue}, '
-                    'Memo: ${order.memo}, Created By: ${order.creatorId}, Creation Date: ${order.creationDate},',
-                  );
-                }
                 final orderItem = state.orderItems //
                     ?.map((item) => item.toOrderItem(order.id ?? 0))
                     .toList();
-                context.read<OrderListBloc>().add(AddItemOrderEvent(order, orderItem!));
+                context.read<OrderListBloc>().add(UpdateItemOrderEvent(order, orderItem!));
                 context.read<OrderFormBloc>().add(const FormSubmittedEvent());
               }
             },
           ),
           BlocListener<OrderListBloc, OrderListState>(
-            listenWhen: (p, c) =>
-                p.allOrders.length != c.allOrders.length && c.status == DataStatus.success,
+            listenWhen: (p, c) => c.status == DataStatus.success && p.status != c.status,
             listener: (context, state) {
               final userName = context.read<AuthenticationBloc>().state.user!;
-              final orderId = state.allOrders.last.id;
-              context.read<UserLogListBloc>().add(AddCreateEvent('Order #$orderId', userName));
+              final orderId = widget.order.id!;
+              context.read<UserLogListBloc>().add(AddUpdateEvent('Order #$orderId', userName));
               context.read<UserLogListBloc>().add(const LoadUserLogsEvent());
 
               showNotification(
                 title: "Success",
-                message: "Order $orderId has been successfully created.",
+                message: "Order #$orderId has been successfully updated.",
                 severity: InfoBarSeverity.success,
               );
               context.navigate(AppRoutes.admin.order);
@@ -108,22 +135,22 @@ class _CreateExpenseOrderPageState extends State<CreateExpenseOrderPage> {
           ),
           BlocListener<OrderFormBloc, OrderFormState>(
             listener: (context, state) {
-              final overlay = Overlay.of(context);
+              // final overlay = Overlay.of(context);
 
-              if (state.status == FormStatus.submitting) {
-                if (overlayEntry == null) {
-                  overlayEntry = OverlayEntry(builder: (context) {
-                    return Container(
-                      color: Colors.black.withOpacity(0.2),
-                      child: const Center(child: ProgressRing()),
-                    );
-                  });
-                  overlay.insert(overlayEntry!);
-                }
-              } else {
-                overlayEntry?.remove();
-                overlayEntry = null;
-              }
+              // if (state.status == FormStatus.submitting) {
+              //   if (overlayEntry == null) {
+              //     overlayEntry = OverlayEntry(builder: (context) {
+              //       return Container(
+              //         color: Colors.black.withOpacity(0.2),
+              //         child: const Center(child: ProgressRing()),
+              //       );
+              //     });
+              //     overlay.insert(overlayEntry!);
+              //   }
+              // } else {
+              //   overlayEntry?.remove();
+              //   overlayEntry = null;
+              // }
             },
           ),
         ],
@@ -152,8 +179,45 @@ class _CreateExpenseOrderPageState extends State<CreateExpenseOrderPage> {
   }
 }
 
-class OrderPageForm extends StatelessWidget with OrderFormValidator {
+class OrderPageForm extends StatefulWidget with OrderFormValidator {
   const OrderPageForm({super.key});
+
+  @override
+  State<OrderPageForm> createState() => _OrderPageFormState();
+}
+
+class _OrderPageFormState extends State<OrderPageForm> {
+  late final TextEditingController _payeeNameController;
+  late final TextEditingController _referenceNumberController;
+
+  @override
+  void initState() {
+    super.initState();
+    _payeeNameController = TextEditingController();
+    _referenceNumberController = TextEditingController();
+  }
+
+  @override
+  void dispose() {
+    _payeeNameController.dispose();
+    _referenceNumberController.dispose();
+    super.dispose();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final state = context.watch<OrderFormBloc>().state;
+
+    // Update controllers when the state changes
+    if (_payeeNameController.text != state.payeeName) {
+      _payeeNameController.text = state.payeeName;
+    }
+
+    if (_referenceNumberController.text != state.referenceNumber) {
+      _referenceNumberController.text = state.referenceNumber;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -190,7 +254,7 @@ class OrderPageForm extends StatelessWidget with OrderFormValidator {
                     const BodyText('Payee Name'),
                     Spacing.v8,
                     TextFormBox(
-                      initialValue: state.payeeName,
+                      controller: _payeeNameController,
                       onChanged: (value) => bloc.add(PayeeNameChangedEvent(value)),
                     ),
                     if (state.payeeNameErrorMessage != null)
@@ -236,7 +300,7 @@ class OrderPageForm extends StatelessWidget with OrderFormValidator {
                     const BodyText('Reference Number'),
                     Spacing.v8,
                     TextFormBox(
-                      initialValue: state.referenceNumber,
+                      controller: _referenceNumberController,
                       onChanged: (value) => bloc.add(ReferenceNumberChangedEvent(value)),
                     ),
                     if (state.referenceNumberErrorMessage != null)
@@ -296,15 +360,44 @@ class OrderPageForm extends StatelessWidget with OrderFormValidator {
           Spacing.v4,
           const OrderItemDataTable(),
           Spacing.v12,
-          const _OrderSummaryAndMemo(),
+          const OrderSummaryAndMemo(),
         ].withSpacing(() => Spacing.v12),
       ),
     );
   }
 }
 
-class _OrderSummaryAndMemo extends StatelessWidget {
-  const _OrderSummaryAndMemo();
+class OrderSummaryAndMemo extends StatefulWidget {
+  const OrderSummaryAndMemo({super.key});
+
+  @override
+  State<OrderSummaryAndMemo> createState() => _OrderSummaryAndMemoState();
+}
+
+class _OrderSummaryAndMemoState extends State<OrderSummaryAndMemo> {
+  late final TextEditingController _memoController;
+
+  @override
+  void initState() {
+    super.initState();
+    _memoController = TextEditingController();
+  }
+
+  @override
+  void dispose() {
+    _memoController.dispose();
+    super.dispose();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final state = context.watch<OrderFormBloc>().state;
+
+    if (_memoController.text != state.memo) {
+      _memoController.text = state.memo ?? '';
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -324,6 +417,7 @@ class _OrderSummaryAndMemo extends StatelessWidget {
               const BodyText('Memo'),
               Spacing.v8,
               TextBox(
+                controller: _memoController,
                 minLines: 3,
                 maxLines: 3,
                 onChanged: (value) => bloc.add(MemoChangedEvent(value)),

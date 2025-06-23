@@ -4,6 +4,7 @@ import 'package:bloc/bloc.dart';
 import 'package:easthardware_pms/domain/enums/enums.dart' show DiscountType, FormStatus, OrderType;
 import 'package:easthardware_pms/domain/models/expense_type.dart';
 import 'package:easthardware_pms/domain/models/order.dart';
+import 'package:easthardware_pms/domain/models/order_item.dart';
 import 'package:easthardware_pms/domain/models/order_product.dart';
 import 'package:easthardware_pms/domain/models/payment_method.dart';
 import 'package:easthardware_pms/domain/models/product.dart';
@@ -39,7 +40,8 @@ class OrderFormBloc extends Bloc<OrderFormEvent, OrderFormState> {
     on<ClearProductsEvent>(_onClearProducts);
     on<SaveRestockOrderRequestEvent>(_onSaveRestockOrderRequest);
     on<SaveExpenseOrderRequestEvent>(_onSaveExpenseOrderRequest);
-    on<LoadExistingOrderEvent>(_onLoadExistingOrder); // Add this line
+    on<LoadExistingRestockOrderEvent>(_onLoadExistingRestockOrder); // Add this line
+    on<LoadExistingExpenseOrderEvent>(_onLoadExistingExpenseOrder); // Add this line
   }
 
   factory OrderFormBloc.fromRestockOrder(Product? product) {
@@ -338,13 +340,12 @@ class OrderFormBloc extends Bloc<OrderFormEvent, OrderFormState> {
         expenseTypeErrorMessage != null) {
       return emit(
         state.copyWith(
-          status: FormStatus.error,
-          dialogErrorMessage: payeeNameErrorMessage ??
-              paymentMethodErrorMessage ??
-              referenceNumberErrorMessage ??
-              expenseTypeErrorMessage ??
-              'Please check required fields.',
-        ),
+            status: FormStatus.error,
+            dialogErrorMessage: payeeNameErrorMessage ??
+                paymentMethodErrorMessage ??
+                referenceNumberErrorMessage ??
+                expenseTypeErrorMessage ??
+                'Please check required fields.'),
       );
     }
 
@@ -515,7 +516,8 @@ class OrderFormBloc extends Bloc<OrderFormEvent, OrderFormState> {
     ));
   }
 
-  void _onLoadExistingOrder(LoadExistingOrderEvent event, Emitter<OrderFormState> emit) {
+  void _onLoadExistingRestockOrder(
+      LoadExistingRestockOrderEvent event, Emitter<OrderFormState> emit) {
     final order = event.order;
     final expenseType = event.expenseType;
     final paymentMethod = event.paymentMethod;
@@ -550,6 +552,41 @@ class OrderFormBloc extends Bloc<OrderFormEvent, OrderFormState> {
       creationDate: order.creationDate,
       creatorId: order.creatorId,
       products: formProducts,
+      status: FormStatus.initial,
+    ));
+  }
+
+  void _onLoadExistingExpenseOrder(
+      LoadExistingExpenseOrderEvent event, Emitter<OrderFormState> emit) {
+    final order = event.order;
+    final expenseType = event.expenseType;
+    final paymentMethod = event.paymentMethod;
+    final orderItems = event.orderItems;
+
+    // Convert OrderItem list to FormOrderItem list
+    final formOrderItems = orderItems.map((item) {
+      return FormOrderItem(
+        name: item.name,
+        description: item.description ?? '',
+        quantity: item.quantity,
+        rate: item.rate,
+        amount: item.amount,
+      );
+    }).toList();
+
+    // Update the state with the loaded order data
+    emit(state.copyWith(
+      orderId: order.id,
+      payeeName: order.payeeName,
+      orderDate: order.orderDate,
+      expenseType: expenseType,
+      paymentMethod: paymentMethod,
+      referenceNumber: order.referenceNumber ?? '',
+      memo: order.memo ?? '',
+      amountDue: order.amountDue,
+      creationDate: order.creationDate,
+      creatorId: order.creatorId,
+      orderItems: formOrderItems,
       status: FormStatus.initial,
     ));
   }

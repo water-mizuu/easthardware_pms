@@ -2,6 +2,7 @@ import 'package:easthardware_pms/domain/models/product.dart';
 import 'package:easthardware_pms/presentation/router/app_routes.dart';
 import 'package:easthardware_pms/presentation/views/Order/create_expense_order_page.dart';
 import 'package:easthardware_pms/presentation/views/Order/create_restock_order_page.dart';
+import 'package:easthardware_pms/presentation/views/Order/edit_expense_order_page.dart';
 import 'package:easthardware_pms/presentation/views/Order/edit_restock_order_page.dart';
 import 'package:easthardware_pms/presentation/views/Order/manage_expense_type_page.dart';
 import 'package:easthardware_pms/presentation/views/Order/order_pane_page.dart';
@@ -200,6 +201,10 @@ final router = GoRouter(
                 TypedGoRoute(
                   route: AppRoutes.admin.editRestockOrder,
                   builder: (context, state) => EditRestockOrderPage(order: state.extra),
+                ),
+                TypedGoRoute(
+                  route: AppRoutes.admin.editExpenseOrder,
+                  builder: (context, state) => EditExpenseOrderPage(order: state.extra),
                 ),
               ],
             ),

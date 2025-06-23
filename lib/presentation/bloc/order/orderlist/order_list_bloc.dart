@@ -27,7 +27,8 @@ class OrderListBloc extends Bloc<OrderListEvent, OrderListState> {
     on<FetchOrderItemsEvent>(_onFetchOrderItems);
     on<AddProductOrderEvent>(_onAddProductOrder);
     on<AddItemOrderEvent>(_onAddItemOrder);
-    on<UpdateOrderEvent>(_onUpdateOrder);
+    on<UpdateItemOrderEvent>(_onUpdateItemOrder);
+    on<UpdateRestockOrderEvent>(_onUpdateRestockOrder);
     on<DeleteOrderEvent>(_onDeleteOrder);
   }
   final OrderRepository _repository;
@@ -135,7 +136,43 @@ class OrderListBloc extends Bloc<OrderListEvent, OrderListState> {
     }
   }
 
-  Future<void> _onUpdateOrder(UpdateOrderEvent event, Emitter emit) async {
+  Future<void> _onUpdateItemOrder(UpdateItemOrderEvent event, Emitter emit) async {
+    emit(state.copyWith(status: DataStatus.loading));
+    try {
+      // First update the order
+      await _repository.updateOrder(event.order);
+
+      // Delete existing order items
+      await _orderItemRepository.deleteOrderItemByOrderId(event.order.id!);
+
+      // Insert the new order items
+      final itemFutures = event.orderItems
+          .map((item) =>
+              _orderItemRepository.insertOrderItem(item.copyWith(orderId: event.order.id!)))
+          .toList();
+      await Future.wait(itemFutures);
+
+      // Fetch orders and items to update the state
+      final orders = await _repository.getAllOrders();
+      final orderItems = await _orderItemRepository.getAllOrderItems();
+
+      // Update the orders list in the state
+      emit(state.copyWith(
+        allOrders: orders.map((o) => o.id == event.order.id ? event.order : o).toList(),
+        allOrderItems: orderItems,
+        status: DataStatus.success,
+      ));
+
+      if (kDebugMode) {
+        print('[OrderListBloc] Successfully updated expense order ${event.order.id}');
+      }
+    } catch (e) {
+      print('[OrderListBloc] Error updating item order: $e');
+      emit(state.copyWith(status: DataStatus.error));
+    }
+  }
+
+  Future<void> _onUpdateRestockOrder(UpdateRestockOrderEvent event, Emitter emit) async {
     emit(state.copyWith(status: DataStatus.loading));
     try {
       // Fetch the original order products to reverse their quantities

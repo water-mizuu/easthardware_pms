@@ -52,6 +52,7 @@ class AppRoutes {
       route: AppRoute<Product?>('/admin/create/restock_order'),
     ),
     editRestockOrder: AppRoute<Order>('/admin/edit/restock_order'),
+    editExpenseOrder: AppRoute<Order>('/admin/edit/expense_order'),
     createExpenseOrder: AppRoute<Null>('/admin/create/expense_order'),
     manageExpenseType: AppRoute<Null>('/admin/manage/expense_type'),
 

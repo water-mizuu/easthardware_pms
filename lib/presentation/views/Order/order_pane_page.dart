@@ -151,7 +151,7 @@ class OrderDataSource extends DataTableSource {
       if (order.expenseType == 1) {
         _context.navigateWithExtra(AppRoutes.admin.editRestockOrder, order);
       } else {
-        // _context.navigateWithExtra(AppRoutes.admin.editExpenseOrder, order);
+        _context.navigateWithExtra(AppRoutes.admin.editExpenseOrder, order);
       }
     });
   }
