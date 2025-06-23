@@ -157,7 +157,7 @@ class _Header extends StatelessWidget {
               Spacing.v4,
               GrayText('To print the report, click the print icon below.'),
               GrayText('To zoom and drag, double click the preview. '
-                  'To move to different pages, double tap again.')
+                  'To move to different pages, double click again.')
             ],
           ),
           Spacing.h12,

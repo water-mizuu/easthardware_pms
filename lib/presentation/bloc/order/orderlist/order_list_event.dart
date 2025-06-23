@@ -11,6 +11,14 @@ class FetchAllOrdersEvent extends OrderListEvent {
   const FetchAllOrdersEvent();
 }
 
+class FetchOrderProductsEvent extends OrderListEvent {
+  const FetchOrderProductsEvent();
+}
+
+class FetchOrderItemsEvent extends OrderListEvent {
+  const FetchOrderItemsEvent();
+}
+
 class AddProductOrderEvent extends OrderListEvent {
   const AddProductOrderEvent(this.order, this.products);
   final Order order;

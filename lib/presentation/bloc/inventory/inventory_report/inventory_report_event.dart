@@ -42,6 +42,42 @@ class InventoryReportRemoveOverlayEvent extends InventoryReportEvent {
   const InventoryReportRemoveOverlayEvent();
 }
 
+class InventoryReportUpdateInvoicesEvent extends InventoryReportEvent {
+  const InventoryReportUpdateInvoicesEvent(this.invoices);
+
+  final List<Invoice> invoices;
+
+  @override
+  List<Object?> get props => [invoices];
+}
+
+class InventoryReportUpdateInvoiceProductsEvent extends InventoryReportEvent {
+  const InventoryReportUpdateInvoiceProductsEvent(this.invoiceProducts);
+
+  final List<InvoiceProduct> invoiceProducts;
+
+  @override
+  List<Object?> get props => [invoiceProducts];
+}
+
+class InventoryReportUpdateOrdersEvent extends InventoryReportEvent {
+  const InventoryReportUpdateOrdersEvent(this.orders);
+
+  final List<Order> orders;
+
+  @override
+  List<Object?> get props => [orders];
+}
+
+class InventoryReportUpdateOrderProductsEvent extends InventoryReportEvent {
+  const InventoryReportUpdateOrderProductsEvent(this.orderProducts);
+
+  final List<OrderProduct> orderProducts;
+
+  @override
+  List<Object?> get props => [orderProducts];
+}
+
 class InventoryReportUpdateProductsEvent extends InventoryReportEvent {
   const InventoryReportUpdateProductsEvent(this.products);
 

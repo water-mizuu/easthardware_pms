@@ -7,4 +7,12 @@ extension UndefinedMethod on Object? {
     }
     return this as T;
   }
+
+  @pragma('vm:prefer-inline')
+  WeakReference<T> orWeakReference<T extends Object>(WeakReference<T> value) {
+    if (this == undefined) {
+      return value;
+    }
+    return WeakReference<T>(this as T);
+  }
 }

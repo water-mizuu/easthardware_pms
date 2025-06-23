@@ -5,12 +5,12 @@ class ProductFlagsView {
   static Future<void> createView(DatabaseExecutor database) async {
     await database.execute('''
       CREATE VIEW $PRODUCT_STATUS_VIEW_TABLE AS
-      WITH 
+      WITH
       -- Sales per day per product in the last 30 days
       daily_sales AS (
-        SELECT 
-        ip.product_id, 
-        DATE(i.invoice_date) AS sale_date, 
+        SELECT
+        ip.product_id,
+        DATE(i.invoice_date) AS sale_date,
         COUNT(*) AS sales
         FROM invoice_products ip
         JOIN invoices i ON ip.invoice_id = i.id
@@ -20,8 +20,8 @@ class ProductFlagsView {
 
       -- Max daily sales per product
       max_daily_sales AS (
-        SELECT 
-        product_id, 
+        SELECT
+        product_id,
         MAX(sales) AS max_daily_sales
         FROM daily_sales
         GROUP BY product_id
@@ -29,8 +29,8 @@ class ProductFlagsView {
 
       -- Average daily sales per product
       average_daily_sales AS (
-        SELECT 
-        product_id, 
+        SELECT
+        product_id,
         AVG(sales) AS avg_daily_sales
         FROM daily_sales
         GROUP BY product_id
@@ -38,7 +38,7 @@ class ProductFlagsView {
 
       -- Estimated average lead time per product
       avg_lead_times AS (
-        SELECT  
+        SELECT
         id as product_id,
         ((max_reorder_delay - min_reorder_delay) / 2.0) AS avg_delay
         FROM products
@@ -46,7 +46,7 @@ class ProductFlagsView {
 
       -- Lead time demand = avg_daily_sales * avg_delay
       lead_time_demand AS (
-        SELECT 
+        SELECT
         ads.product_id,
         ads.avg_daily_sales * alt.avg_delay AS lead_time_demand
         FROM average_daily_sales ads
@@ -55,9 +55,9 @@ class ProductFlagsView {
 
       -- Safety stock = max_daily_sales * max_reorder_delay - avg_daily_sales * avg_delay
       safety_stock AS (
-        SELECT 
+        SELECT
         mds.product_id,
-        (mds.max_daily_sales * p.max_reorder_delay) - 
+        (mds.max_daily_sales * p.max_reorder_delay) -
         (ads.avg_daily_sales * alt.avg_delay) AS safety_stock
         FROM max_daily_sales mds
         JOIN average_daily_sales ads ON mds.product_id = ads.product_id
@@ -67,7 +67,7 @@ class ProductFlagsView {
 
       -- Reorder point = safety stock + lead time demand
       reorder_point AS (
-        SELECT 
+        SELECT
         ss.product_id,
         ss.safety_stock + ltd.lead_time_demand AS reorder_point
         FROM safety_stock ss
@@ -76,8 +76,8 @@ class ProductFlagsView {
 
       -- Last invoice date per product
       last_sale_dates AS (
-        SELECT 
-        ip.product_id, 
+        SELECT
+        ip.product_id,
         MAX(DATE(i.invoice_date)) AS last_sale_date
         FROM invoice_products ip
         JOIN invoices i ON ip.invoice_id = i.id
@@ -86,7 +86,7 @@ class ProductFlagsView {
 
       -- Count of sales in last 14 days per product
       recent_sales AS (
-        SELECT 
+        SELECT
         ip.product_id,
         COUNT(*) AS recent_sale_count
         FROM invoice_products ip
@@ -96,7 +96,7 @@ class ProductFlagsView {
       )
 
       -- Final output
-      SELECT 
+      SELECT
       p.*,
       COALESCE(rp.reorder_point, 0) AS reorder_point,
       COALESCE(rs.recent_sale_count, 0) AS recent_sales,

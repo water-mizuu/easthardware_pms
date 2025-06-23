@@ -1,21 +1,39 @@
+import 'dart:async';
+
 import 'package:bloc/bloc.dart';
 import 'package:easthardware_pms/domain/models/category.dart';
+import 'package:easthardware_pms/domain/models/invoice.dart';
+import 'package:easthardware_pms/domain/models/invoice_product.dart';
+import 'package:easthardware_pms/domain/models/order.dart';
+import 'package:easthardware_pms/domain/models/order_product.dart';
 import 'package:easthardware_pms/domain/models/product.dart';
 import 'package:easthardware_pms/presentation/bloc/inventory/inventory_display/'
     'inventory_display_enum.dart';
+import 'package:easthardware_pms/presentation/views/dashboard/cards/sales_overview.dart';
 import 'package:easthardware_pms/presentation/views/reports/inventory_report/'
     'inventory_query_data.dart';
+import 'package:easthardware_pms/utils/duration.dart';
 import 'package:easthardware_pms/utils/levenshtein.dart';
 import 'package:easthardware_pms/utils/undefined.dart';
 import 'package:equatable/equatable.dart';
 import 'package:fluent_ui/fluent_ui.dart';
+import 'package:flutter/foundation.dart' show kDebugMode;
 
 part 'inventory_report_event.dart';
 part 'inventory_report_state.dart';
 
 class InventoryReportBloc extends Bloc<InventoryReportEvent, InventoryReportState> {
-  InventoryReportBloc(List<Product> allProducts)
-      : super(InventoryReportState(
+  InventoryReportBloc(
+    List<Invoice> allInvoices,
+    List<InvoiceProduct> allInvoiceProducts,
+    List<Order> allOrders,
+    List<OrderProduct> allOrderProducts,
+    List<Product> allProducts,
+  ) : super(InventoryReportState(
+          allInvoices: WeakReference(allInvoices),
+          allInvoiceProducts: WeakReference(allInvoiceProducts),
+          allOrders: WeakReference(allOrders),
+          allOrderProducts: WeakReference(allOrderProducts),
           allProducts: WeakReference(allProducts),
           queryData: InventoryQueryData.empty(),
         )) {
@@ -24,6 +42,8 @@ class InventoryReportBloc extends Bloc<InventoryReportEvent, InventoryReportStat
     on<InventoryReportSetDateEvent>(_onSetDate);
     on<InventoryReportSetOverlayEvent>(_onSetOverlay);
     on<InventoryReportRemoveOverlayEvent>(_onRemoveOverlay);
+    on<InventoryReportUpdateInvoicesEvent>(_onUpdateInvoices);
+    on<InventoryReportUpdateOrdersEvent>(_onUpdateOrders);
     on<InventoryReportUpdateProductsEvent>(_onUpdateProducts);
     on<InventoryReportSetSortByEvent>(_onSetSortBy);
     on<InventoryReportSetSearchQueryEvent>(_onSetSearchQuery);
@@ -47,11 +67,13 @@ class InventoryReportBloc extends Bloc<InventoryReportEvent, InventoryReportStat
     emit(state.copyWith(isGenerating: event.isGenerating));
   }
 
-  void _onSetDate(
+  Future<void> _onSetDate(
     InventoryReportSetDateEvent event,
     Emitter<InventoryReportState> emit,
-  ) {
-    emit(state.copyWith(selectedDate: event.date));
+  ) async {
+    emit(state.copyWith(queryData: state.queryData.copyWith(date: event.date)));
+
+    await _updateQueryData(emit);
   }
 
   void _onSetOverlay(
@@ -69,11 +91,27 @@ class InventoryReportBloc extends Bloc<InventoryReportEvent, InventoryReportStat
     emit(state.copyWith(overlayEntry: null));
   }
 
+  Future<void> _onUpdateOrders(
+    InventoryReportUpdateOrdersEvent event,
+    Emitter<InventoryReportState> emit,
+  ) async {
+    emit(state.copyWith(allOrders: event.orders.toList()));
+    await _updateQueryData(emit);
+  }
+
+  Future<void> _onUpdateInvoices(
+    InventoryReportUpdateInvoicesEvent event,
+    Emitter<InventoryReportState> emit,
+  ) async {
+    emit(state.copyWith(allInvoices: event.invoices.toList()));
+    await _updateQueryData(emit);
+  }
+
   Future<void> _onUpdateProducts(
     InventoryReportUpdateProductsEvent event,
     Emitter<InventoryReportState> emit,
   ) async {
-    emit(state.copyWith(allProducts: [...event.products]));
+    emit(state.copyWith(allProducts: event.products.toList()));
     await _updateQueryData(emit);
   }
 
@@ -105,11 +143,71 @@ class InventoryReportBloc extends Bloc<InventoryReportEvent, InventoryReportStat
   }
 
   Future<void> _updateQueryData(Emitter<InventoryReportState> emit) async {
+    /// We need to take into account the products that were filtered by the search query.
+    ///   Lastly, the products that are included based on the date.
+
     var result = state.allProducts.target;
     if (result == null || result.isEmpty) {
       final updatedQueryData = state.queryData.copyWith(filteredProducts: []);
       emit(state.copyWith(queryData: updatedQueryData));
       return;
+    }
+
+    if (kDebugMode) {
+      print(state.queryData.date);
+    }
+
+    if (state.queryData.date case final queryDate?) {
+      /// We only take the products that were created before or on the query date.
+      result = result
+          .where((p) => DateTime.parse(p.creationDate).isBefore(queryDate.add(1.days)))
+          .toList();
+
+      /// We add back the quantities of the products that were invoiced after the query date.
+      for (final invoice in state.allInvoices.target ?? <Invoice>[]) {
+        if (!invoice.creationDate.isAfter(queryDate)) continue;
+
+        for (final product in state.allInvoiceProducts.target ?? <InvoiceProduct>[]) {
+          if (product.invoiceId != invoice.id) continue;
+
+          final found = result.indexed //
+              .where((p) => p.$2.id == product.productId)
+              .firstOrNull;
+
+          if (found case (final index, final item)) {
+            result[index] = item.copyWith(quantity: item.quantity + product.quantity);
+          }
+        }
+      }
+
+      /// We remove the quantities of the products that were ordered after the query date.
+
+      for (final order in state.allOrders.target ?? <Order>[]) {
+        if (!order.creationDate.isAfter(queryDate)) continue;
+
+        for (final product in state.allOrderProducts.target ?? <OrderProduct>[]) {
+          if (product.orderId != order.id) continue;
+
+          final found = result.indexed //
+              .where((p) => p.$2.id == product.productId)
+              .firstOrNull;
+
+          if (found case (final index, final item)) {
+            result[index] = item.copyWith(quantity: item.quantity - product.quantity);
+          }
+        }
+      }
+
+      if (!queryDate.zeroedTime().isAtSameMomentAs(DateTime.now().zeroedTime())) {
+        for (var i = 0; i < result.length; ++i) {
+          /// We remove the statuses as they are not computable for this report.
+          result[i] = result[i].copyWith(
+            isBelowCriticalLevel: false,
+            isDeadStock: false,
+            isFastMovingStock: false,
+          );
+        }
+      }
     }
 
     if (state.queryData.category != null) {

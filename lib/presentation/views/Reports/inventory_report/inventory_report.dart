@@ -1,11 +1,13 @@
 import 'dart:async';
 
 import 'package:easthardware_pms/domain/models/product.dart';
+import 'package:easthardware_pms/presentation/bloc/billing/invoicelist/invoice_list_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/inventory/inventory_display/'
     'inventory_display_enum.dart';
 import 'package:easthardware_pms/presentation/bloc/inventory/inventory_report/'
     'inventory_report_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/inventory/product_list/product_list_bloc.dart';
+import 'package:easthardware_pms/presentation/bloc/order/orderlist/order_list_bloc.dart';
 import 'package:easthardware_pms/presentation/router/app_router.dart';
 import 'package:easthardware_pms/presentation/router/app_routes.dart';
 import 'package:easthardware_pms/presentation/views/reports/pdf_helpers/pdf_generation.dart';
@@ -90,6 +92,8 @@ final productColumns = <ProductColumn>[
         return 'Low Stock';
       } else if (p.isDeadStock == true) {
         return 'Out of Stock';
+      } else if (p.isFastMovingStock == true) {
+        return 'Fast Moving';
       }
       return '-';
     },
@@ -122,15 +126,49 @@ class InventoryReportPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (_) => InventoryReportBloc(context.read<ProductListBloc>().state.allProducts),
+      create: (_) => InventoryReportBloc(
+        context.read<InvoiceListBloc>().state.invoices,
+        context.read<InvoiceListBloc>().state.invoiceProducts,
+        context.read<OrderListBloc>().state.allOrders,
+        context.read<OrderListBloc>().state.allOrderProducts,
+        context.read<ProductListBloc>().state.allProducts,
+      ),
       child: Builder(builder: (context) {
-        return BlocListener<ProductListBloc, ProductListState>(
-          listenWhen: (p, c) => p.allProducts != c.allProducts,
-          listener: (context, state) {
-            context.read<InventoryReportBloc>().add(
-                  InventoryReportUpdateProductsEvent(state.allProducts),
-                );
-          },
+        return MultiBlocListener(
+          listeners: [
+            BlocListener<InvoiceListBloc, InvoiceListState>(
+              listenWhen: (p, c) => p.invoices != c.invoices,
+              listener: (context, state) {
+                context
+                    .read<InventoryReportBloc>()
+                    .add(InventoryReportUpdateInvoicesEvent(state.invoices));
+              },
+            ),
+            BlocListener<OrderListBloc, OrderListState>(
+              listenWhen: (p, c) => p.allOrders != c.allOrders,
+              listener: (context, state) {
+                context
+                    .read<InventoryReportBloc>()
+                    .add(InventoryReportUpdateOrdersEvent(state.allOrders));
+              },
+            ),
+            BlocListener<OrderListBloc, OrderListState>(
+              listenWhen: (p, c) => p.allOrderProducts != c.allOrderProducts,
+              listener: (context, state) {
+                context
+                    .read<InventoryReportBloc>()
+                    .add(InventoryReportUpdateOrderProductsEvent(state.allOrderProducts));
+              },
+            ),
+            BlocListener<ProductListBloc, ProductListState>(
+              listenWhen: (p, c) => p.allProducts != c.allProducts,
+              listener: (context, state) {
+                context
+                    .read<InventoryReportBloc>()
+                    .add(InventoryReportUpdateProductsEvent(state.allProducts));
+              },
+            ),
+          ],
           child: const Padding(
             padding: AppPadding.panePadding,
             child: Column(
@@ -257,7 +295,7 @@ class _DateSelection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocSelector<InventoryReportBloc, InventoryReportState, DateTime>(
-      selector: (state) => state.effectiveSelectedDate,
+      selector: (state) => state.queryData.date ?? DateTime.now(),
       builder: (context, selectedDate) {
         return Row(
           children: [
@@ -526,7 +564,7 @@ Future<void> _previewReport(
         child: PdfOverlay(
           generatorCreator: () => InventoryReportPdfGenerator(
             products: products,
-            selectedDate: reportState.effectiveSelectedDate,
+            selectedDate: reportState.queryData.date ?? DateTime.now(),
           ),
         ),
       );

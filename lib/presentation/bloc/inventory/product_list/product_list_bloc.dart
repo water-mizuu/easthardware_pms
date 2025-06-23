@@ -130,18 +130,16 @@ class ProductListBloc extends Bloc<ProductListEvent, ProductListState> {
     emit(state.copyWith(status: DataStatus.loading));
     try {
       // 1. Insert Category if not exist
-      final insertedCategory = ( //
-              await _categoryRepository.getCategoryByName(event.category.name)) ??
+      final insertedCategory = await _categoryRepository.getCategoryByName(event.category.name) ??
           await _categoryRepository.insertCategory(event.category);
 
       // 2. Insert Product
-      final insertedProduct = ( //
-          await _productRepository.insertProduct(
+      final insertedProduct = await _productRepository.insertProduct(
         event.product.copyWith(
           categoryId: insertedCategory.id,
           categoryName: insertedCategory.name,
         ),
-      ));
+      );
 
       final clearedProduct = insertedProduct.copyWith(
         isBelowCriticalLevel: event.product.quantity <= event.product.criticalLevel,
@@ -159,11 +157,10 @@ class ProductListBloc extends Bloc<ProductListEvent, ProductListState> {
       }
 
       final products = [...state.allProducts, clearedProduct];
-      final lowStockProducts = List<Product>.from(state.lowStockProducts);
-
-      if (event.product.quantity <= event.product.criticalLevel) {
-        lowStockProducts.add(event.product);
-      }
+      final lowStockProducts = [
+        ...state.lowStockProducts,
+        if (event.product.quantity <= event.product.criticalLevel) clearedProduct
+      ];
 
       emit(
         state.copyWith(
