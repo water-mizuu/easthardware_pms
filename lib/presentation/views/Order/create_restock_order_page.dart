@@ -45,7 +45,7 @@ class CreateRestockOrderPage extends StatefulWidget {
 }
 
 class _CreateRestockOrderPageState extends State<CreateRestockOrderPage> {
-  OverlayEntry? overlayEntry;
+  // OverlayEntry? overlayEntry;
 
   @override
   Never setState(void Function() fn) {
@@ -118,23 +118,23 @@ class _CreateRestockOrderPageState extends State<CreateRestockOrderPage> {
               }),
           BlocListener<OrderFormBloc, OrderFormState>(
             listener: (context, state) {
-              final overlay = Overlay.of(overlayWidgetKey.currentContext!);
-              if (state.status == FormStatus.submitting) {
-                if (overlayEntry == null) {
-                  overlayEntry = OverlayEntry(builder: (context) {
-                    return Container(
-                      color: Colors.black.withOpacity(0.2),
-                      child: const Center(child: ProgressRing()),
-                    );
-                  });
-                  overlay.insert(overlayEntry!);
-                } else {
-                  return;
-                }
-              } else {
-                overlayEntry?.remove();
-                overlayEntry = null;
-              }
+              // final overlay = Overlay.of(overlayWidgetKey.currentContext!);
+              // if (state.status == FormStatus.submitting) {
+              //   if (overlayEntry == null) {
+              //     overlayEntry = OverlayEntry(builder: (context) {
+              //       return Container(
+              //         color: Colors.black.withOpacity(0.2),
+              //         child: const Center(child: ProgressRing()),
+              //       );
+              //     });
+              //     overlay.insert(overlayEntry!);
+              //   } else {
+              //     return;
+              //   }
+              // } else {
+              //   overlayEntry?.remove();
+              //   overlayEntry = null;
+              // }
             },
           ),
         ],
