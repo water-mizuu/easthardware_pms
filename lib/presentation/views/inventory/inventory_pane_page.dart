@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:math';
 
 import 'package:easthardware_pms/domain/enums/enums.dart';
 import 'package:easthardware_pms/domain/models/product.dart';
@@ -12,14 +11,12 @@ import 'package:easthardware_pms/presentation/bloc/inventory/inventory_display/'
 import 'package:easthardware_pms/presentation/bloc/inventory/inventory_display/'
     'inventory_display_enum.dart';
 import 'package:easthardware_pms/presentation/bloc/inventory/product_list/product_list_bloc.dart';
-import 'package:easthardware_pms/presentation/bloc/inventory/unit_list/unit_list_bloc.dart';
 import 'package:easthardware_pms/presentation/router/app_routes.dart';
 import 'package:easthardware_pms/presentation/views/inventory/product_information_content_dialog.dart';
 import 'package:easthardware_pms/presentation/widgets/helper/data_row_mapper.dart';
 import 'package:easthardware_pms/presentation/widgets/layout/spacing.dart';
 import 'package:easthardware_pms/presentation/widgets/layout_mode_provider.dart';
 import 'package:easthardware_pms/presentation/widgets/text.dart';
-import 'package:easthardware_pms/presentation/widgets/ui/data_table_place_holder.dart';
 import 'package:easthardware_pms/presentation/widgets/ui/kpi_card.dart';
 import 'package:easthardware_pms/presentation/widgets/ui/styles.dart';
 import 'package:easthardware_pms/presentation/widgets/ui/table_theme_data.dart';
@@ -27,18 +24,9 @@ import 'package:easthardware_pms/presentation/widgets/ui/text_button.dart';
 import 'package:easthardware_pms/utils/typed_routes.dart';
 import 'package:fluent_ui/fluent_ui.dart';
 import 'package:flutter/material.dart'
-    show
-        CardTheme,
-        DataColumn,
-        DataRow,
-        DataTableSource,
-        DataTableThemeData,
-        PaginatedDataTable,
-        Theme,
-        ThemeData;
+    show DataColumn, DataRow, DataTableSource, PaginatedDataTable;
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:scroll_animator/scroll_animator.dart';
-import 'package:two_dimensional_scrollables/two_dimensional_scrollables.dart';
 
 class InventoryPanePage extends StatefulWidget {
   const InventoryPanePage({super.key});
