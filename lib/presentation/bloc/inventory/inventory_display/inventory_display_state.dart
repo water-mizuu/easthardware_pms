@@ -26,7 +26,7 @@ class InventoryDisplayState with EquatableMixin {
   final bool sortAscending;
 
   InventoryDisplayState Function({
-    WeakReference<List<Product>>? allProducts,
+    List<Product>? allProducts,
     List<Product>? filteredProducts,
     String searchQuery,
     Category? category,
@@ -42,7 +42,12 @@ class InventoryDisplayState with EquatableMixin {
       Object? sortAscending = undefined,
     }) {
       return InventoryDisplayState(
-        allProducts: allProducts.or(this.allProducts),
+        allProducts: allProducts == undefined
+            ? this.allProducts
+            : allProducts == null
+                ? null
+                : WeakReference(allProducts as List<Product>),
+        //
         filteredProducts: filteredProducts.or(this.filteredProducts),
         searchQuery: searchQuery.or(this.searchQuery),
         category: category.or(this.category),

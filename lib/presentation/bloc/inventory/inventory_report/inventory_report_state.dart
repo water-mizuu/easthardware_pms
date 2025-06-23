@@ -9,7 +9,7 @@ class InventoryReportState extends Equatable {
     this.overlayEntry,
   });
 
-  final List<Product> allProducts;
+  final WeakReference<List<Product>> allProducts;
   final InventoryQueryData queryData;
   final bool isGenerating;
   final DateTime? selectedDate;
@@ -32,7 +32,9 @@ class InventoryReportState extends Equatable {
       Object? overlayEntry = undefined,
     }) {
       return InventoryReportState(
-        allProducts: allProducts.or(this.allProducts),
+        allProducts: allProducts == undefined
+            ? this.allProducts
+            : WeakReference(allProducts as List<Product>),
         queryData: queryData.or(this.queryData),
         isGenerating: isGenerating.or(this.isGenerating),
         selectedDate: selectedDate.or(this.selectedDate),
