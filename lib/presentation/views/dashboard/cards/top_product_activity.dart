@@ -304,7 +304,7 @@ class _TopProductActivityState extends State<TopProductActivity> {
             final index = value.toInt();
             assert(
               0 <= index && index < products.length,
-              "The value given should be a valid index for the product list!",
+              "The value given $index should be a valid index for the product list!",
             );
 
             final (message, _) = topProducts[index];
