@@ -110,7 +110,7 @@ class PageHeader extends StatelessWidget {
         const HeadingText('Products'),
         const Spacer(flex: 1),
         TextButton('Manage Categories', onPressed: () {
-          context.navigate(AppRoutes.admin.inventory);
+          context.navigate(AppRoutes.admin.categories);
         }),
         TextButtonFilled('New Product', onPressed: () {
           context.navigate(AppRoutes.admin.createProduct);

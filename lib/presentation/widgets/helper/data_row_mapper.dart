@@ -235,11 +235,23 @@ class DataRowMapper {
     );
   }
 
-  static DataRow mapCategoryToRow(Category category, int productCount, Function() action) {
+  static DataRow mapCategoryToRow(Category category, int productCount, Function()? action) {
     return DataRow(cells: [
       DataCell(Text(category.name, style: TextStyles.body)),
       DataCell(Text(productCount.toString(), style: TextStyles.body)),
-      DataCell(Button(onPressed: action, child: const Text('Edit', style: TextStyles.body))),
+      DataCell(DropDownButton(
+        title: const Text('Actions', style: TextStyles.body),
+        items: [
+          MenuFlyoutItem(
+            text: const Text('View Products', style: TextStyles.body),
+            onPressed: action,
+          ),
+          MenuFlyoutItem(
+            text: const Text('Edit Category', style: TextStyles.body),
+            onPressed: action,
+          ),
+        ],
+      )),
     ]);
   }
 

@@ -55,3 +55,18 @@ enum CategoryDisplaySortBy {
   @override
   String toString() => name;
 }
+
+enum PaymentDisplaySortBy {
+  dateAscending('Date Ascending'),
+  dateDescending('Date Descending'),
+  amountAscending('Amount Ascending'),
+  amountDescending('Amount Descending'),
+  referenceAscending('Reference Ascending'),
+  referenceDescending('Reference Descending');
+
+  const PaymentDisplaySortBy(this.name);
+  final String name;
+
+  @override
+  String toString() => name;
+}

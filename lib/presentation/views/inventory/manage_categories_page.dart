@@ -98,8 +98,13 @@ class CategoriesDataTable extends StatelessWidget {
                 decoration: BoxDecoration(
                     color: FluentTheme.of(context).acrylicBackgroundColor,
                     borderRadius: BorderRadius.circular(4)),
-                child: categories!.isEmpty
-                    ? const Center(child: BodyText('No categories available'))
+                child: categories == null || categories.isEmpty
+                    ? Container(
+                        decoration: const BoxDecoration(color: Colors.white),
+                        child: const Center(
+                          child: BodyText('No categories available'),
+                        ),
+                      )
                     : TableThemeData(
                         child: PaginatedDataTable(
                           showFirstLastButtons: true,
@@ -111,10 +116,14 @@ class CategoriesDataTable extends StatelessWidget {
                           checkboxHorizontalMargin: 0,
                           columns: [
                             DataColumn(
-                              label: ConstrainedBox(
-                                constraints: const BoxConstraints(minWidth: 120, maxWidth: 200),
-                                child: const Flexible(
-                                  child: Text('Category Name', style: TextStyles.strong),
+                              label: Expanded(
+                                child: ConstrainedBox(
+                                  constraints: const BoxConstraints(minWidth: 300),
+                                  child: const Row(
+                                    children: [
+                                      Text('Category Name', style: TextStyles.strong),
+                                    ],
+                                  ),
                                 ),
                               ),
                               onSort: (_, __) {
@@ -129,9 +138,11 @@ class CategoriesDataTable extends StatelessWidget {
                               },
                             ),
                             DataColumn(
-                              label: ConstrainedBox(
-                                constraints: const BoxConstraints(minWidth: 80),
-                                child: const Text('No. of Products', style: TextStyles.strong),
+                              label: Expanded(
+                                child: ConstrainedBox(
+                                  constraints: const BoxConstraints(minWidth: 100, maxWidth: 300),
+                                  child: const Text('No. of Products', style: TextStyles.strong),
+                                ),
                               ),
                               onSort: (_, __) {
                                 if (state.sortBy == CategoryDisplaySortBy.productCountAscending ||
@@ -146,8 +157,8 @@ class CategoriesDataTable extends StatelessWidget {
                             ),
                             DataColumn(
                               label: ConstrainedBox(
-                                constraints: const BoxConstraints(minWidth: 80),
-                                child: const Text('Action', style: TextStyles.strong),
+                                constraints: const BoxConstraints(minWidth: 40),
+                                child: const Text(''),
                               ),
                             ),
                           ],
@@ -207,7 +218,7 @@ class PageActions extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         const Text('List of Categories', style: TextStyles.subtitle),
-        Spacing.v4,
+        Spacing.v12,
         Row(
           children: [
             Expanded(child: TextBox(placeholder: 'Search by category name', onChanged: validator)),

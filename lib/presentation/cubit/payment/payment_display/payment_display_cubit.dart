@@ -1,0 +1,158 @@
+import 'dart:math';
+
+import 'package:bloc/bloc.dart';
+import 'package:easthardware_pms/domain/enums/enums.dart';
+import 'package:easthardware_pms/domain/models/payment.dart';
+import 'package:easthardware_pms/utils/levenshtein.dart';
+import 'package:easthardware_pms/utils/undefined.dart';
+import 'package:equatable/equatable.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+
+part 'payment_display_state.dart';
+
+class PaymentDisplayCubit extends Cubit<PaymentDisplayState> {
+  PaymentDisplayCubit() : super(PaymentDisplayState.empty()) {
+    // Initialize any listeners or subscriptions if needed
+  }
+
+  // Method to update the list of payments
+  void updatePayments(List<Payment> payments) {
+    if (payments.isEmpty) {
+      emit(state.copyWith(
+        searchQuery: '',
+        filteredPayments: null,
+        allPayments: null,
+      ));
+      return;
+    }
+
+    emit(state.copyWith(allPayments: payments));
+    _processQuery();
+  }
+
+  // Method to update search query
+  void search(String query) {
+    final allPayments = state.allPayments;
+    if (allPayments == null || allPayments.isEmpty) {
+      emit(state.copyWith(
+        searchQuery: query,
+        allPayments: null,
+      ));
+      return;
+    }
+
+    emit(state.copyWith(searchQuery: query));
+    _processQuery();
+  }
+
+  // Method to update sort criteria
+  void sort(PaymentDisplaySortBy sortBy) {
+    // Check if we're selecting the same sort type that's already active
+    if (state.sortBy == sortBy) {
+      // Toggle the sort direction if the same sort type is selected again
+      emit(state.copyWith(sortAscending: !state.sortAscending));
+
+      // Determine the appropriate sort type based on the field and direction
+      final newSortBy = _getSortTypeBasedOnDirection(sortBy, !state.sortAscending);
+
+      emit(state.copyWith(sortBy: newSortBy));
+    } else {
+      // Default to ascending order for new sort type
+      emit(state.copyWith(
+        sortBy: sortBy,
+        sortAscending: true,
+      ));
+    }
+
+    _processQuery();
+  }
+
+  // Helper method to get the correct sort type based on direction
+  PaymentDisplaySortBy _getSortTypeBasedOnDirection(
+    PaymentDisplaySortBy sortType,
+    bool ascending,
+  ) {
+    switch (sortType) {
+      case PaymentDisplaySortBy.dateAscending:
+      case PaymentDisplaySortBy.dateDescending:
+        return ascending ? PaymentDisplaySortBy.dateAscending : PaymentDisplaySortBy.dateDescending;
+
+      case PaymentDisplaySortBy.amountAscending:
+      case PaymentDisplaySortBy.amountDescending:
+        return ascending
+            ? PaymentDisplaySortBy.amountAscending
+            : PaymentDisplaySortBy.amountDescending;
+
+      case PaymentDisplaySortBy.referenceAscending:
+      case PaymentDisplaySortBy.referenceDescending:
+        return ascending
+            ? PaymentDisplaySortBy.referenceAscending
+            : PaymentDisplaySortBy.referenceDescending;
+
+      default:
+        return PaymentDisplaySortBy.dateDescending;
+    }
+  }
+
+  // Process the query and filter/sort the payments
+  void _processQuery() {
+    final allPayments = state.allPayments;
+    if (allPayments == null || allPayments.isEmpty) {
+      emit(state.copyWith(filteredPayments: null));
+      return;
+    }
+
+    // First, filter by search query if needed
+    final searchQuery = state.searchQuery.trim().toLowerCase();
+    var filteredPayments = allPayments;
+
+    if (searchQuery.isNotEmpty) {
+      filteredPayments = allPayments.where((payment) {
+        final reference = payment.referenceNumber.toLowerCase();
+        final amount = payment.amount.toString().toLowerCase();
+        final date = payment.paymentDate.toString().toLowerCase();
+
+        // Simple contains check
+        if (reference.contains(searchQuery) ||
+            amount.contains(searchQuery) ||
+            date.contains(searchQuery)) {
+          return true;
+        }
+
+        // Levenshtein distance check for fuzzy matching
+        final distance = Levenshtein.distance(reference, searchQuery);
+        final maxDistance = max(1, searchQuery.length ~/ 3);
+        return distance <= maxDistance;
+      }).toList();
+    }
+
+    // Then sort based on the selected sort criteria
+    _sortPayments(filteredPayments);
+
+    emit(state.copyWith(filteredPayments: filteredPayments));
+  }
+
+  // Helper method to sort payments
+  void _sortPayments(List<Payment> payments) {
+    switch (state.sortBy) {
+      case PaymentDisplaySortBy.dateAscending:
+        payments.sort((a, b) => a.paymentDate.compareTo(b.paymentDate));
+        break;
+      case PaymentDisplaySortBy.dateDescending:
+        payments.sort((a, b) => b.paymentDate.compareTo(a.paymentDate));
+        break;
+      case PaymentDisplaySortBy.amountAscending:
+        payments.sort((a, b) => a.amount.compareTo(b.amount));
+        break;
+      case PaymentDisplaySortBy.amountDescending:
+        payments.sort((a, b) => b.amount.compareTo(a.amount));
+        break;
+      case PaymentDisplaySortBy.referenceAscending:
+        payments.sort((a, b) => a.referenceNumber.compareTo(b.referenceNumber));
+        break;
+      case PaymentDisplaySortBy.referenceDescending:
+        payments.sort((a, b) => b.referenceNumber.compareTo(a.referenceNumber));
+        break;
+    }
+  }
+}
