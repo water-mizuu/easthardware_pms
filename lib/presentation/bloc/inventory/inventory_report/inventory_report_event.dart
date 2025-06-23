@@ -29,19 +29,6 @@ class InventoryReportSetDateEvent extends InventoryReportEvent {
   List<Object?> get props => [date];
 }
 
-class InventoryReportSetOverlayEvent extends InventoryReportEvent {
-  const InventoryReportSetOverlayEvent(this.overlayEntry);
-
-  final OverlayEntry? overlayEntry;
-
-  @override
-  List<Object?> get props => [overlayEntry];
-}
-
-class InventoryReportRemoveOverlayEvent extends InventoryReportEvent {
-  const InventoryReportRemoveOverlayEvent();
-}
-
 class InventoryReportUpdateInvoicesEvent extends InventoryReportEvent {
   const InventoryReportUpdateInvoicesEvent(this.invoices);
 

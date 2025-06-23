@@ -2,7 +2,7 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:math';
 
-import 'package:easthardware_pms/presentation/bloc/inventory/inventory_report/inventory_report_bloc.dart';
+import 'package:easthardware_pms/presentation/router/app_router.dart';
 import 'package:easthardware_pms/presentation/widgets/layout/spacing.dart';
 import 'package:easthardware_pms/presentation/widgets/text.dart';
 import 'package:easthardware_pms/presentation/widgets/ui/text_button.dart';
@@ -32,6 +32,20 @@ abstract interface class PdfGenerator {
 }
 
 class PdfGenerationState with ChangeNotifier {
+  OverlayEntry? _overlayEntry;
+  OverlayEntry? get overlayEntry => _overlayEntry;
+  set overlayEntry(OverlayEntry? entry) {
+    if (_overlayEntry != entry) {
+      if (_overlayEntry != null && entry == null) {
+        _overlayEntry?.remove();
+      }
+
+      _overlayEntry = entry;
+
+      notifyListeners();
+    }
+  }
+
   String? _fileName;
   String? get fileName => _fileName;
   set fileName(String? name) {
@@ -74,10 +88,18 @@ class PdfGenerationState with ChangeNotifier {
   }
 }
 
+void showPdfOverlay({required Widget Function(BuildContext, OverlayEntry) builder}) {
+  late final OverlayEntry entry;
+  entry = OverlayEntry(builder: (c) => builder(c, entry));
+
+  Overlay.of(overlayWidgetKey.currentContext!).insert(entry);
+}
+
 /// This PDF generation
 class PdfOverlay extends StatelessWidget {
-  const PdfOverlay({required this.generatorCreator, super.key});
+  const PdfOverlay({required this.overlayEntry, required this.generatorCreator, super.key});
 
+  final OverlayEntry overlayEntry;
   final PdfGenerator Function() generatorCreator;
 
   @override
@@ -86,14 +108,26 @@ class PdfOverlay extends StatelessWidget {
       create: (_) => generatorCreator(),
       child: Builder(builder: (context) {
         return ChangeNotifierProvider(
-          create: (_) => PdfGenerationState()..fileName = context.read<PdfGenerator>().fileName,
+          lazy: false,
+          create: (_) => PdfGenerationState()
+            ..fileName = context.read<PdfGenerator>().fileName
+            ..overlayEntry = overlayEntry,
           child: LayoutBuilder(
-            builder: (_, constraints) {
+            builder: (context, constraints) {
               return Provider.value(
                 value: constraints,
-                child: ColoredBox(
-                  color: Colors.black.withOpacity(0.2),
-                  child: const Center(child: _PdfOverlayBody()),
+                child: Stack(
+                  children: [
+                    Positioned.fill(
+                      child: GestureDetector(
+                        onTap: () {
+                          context.read<PdfGenerationState>().overlayEntry = null;
+                        },
+                        child: ColoredBox(color: Colors.black.withOpacity(0.2)),
+                      ),
+                    ),
+                    const Positioned.fill(child: Center(child: _PdfOverlayBody())),
+                  ],
                 ),
               );
             },
@@ -170,9 +204,7 @@ class _Header extends StatelessWidget {
                   padding: WidgetStatePropertyAll(EdgeInsets.zero),
                 ),
                 onPressed: () {
-                  context
-                      .read<InventoryReportBloc>()
-                      .add(const InventoryReportRemoveOverlayEvent());
+                  context.read<PdfGenerationState>().overlayEntry = null;
                 },
                 child: const Icon(FluentIcons.cancel, size: 12.0),
               ),
@@ -236,9 +268,7 @@ class _MenuChoices extends StatelessWidget {
 
                   if (!context.mounted) return;
                   if (didPrint) {
-                    context
-                        .read<InventoryReportBloc>()
-                        .add(const InventoryReportRemoveOverlayEvent());
+                    context.read<PdfGenerationState>().overlayEntry = null;
                   }
                 },
               ),
@@ -343,13 +373,10 @@ class _PdfPreview extends StatelessWidget {
 
 Future<void> _saveReport(BuildContext context) async {
   try {
-    final dateTime = DateTime.now();
     final pageFormat = context.read<PdfGenerationState>().pageFormat;
     final generator = context.read<PdfGenerator>();
     final pdf = await generator.generatePdf(pageFormat);
-    final defaultFileName = 'Inventory_Report_${dateTime.day}-' //
-        '${dateTime.month}-'
-        '${dateTime.year}.pdf';
+    final defaultFileName = generator.fileName;
 
     // Show native file picker dialog to choose save location
     final outputFile = await FilePicker.platform.saveFile(

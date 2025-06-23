@@ -33,7 +33,14 @@ class InvoiceListBloc extends Bloc<InvoiceListEvent, InvoiceListState> {
     emit(state.copyWith(status: DataStatus.loading));
     try {
       final invoices = await _repository.getAllInvoices();
-      emit(state.copyWith(invoices: invoices, status: DataStatus.success));
+      final invoiceProducts = await _itemRepository.fetchAllInvoiceProducts();
+      emit(
+        state.copyWith(
+          invoices: invoices,
+          invoiceProducts: invoiceProducts,
+          status: DataStatus.success,
+        ),
+      );
     } catch (e) {
       emit(state.copyWith(status: DataStatus.error));
     }

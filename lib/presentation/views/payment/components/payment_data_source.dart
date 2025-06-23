@@ -2,7 +2,7 @@ import 'package:easthardware_pms/domain/models/payment.dart';
 import 'package:easthardware_pms/domain/models/payment_method.dart';
 import 'package:easthardware_pms/presentation/widgets/ui/styles.dart';
 import 'package:fluent_ui/fluent_ui.dart';
-import 'package:flutter/material.dart' show DataCell, DataRow, DataTable, DataTableSource;
+import 'package:flutter/material.dart' show DataCell, DataRow, DataTableSource;
 import 'package:intl/intl.dart';
 
 class PaymentDataSource extends DataTableSource {
