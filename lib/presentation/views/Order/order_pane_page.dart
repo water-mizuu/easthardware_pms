@@ -1,5 +1,7 @@
 import 'package:easthardware_pms/domain/enums/enums.dart';
+import 'package:easthardware_pms/domain/models/expense_type.dart';
 import 'package:easthardware_pms/domain/models/order.dart';
+import 'package:easthardware_pms/presentation/bloc/order/orderform/order_form_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/order/orderlist/order_list_bloc.dart';
 import 'package:easthardware_pms/presentation/router/app_routes.dart';
 import 'package:easthardware_pms/presentation/widgets/animated_single_child_scroll_view.dart';
@@ -21,6 +23,7 @@ import 'package:flutter/material.dart'
         Theme,
         ThemeData;
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:path/path.dart';
 
 class OrderPanePage extends StatelessWidget {
   const OrderPanePage({super.key});
@@ -125,7 +128,7 @@ class OrdersDataTable extends StatelessWidget {
                 DataColumn(label: Text('Amount')),
                 DataColumn(label: Text('Actions')),
               ],
-              source: OrderDataSource(orders),
+              source: OrderDataSource(orders, context),
             ),
           ),
         );
@@ -135,15 +138,21 @@ class OrdersDataTable extends StatelessWidget {
 }
 
 class OrderDataSource extends DataTableSource {
-  OrderDataSource(this._orders);
+  OrderDataSource(this._orders, this._context);
   final List<Order> _orders;
+  final BuildContext _context;
 
   @override
   DataRow? getRow(int index) {
     if (index >= _orders.length) return null;
     final order = _orders[index];
     return DataRowMapper.mapOrderToRow(order, () {
-      // Implement your edit or action logic here
+      // Check if the order is a restock order or an expense order
+      if (order.expenseType == 1) {
+        _context.navigateWithExtra(AppRoutes.admin.editRestockOrder, order);
+      } else {
+        // _context.navigateWithExtra(AppRoutes.admin.editExpenseOrder, order);
+      }
     });
   }
 

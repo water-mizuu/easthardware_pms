@@ -105,10 +105,6 @@ class PageHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        IconButton(
-          icon: const Icon(FluentIcons.back),
-          onPressed: () => context.navigate(AppRoutes.admin.order),
-        ),
         const DisplayText('Manage Expense Types'),
       ].withSpacing(() => Spacing.h16),
     );

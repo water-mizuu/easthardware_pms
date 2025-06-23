@@ -11,4 +11,5 @@ abstract class OrderProductRepository {
   Future<OrderProduct> updateOrderProduct(OrderProduct orderProduct);
   Future<void> deleteOrderProduct(int id);
   Future<List<OrderProduct>> getOrderProductsByOrderId(int orderId);
+  Future<void> deleteOrderProductsByOrderId(int orderId);
 }

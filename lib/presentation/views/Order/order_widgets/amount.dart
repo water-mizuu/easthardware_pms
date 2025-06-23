@@ -14,33 +14,29 @@ class Amount extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isRestock = context.select((OrderFormBloc b) => b.state.orderType == OrderType.restock);
-
     if (isRestock) {
       return Builder(builder: (context) {
         final (index, _) = context.watch<IndexedProductId>();
-        final currentFormProduct = context.read<OrderFormBloc>().state.products![index];
-        final displayText = CurrencyFormatter.full(currentFormProduct.amount);
-        final placeholder = displayText;
+        final currentFormProduct = context.watch<OrderFormBloc>().state.products![index];
+        final calculatedAmount = currentFormProduct.quantity * currentFormProduct.rate;
+        final displayText = CurrencyFormatter.full(calculatedAmount);
 
         return FormTableCell(
           child: TextFormBoxes.ghost(
             enabled: false,
-            placeholder: displayText.isEmpty ? placeholder : displayText,
+            placeholder: displayText.isEmpty ? '0.00' : displayText,
           ),
         );
       });
     } else {
       return Builder(builder: (context) {
         final (_, orderItem) = context.watch<IndexedOrderItem>();
-        final displayText = orderItem.amount % 1 == 0
-            ? orderItem.amount.toInt().toString()
-            : orderItem.amount.toString();
-        const placeholder = '0.00';
+        final displayAmount = CurrencyFormatter.full(orderItem.amount);
 
         return FormTableCell(
           child: TextFormBoxes.ghost(
             enabled: false,
-            placeholder: displayText.isEmpty ? placeholder : displayText,
+            placeholder: displayAmount.isEmpty ? '0.00' : displayAmount,
           ),
         );
       });

@@ -1,13 +1,20 @@
-part of '../create_restock_order_page.dart';
+import 'package:easthardware_pms/presentation/bloc/inventory/product_list/product_list_bloc.dart';
+import 'package:easthardware_pms/presentation/bloc/order/orderform/order_form_bloc.dart';
+import 'package:easthardware_pms/presentation/views/Order/create_restock_order_page.dart';
+import 'package:easthardware_pms/presentation/widgets/ui/form_table_cell.dart';
+import 'package:easthardware_pms/presentation/widgets/ui/text_form_boxes.dart';
+import 'package:fluent_ui/fluent_ui.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
-class _QuantityAndUnit extends StatefulWidget {
-  const _QuantityAndUnit();
+class QuantityAndUnit extends StatefulWidget {
+  const QuantityAndUnit({super.key});
 
   @override
-  State<_QuantityAndUnit> createState() => _QuantityAndUnitState();
+  State<QuantityAndUnit> createState() => _QuantityAndUnitState();
 }
 
-class _QuantityAndUnitState extends State<_QuantityAndUnit> {
+class _QuantityAndUnitState extends State<QuantityAndUnit> {
   late final TextEditingController _quantityController;
   late int? _currentProductId;
 
@@ -44,13 +51,44 @@ class _QuantityAndUnitState extends State<_QuantityAndUnit> {
   void didChangeDependencies() {
     super.didChangeDependencies();
 
-    final (_, currentProductId) = context.watch<IndexedProductId>();
-    if (_currentProductId == currentProductId) {
-      final currentFormProduct = (context.read<OrderFormBloc>().state.products!)
-          .where((p) => p.productId == currentProductId)
-          .firstOrNull;
+    final (index, currentProductId) = context.watch<IndexedProductId>();
 
-      _updateQuantityControllerWithQuantity(currentFormProduct?.quantity ?? 0);
+    // Check if product ID is changed or it's the first time loading
+    if (_currentProductId != currentProductId) {
+      _currentProductId = currentProductId;
+    }
+
+    // Always check for the current form product and update quantity controller
+    if (currentProductId != null) {
+      // Find the form product by product ID
+      final products = context.read<OrderFormBloc>().state.products!;
+      final currentFormProduct = products.where((p) => p.productId == currentProductId).firstOrNull;
+
+      // Update the quantity
+      if (currentFormProduct != null) {
+        _updateQuantityControllerWithQuantity(currentFormProduct.quantity);
+
+        // Always ensure we're using the main unit for restock orders
+        final currentProduct = context
+            .read<ProductListBloc>()
+            .state
+            .allProducts
+            .where((p) => p.id == currentProductId)
+            .firstOrNull;
+
+        if (currentProduct != null && currentFormProduct.unit != currentProduct.mainUnit) {
+          // Always update to use the main unit
+          context.read<OrderFormBloc>().add(ProductUpdatedEvent(
+                currentFormProduct.copyWith(
+                  unitId: null,
+                  rate: currentProduct.orderCost,
+                  unit: currentProduct.mainUnit,
+                  conversionFactor: 1.0,
+                ),
+                index,
+              ));
+        }
+      }
     }
   }
 
@@ -93,75 +131,13 @@ class _QuantityAndUnitState extends State<_QuantityAndUnit> {
             if (currentProduct != null)
               Expanded(
                 flex: 2,
-                child: Builder(builder: (context) {
-                  final selectedUnit = context.watch<OrderFormBloc>().state.products![index].unit;
-
-                  return DropDownButton(
-                    items: [
-                      MenuFlyoutItem(
-                          text: Text(currentProduct.mainUnit),
-                          selected: selectedUnit == currentProduct.mainUnit,
-                          onPressed: () {
-                            context //
-                                .read<OrderFormBloc>()
-                                .add(ProductUpdatedEvent(
-                                  context.read<OrderFormBloc>().state.products![index].copyWith(
-                                        unitId: null,
-                                        rate: currentProduct.orderCost,
-                                        unit: currentProduct.mainUnit,
-                                        conversionFactor: 1.0,
-                                      ),
-                                  index,
-                                ));
-                          }),
-                      for (final unit in context
-                          .read<UnitListBloc>()
-                          .state
-                          .units
-                          .where((u) => u.productId == currentProductId))
-                        MenuFlyoutItem(
-                          text: Text(unit.name),
-                          selected: selectedUnit == unit.name,
-                          onPressed: () {
-                            context.read<OrderFormBloc>().add(ProductUpdatedEvent(
-                                  context.read<OrderFormBloc>().state.products![index].copyWith(
-                                        unitId: unit.id,
-                                        rate: currentProduct.orderCost *
-                                            (unit.mainQuantity / unit.unitQuantity),
-                                        unit: unit.name,
-                                        conversionFactor: unit.mainQuantity / unit.unitQuantity,
-                                      ),
-                                  index,
-                                ));
-                          },
-                        ),
-                    ],
-                    buttonBuilder: (context, onOpen) {
-                      return Button(
-                        style: ButtonStyle(
-                          padding: const WidgetStatePropertyAll(
-                            EdgeInsetsDirectional.fromSTEB(0, 5, 0, 6),
-                          ),
-                          shape: WidgetStatePropertyAll(
-                            RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(4.0),
-                              side: const BorderSide(color: Colors.transparent),
-                            ),
-                          ),
-                        ),
-                        onPressed: onOpen,
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(context.read<OrderFormBloc>().state.products![index].unit),
-                            Spacing.h12,
-                            const Icon(FluentIcons.chevron_down),
-                          ],
-                        ),
-                      );
-                    },
-                  );
-                }),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 8),
+                  child: Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text(currentProduct.mainUnit),
+                  ),
+                ),
               ),
           ],
         ),

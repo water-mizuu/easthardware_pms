@@ -75,6 +75,18 @@ class OrderProductRepositoryImpl implements OrderProductRepository {
     }
   }
 
+  @override
+  Future<void> deleteOrderProductsByOrderId(int orderId) async {
+    if (orderId <= 0) {
+      throw ArgumentError('Invalid order ID');
+    }
+    try {
+      await _orderProductsDao.deleteOrderProductsByOrderId(orderId);
+    } catch (e) {
+      throw DatabaseException('Failed to delete order products for order: $e');
+    }
+  }
+
   void _validateOrderProduct(OrderProduct orderProduct) {
     if (orderProduct.quantity <= 0) {
       throw ArgumentError('Quantity should be greater than 0');

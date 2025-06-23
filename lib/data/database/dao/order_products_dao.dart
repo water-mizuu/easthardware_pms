@@ -13,6 +13,7 @@ abstract interface class OrderProductsDao {
   Future<OrderProduct> updateOrderProduct(OrderProduct orderProduct);
   Future<void> deleteOrderProduct(int id);
   Future<List<OrderProduct>> getOrderProductsByOrderId(int orderId);
+  Future<void> deleteOrderProductsByOrderId(int orderId);
 }
 
 final class OrderProductsDaoImpl extends DaoBase implements OrderProductsDao {
@@ -95,5 +96,16 @@ final class OrderProductsDaoImpl extends DaoBase implements OrderProductsDao {
     return List.generate(maps.length, (i) {
       return OrderProduct.fromMap(maps[i]);
     });
+  }
+
+  /// Deletes order products from the database by their order ID.
+  @override
+  Future<void> deleteOrderProductsByOrderId(int orderId) async {
+    final db = databaseHelper.database;
+    await db.delete(
+      'order_products',
+      where: 'order_id = ?',
+      whereArgs: [orderId],
+    );
   }
 }

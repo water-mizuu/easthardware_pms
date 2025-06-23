@@ -1,13 +1,19 @@
-part of '../create_restock_order_page.dart';
+import 'package:easthardware_pms/presentation/bloc/inventory/product_list/product_list_bloc.dart';
+import 'package:easthardware_pms/presentation/bloc/order/orderform/order_form_bloc.dart';
+import 'package:easthardware_pms/presentation/views/Order/create_restock_order_page.dart';
+import 'package:easthardware_pms/presentation/widgets/auto_auto_suggest_box.dart';
+import 'package:easthardware_pms/presentation/widgets/ui/decorations.dart';
+import 'package:fluent_ui/fluent_ui.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
-class _ProductName extends StatefulWidget {
-  const _ProductName();
+class ProductName extends StatefulWidget {
+  const ProductName({super.key});
 
   @override
-  State<_ProductName> createState() => _ProductNameState();
+  State<ProductName> createState() => _ProductNameState();
 }
 
-class _ProductNameState extends State<_ProductName> {
+class _ProductNameState extends State<ProductName> {
   late final TextEditingController _productNameController;
   late int? _currentProductId;
 

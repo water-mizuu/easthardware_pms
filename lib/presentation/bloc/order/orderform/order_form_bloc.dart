@@ -1,9 +1,10 @@
 import 'dart:convert';
 
 import 'package:bloc/bloc.dart';
-import 'package:easthardware_pms/domain/enums/enums.dart' show FormStatus, OrderType;
+import 'package:easthardware_pms/domain/enums/enums.dart' show DiscountType, FormStatus, OrderType;
 import 'package:easthardware_pms/domain/models/expense_type.dart';
 import 'package:easthardware_pms/domain/models/order.dart';
+import 'package:easthardware_pms/domain/models/order_product.dart';
 import 'package:easthardware_pms/domain/models/payment_method.dart';
 import 'package:easthardware_pms/domain/models/product.dart';
 import 'package:easthardware_pms/domain/services/cryptography_service.dart';
@@ -38,6 +39,7 @@ class OrderFormBloc extends Bloc<OrderFormEvent, OrderFormState> {
     on<ClearProductsEvent>(_onClearProducts);
     on<SaveRestockOrderRequestEvent>(_onSaveRestockOrderRequest);
     on<SaveExpenseOrderRequestEvent>(_onSaveExpenseOrderRequest);
+    on<LoadExistingOrderEvent>(_onLoadExistingOrder); // Add this line
   }
 
   factory OrderFormBloc.fromRestockOrder(Product? product) {
@@ -51,8 +53,11 @@ class OrderFormBloc extends Bloc<OrderFormEvent, OrderFormState> {
     );
   }
   factory OrderFormBloc.fromExistingRestockOrder(Product? product, int? orderId) {
-    // TODO: Implement
-    return OrderFormBloc(OrderFormState.restockOrder(product, orderId));
+    // Create a basic OrderFormBloc
+    final bloc = OrderFormBloc(OrderFormState.restockOrder(product, orderId));
+    // If orderId is provided, we'll load the order details
+    // in the EditRestockOrderPage instead of here
+    return bloc;
   }
   factory OrderFormBloc.fromExistingExpenseOrder(int? orderId) {
     // TODO: Implement
@@ -285,10 +290,7 @@ class OrderFormBloc extends Bloc<OrderFormEvent, OrderFormState> {
 
     // Check if order items are empty
     if (orderItems!.every(
-      (item) =>
-          (item.description == null || item.description!.isEmpty) &&
-          item.quantity <= 0 &&
-          item.rate <= 0,
+      (item) => item.quantity <= 0 && item.rate <= 0,
     )) {
       emit(
         state.copyWith(
@@ -309,9 +311,7 @@ class OrderFormBloc extends Bloc<OrderFormEvent, OrderFormState> {
         if ((item.description != null && item.description!.isNotEmpty) ||
             item.quantity > 0 ||
             item.rate > 0) {
-          if (item.description == null || item.description!.isEmpty) {
-            return item.copyWith(errorMessage: 'Description cannot be blank');
-          } else if (item.quantity <= 0) {
+          if (item.quantity <= 0) {
             return item.copyWith(errorMessage: 'Quantity must be greater than 0');
           } else if (item.rate <= 0) {
             return item.copyWith(errorMessage: 'Rate must be greater than 0');
@@ -510,6 +510,47 @@ class OrderFormBloc extends Bloc<OrderFormEvent, OrderFormState> {
       creationDate: event.creationDate,
       creatorId: event.creatorId,
       status: FormStatus.submitting,
+      // Ensure we maintain the orderId in the state for update operations
+      orderId: state.orderId,
+    ));
+  }
+
+  void _onLoadExistingOrder(LoadExistingOrderEvent event, Emitter<OrderFormState> emit) {
+    final order = event.order;
+    final expenseType = event.expenseType;
+    final paymentMethod = event.paymentMethod;
+    final orderProducts = event.products;
+
+    // Convert OrderProduct list to FormProduct list
+    final formProducts = orderProducts.map((product) {
+      return FormProduct(
+        productId: product.productId,
+        productName: product.productName,
+        description: product.description ?? '',
+        quantity: product.quantity,
+        unit: product.secondaryUnit.toString(),
+        unitId: product.secondaryUnit,
+        conversionFactor: product.conversionFactor,
+        rate: product.rate,
+        amount: product.amount,
+        discountType: DiscountType.value,
+      );
+    }).toList();
+
+    // Update the state with the loaded order data
+    emit(state.copyWith(
+      orderId: order.id,
+      payeeName: order.payeeName,
+      orderDate: order.orderDate,
+      expenseType: expenseType,
+      paymentMethod: paymentMethod,
+      referenceNumber: order.referenceNumber ?? '',
+      memo: order.memo ?? '',
+      amountDue: order.amountDue,
+      creationDate: order.creationDate,
+      creatorId: order.creatorId,
+      products: formProducts,
+      status: FormStatus.initial,
     ));
   }
 }

@@ -44,11 +44,12 @@ class ChangeRowsPerPageEvent extends OrderListEvent {
 }
 
 class UpdateOrderEvent extends OrderListEvent {
-  const UpdateOrderEvent(this.order);
+  const UpdateOrderEvent(this.order, this.products);
   final Order order;
+  final List<OrderProduct> products;
 
   @override
-  List<Object> get props => [order];
+  List<Object> get props => [order, products];
 }
 
 class DeleteOrderEvent extends OrderListEvent {

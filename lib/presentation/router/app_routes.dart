@@ -1,4 +1,5 @@
 import 'package:easthardware_pms/domain/models/invoice.dart';
+import 'package:easthardware_pms/domain/models/order.dart';
 import 'package:easthardware_pms/domain/models/product.dart';
 import 'package:easthardware_pms/utils/typed_routes.dart';
 
@@ -50,7 +51,7 @@ class AppRoutes {
       withoutProduct: AppRoute<Null>('/admin/create/restock_order'),
       route: AppRoute<Product?>('/admin/create/restock_order'),
     ),
-
+    editRestockOrder: AppRoute<Order>('/admin/edit/restock_order'),
     createExpenseOrder: AppRoute<Null>('/admin/create/expense_order'),
     manageExpenseType: AppRoute<Null>('/admin/manage/expense_type'),
 

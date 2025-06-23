@@ -147,3 +147,20 @@ class SaveExpenseOrderRequestEvent extends OrderFormEvent {
   @override
   List<Object?> get props => [creationDate, creatorId];
 }
+
+class LoadExistingOrderEvent extends OrderFormEvent {
+  const LoadExistingOrderEvent({
+    required this.order,
+    required this.expenseType,
+    required this.paymentMethod,
+    required this.products,
+  });
+
+  final Order order;
+  final ExpenseType expenseType;
+  final PaymentMethod paymentMethod;
+  final List<OrderProduct> products;
+
+  @override
+  List<Object?> get props => [order, expenseType, paymentMethod, products];
+}

@@ -18,6 +18,7 @@ class Header extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isRestock = context.select((OrderFormBloc b) => b.state.orderType == OrderType.restock);
+    final isEditMode = context.select((OrderFormBloc b) => b.state.orderId != null);
 
     return Row(
       children: [
@@ -27,10 +28,12 @@ class Header extends StatelessWidget {
             context.navigate(AppRoutes.admin.order);
           },
         ),
-        DisplayText(isRestock ? "Create Restock Order " : "Create Expense Order"),
+        DisplayText(isRestock
+            ? (isEditMode ? "Edit Restock Order " : "Create Restock Order ")
+            : (isEditMode ? "Edit Expense Order " : "Create Expense Order ")),
         const Spacer(flex: 1),
         TextButtonFilled(
-          'Save Order',
+          isEditMode ? 'Update Order' : 'Save Order',
           onPressed: () => _handleSaveOrder(context, isRestock),
         ),
         Spacing.h4,
@@ -39,6 +42,7 @@ class Header extends StatelessWidget {
   }
 
   void _handleSaveOrder(BuildContext context, bool isRestock) {
+    final formBloc = context.read<OrderFormBloc>();
     final creationDate = DateTime.now();
     final creatorId = context.read<AuthenticationBloc>().state.user?.id;
 
@@ -47,18 +51,19 @@ class Header extends StatelessWidget {
       if (kDebugMode) {
         print('Error: creatorId is null.');
       }
-      showNotification.success(
+      showNotification.error(
         title: 'Error',
         message: 'You must be logged in to save an order.',
       );
       return;
     }
 
+    // For new orders, handle creation based on order type
     if (isRestock) {
       final restockExpenseType = (context.read<ExpenseTypeListBloc>().state.expenseTypes)
           .firstWhere((type) => type.name == 'Inventory Restock');
-
-      context.read<OrderFormBloc>()
+      print("Yep Edit is also Restock");
+      formBloc
         ..add(ExpenseTypeChangedEvent(restockExpenseType))
         ..add(
           SaveRestockOrderRequestEvent(
@@ -67,12 +72,12 @@ class Header extends StatelessWidget {
           ),
         );
     } else {
-      context.read<OrderFormBloc>().add(
-            SaveExpenseOrderRequestEvent(
-              creationDate: creationDate,
-              creatorId: creatorId,
-            ),
-          );
+      formBloc.add(
+        SaveExpenseOrderRequestEvent(
+          creationDate: creationDate,
+          creatorId: creatorId,
+        ),
+      );
     }
   }
 }
