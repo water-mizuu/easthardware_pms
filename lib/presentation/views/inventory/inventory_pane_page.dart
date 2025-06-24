@@ -82,7 +82,7 @@ class _InventoryPanePageState extends State<InventoryPanePage> {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: const [
-                    InventorySummary(),
+                    _InventorySummary(),
                     ProductListSection(),
                   ].withSpacing(() => Spacing.v16),
                 ),
@@ -120,8 +120,8 @@ class PageHeader extends StatelessWidget {
   }
 }
 
-class InventorySummary extends StatelessWidget {
-  const InventorySummary({super.key});
+class _InventorySummary extends StatelessWidget {
+  const _InventorySummary();
 
   @override
   Widget build(BuildContext context) {

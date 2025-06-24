@@ -15,7 +15,6 @@ import 'package:easthardware_pms/presentation/views/authentication/login_page.da
 import 'package:easthardware_pms/presentation/views/authentication/new_password_page.dart';
 import 'package:easthardware_pms/presentation/views/authentication/reset_password_page.dart';
 import 'package:easthardware_pms/presentation/views/billing/create_invoice_page.dart';
-import 'package:easthardware_pms/presentation/views/billing/edit_invoice_page.dart';
 import 'package:easthardware_pms/presentation/views/billing/invoice_pane_page.dart';
 import 'package:easthardware_pms/presentation/views/dashboard/admin_dashboard_pane_page.dart';
 import 'package:easthardware_pms/presentation/views/dashboard/staff_dashboard_pane_page.dart';
@@ -175,10 +174,6 @@ final router = GoRouter(
                 TypedGoRoute(
                   route: AppRoutes.admin.createInvoice,
                   builder: (context, state) => const CreateInvoicePage(),
-                ),
-                TypedGoRoute(
-                  route: AppRoutes.admin.editInvoice,
-                  builder: (context, state) => EditInvoicePage(invoice: state.extra),
                 ),
               ],
             ),

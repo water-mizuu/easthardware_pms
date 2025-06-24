@@ -65,11 +65,15 @@ class AppRoutes {
     inventoryReport: AppRoute<Null>('/admin/reports/inventory'),
     salesByProductReport: AppRoute<Null>('/admin/reports/sales_by_product'),
     salesByCategoryReport: AppRoute<Null>('/admin/reports/sales_by_category'),
+    expenseReport: AppRoute<Null>('/admin/reports/expense'),
+    profitLossReport: AppRoute<Null>('/admin/reports/profit_loss'),
+    businessSnapshotReport: AppRoute<Null>('/admin/reports/business_snapshot'),
 
     // Security Sub Pages
     users: AppRoute<Null>('/admin/users'),
     createUser: AppRoute<Null>('/admin/create/user'),
     userLogs: AppRoute<Null>('/admin/logs'),
+    backup: AppRoute<Null>('/admin/backup'),
 
     // Settings Sub Pages
     help: AppRoute<Null>('/admin/help'),

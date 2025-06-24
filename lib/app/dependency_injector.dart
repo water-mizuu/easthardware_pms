@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:easthardware_pms/data/database/dao/metadata_dao.dart';
 import 'package:easthardware_pms/data/database/database_helper.dart';
 import 'package:easthardware_pms/domain/repository/authentication_repository.dart';
 import 'package:easthardware_pms/domain/repository/category_repository.dart';
@@ -24,22 +25,31 @@ import 'package:easthardware_pms/presentation/bloc/authentication/new_password_f
     'new_password_form_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/authentication/reset_form/reset_form_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/billing/invoicelist/invoice_list_bloc.dart';
-import 'package:easthardware_pms/presentation/bloc/inventory/category_list/category_list_bloc.dart';
-import 'package:easthardware_pms/presentation/bloc/inventory/inventory_display/inventory_display_bloc.dart';
+import 'package:easthardware_pms/presentation/bloc/business_snapshot/business_snapshot_report_bloc.dart';
+import 'package:easthardware_pms/presentation/bloc/inventory/category_list/'
+    'category_list_bloc.dart';
+import 'package:easthardware_pms/presentation/bloc/inventory/inventory_display/'
+    'inventory_display_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/inventory/product_list/product_list_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/inventory/unit_list/unit_list_bloc.dart';
-import 'package:easthardware_pms/presentation/bloc/order/expense_type_list/expense_type_list_bloc.dart';
+import 'package:easthardware_pms/presentation/bloc/order/'
+    'expense_type_list/expense_type_list_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/order/orderlist/order_list_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/payment/payment_list/payment_list_bloc.dart';
-import 'package:easthardware_pms/presentation/bloc/payment/payment_method_list/payment_method_list_bloc.dart';
+import 'package:easthardware_pms/presentation/bloc/payment/'
+    'payment_method_list/payment_method_list_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/security/security_questions/'
     'security_question_list_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/security/user_list/user_list_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/security/user_log_list/user_log_list_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/server/server_bloc.dart';
-import 'package:easthardware_pms/presentation/cubit/inventory/category_display/category_display_cubit.dart';
+import 'package:easthardware_pms/presentation/cubit/database_information/'
+    'database_information_cubit.dart';
+import 'package:easthardware_pms/presentation/cubit/inventory/'
+    'category_display/category_display_cubit.dart';
 import 'package:easthardware_pms/presentation/cubit/navigation/navigation_cubit.dart';
-import 'package:easthardware_pms/presentation/cubit/payment/payment_display/payment_display_cubit.dart';
+import 'package:easthardware_pms/presentation/cubit/payment/'
+    'payment_display/payment_display_cubit.dart';
 import 'package:easthardware_pms/presentation/widgets/bottom_text.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -53,6 +63,8 @@ class DependencyInjector extends ChangeNotifier {
 
   final ValueNotifier<String> bottomText;
   final ServerBloc serverBloc;
+
+  late MetadataDao _metadataDao;
 
   late AuthenticationRepository _authenticationRepository;
   late ProductRepository _productRepository;
@@ -88,6 +100,8 @@ class DependencyInjector extends ChangeNotifier {
   NewPasswordFormBloc? _newPasswordFormBloc;
   LoginFormBloc? _loginFormBloc;
 
+  DatabaseInformationCubit? _databaseInformationCubit;
+
   late DatabaseHelper? _databaseHelper;
   late DateTime? _lastUpdated;
 
@@ -95,6 +109,7 @@ class DependencyInjector extends ChangeNotifier {
     _databaseHelper = databaseHelper;
     _lastUpdated = DateTime.now();
 
+    _metadataDao = MetadataDao(databaseHelper);
     _authenticationRepository = AuthenticationRepository(databaseHelper);
     _productRepository = ProductRepository(databaseHelper);
     _invoiceRepository = InvoiceRepository(databaseHelper);
@@ -292,6 +307,15 @@ class DependencyInjector extends ChangeNotifier {
       ),
       BlocProvider(
         key: key(),
+        create: (context) {
+          final state = _databaseInformationCubit?.state ?? const DatabaseInformationState();
+
+          return _databaseInformationCubit = DatabaseInformationCubit(_metadataDao, state)
+            ..mapIf(_databaseHelper != null, (c) => unawaited(c.loadMetadata()));
+        },
+      ),
+      BlocProvider(
+        key: key(),
         create: (context) => InventoryDisplayBloc(),
       ),
       BlocProvider(
@@ -301,6 +325,24 @@ class DependencyInjector extends ChangeNotifier {
       BlocProvider(
         key: key(),
         create: (context) => PaymentDisplayCubit(),
+      ),
+      BlocProvider(
+        key: key(),
+        create: (context) {
+          final productListBloc = context.read<ProductListBloc>();
+          final invoiceListBloc = context.read<InvoiceListBloc>();
+          final orderListBloc = context.read<OrderListBloc>();
+          final expenseTypeListBloc = context.read<ExpenseTypeListBloc>();
+
+          return BusinessSnapshotReportBloc(
+            productListBloc.state.allProducts,
+            invoiceListBloc.state.invoices,
+            invoiceListBloc.state.invoiceProducts,
+            orderListBloc.state.allOrders,
+            orderListBloc.state.allOrderProducts,
+            expenseTypeListBloc.state.expenseTypes,
+          );
+        },
       ),
     ];
   }
@@ -319,5 +361,11 @@ class DependencyInjector extends ChangeNotifier {
 extension<E, S> on Bloc<E, S> {
   void addIf(bool condition, E event) {
     if (condition) add(event);
+  }
+}
+
+extension<C extends Cubit> on C {
+  void mapIf(bool condition, void Function(C) callback) {
+    if (condition) callback(this);
   }
 }

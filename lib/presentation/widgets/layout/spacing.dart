@@ -15,6 +15,7 @@ class Spacing {
   static const Widget h8 = SizedBox(width: 8);
   static const Widget h12 = SizedBox(width: 12);
   static const Widget h16 = SizedBox(width: 16);
+  static const Widget h24 = SizedBox(width: 24);
 }
 
 class AppPadding {

@@ -303,7 +303,7 @@ class _AdminNavigationViewState extends State<AdminNavigationView>
           navItem(
             icon: FluentIcons.save,
             title: 'System Backup',
-            // route: AppRoutes.admin.systemBackup,
+            route: AppRoutes.admin.backup,
           ),
           navItem(
             icon: FluentIcons.help,
