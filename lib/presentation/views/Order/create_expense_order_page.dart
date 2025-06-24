@@ -100,7 +100,7 @@ class _CreateExpenseOrderPageState extends State<CreateExpenseOrderPage> {
 
               showNotification(
                 title: "Success",
-                message: "Order $orderId has been successfully created.",
+                message: "Order #$orderId has been successfully created.",
                 severity: InfoBarSeverity.success,
               );
               context.navigate(AppRoutes.admin.order);

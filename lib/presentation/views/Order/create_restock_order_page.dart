@@ -9,7 +9,6 @@ import 'package:easthardware_pms/presentation/bloc/inventory/product_list/produc
 import 'package:easthardware_pms/presentation/bloc/order/orderform/order_form_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/order/orderlist/order_list_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/security/user_log_list/user_log_list_bloc.dart';
-import 'package:easthardware_pms/presentation/router/app_router.dart';
 import 'package:easthardware_pms/presentation/router/app_routes.dart';
 import 'package:easthardware_pms/presentation/views/Order/create_restock_order_page/product_name.dart';
 import 'package:easthardware_pms/presentation/views/Order/create_restock_order_page/quantity_and_unit.dart';
@@ -111,7 +110,7 @@ class _CreateRestockOrderPageState extends State<CreateRestockOrderPage> {
 
                 showNotification(
                   title: "Success",
-                  message: "Order $orderId has been successfully created.",
+                  message: "Order #$orderId has been successfully created.",
                   severity: InfoBarSeverity.success,
                 );
                 context.navigate(AppRoutes.admin.order);
