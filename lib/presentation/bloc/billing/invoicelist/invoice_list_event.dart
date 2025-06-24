@@ -24,6 +24,16 @@ class AddInvoiceEvent extends InvoiceListEvent {
   List<Object> get props => [invoice, invoiceProducts];
 }
 
+class EditInvoiceEvent extends InvoiceListEvent {
+  const EditInvoiceEvent(this.invoice, this.invoiceProducts);
+
+  final Invoice invoice;
+  final List<InvoiceProduct> invoiceProducts;
+
+  @override
+  List<Object> get props => [invoice, invoiceProducts];
+}
+
 class UpdateInvoiceEvent extends InvoiceListEvent {
   const UpdateInvoiceEvent(this.invoice);
 

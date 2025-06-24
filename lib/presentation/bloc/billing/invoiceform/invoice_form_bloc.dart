@@ -4,6 +4,7 @@ import 'package:bloc/bloc.dart';
 import 'package:easthardware_pms/domain/enums/enums.dart'
     show FormStatus, InvoicePostAction, DiscountType;
 import 'package:easthardware_pms/domain/models/invoice.dart';
+import 'package:easthardware_pms/domain/models/invoice_product.dart';
 import 'package:easthardware_pms/domain/models/payment_method.dart';
 import 'package:easthardware_pms/domain/models/product.dart';
 import 'package:easthardware_pms/presentation/models/form_product.dart';
@@ -15,7 +16,7 @@ part 'invoice_form_event.dart';
 part 'invoice_form_state.dart';
 
 class InvoiceFormBloc extends Bloc<InvoiceFormEvent, InvoiceFormState> {
-  InvoiceFormBloc() : super(InvoiceFormState()) {
+  InvoiceFormBloc([InvoiceFormState? initialState]) : super(initialState ?? InvoiceFormState()) {
     on<CustomerNameChangedEvent>(_onCustomerNameChanged);
     on<InvoiceDateChangedEvent>(_onInvoiceDateChanged);
     on<DueDateChangedEvent>(_onDueDateChanged);
@@ -31,6 +32,8 @@ class InvoiceFormBloc extends Bloc<InvoiceFormEvent, InvoiceFormState> {
     on<FormSubmittedEvent>(_onFormSubmitted);
     on<DialogBoxClosedEvent>(_onDialogBoxClosed);
   }
+  InvoiceFormBloc.fromExistingInvoice(Invoice invoice, List<InvoiceProduct> products)
+      : this(InvoiceFormState.fromExistingInvoice(invoice, products));
 
   @override
   onEvent(InvoiceFormEvent event) {
@@ -161,6 +164,7 @@ class InvoiceFormBloc extends Bloc<InvoiceFormEvent, InvoiceFormState> {
 
   void _onProductUpdated(ProductUpdatedEvent event, Emitter<InvoiceFormState> emit) {
     // printBoxed('Conversion Factor: ${event.product.conversionFactor}');
+
     final adjustedRate = event.product.rate * (event.product.conversionFactor ?? 1);
 
     final adjustedProduct = event.product.copyWith(

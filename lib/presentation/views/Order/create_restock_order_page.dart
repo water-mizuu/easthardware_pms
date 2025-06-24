@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:easthardware_pms/domain/enums/enums.dart' show DataStatus, FormStatus, OrderType;
+import 'package:easthardware_pms/domain/enums/enums.dart' show DataStatus, FormStatus;
 import 'package:easthardware_pms/domain/models/payment_method.dart';
 import 'package:easthardware_pms/domain/models/product.dart';
 import 'package:easthardware_pms/presentation/bloc/authentication/'

@@ -1,6 +1,28 @@
 part of 'invoice_form_bloc.dart';
 
 class InvoiceFormState extends Equatable {
+  factory InvoiceFormState.fromExistingInvoice(Invoice invoice, List<InvoiceProduct> products) {
+    return InvoiceFormState(
+      invoiceId: invoice.id,
+      customerName: invoice.customerName,
+      invoiceDate: invoice.invoiceDate,
+      dueDate: invoice.dueDate,
+      memo: invoice.memo,
+      discount: invoice.discount,
+      discountType: invoice.discountType,
+      amountDue: invoice.amountDue,
+      amountPaid: invoice.amountPaid,
+      paymentDate: invoice.paymentDate,
+      subtotal: invoice.amountDue + (invoice.discount ?? 0),
+      // paymentMethod: invoice.paymentMethod,
+      products: [
+        if (products.isEmpty)
+          const EmptyFormProduct() //
+        else
+          ...products.map((product) => FormProduct.fromInvoiceProduct(product))
+      ],
+    );
+  }
   InvoiceFormState({
     this.invoiceId,
     this.customerName = '',

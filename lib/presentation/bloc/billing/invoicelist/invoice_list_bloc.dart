@@ -24,6 +24,7 @@ class InvoiceListBloc extends Bloc<InvoiceListEvent, InvoiceListState> {
     on<UpdateInvoiceEvent>(_onUpdateInvoice);
     on<DeleteInvoiceEvent>(_onDeleteInvoice);
     on<FetchInvoiceProductsEvent>(_onFetchInvoiceProducts);
+    on<EditInvoiceEvent>(_onEditInvoice);
   }
   final InvoiceRepository _repository;
   final InvoiceProductRepository _itemRepository;
@@ -82,6 +83,61 @@ class InvoiceListBloc extends Bloc<InvoiceListEvent, InvoiceListState> {
       );
     } catch (e, stackTrace) {
       printBoxed('Error adding invoice: $e \n $stackTrace', 'InvoiceListBloc');
+      emit(state.copyWith(status: DataStatus.error));
+    }
+  }
+
+  Future<void> _onEditInvoice(EditInvoiceEvent event, Emitter emit) async {
+    emit(state.copyWith(status: DataStatus.loading));
+    try {
+      // 1. Fetch original invoice products
+      final originalInvoiceProducts =
+          await _itemRepository.fetchInvoiceProductsByInvoice(event.invoice.id!);
+
+      // 2. Reverse the stock for original products (add back)
+      final reverseOriginalStockFutures = originalInvoiceProducts.map((product) {
+        return _productRepository.updateProductStock(
+          product.productId,
+          product.quantity * (product.conversionFactor ?? 1.0),
+        );
+      }).toList();
+      await Future.wait(reverseOriginalStockFutures);
+
+      // 3. Update the invoice
+      final updatedInvoice = await _repository.updateInvoice(event.invoice);
+
+      // 4. Delete existing invoice products
+      await _itemRepository.deleteInvoiceProductsByInvoiceId(event.invoice.id!);
+
+      // 5. Insert the new invoice products
+      final products = event.invoiceProducts
+          .map((product) => _itemRepository.insertInvoiceProduct(
+                product.copyWith(invoiceId: event.invoice.id!),
+              ))
+          .toList();
+      await Future.wait(products);
+
+      // 6. Update the product stock for new products (subtract, like add invoice)
+      for (final invoiceProduct in event.invoiceProducts) {
+        await _productRepository.updateProductStock(
+          invoiceProduct.productId,
+          -invoiceProduct.quantity * (invoiceProduct.conversionFactor ?? 1.0),
+        );
+      }
+
+      // 7. Update the orders list in the state and fetch latest invoice products
+      final invoices =
+          state.invoices.map((i) => i.id == event.invoice.id ? event.invoice : i).toList();
+      final latestInvoiceProducts =
+          await _itemRepository.fetchInvoiceProductsByInvoice(event.invoice.id!);
+      emit(state.copyWith(
+        invoices: invoices,
+        latest: updatedInvoice,
+        invoiceProducts: latestInvoiceProducts,
+        status: DataStatus.success,
+      ));
+    } catch (e, stackTrace) {
+      printBoxed('Error editing invoice: $e \n $stackTrace', 'InvoiceListBloc');
       emit(state.copyWith(status: DataStatus.error));
     }
   }

@@ -118,7 +118,7 @@ class InvoiceDataTable extends StatelessWidget {
                 DataColumn(label: Text('Amount')),
                 DataColumn(label: Text('Actions')),
               ],
-              source: InvoiceDataSource(invoices),
+              source: InvoiceDataSource(invoices, context),
             ),
           ),
         );
@@ -128,14 +128,17 @@ class InvoiceDataTable extends StatelessWidget {
 }
 
 class InvoiceDataSource extends DataTableSource {
-  InvoiceDataSource(this._invoices);
+  InvoiceDataSource(this._invoices, this._context);
   final List<Invoice> _invoices;
+  final BuildContext _context;
 
   @override
   DataRow? getRow(int index) {
     if (index >= _invoices.length) return null;
     final invoice = _invoices[index];
-    return DataRowMapper.mapInvoiceToRow(invoice, () {});
+    return DataRowMapper.mapInvoiceToRow(invoice, () {
+      _context.navigateWithExtra(AppRoutes.admin.editInvoice, invoice);
+    });
   }
 
   @override

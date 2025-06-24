@@ -11,4 +11,5 @@ abstract class InvoiceProductRepository {
   Future<InvoiceProduct> insertInvoiceProduct(InvoiceProduct invoiceProduct);
   Future<void> updateInvoiceProduct(InvoiceProduct invoiceProduct);
   Future<void> deleteInvoiceProduct(int id);
+  Future<void> deleteInvoiceProductsByInvoiceId(int invoiceId);
 }

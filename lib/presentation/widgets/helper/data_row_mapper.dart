@@ -320,7 +320,7 @@ class DataRowMapper {
       DataCell(Text(invoiceId)),
       DataCell(Text(invoiceCustomer)),
       DataCell(Text(invoiceTotal)),
-      DataCell(HyperlinkButton(onPressed: action, child: const Text('View'))),
+      DataCell(HyperlinkButton(onPressed: action, child: const Text('Edit'))),
     ]);
   }
 

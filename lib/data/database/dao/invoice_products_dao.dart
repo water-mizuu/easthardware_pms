@@ -13,6 +13,7 @@ abstract interface class InvoiceProductsDao {
   Future<InvoiceProduct> insertInvoiceProduct(InvoiceProduct invoiceProduct);
   Future<InvoiceProduct> updateInvoiceProduct(InvoiceProduct invoiceProduct);
   Future<void> deleteInvoiceProduct(int id);
+  Future<void> deleteInvoiceProductsByInvoiceId(int invoiceId);
 }
 
 // This class would implement the InvoiceProductsDao interface
@@ -112,6 +113,16 @@ final class InvoiceProductsDaoImpl extends DaoBase implements InvoiceProductsDao
       'invoice_products',
       where: 'id = ?',
       whereArgs: [id],
+    );
+  }
+
+  @override
+  Future<void> deleteInvoiceProductsByInvoiceId(int invoiceId) async {
+    final db = databaseHelper.database;
+    await db.delete(
+      'invoice_products',
+      where: 'invoice_id = ?',
+      whereArgs: [invoiceId],
     );
   }
 }

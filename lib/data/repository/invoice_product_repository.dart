@@ -86,4 +86,13 @@ class InvoiceProductRepositoryImpl implements InvoiceProductRepository {
       throw DatabaseException('Failed to fetch invoice products by invoice ID: $e');
     }
   }
+
+  @override
+  Future<void> deleteInvoiceProductsByInvoiceId(int invoiceId) async {
+    try {
+      return await _invoiceProductsDao.deleteInvoiceProductsByInvoiceId(invoiceId);
+    } catch (e) {
+      throw DatabaseException('Failed to delete invoice products by invoice ID: $e');
+    }
+  }
 }

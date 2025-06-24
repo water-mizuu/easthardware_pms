@@ -41,6 +41,7 @@ class AppRoutes {
 
     // Billing Sub Pages
     createInvoice: AppRoute<Null>('/admin/create/invoice'),
+    editInvoice: AppRoute<Invoice>('/admin/edit/invoice'),
 
     // Payment Sub Pages
     createPayment: (
