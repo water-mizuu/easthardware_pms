@@ -130,10 +130,19 @@ class InvoiceListBloc extends Bloc<InvoiceListEvent, InvoiceListState> {
           state.invoices.map((i) => i.id == event.invoice.id ? event.invoice : i).toList();
       final latestInvoiceProducts =
           await _itemRepository.fetchInvoiceProductsByInvoice(event.invoice.id!);
+
+      // Create a merged list of invoice products that:
+      // 1. Keeps all products NOT associated with the edited invoice
+      // 2. Adds the updated products for the edited invoice
+      final updatedInvoiceProducts = [
+        ...state.invoiceProducts.where((product) => product.invoiceId != event.invoice.id!),
+        ...latestInvoiceProducts,
+      ];
+
       emit(state.copyWith(
         invoices: invoices,
         latest: updatedInvoice,
-        invoiceProducts: latestInvoiceProducts,
+        invoiceProducts: updatedInvoiceProducts,
         status: DataStatus.success,
       ));
     } catch (e, stackTrace) {

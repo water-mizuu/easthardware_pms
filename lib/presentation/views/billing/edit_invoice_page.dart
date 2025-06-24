@@ -22,6 +22,7 @@ import 'package:easthardware_pms/presentation/widgets/ui/loading_page.dart';
 import 'package:easthardware_pms/presentation/widgets/ui/styles.dart';
 import 'package:easthardware_pms/presentation/widgets/ui/text_button.dart';
 import 'package:easthardware_pms/utils/boxed.dart';
+import 'package:easthardware_pms/utils/notification.dart';
 import 'package:easthardware_pms/utils/show_single_dialog.dart';
 import 'package:easthardware_pms/utils/typed_routes.dart';
 import 'package:fl_chart/fl_chart.dart';
@@ -95,15 +96,7 @@ class EditInvoicePage extends StatelessWidget {
                 final latest = state.latest!;
                 final authState = context.read<AuthenticationBloc>().state;
                 final formState = context.read<InvoiceFormBloc>().state;
-
-                // Update Product Stocks
-                context.read<ProductListBloc>().add(const ReloadAllProductsEvent());
-
-                // Add UserLog
-                context.read<UserLogListBloc>().add(
-                      AddCreateEvent('Invoice #${latest.id}', authState.user!),
-                    );
-                context.read<UserLogListBloc>().add(const LoadUserLogsEvent());
+                print("Nandito kaba?");
 
                 switch (formState.action) {
                   case InvoicePostAction.create:
@@ -119,9 +112,23 @@ class EditInvoicePage extends StatelessWidget {
                     break;
 
                   case InvoicePostAction.none:
+                    // Update Product Stocks
+                    context.read<ProductListBloc>().add(const ReloadAllProductsEvent());
+                    // Add UserLog
+                    context
+                        .read<UserLogListBloc>()
+                        .add(AddUpdateEvent('Invoice #${latest.id}', authState.user!));
+                    context.read<UserLogListBloc>().add(const LoadUserLogsEvent());
+
+                    showNotification(
+                      title: "Success",
+                      message: "Invoice #${latest.id} has been successfully updated.",
+                      severity: InfoBarSeverity.success,
+                    );
                     final route = authState.user!.accessLevel == AccessLevel.administrator
                         ? AppRoutes.admin.billing
                         : AppRoutes.staff.billing;
+                    print("Nandito kaba part 2?");
                     context.navigate(route);
                     break;
                 }
