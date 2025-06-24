@@ -24,7 +24,8 @@ import 'package:easthardware_pms/presentation/views/payment/payments_pane_page.d
 import 'package:easthardware_pms/presentation/views/reports/'
     'inventory_report/inventory_report.dart';
 import 'package:easthardware_pms/presentation/views/reports/report_list_pane.dart';
-import 'package:easthardware_pms/presentation/views/reports/sales_report/sales_report.dart';
+import 'package:easthardware_pms/presentation/views/reports/sales_report/sales_by_category_page.dart';
+import 'package:easthardware_pms/presentation/views/reports/sales_report/sales_by_product_page.dart';
 import 'package:easthardware_pms/presentation/views/search/search_page.dart';
 import 'package:easthardware_pms/presentation/views/search/search_top_bar.dart';
 import 'package:easthardware_pms/presentation/views/security/create_user_page.dart';
@@ -224,8 +225,12 @@ final router = GoRouter(
                 ),
                 TypedGoRoute(
                   route: AppRoutes.admin.salesByProductReport,
-                  builder: (context, state) => const SalesReportPage(),
+                  builder: (context, state) => const SalesByProductPage(),
                 ),
+                TypedGoRoute(
+                  route: AppRoutes.admin.salesByCategoryReport,
+                  builder: (context, state) => const SalesByCategoryPage(),
+                )
               ],
             ),
 

@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:bloc/bloc.dart';
+import 'package:easthardware_pms/domain/models/category.dart';
 import 'package:easthardware_pms/domain/models/invoice.dart';
 import 'package:easthardware_pms/domain/models/invoice_product.dart';
 import 'package:easthardware_pms/domain/models/order.dart';
@@ -21,19 +22,22 @@ class SalesReportBloc extends Bloc<SalesReportEvent, SalesReportState> {
     List<InvoiceProduct> allInvoiceProducts,
     List<Order> allOrders,
     List<OrderProduct> allOrderProducts,
+    List<Category> allCategories,
   ) : super(SalesReportState(
-          allProducts: WeakReference(allProducts),
-          allInvoices: WeakReference(allInvoices),
-          allInvoiceProducts: WeakReference(allInvoiceProducts),
-          allOrders: WeakReference(allOrders),
-          allOrderProducts: WeakReference(allOrderProducts),
+          allProducts: allProducts,
+          allInvoices: allInvoices,
+          allInvoiceProducts: allInvoiceProducts,
+          allOrders: allOrders,
+          allOrderProducts: allOrderProducts,
+          allCategories: allCategories,
           queryData: SalesQueryData.empty(),
         )) {
     on<SalesReportInitializeEvent>(_onInitialize);
     on<SalesReportSetGeneratingEvent>(_onSetGenerating);
     on<SalesReportSetStartDateEvent>(_onSetStartDate);
     on<SalesReportSetEndDateEvent>(_onSetEndDate);
-    on<SalesReportSetSortByEvent>(_onSetSortBy);
+    on<SalesReportSetProductReportSortByEvent>(_onSetProductSortBy);
+    on<SalesReportSetCategoryReportSortByEvent>(_onSetCategorySortBy);
     on<SalesReportSetOverlayEvent>(_onSetOverlay);
     on<SalesReportRemoveOverlayEvent>(_onRemoveOverlay);
     on<SalesReportUpdateProductsEvent>(_onUpdateProducts);
@@ -47,18 +51,10 @@ class SalesReportBloc extends Bloc<SalesReportEvent, SalesReportState> {
   }
 
   Future<void> _onInitialize(
-      SalesReportInitializeEvent event, Emitter<SalesReportState> emit) async {
-    final products = state.allProducts.target ?? <Product>[];
-    final invoiceProducts = state.allInvoiceProducts.target ?? <InvoiceProduct>[];
-    final orderProducts = state.allOrderProducts.target ?? <OrderProduct>[];
-
-    final salesData = _calculateSalesData(products, invoiceProducts, orderProducts);
-
-    emit(state.copyWith(
-      queryData: state.queryData.copyWith(
-        salesData: salesData,
-      ),
-    ));
+    SalesReportInitializeEvent event,
+    Emitter<SalesReportState> emit,
+  ) async {
+    _recalculateSalesData(emit);
   }
 
   void _onSetGenerating(SalesReportSetGeneratingEvent event, Emitter<SalesReportState> emit) {
@@ -126,24 +122,34 @@ class SalesReportBloc extends Bloc<SalesReportEvent, SalesReportState> {
     _recalculateSalesData(emit);
   }
 
-  Future<void> _onSetSortBy(
-    SalesReportSetSortByEvent event,
+  Future<void> _onSetProductSortBy(
+    SalesReportSetProductReportSortByEvent event,
     Emitter<SalesReportState> emit,
   ) async {
-    emit(state.copyWith(queryData: state.queryData.copyWith(sortBy: event.sortBy)));
+    emit(state.copyWith(queryData: state.queryData.copyWith(productSortBy: event.sortBy)));
+    _recalculateSalesData(emit);
+  }
+
+  Future<void> _onSetCategorySortBy(
+    SalesReportSetCategoryReportSortByEvent event,
+    Emitter<SalesReportState> emit,
+  ) async {
+    emit(state.copyWith(queryData: state.queryData.copyWith(categorySortBy: event.sortBy)));
     _recalculateSalesData(emit);
   }
 
   void _recalculateSalesData(Emitter<SalesReportState> emit) {
-    final products = state.allProducts.target ?? <Product>[];
-    final invoiceProducts = state.allInvoiceProducts.target ?? <InvoiceProduct>[];
-    final orderProducts = state.allOrderProducts.target ?? <OrderProduct>[];
+    final products = state.allProducts;
+    final invoiceProducts = state.allInvoiceProducts;
+    final orderProducts = state.allOrderProducts;
 
-    final salesData = _calculateSalesData(products, invoiceProducts, orderProducts);
+    final productsData = _calculateSalesData(products, invoiceProducts, orderProducts);
+    final categoriesData = _calculateSalesCategoriesData(productsData);
 
     emit(state.copyWith(
       queryData: state.queryData.copyWith(
-        salesData: salesData,
+        salesByProductData: productsData,
+        salesByCategoryData: categoriesData,
       ),
     ));
   }
@@ -167,7 +173,7 @@ class SalesReportBloc extends Bloc<SalesReportEvent, SalesReportState> {
       for (final invoiceProduct in invoiceProducts) {
         final invoice = invoiceMap.putIfAbsent(
           invoiceProduct.invoiceId ?? -1,
-          () => state.allInvoices.target!.firstWhere((i) => i.id == invoiceProduct.invoiceId),
+          () => state.allInvoices.firstWhere((i) => i.id == invoiceProduct.invoiceId),
         );
 
         if (invoice.creationDate.isAfter(endDate) || invoice.creationDate.isBefore(startDate)) {
@@ -184,7 +190,7 @@ class SalesReportBloc extends Bloc<SalesReportEvent, SalesReportState> {
       for (final orderProduct in orderProducts) {
         final order = orderMap.putIfAbsent(
           orderProduct.orderId,
-          () => state.allOrders.target!.firstWhere((i) => i.id == orderProduct.orderId),
+          () => state.allOrders.firstWhere((i) => i.id == orderProduct.orderId),
         );
 
         if (order.creationDate.isAfter(endDate) || order.creationDate.isBefore(startDate)) {
@@ -202,6 +208,7 @@ class SalesReportBloc extends Bloc<SalesReportEvent, SalesReportState> {
           (
             product,
             SalesExtras(
+              product: product,
               unitsSold: unitsSold,
               unitsOrdered: unitsOrdered,
             )
@@ -210,8 +217,38 @@ class SalesReportBloc extends Bloc<SalesReportEvent, SalesReportState> {
       }
     }
 
-    salesData.sort((a, b) => state.queryData.sortBy.compare(a, b));
+    salesData.sort(state.queryData.productSortBy.compare);
 
     return salesData;
+  }
+
+  List<(List<(Product, SalesExtras)>, Category)> _calculateSalesCategoriesData(
+    List<(Product, SalesExtras)> salesData,
+  ) {
+    final categoriesData = <(List<(Product, SalesExtras)>, Category)>[];
+    final categoryMap = {-1: const Category(name: '-')};
+
+    for (final (product, productExtras) in salesData) {
+      final category = categoryMap.putIfAbsent(product.categoryId ?? -1, () {
+        return state.allCategories
+                .cast<Category?>()
+                .where((c) => c != null && c.id == product.categoryId)
+                .firstOrNull ??
+            const Category(name: '-');
+      });
+
+      final existingIndex = categoriesData.indexWhere((c) => c.$2.id == category.id);
+      if (existingIndex == -1) {
+        categoriesData.add(([(product, productExtras)], category));
+        continue;
+      }
+
+      categoriesData[existingIndex].$1.add((product, productExtras));
+    }
+
+    // Sort each category's products by the selected sort order.
+    categoriesData.sort(state.queryData.categorySortBy.compare);
+
+    return categoriesData;
   }
 }

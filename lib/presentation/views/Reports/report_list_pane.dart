@@ -77,11 +77,9 @@ class BusinessSalesReports extends StatelessWidget {
             title: 'Sales by Product',
             onPressed: () => context.navigate(AppRoutes.admin.salesByProductReport),
           ),
-
-          // TODO: Do this.
-          const ReportItemCard(
+          ReportItemCard(
             title: 'Sales by Category',
-            // onPressed: () => context.navigate(AppRoutes.salesByCategoryReport),
+            onPressed: () => context.navigate(AppRoutes.admin.salesByCategoryReport),
           ),
         ].withSpacing(() => Spacing.v4),
       ),

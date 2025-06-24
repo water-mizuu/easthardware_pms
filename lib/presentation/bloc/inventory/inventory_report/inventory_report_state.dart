@@ -12,13 +12,13 @@ class InventoryReportState extends Equatable {
     this.overlayEntry,
   });
 
-  final WeakReference<List<Invoice>> allInvoices;
-  final WeakReference<List<InvoiceProduct>> allInvoiceProducts;
+  final List<Invoice> allInvoices;
+  final List<InvoiceProduct> allInvoiceProducts;
 
-  final WeakReference<List<Order>> allOrders;
-  final WeakReference<List<OrderProduct>> allOrderProducts;
+  final List<Order> allOrders;
+  final List<OrderProduct> allOrderProducts;
 
-  final WeakReference<List<Product>> allProducts;
+  final List<Product> allProducts;
   final InventoryQueryData queryData;
   final bool isGenerating;
   final OverlayEntry? overlayEntry;
@@ -44,11 +44,11 @@ class InventoryReportState extends Equatable {
       Object? overlayEntry = undefined,
     }) {
       return InventoryReportState(
-        allInvoices: allInvoices.orWeakReference(this.allInvoices),
-        allInvoiceProducts: allInvoiceProducts.orWeakReference(this.allInvoiceProducts),
-        allOrders: allOrders.orWeakReference(this.allOrders),
-        allOrderProducts: allOrderProducts.orWeakReference(this.allOrderProducts),
-        allProducts: allProducts.orWeakReference(this.allProducts),
+        allInvoices: allInvoices.or(this.allInvoices),
+        allInvoiceProducts: allInvoiceProducts.or(this.allInvoiceProducts),
+        allOrders: allOrders.or(this.allOrders),
+        allOrderProducts: allOrderProducts.or(this.allOrderProducts),
+        allProducts: allProducts.or(this.allProducts),
         queryData: queryData.or(this.queryData),
         isGenerating: isGenerating.or(this.isGenerating),
         overlayEntry: overlayEntry.or(this.overlayEntry),

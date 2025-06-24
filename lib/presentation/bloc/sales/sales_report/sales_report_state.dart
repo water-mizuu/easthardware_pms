@@ -7,16 +7,18 @@ class SalesReportState extends Equatable {
     required this.allInvoiceProducts,
     required this.allOrders,
     required this.allOrderProducts,
+    required this.allCategories,
     required this.queryData,
     this.isGenerating = false,
     this.overlayEntry,
   });
 
-  final WeakReference<List<Product>> allProducts;
-  final WeakReference<List<Invoice>> allInvoices;
-  final WeakReference<List<InvoiceProduct>> allInvoiceProducts;
-  final WeakReference<List<Order>> allOrders;
-  final WeakReference<List<OrderProduct>> allOrderProducts;
+  final List<Product> allProducts;
+  final List<Invoice> allInvoices;
+  final List<InvoiceProduct> allInvoiceProducts;
+  final List<Order> allOrders;
+  final List<OrderProduct> allOrderProducts;
+  final List<Category> allCategories;
   final SalesQueryData queryData;
   final bool isGenerating;
   final OverlayEntry? overlayEntry;
@@ -27,6 +29,7 @@ class SalesReportState extends Equatable {
     List<InvoiceProduct> allInvoiceProducts,
     List<Order> allOrders,
     List<OrderProduct> allOrderProducts,
+    List<Category> allCategories,
     SalesQueryData? queryData,
     bool? isGenerating,
     OverlayEntry? overlayEntry,
@@ -37,16 +40,18 @@ class SalesReportState extends Equatable {
       Object? allInvoiceProducts = undefined,
       Object? allOrders = undefined,
       Object? allOrderProducts = undefined,
+      Object? allCategories = undefined,
       Object? queryData = undefined,
       Object? isGenerating = undefined,
       Object? overlayEntry = undefined,
     }) {
       return SalesReportState(
-        allProducts: allProducts.orWeakReference(this.allProducts),
-        allInvoices: allInvoices.orWeakReference(this.allInvoices),
-        allInvoiceProducts: allInvoiceProducts.orWeakReference(this.allInvoiceProducts),
-        allOrders: allOrders.orWeakReference(this.allOrders),
-        allOrderProducts: allOrderProducts.orWeakReference(this.allOrderProducts),
+        allProducts: allProducts.or(this.allProducts),
+        allInvoices: allInvoices.or(this.allInvoices),
+        allInvoiceProducts: allInvoiceProducts.or(this.allInvoiceProducts),
+        allOrders: allOrders.or(this.allOrders),
+        allOrderProducts: allOrderProducts.or(this.allOrderProducts),
+        allCategories: allCategories.or(this.allCategories),
         queryData: queryData.or(this.queryData),
         isGenerating: isGenerating.or(this.isGenerating),
         overlayEntry: overlayEntry.or(this.overlayEntry),

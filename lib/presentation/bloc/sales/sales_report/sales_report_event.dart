@@ -38,10 +38,19 @@ class SalesReportSetEndDateEvent extends SalesReportEvent {
   List<Object?> get props => [endDate];
 }
 
-class SalesReportSetSortByEvent extends SalesReportEvent {
-  const SalesReportSetSortByEvent(this.sortBy);
+class SalesReportSetProductReportSortByEvent extends SalesReportEvent {
+  const SalesReportSetProductReportSortByEvent(this.sortBy);
 
-  final SalesReportSortBy sortBy;
+  final SalesByProductReportSortBy sortBy;
+
+  @override
+  List<Object?> get props => [sortBy];
+}
+
+class SalesReportSetCategoryReportSortByEvent extends SalesReportEvent {
+  const SalesReportSetCategoryReportSortByEvent(this.sortBy);
+
+  final SalesByCategoryReportSortBy sortBy;
 
   @override
   List<Object?> get props => [sortBy];

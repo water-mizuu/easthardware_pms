@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:easthardware_pms/domain/models/category.dart';
 import 'package:easthardware_pms/domain/models/product.dart';
 import 'package:easthardware_pms/presentation/bloc/billing/invoicelist/invoice_list_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/inventory/product_list/product_list_bloc.dart';
@@ -16,6 +17,7 @@ import 'package:easthardware_pms/presentation/widgets/ui/styles.dart';
 import 'package:easthardware_pms/presentation/widgets/ui/text_button.dart';
 import 'package:easthardware_pms/utils/boxed.dart';
 import 'package:easthardware_pms/utils/notification.dart';
+import 'package:easthardware_pms/utils/num_iterable_extension.dart';
 import 'package:easthardware_pms/utils/number_string.dart';
 import 'package:easthardware_pms/utils/typed_routes.dart';
 import 'package:fluent_ui/fluent_ui.dart';
@@ -25,88 +27,102 @@ import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:provider/provider.dart';
 
+typedef SalesByCategoryDatum = (List<(Product, SalesExtras)>, Category);
+typedef SalesByCategoryFunction = String Function(SalesByCategoryDatum);
+typedef TotalSalesByCategoryFunction = String Function(List<SalesByCategoryDatum>);
 typedef _SalesColumnRecord = (
   String name,
   int flex,
   pw.TableColumnWidth width,
-  String Function(Product, SalesExtras) value,
+  SalesByCategoryFunction value,
+  TotalSalesByCategoryFunction? total,
 );
 
 extension type const _SalesColumn._(_SalesColumnRecord record) {
   const _SalesColumn({
     required String name,
-    required pw.TableColumnWidth width,
-    required String Function(Product, SalesExtras) value,
     int flex = 1,
-  }) : this._((name, flex, width, value));
+    required pw.TableColumnWidth width,
+    required SalesByCategoryFunction value,
+    TotalSalesByCategoryFunction? total,
+  }) : this._((name, flex, width, value, total));
 
   String get name => record.$1;
   int get flex => record.$2;
   pw.TableColumnWidth get width => record.$3;
-  String Function(Product, SalesExtras) get value => record.$4;
+  SalesByCategoryFunction get value => record.$4;
+  TotalSalesByCategoryFunction? get total => record.$5;
 }
 
-extension SalesExtrasPair on (Product, SalesExtras) {
-  Product get product => $1;
-  SalesExtras get extras => $2;
+extension SalesByCategoryDatumShortcuts on SalesByCategoryDatum {
+  List<Product> get products => $1.map((e) => e.$1).toList();
+  Category get category => $2;
+  List<SalesExtras> get extras => $1.map((e) => e.$2).toList();
 
-  double get sellingPrice => product.salePrice;
-  double get orderCost => product.orderCost;
+  double get salePrice => products.map((p) => p.salePrice).sum();
+  double get orderCost => products.map((p) => p.orderCost).sum();
 
-  double get unitsSold => extras.unitsSold;
-  double get unitsOrdered => extras.unitsOrdered;
-  double get totalRevenue => unitsSold * product.salePrice;
-  double get totalCost => unitsOrdered * product.orderCost;
+  double get unitsSold => extras.map((e) => e.unitsSold).sum();
+  double get unitsOrdered => extras.map((e) => e.unitsOrdered).sum();
+  double get totalRevenue => $1.map((pair) => pair.$1.salePrice * pair.$2.unitsSold).sum();
+  double get totalCost => $1.map((pair) => pair.$1.orderCost * pair.$2.unitsOrdered).sum();
   double get grossProfit => totalRevenue - totalCost;
 }
 
 final salesColumns = <_SalesColumn>[
   _SalesColumn(
-    name: 'SKU',
-    width: const pw.FlexColumnWidth(1),
-    value: (product, extras) => product.sku,
-  ),
-  _SalesColumn(
-    name: 'Product Name',
+    name: 'Category Name',
     flex: 2,
     width: const pw.FlexColumnWidth(2),
-    value: (product, extras) => product.name,
+    value: (args) => args.category.name,
+    total: (args) => 'Total',
   ),
   _SalesColumn(
     name: 'Units Sold',
     width: const pw.FlexColumnWidth(1),
-    value: (product, extras) => extras.unitsSold.toNumberString(),
+    value: (args) => args.unitsSold.toNumberString(),
+    total: (data) => data.map((e) => e.unitsSold).sum().toNumberString(),
+  ),
+  _SalesColumn(
+    name: 'Units Ordered',
+    width: const pw.FlexColumnWidth(1),
+    value: (args) => args.unitsOrdered.toNumberString(),
+    total: (data) => data.map((e) => e.unitsOrdered).sum().toNumberString(),
   ),
   _SalesColumn(
     name: 'Selling Price',
     width: const pw.FlexColumnWidth(1),
-    value: (product, extras) => CurrencyFormatter.full(product.salePrice, "Php "),
+    value: (args) => CurrencyFormatter.full(args.salePrice, "Php "),
+    total: (data) => CurrencyFormatter.full(data.map((e) => e.salePrice).sum(), "Php "),
+  ),
+  _SalesColumn(
+    name: 'Order Cost',
+    width: const pw.FlexColumnWidth(1),
+    value: (args) => CurrencyFormatter.full(args.orderCost, "Php "),
+    total: (data) => CurrencyFormatter.full(data.map((e) => e.orderCost).sum(), "Php "),
   ),
   _SalesColumn(
     name: 'Total Revenue',
     width: const pw.FlexColumnWidth(1),
-    value: (product, extras) =>
-        CurrencyFormatter.full(extras.unitsSold * product.salePrice, "Php "),
+    value: (args) => CurrencyFormatter.full(args.totalRevenue, "Php "),
+    total: (data) => CurrencyFormatter.full(data.map((e) => e.totalRevenue).sum(), "Php "),
   ),
   _SalesColumn(
     name: 'Total Order Cost',
     width: const pw.FlexColumnWidth(1),
-    value: (product, extras) =>
-        CurrencyFormatter.full(extras.unitsOrdered * product.orderCost, "Php "),
+    value: (args) => CurrencyFormatter.full(args.totalCost, "Php "),
+    total: (data) => CurrencyFormatter.full(data.map((e) => e.totalCost).sum(), "Php "),
   ),
   _SalesColumn(
     name: 'Gross Profit',
     width: const pw.FlexColumnWidth(1),
-    value: (product, extras) {
-      final totalRevenue = extras.unitsSold * product.salePrice;
-      final totalCost = extras.unitsOrdered * product.orderCost;
-      return CurrencyFormatter.full(totalRevenue - totalCost, "Php ");
-    },
+    value: (args) => CurrencyFormatter.full(args.grossProfit, "Php "),
+    total: (data) => CurrencyFormatter.full(data.map((e) => e.grossProfit).sum(), "Php "),
   ),
 ];
 
-class SalesReportPage extends StatelessWidget {
-  const SalesReportPage({super.key});
+class SalesByCategoryPage extends StatelessWidget {
+  const SalesByCategoryPage({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -117,6 +133,14 @@ class SalesReportPage extends StatelessWidget {
         context.read<InvoiceListBloc>().state.invoiceProducts,
         context.read<OrderListBloc>().state.allOrders,
         context.read<OrderListBloc>().state.allOrderProducts,
+        context
+            .read<ProductListBloc>()
+            .state
+            .allProducts
+
+            /// FIXME: What is this.
+            .map((p) => Category(name: p.categoryName ?? 'Uncategorized', id: p.categoryId))
+            .toList(),
       ),
       child: Builder(builder: (context) {
         return MultiBlocListener(
@@ -184,7 +208,7 @@ class SalesReportHeader extends StatelessWidget {
       children: [
         IconButton(
           icon: const Icon(FluentIcons.back),
-          onPressed: () => context.navigate(AppRoutes.admin.inventory),
+          onPressed: () => context.navigate(AppRoutes.admin.reports),
         ),
         Spacing.h16,
         const DisplayText('Sales Report'),
@@ -207,20 +231,21 @@ class SalesReportOptions extends StatelessWidget {
         Container(
           padding: AppPadding.cardPadding,
           color: FluentTheme.of(context).cardColor,
-          child: const Row(
+          child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Expanded(
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    _DateRangeSelection(),
+                  children: const [
+                    _StartDateSelection(),
+                    _EndDateSelection(),
                     _SortBySelection(),
-                  ],
+                  ].withSpacing(() => Spacing.v16),
                 ),
               ),
-              _GenerateButtons(),
+              const _GenerateButtons(),
             ],
           ),
         ),
@@ -229,34 +254,40 @@ class SalesReportOptions extends StatelessWidget {
   }
 }
 
-class _DateRangeSelection extends StatelessWidget {
-  const _DateRangeSelection();
+class _StartDateSelection extends StatelessWidget {
+  const _StartDateSelection();
 
   @override
   Widget build(BuildContext context) {
-    return BlocSelector<SalesReportBloc, SalesReportState, SalesQueryData>(
-      selector: (state) => state.queryData,
-      builder: (context, queryData) {
-        return Row(
-          children: [
-            const Text('Date Range: '),
-            Spacing.h8,
-            DatePicker(
-              selected: queryData.startDate,
-              onChanged: (value) =>
-                  context.read<SalesReportBloc>().add(SalesReportSetStartDateEvent(value)),
-            ),
-            Spacing.h8,
-            const Text('to'),
-            Spacing.h8,
-            DatePicker(
-              selected: queryData.endDate,
-              onChanged: (value) =>
-                  context.read<SalesReportBloc>().add(SalesReportSetEndDateEvent(value)),
-            ),
-          ],
-        );
-      },
+    return Row(
+      children: [
+        const Text('Start Date: '),
+        Spacing.h8,
+        DatePicker(
+          selected: context.select((SalesReportBloc b) => b.state.queryData.startDate),
+          onChanged: (value) =>
+              context.read<SalesReportBloc>().add(SalesReportSetStartDateEvent(value)),
+        ),
+      ],
+    );
+  }
+}
+
+class _EndDateSelection extends StatelessWidget {
+  const _EndDateSelection();
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        const Text('End Date: '),
+        Spacing.h8,
+        DatePicker(
+          selected: context.select((SalesReportBloc b) => b.state.queryData.endDate),
+          onChanged: (value) =>
+              context.read<SalesReportBloc>().add(SalesReportSetEndDateEvent(value)),
+        ),
+      ],
     );
   }
 }
@@ -266,31 +297,28 @@ class _SortBySelection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocSelector<SalesReportBloc, SalesReportState, SalesQueryData>(
-      selector: (state) => state.queryData,
-      builder: (context, queryData) {
-        return Row(
-          children: [
-            const Text('Sort By: '),
-            Spacing.h8,
-            ComboBox(
-              value: context.select((SalesReportBloc bloc) => bloc.state.queryData.sortBy),
-              onChanged: (value) {
-                if (value != null) {
-                  context.read<SalesReportBloc>().add(SalesReportSetSortByEvent(value));
-                }
-              },
-              items: [
-                for (final sortBy in SalesReportSortBy.values)
-                  ComboBoxItem(
-                    value: sortBy,
-                    child: Text(sortBy.name),
-                  ),
-              ],
-            )
+    return Row(
+      children: [
+        const Text('Sort By: '),
+        Spacing.h8,
+        ComboBox(
+          value: context.select((SalesReportBloc b) => b.state.queryData.categorySortBy),
+          onChanged: (value) {
+            if (value != null) {
+              context //
+                  .read<SalesReportBloc>()
+                  .add(SalesReportSetCategoryReportSortByEvent(value));
+            }
+          },
+          items: [
+            for (final sortBy in SalesByCategoryReportSortBy.values)
+              ComboBoxItem(
+                value: sortBy,
+                child: Text(sortBy.name),
+              ),
           ],
-        );
-      },
+        )
+      ],
     );
   }
 }
@@ -302,7 +330,7 @@ class _GenerateButtons extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocBuilder<SalesReportBloc, SalesReportState>(
       builder: (context, reportState) {
-        final salesData = reportState.queryData.salesData ?? [];
+        final salesData = reportState.queryData.salesByCategoryData ?? [];
 
         return Row(
           children: [
@@ -341,8 +369,9 @@ class _SalesTablePreview extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocSelector<SalesReportBloc, SalesReportState, List<(Product, SalesExtras)>?>(
-      selector: (state) => state.queryData.salesData,
+    return BlocSelector<SalesReportBloc, SalesReportState,
+        List<(List<(Product, SalesExtras)>, Category)>?>(
+      selector: (state) => state.queryData.salesByCategoryData,
       builder: (context, salesData) {
         final data = salesData ?? [];
 
@@ -387,7 +416,7 @@ class _SalesTablePreview extends StatelessWidget {
                           Expanded(
                             flex: flex,
                             child: Text(
-                              value(product, extras),
+                              value((product, extras)),
                               style: TextStyles.body,
                               overflow: TextOverflow.ellipsis,
                             ),
@@ -409,89 +438,26 @@ class _SalesTablePreview extends StatelessWidget {
                 ),
                 child: Row(
                   children: ([
-                    for (final _SalesColumn(:flex) in salesColumns)
-                      Expanded(
-                        flex: flex,
-                        child: const Text(
-                          '',
-                          style: TextStyles.body,
-                          overflow: TextOverflow.ellipsis,
+                    for (final _SalesColumn(:flex, :total) in salesColumns)
+                      if (total != null)
+                        Expanded(
+                          flex: flex,
+                          child: Text(
+                            total(data),
+                            style: TextStyles.body.copyWith(fontWeight: FontWeight.bold),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        )
+                      else
+                        Expanded(
+                          flex: flex,
+                          child: const Text(
+                            '',
+                            style: TextStyles.body,
+                            overflow: TextOverflow.ellipsis,
+                          ),
                         ),
-                      ),
-                  ]
-
-                        /// TOTAL
-                        ..[0] = Expanded(
-                          flex: salesColumns.first.flex,
-                          child: Text(
-                            'Total',
-                            style: TextStyles.body.copyWith(fontWeight: FontWeight.bold),
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        )
-
-                        /// TOTAL UNITS SOLD
-                        ..[2] = Expanded(
-                          flex: salesColumns[2].flex,
-                          child: Text(
-                            data.fold(0.0, (sum, entry) => sum + entry.unitsSold).toNumberString(),
-                            style: TextStyles.body.copyWith(fontWeight: FontWeight.bold),
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        )
-
-                        /// TOTAL SELLING PRICE
-                        ..[3] = Expanded(
-                          flex: salesColumns[3].flex,
-                          child: Text(
-                            CurrencyFormatter.full(
-                              data.fold<double>(0.0, (sum, entry) => sum + entry.sellingPrice),
-                              "Php ",
-                            ),
-                            style: TextStyles.body.copyWith(fontWeight: FontWeight.bold),
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        )
-
-                        /// TOTAL REVENUE PRICE
-                        ..[4] = Expanded(
-                          flex: salesColumns[4].flex,
-                          child: Text(
-                            CurrencyFormatter.full(
-                              data.fold<double>(0.0, (sum, entry) => sum + entry.totalRevenue),
-                              "Php ",
-                            ),
-                            style: TextStyles.body.copyWith(fontWeight: FontWeight.bold),
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        )
-
-                        /// TOTAL ORDER COST
-                        ..[5] = Expanded(
-                          flex: salesColumns[5].flex,
-                          child: Text(
-                            CurrencyFormatter.full(
-                              data.fold<double>(0.0, (sum, entry) => sum + entry.totalCost),
-                              "Php ",
-                            ),
-                            style: TextStyles.body.copyWith(fontWeight: FontWeight.bold),
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        )
-
-                        /// TOTAL GROSS PROFIT
-                        ..[6] = Expanded(
-                          flex: salesColumns[6].flex,
-                          child: Text(
-                            CurrencyFormatter.full(
-                              data.fold<double>(0.0, (sum, entry) => sum + entry.grossProfit),
-                              "Php ",
-                            ),
-                            style: TextStyles.body.copyWith(fontWeight: FontWeight.bold),
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ))
-                      .withSpacing(() => Spacing.h4),
+                  ]).withSpacing(() => Spacing.h4),
                 ),
               )
             ],
@@ -506,7 +472,7 @@ class _SalesTablePreview extends StatelessWidget {
 Future<void> _previewReport(
   BuildContext context,
   SalesReportState reportState,
-  List<(Product, SalesExtras)> salesData,
+  List<SalesByCategoryDatum> salesData,
 ) async {
   context.read<SalesReportBloc>().add(const SalesReportSetGeneratingEvent(true));
 
@@ -552,7 +518,7 @@ final class _SalesReportPdfGenerator implements PdfGenerator {
     required this.endDate,
   });
 
-  final List<(Product, SalesExtras)> salesData;
+  final List<SalesByCategoryDatum> salesData;
   final DateTime startDate;
   final DateTime endDate;
 
@@ -583,7 +549,7 @@ final class _SalesReportPdfGenerator implements PdfGenerator {
                 _buildPdfSalesHeader(),
 
                 // Table Rows
-                for (final (product, extras) in salesData) _buildPdfSalesItem(product, extras),
+                for (final salesDatum in salesData) _buildPdfSalesItem(salesDatum),
 
                 _buildBottomRow(salesData),
               ],
@@ -675,14 +641,14 @@ final class _SalesReportPdfGenerator implements PdfGenerator {
     );
   }
 
-  pw.TableRow _buildPdfSalesItem(Product product, SalesExtras extras) {
+  pw.TableRow _buildPdfSalesItem(SalesByCategoryDatum salesDatum) {
     return pw.TableRow(
       children: [
         for (final _SalesColumn(:value) in salesColumns)
           pw.Padding(
             padding: _cellPadding,
             child: pw.Text(
-              value(product, extras),
+              value(salesDatum),
               style: const pw.TextStyle(fontSize: 8),
               softWrap: false,
               overflow: pw.TextOverflow.span,
@@ -692,13 +658,7 @@ final class _SalesReportPdfGenerator implements PdfGenerator {
     );
   }
 
-  pw.TableRow _buildBottomRow(List<(Product, SalesExtras)> salesData) {
-    final totalUnitsSold = salesData.fold(0.0, (sum, entry) => sum + entry.unitsSold);
-    final totalSellingPrice = salesData.fold(0.0, (sum, entry) => sum + entry.sellingPrice);
-    final totalRevenue = salesData.fold(0.0, (sum, entry) => sum + entry.totalRevenue);
-    final totalCost = salesData.fold(0.0, (sum, entry) => sum + entry.totalCost);
-    final totalProfit = totalRevenue - totalCost;
-
+  pw.TableRow _buildBottomRow(List<SalesByCategoryDatum> salesData) {
     return pw.TableRow(
       decoration: const pw.BoxDecoration(
         border: pw.Border(
@@ -706,51 +666,12 @@ final class _SalesReportPdfGenerator implements PdfGenerator {
         ),
       ),
       children: [
-        pw.Padding(
-          padding: _cellPadding,
-          child: pw.Text(
-            'Total',
-            style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 9),
-          ),
-        ),
-        for (final (index, _) in salesColumns.indexed.skip(1))
-          if (index == salesColumns.length - 5) // Total
+        for (final _SalesColumn(:total) in salesColumns)
+          if (total != null)
             pw.Padding(
               padding: _cellPadding,
               child: pw.Text(
-                totalUnitsSold.toNumberString(),
-                style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 8),
-              ),
-            )
-          else if (index == salesColumns.length - 4) // Total
-            pw.Padding(
-              padding: _cellPadding,
-              child: pw.Text(
-                CurrencyFormatter.full(totalSellingPrice, "Php"),
-                style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 8),
-              ),
-            )
-          else if (index == salesColumns.length - 3) // Total Revenue column
-            pw.Padding(
-              padding: _cellPadding,
-              child: pw.Text(
-                CurrencyFormatter.full(totalRevenue, "Php "),
-                style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 8),
-              ),
-            )
-          else if (index == salesColumns.length - 2) // Total Cost column
-            pw.Padding(
-              padding: _cellPadding,
-              child: pw.Text(
-                CurrencyFormatter.full(totalCost, "Php "),
-                style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 8),
-              ),
-            )
-          else if (index == salesColumns.length - 1) // Gross Profit column
-            pw.Padding(
-              padding: _cellPadding,
-              child: pw.Text(
-                CurrencyFormatter.full(totalProfit, "Php "),
+                total(salesData),
                 style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 8),
               ),
             )
