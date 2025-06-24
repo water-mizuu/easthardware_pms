@@ -182,7 +182,7 @@ class InventoryReportHeader extends StatelessWidget {
       children: [
         IconButton(
           icon: const Icon(FluentIcons.back),
-          onPressed: () => context.navigate(AppRoutes.admin.inventory),
+          onPressed: () => context.navigate(AppRoutes.admin.reports),
         ),
         Spacing.h16,
         const DisplayText('Inventory Report'),
@@ -251,9 +251,9 @@ class _SortBy extends StatelessWidget {
               ],
               onChanged: (value) {
                 if (value != null) {
-                  context.read<InventoryReportBloc>().add(
-                        InventoryReportSetSortByEvent(value),
-                      );
+                  context //
+                      .read<InventoryReportBloc>()
+                      .add(InventoryReportSetSortByEvent(value));
                 }
               },
             );

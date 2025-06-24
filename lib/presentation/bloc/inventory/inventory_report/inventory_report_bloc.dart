@@ -30,11 +30,11 @@ class InventoryReportBloc extends Bloc<InventoryReportEvent, InventoryReportStat
     List<OrderProduct> allOrderProducts,
     List<Product> allProducts,
   ) : super(InventoryReportState(
-          allInvoices: WeakReference(allInvoices),
-          allInvoiceProducts: WeakReference(allInvoiceProducts),
-          allOrders: WeakReference(allOrders),
-          allOrderProducts: WeakReference(allOrderProducts),
-          allProducts: WeakReference(allProducts),
+          allInvoices: allInvoices,
+          allInvoiceProducts: allInvoiceProducts,
+          allOrders: allOrders,
+          allOrderProducts: allOrderProducts,
+          allProducts: allProducts,
           queryData: InventoryQueryData.empty(),
         )) {
     on<InventoryReportInitializeEvent>(_onInitialize);
@@ -129,8 +129,8 @@ class InventoryReportBloc extends Bloc<InventoryReportEvent, InventoryReportStat
     /// We need to take into account the products that were filtered by the search query.
     ///   Lastly, the products that are included based on the date.
 
-    var result = state.allProducts.target;
-    if (result == null || result.isEmpty) {
+    var result = state.allProducts;
+    if (result.isEmpty) {
       final updatedQueryData = state.queryData.copyWith(filteredProducts: []);
       emit(state.copyWith(queryData: updatedQueryData));
       return;
@@ -147,10 +147,10 @@ class InventoryReportBloc extends Bloc<InventoryReportEvent, InventoryReportStat
           .toList();
 
       /// We add back the quantities of the products that were invoiced after the query date.
-      for (final invoice in state.allInvoices.target ?? <Invoice>[]) {
+      for (final invoice in state.allInvoices) {
         if (!invoice.creationDate.isAfter(queryDate)) continue;
 
-        for (final product in state.allInvoiceProducts.target ?? <InvoiceProduct>[]) {
+        for (final product in state.allInvoiceProducts) {
           if (product.invoiceId != invoice.id) continue;
 
           final found = result.indexed //
@@ -165,10 +165,10 @@ class InventoryReportBloc extends Bloc<InventoryReportEvent, InventoryReportStat
 
       /// We remove the quantities of the products that were ordered after the query date.
 
-      for (final order in state.allOrders.target ?? <Order>[]) {
+      for (final order in state.allOrders) {
         if (!order.creationDate.isAfter(queryDate)) continue;
 
-        for (final product in state.allOrderProducts.target ?? <OrderProduct>[]) {
+        for (final product in state.allOrderProducts) {
           if (product.orderId != order.id) continue;
 
           final found = result.indexed //
@@ -210,6 +210,7 @@ class InventoryReportBloc extends Bloc<InventoryReportEvent, InventoryReportStat
     );
 
     final updatedQueryData = state.queryData.copyWith(filteredProducts: result);
+
     emit(state.copyWith(queryData: updatedQueryData));
   }
 

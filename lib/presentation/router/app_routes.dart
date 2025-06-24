@@ -64,6 +64,7 @@ class AppRoutes {
     // Reports Sub Pages
     inventoryReport: AppRoute<Null>('/admin/reports/inventory'),
     salesByProductReport: AppRoute<Null>('/admin/reports/sales_by_product'),
+    salesByCategoryReport: AppRoute<Null>('/admin/reports/sales_by_category'),
 
     // Security Sub Pages
     users: AppRoute<Null>('/admin/users'),

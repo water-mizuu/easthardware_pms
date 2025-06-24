@@ -216,21 +216,13 @@ class _Header extends StatelessWidget {
   }
 }
 
-const pageFormats = [
+final pageFormats = [
   (PdfPageFormat.a3, "A3", '11.69" x 16.54"'),
   (PdfPageFormat.a4, "A4", '8.27" x 11.69"'),
   (PdfPageFormat.a5, "A5", '5.83" x 8.27"'),
   (PdfPageFormat.a6, "A6", '4.13" x 5.83"'),
   (PdfPageFormat.letter, "Short Bond", '8.5" x 11"'),
-  (
-    PdfPageFormat(
-      8.5 * PdfPageFormat.inch,
-      13 * PdfPageFormat.inch,
-      marginAll: PdfPageFormat.inch,
-    ),
-    "Long Bond",
-    '8.5" x 13"',
-  ),
+  (PdfPageFormat(8.5.inch, 13.inch, marginAll: 1.inch), "Long Bond", '8.5" x 13"'),
   (PdfPageFormat.legal, "Legal", '8.5" x 14"'),
 ];
 
@@ -355,8 +347,8 @@ class _PdfPreview extends StatelessWidget {
       constraints: BoxConstraints(
         maxHeight: 480,
         minHeight: min(constraints.maxHeight, 480),
-        maxWidth: 360,
-        minWidth: min(constraints.maxWidth, 360),
+        maxWidth: 600,
+        minWidth: min(constraints.maxWidth, 600),
       ),
       child: PdfPreview(
         key: ValueKey(generationState.toRecord()),
@@ -408,4 +400,9 @@ Future<void> _saveReport(BuildContext context) async {
       );
     }
   }
+}
+
+extension on num {
+  double get inch => this * PdfPageFormat.inch;
+  double get cm => this * PdfPageFormat.cm;
 }

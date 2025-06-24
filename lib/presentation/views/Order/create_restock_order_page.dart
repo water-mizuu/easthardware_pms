@@ -10,8 +10,10 @@ import 'package:easthardware_pms/presentation/bloc/order/orderform/order_form_bl
 import 'package:easthardware_pms/presentation/bloc/order/orderlist/order_list_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/security/user_log_list/user_log_list_bloc.dart';
 import 'package:easthardware_pms/presentation/router/app_routes.dart';
-import 'package:easthardware_pms/presentation/views/Order/create_restock_order_page/product_name.dart';
-import 'package:easthardware_pms/presentation/views/Order/create_restock_order_page/quantity_and_unit.dart';
+import 'package:easthardware_pms/presentation/views/Order/'
+    'create_restock_order_page/product_name.dart';
+import 'package:easthardware_pms/presentation/views/Order/'
+    'create_restock_order_page/quantity_and_unit.dart';
 import 'package:easthardware_pms/presentation/views/Order/order_widgets/amount.dart';
 import 'package:easthardware_pms/presentation/views/Order/order_widgets/description.dart';
 import 'package:easthardware_pms/presentation/views/Order/order_widgets/header.dart';
