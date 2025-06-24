@@ -29,7 +29,6 @@ class ManageExpenseTypePage extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: const [
           PageHeader(),
-          PageActions(),
           PageTable(),
         ].withSpacing(() => Spacing.v16),
       ),
@@ -106,6 +105,8 @@ class PageHeader extends StatelessWidget {
     return Row(
       children: [
         const DisplayText('Manage Expense Types'),
+        const Spacer(flex: 2),
+        const PageActions(),
       ].withSpacing(() => Spacing.h16),
     );
   }
@@ -118,9 +119,6 @@ class PageActions extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        const SubheadingText('List of Expense Types'),
-        const Expanded(child: TextBox(placeholder: 'Search')),
-        const Spacer(flex: 2),
         TextButtonFilled('Add Expense Type', onPressed: () async => showContentDialog(context))
       ].withSpacing(() => Spacing.h8),
     );

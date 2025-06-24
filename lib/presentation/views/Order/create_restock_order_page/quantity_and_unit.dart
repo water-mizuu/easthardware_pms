@@ -56,6 +56,12 @@ class _QuantityAndUnitState extends State<QuantityAndUnit> {
     // Check if product ID is changed or it's the first time loading
     if (_currentProductId != currentProductId) {
       _currentProductId = currentProductId;
+      
+      // Clear the controller if the product was removed (currentProductId is null)
+      if (currentProductId == null) {
+        _quantityController.clear();
+        return;
+      }
     }
 
     // Always check for the current form product and update quantity controller

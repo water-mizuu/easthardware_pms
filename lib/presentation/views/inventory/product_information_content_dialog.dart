@@ -20,7 +20,7 @@ class ProductInformationContentDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ContentDialog(
-      constraints: const BoxConstraints(maxHeight: 500, maxWidth: 1000),
+      constraints: const BoxConstraints(maxHeight: 700, maxWidth: 1000),
       title: DialogTitle(dialogContext: dialogContext, product: product),
       content: Column(
         mainAxisSize: MainAxisSize.min,

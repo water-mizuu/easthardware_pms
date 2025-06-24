@@ -67,3 +67,15 @@ class FormOrderItem {
     );
   }
 }
+
+class EmptyFormOrderItem extends FormOrderItem {
+  const EmptyFormOrderItem()
+      : super(
+          name: '',
+          description: '',
+          quantity: 0,
+          rate: 0,
+          amount: 0,
+          errorMessage: null,
+        );
+}

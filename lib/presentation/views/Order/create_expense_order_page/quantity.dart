@@ -59,7 +59,7 @@ class QuantityState extends State<Quantity> {
     final (_, orderItem) = Provider.of<IndexedOrderItem>(context);
 
     // Update controller if the value changed externally
-    String newQuantity = '';
+    var newQuantity = '';
     if (orderItem.quantity > 0) {
       newQuantity = orderItem.quantity % 1 == 0
           ? orderItem.quantity.toInt().toString()

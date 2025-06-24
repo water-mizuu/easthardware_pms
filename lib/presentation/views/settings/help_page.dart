@@ -90,9 +90,7 @@ class _UserManualCard extends StatelessWidget {
 
     return Card(
       padding: const EdgeInsets.all(16.0),
-      child: SizedBox(
-        width: 250,
-        height: 200,
+      child: Expanded(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -149,11 +147,6 @@ class _FAQSection extends StatelessWidget {
       question: 'How can I generate reports?',
       answer:
           'Go to the Reports section, select which Reports you want to generate, then click "Generate Report".'
-    ),
-    (
-      question: 'How can I set up low stock alerts?',
-      answer:
-          'Go to Settings > Inventory Settings > Alerts, enable "Low Stock Notifications", set your preferred threshold levels for each product category, and save your changes.'
     ),
   ];
 

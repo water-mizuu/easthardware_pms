@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:easthardware_pms/domain/enums/enums.dart';
 import 'package:easthardware_pms/domain/models/order.dart';
 import 'package:easthardware_pms/domain/models/payment_method.dart';
-import 'package:easthardware_pms/domain/repository/order_item_repository.dart';
 import 'package:easthardware_pms/presentation/bloc/authentication/'
     'authentication/authentication_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/order/expense_type_list/expense_type_list_bloc.dart';
@@ -58,12 +57,14 @@ class _EditExpenseOrderPageState extends State<EditExpenseOrderPage> {
 
         // Load order details asynchronously using the widget.order that's passed in
         Future.microtask(() async {
-          final orderItemRepository = context.read<OrderItemRepository>();
+          final orderListBloc = context.read<OrderListBloc>();
           final paymentMethodListBloc = context.read<PaymentMethodListBloc>();
           final expenseTypeListBloc = context.read<ExpenseTypeListBloc>();
 
           // Get the order items for this order
-          final orderItems = await orderItemRepository.getOrderItemByOrderId(widget.order.id!);
+          final orderItems = orderListBloc.state.allOrderItems
+              .where((o) => o.orderId == widget.order.id!)
+              .toList();
 
           // Find the payment method from the payment method ID
           final paymentMethod = paymentMethodListBloc.state.paymentMethods

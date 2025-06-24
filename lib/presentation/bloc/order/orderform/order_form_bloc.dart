@@ -186,6 +186,9 @@ class OrderFormBloc extends Bloc<OrderFormEvent, OrderFormState> {
 
   void _onOrderItemRemoved(OrderItemRemovedEvent event, Emitter<OrderFormState> emit) {
     final updatedOrderItems = List<FormOrderItem>.from(state.orderItems!)..removeAt(event.index);
+    if (updatedOrderItems.isEmpty) {
+      updatedOrderItems.add(const EmptyFormOrderItem());
+    }
     emit(state.copyWith(orderItems: updatedOrderItems));
   }
 

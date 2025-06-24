@@ -59,13 +59,14 @@ class _EditRestockOrderPageState extends State<EditRestockOrderPage> {
 
         // Load order details asynchronously using the widget.order that's passed in
         Future.microtask(() async {
-          final orderProductRepository = context.read<OrderProductRepository>();
+          final orderListBloc = context.read<OrderListBloc>();
           final paymentMethodListBloc = context.read<PaymentMethodListBloc>();
           final expenseTypeListBloc = context.read<ExpenseTypeListBloc>();
 
           // Get the order products for this order
-          final orderProducts =
-              await orderProductRepository.getOrderProductsByOrderId(widget.order.id!);
+          final orderProducts = orderListBloc.state.allOrderProducts
+              .where((p) => p.orderId == widget.order.id)
+              .toList();
 
           // Find the payment method from the payment method ID
           final paymentMethod = paymentMethodListBloc.state.paymentMethods
