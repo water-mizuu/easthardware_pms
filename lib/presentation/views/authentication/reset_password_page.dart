@@ -2,6 +2,7 @@ import 'package:easthardware_pms/presentation/bloc/authentication/reset_form/res
 import 'package:easthardware_pms/presentation/router/app_routes.dart';
 import 'package:easthardware_pms/presentation/widgets/layout/spacing.dart';
 import 'package:easthardware_pms/presentation/widgets/text.dart';
+import 'package:easthardware_pms/presentation/widgets/ui/styles.dart';
 import 'package:easthardware_pms/utils/typed_routes.dart';
 import 'package:fluent_ui/fluent_ui.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -178,6 +179,10 @@ class _AnswerInputSection extends StatelessWidget {
           placeholder: 'Enter your answer',
           onChanged: (value) =>
               context.read<ResetFormBloc>().add(ResetFormAnswerChanged(value.trim())),
+        ),
+        Text(
+          context.watch<ResetFormBloc>().state.errorMessage,
+          style: TextStyles.error,
         ),
       ].withSpacing(() => Spacing.v8),
     );

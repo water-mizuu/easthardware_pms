@@ -185,7 +185,7 @@ class _PageFormState extends State<PageForm> {
     _invoiceId = null;
 
     _customerNameController.addListener(() {
-      final newName = _customerNameController.text.trim();
+      final newName = _customerNameController.text;
 
       context.read<InvoiceFormBloc>().add(CustomerNameChangedEvent(newName));
     });

@@ -37,7 +37,7 @@ mixin UserFormValidator {
       return 'Please enter a password';
     }
     if (value.length < 6) {
-      return 'Password must be at least 6 characters long';
+      return 'Password must be at least 8 characters long';
     }
 
     if (!value.contains(RegExp(r'[a-z]')) ||

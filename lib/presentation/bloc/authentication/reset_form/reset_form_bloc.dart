@@ -105,7 +105,7 @@ class ResetFormBloc extends Bloc<ResetFormEvent, ResetFormState> {
       } else {
         emit(state.copyWith(
           status: ResetFormStatus.error,
-          errorMessage: 'Incorrect answer to security question',
+          errorMessage: 'Invalid answer',
         ));
       }
     } catch (e) {
