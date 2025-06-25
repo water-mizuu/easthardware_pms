@@ -404,7 +404,18 @@ class ProductsDataTable extends StatelessWidget {
               label: Expanded(
                 child: ConstrainedBox(
                   constraints: const BoxConstraints(minWidth: 120),
-                  child: const Text('Name', style: TextStyles.strong),
+                  child: Row(
+                    children: [
+                      const Text('Name', style: TextStyles.strong),
+                      if (_getSortColumnIndex(inventoryState.sortBy) != 0) ...[
+                        const Spacer(),
+                        const Icon(
+                          FluentIcons.scroll_up_down,
+                          size: 12,
+                        ),
+                      ],
+                    ],
+                  ),
                 ),
               ),
               onSort: (_, __) {
@@ -424,7 +435,18 @@ class ProductsDataTable extends StatelessWidget {
               label: Expanded(
                 child: ConstrainedBox(
                   constraints: const BoxConstraints(minWidth: 120),
-                  child: const Text('Category', style: TextStyles.strong),
+                  child: Row(
+                    children: [
+                      const Text('Category', style: TextStyles.strong),
+                      if (_getSortColumnIndex(inventoryState.sortBy) != 1) ...[
+                        const Spacer(),
+                        const Icon(
+                          FluentIcons.scroll_up_down,
+                          size: 12,
+                        ),
+                      ],
+                    ],
+                  ),
                 ),
               ),
               onSort: (_, __) {
@@ -441,7 +463,18 @@ class ProductsDataTable extends StatelessWidget {
               label: Expanded(
                 child: ConstrainedBox(
                   constraints: const BoxConstraints(minWidth: 60),
-                  child: const Text('Sale Price', style: TextStyles.strong),
+                  child: Row(
+                    children: [
+                      const Text('Sale Price', style: TextStyles.strong),
+                      if (_getSortColumnIndex(inventoryState.sortBy) != 2) ...[
+                        const Spacer(),
+                        const Icon(
+                          FluentIcons.scroll_up_down,
+                          size: 12,
+                        ),
+                      ],
+                    ],
+                  ),
                 ),
               ),
               onSort: (_, __) {
@@ -458,7 +491,18 @@ class ProductsDataTable extends StatelessWidget {
               label: Expanded(
                 child: ConstrainedBox(
                   constraints: const BoxConstraints(minWidth: 60),
-                  child: const Text('Quantity', style: TextStyles.strong),
+                  child: Row(
+                    children: [
+                      const Text('Quantity', style: TextStyles.strong),
+                      if (_getSortColumnIndex(inventoryState.sortBy) != 3) ...[
+                        const Spacer(),
+                        const Icon(
+                          FluentIcons.scroll_up_down,
+                          size: 12,
+                        ),
+                      ],
+                    ],
+                  ),
                 ),
               ),
               onSort: (_, __) {
@@ -475,7 +519,18 @@ class ProductsDataTable extends StatelessWidget {
               label: Expanded(
                 child: ConstrainedBox(
                   constraints: const BoxConstraints(minWidth: 60),
-                  child: const Text('Status', style: TextStyles.strong),
+                  child: Row(
+                    children: [
+                      const Text('Status', style: TextStyles.strong),
+                      if (_getSortColumnIndex(inventoryState.sortBy) != 4) ...[
+                        const Spacer(),
+                        const Icon(
+                          FluentIcons.scroll_up_down,
+                          size: 12,
+                        ),
+                      ],
+                    ],
+                  ),
                 ),
               ),
               onSort: (_, __) {

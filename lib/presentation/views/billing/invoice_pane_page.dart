@@ -174,7 +174,18 @@ class InvoiceDataTable extends StatelessWidget {
                       DataColumn(
                         label: ConstrainedBox(
                           constraints: const BoxConstraints(minWidth: 75),
-                          child: const Text('Date'),
+                          child: Row(
+                            children: [
+                              const Text('Date'),
+                              if (_getSortColumnIndex(displayState.sortBy) != 0) ...[
+                                const Spacer(),
+                                const Icon(
+                                  FluentIcons.scroll_up_down,
+                                  size: 12,
+                                ),
+                              ],
+                            ],
+                          ),
                         ),
                         onSort: (_, __) => invoiceBloc.sort(
                           displayState.sortBy == InvoiceDisplaySortBy.invoiceDateAscending
@@ -186,7 +197,18 @@ class InvoiceDataTable extends StatelessWidget {
                         label: Expanded(
                           child: ConstrainedBox(
                             constraints: const BoxConstraints(maxWidth: 75),
-                            child: const Text('Invoice No.', style: TextStyles.tableHeader),
+                            child: Row(
+                              children: [
+                                const Text('Invoice No.', style: TextStyles.tableHeader),
+                                if (_getSortColumnIndex(displayState.sortBy) != 1) ...[
+                                  const Spacer(),
+                                  const Icon(
+                                    FluentIcons.scroll_up_down,
+                                    size: 12,
+                                  ),
+                                ],
+                              ],
+                            ),
                           ),
                         ),
                       ),
@@ -194,7 +216,18 @@ class InvoiceDataTable extends StatelessWidget {
                         label: Expanded(
                           child: ConstrainedBox(
                             constraints: const BoxConstraints(maxWidth: 100),
-                            child: const Text('Customer', style: TextStyles.tableHeader),
+                            child: Row(
+                              children: [
+                                const Text('Customer', style: TextStyles.tableHeader),
+                                if (_getSortColumnIndex(displayState.sortBy) != 2) ...[
+                                  const Spacer(),
+                                  const Icon(
+                                    FluentIcons.scroll_up_down,
+                                    size: 12,
+                                  ),
+                                ],
+                              ],
+                            ),
                           ),
                         ),
                         onSort: (_, __) => invoiceBloc.sort(
@@ -207,7 +240,18 @@ class InvoiceDataTable extends StatelessWidget {
                         label: Expanded(
                           child: ConstrainedBox(
                             constraints: const BoxConstraints(maxWidth: 75),
-                            child: const Text('Total', style: TextStyles.tableHeader),
+                            child: Row(
+                              children: [
+                                const Text('Total', style: TextStyles.tableHeader),
+                                if (_getSortColumnIndex(displayState.sortBy) != 3) ...[
+                                  const Spacer(),
+                                  const Icon(
+                                    FluentIcons.scroll_up_down,
+                                    size: 12,
+                                  ),
+                                ],
+                              ],
+                            ),
                           ),
                         ),
                         onSort: (_, __) => invoiceBloc.sort(
@@ -220,7 +264,18 @@ class InvoiceDataTable extends StatelessWidget {
                         label: Expanded(
                           child: ConstrainedBox(
                             constraints: const BoxConstraints(maxWidth: 75),
-                            child: const Text('Status', style: TextStyles.tableHeader),
+                            child: Row(
+                              children: [
+                                const Text('Status', style: TextStyles.tableHeader),
+                                if (_getSortColumnIndex(displayState.sortBy) != 4) ...[
+                                  const Spacer(),
+                                  const Icon(
+                                    FluentIcons.scroll_up_down,
+                                    size: 12,
+                                  ),
+                                ],
+                              ],
+                            ),
                           ),
                         ),
                         onSort: (_, __) => invoiceBloc.sort(

@@ -136,7 +136,7 @@ class PaymentsDataTable extends StatelessWidget {
             return Expanded(
               child: DecoratedBox(
                 decoration: BoxDecoration(
-                  color: FluentTheme.of(context).acrylicBackgroundColor,
+                  color: Colors.white,
                   borderRadius: BorderRadius.circular(4),
                 ),
                 child: payments == null || payments.isEmpty
@@ -164,8 +164,19 @@ class PaymentsDataTable extends StatelessWidget {
                           sortColumnIndex: _getSortColumnIndex(paymentBloc.state.sortBy),
                           columns: [
                             DataColumn(
-                              label: const Expanded(
-                                child: Text('Date', style: TextStyles.tableHeader),
+                              label: Expanded(
+                                child: Row(
+                                  children: [
+                                    const Text('Date', style: TextStyles.tableHeader),
+                                    if (_getSortColumnIndex(paymentBloc.state.sortBy) != 0) ...[
+                                      const Spacer(),
+                                      const Icon(
+                                        FluentIcons.scroll_up_down,
+                                        size: 12,
+                                      ),
+                                    ],
+                                  ],
+                                ),
                               ),
                               onSort: (_, __) {
                                 context.read<PaymentDisplayCubit>().sort(
@@ -176,8 +187,19 @@ class PaymentsDataTable extends StatelessWidget {
                               },
                             ),
                             DataColumn(
-                              label: const Expanded(
-                                child: Text('Amount', style: TextStyles.tableHeader),
+                              label: Expanded(
+                                child: Row(
+                                  children: [
+                                    const Text('Amount', style: TextStyles.tableHeader),
+                                    if (_getSortColumnIndex(paymentBloc.state.sortBy) != 1) ...[
+                                      const Spacer(),
+                                      const Icon(
+                                        FluentIcons.scroll_up_down,
+                                        size: 12,
+                                      ),
+                                    ],
+                                  ],
+                                ),
                               ),
                               onSort: (_, __) {
                                 context.read<PaymentDisplayCubit>().sort(
@@ -189,8 +211,19 @@ class PaymentsDataTable extends StatelessWidget {
                               },
                             ),
                             DataColumn(
-                              label: const Expanded(
-                                child: Text('Reference', style: TextStyles.tableHeader),
+                              label: Expanded(
+                                child: Row(
+                                  children: [
+                                    const Text('Reference', style: TextStyles.tableHeader),
+                                    if (_getSortColumnIndex(paymentBloc.state.sortBy) != 2) ...[
+                                      const Spacer(),
+                                      const Icon(
+                                        FluentIcons.scroll_up_down,
+                                        size: 12,
+                                      ),
+                                    ],
+                                  ],
+                                ),
                               ),
                               onSort: (_, __) {
                                 context.read<PaymentDisplayCubit>().sort(
@@ -201,14 +234,22 @@ class PaymentsDataTable extends StatelessWidget {
                                     );
                               },
                             ),
-                            const DataColumn(
+                            DataColumn(
                               label: Expanded(
-                                child: Text('Payment Method', style: TextStyles.tableHeader),
+                                child: Row(
+                                  children: [
+                                    const Text('Payment Method', style: TextStyles.tableHeader),
+                                  ],
+                                ),
                               ),
                             ),
-                            const DataColumn(
+                            DataColumn(
                               label: Expanded(
-                                child: Text('Actions', style: TextStyles.tableHeader),
+                                child: Row(
+                                  children: [
+                                    const Text('Actions', style: TextStyles.tableHeader),
+                                  ],
+                                ),
                               ),
                             ),
                           ],

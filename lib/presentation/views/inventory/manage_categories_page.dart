@@ -32,8 +32,20 @@ class _ManageCategoriesPageState extends State<ManageCategoriesPage> {
   @override
   initState() {
     super.initState();
+    final products = context.read<ProductListBloc>().state.allProducts;
     context.read<CategoryDisplayCubit>().updateCategories(
-          context.read<CategoryListBloc>().state.categories,
+          context
+              .read<CategoryListBloc>()
+              .state
+              .categories
+              .map(
+                (category) => DisplayCategory.fromCategory(category,
+                    productCount: products
+                        .where((product) =>
+                            product.categoryId == category.id && product.archiveStatus == 0)
+                        .length),
+              )
+              .toList(),
         );
   }
 
@@ -42,7 +54,13 @@ class _ManageCategoriesPageState extends State<ManageCategoriesPage> {
     return BlocListener<CategoryListBloc, CategoryListState>(
       listenWhen: (previous, current) => previous.categories != current.categories,
       listener: (context, state) {
-        context.read<CategoryDisplayCubit>().updateCategories(state.categories);
+        context.read<CategoryDisplayCubit>().updateCategories(
+              state.categories
+                  .map(
+                    (category) => DisplayCategory.fromCategory(category),
+                  )
+                  .toList(),
+            );
       },
       child: Padding(
         padding: AppPadding.panePadding,
@@ -81,17 +99,9 @@ class CategoriesDataTable extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocBuilder<ProductListBloc, ProductListState>(
       builder: (context, productState) {
-        final activeProducts =
-            productState.allProducts.where((product) => product.archiveStatus == 0);
-
         return BlocBuilder<CategoryDisplayCubit, CategoryDisplayState>(
           builder: (context, state) {
             final categories = state.allCategories;
-            final categoryRowMap = <int, int>{};
-
-            for (final p in activeProducts) {
-              categoryRowMap.update(p.categoryId!, (count) => count + 1, ifAbsent: () => 1);
-            }
 
             return Expanded(
               child: DecoratedBox(
@@ -119,9 +129,16 @@ class CategoriesDataTable extends StatelessWidget {
                               label: Expanded(
                                 child: ConstrainedBox(
                                   constraints: const BoxConstraints(minWidth: 300),
-                                  child: const Row(
+                                  child: Row(
                                     children: [
-                                      Text('Category Name', style: TextStyles.strong),
+                                      const Text('Category Name', style: TextStyles.strong),
+                                      if (_getSortColumnIndex(state.sortBy) != 0) ...[
+                                        const Spacer(),
+                                        const Icon(
+                                          FluentIcons.scroll_up_down,
+                                          size: 12,
+                                        ),
+                                      ],
                                     ],
                                   ),
                                 ),
@@ -141,7 +158,18 @@ class CategoriesDataTable extends StatelessWidget {
                               label: Expanded(
                                 child: ConstrainedBox(
                                   constraints: const BoxConstraints(minWidth: 100, maxWidth: 300),
-                                  child: const Text('No. of Products', style: TextStyles.strong),
+                                  child: Row(
+                                    children: [
+                                      const Text('No. of Products', style: TextStyles.strong),
+                                      if (_getSortColumnIndex(state.sortBy) != 1) ...[
+                                        const Spacer(),
+                                        const Icon(
+                                          FluentIcons.scroll_up_down,
+                                          size: 12,
+                                        ),
+                                      ],
+                                    ],
+                                  ),
                                 ),
                               ),
                               onSort: (_, __) {
@@ -165,7 +193,6 @@ class CategoriesDataTable extends StatelessWidget {
                           source: CategoryDataSource(
                             context: context,
                             categories: categories,
-                            categoryProductCounts: categoryRowMap,
                           ),
                         ),
                       ),
@@ -202,14 +229,30 @@ class PageActions extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     String? validator(String query) {
-      final allCategories = context.read<CategoryListBloc>().state.categories;
+      final products = context.read<ProductListBloc>().state.allProducts;
+      final categories = context
+          .read<CategoryListBloc>()
+          .state
+          .categories
+          .map(
+            (category) => DisplayCategory.fromCategory(category,
+                productCount: products
+                    .where((product) =>
+                        product.categoryId == category.id && product.archiveStatus == 0)
+                    .length),
+          )
+          .toList();
       if (query.isEmpty) {
-        context.read<CategoryDisplayCubit>().updateCategories(allCategories);
+        context.read<CategoryDisplayCubit>().updateCategories(categories);
       } else {
-        final filteredCategories = allCategories
-            .where((category) => category.name.toLowerCase().contains(query.toLowerCase()))
+        final filteredCategories = categories
+            .where((category) => category.category.name.toLowerCase().contains(query.toLowerCase()))
             .toList();
-        context.read<CategoryDisplayCubit>().updateCategories(filteredCategories);
+        context.read<CategoryDisplayCubit>().updateCategories(
+              filteredCategories
+                  .map((category) => DisplayCategory.fromCategory(category.category))
+                  .toList(),
+            );
       }
       return null;
     }
@@ -254,20 +297,28 @@ Future<void> showContentDialog(BuildContext context, [Category? category]) async
                   break;
                 case FormStatus.submitted:
                   if (context.mounted) {
+                    final products = context.read<ProductListBloc>().state.allProducts;
                     // After a category is added or updated, refresh the CategoryListCubit
                     final parentContext = Navigator.of(context).context;
                     Future.delayed(const Duration(milliseconds: 100), () {
                       if (parentContext.mounted) {
                         final updatedCategories =
                             parentContext.read<CategoryListBloc>().state.categories;
-                        parentContext
-                            .read<CategoryDisplayCubit>()
-                            .updateCategories(updatedCategories);
+                        parentContext.read<CategoryDisplayCubit>().updateCategories(
+                              updatedCategories
+                                  .map(
+                                    (category) => DisplayCategory.fromCategory(category,
+                                        productCount: products
+                                            .where((product) =>
+                                                product.categoryId == category.id &&
+                                                product.archiveStatus == 0)
+                                            .length),
+                                  )
+                                  .toList(),
+                            );
                       }
                     });
-
                     context.pop();
-                    context.read<CategoryFormCubit>().onFormReset();
                   }
                 default:
                   break;

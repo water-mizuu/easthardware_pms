@@ -16,7 +16,7 @@ class CategoryDisplayCubit extends Cubit<CategoryDisplayState> {
   }
 
   // Method to update the list of categories
-  void updateCategories(List<Category> categories) {
+  void updateCategories(List<DisplayCategory> categories) {
     if (categories.isEmpty) {
       emit(state.copyWith(
         searchQuery: '',
@@ -46,7 +46,7 @@ class CategoryDisplayCubit extends Cubit<CategoryDisplayState> {
   }
 
   // Method to update sort criteria
-  void sort(CategoryDisplaySortBy sortBy) {
+  void sort(CategoryDisplaySortBy sortBy, [List<int>? products]) {
     // Check if we're selecting the same sort type that's already active
     if (state.sortBy == sortBy) {
       // Toggle the sort direction if the same sort type is selected again
@@ -64,7 +64,7 @@ class CategoryDisplayCubit extends Cubit<CategoryDisplayState> {
       ));
     }
 
-    _processQuery();
+    _processQuery(products);
   }
 
   // Helper method to get the correct sort type based on direction
@@ -91,7 +91,7 @@ class CategoryDisplayCubit extends Cubit<CategoryDisplayState> {
   }
 
   // Process the query and filter/sort the categories
-  void _processQuery() {
+  void _processQuery([List<int>? products]) {
     final allCategories = state.allCategories;
     if (allCategories == null || allCategories.isEmpty) {
       emit(state.copyWith(filteredCategories: null));
@@ -104,7 +104,7 @@ class CategoryDisplayCubit extends Cubit<CategoryDisplayState> {
 
     if (searchQuery.isNotEmpty) {
       filteredCategories = allCategories.where((category) {
-        final name = category.name.toLowerCase();
+        final name = category.category.name.toLowerCase();
 
         // Simple contains check
         if (name.contains(searchQuery)) {
@@ -119,29 +119,26 @@ class CategoryDisplayCubit extends Cubit<CategoryDisplayState> {
     }
 
     // Then sort based on the selected sort criteria
-    _sortCategories(filteredCategories);
+    _sortCategories(filteredCategories, products);
 
     emit(state.copyWith(filteredCategories: filteredCategories));
   }
 
   // Helper method to sort categories
-  void _sortCategories(List<Category> categories) {
+  void _sortCategories(List<DisplayCategory> categories, [List<int>? products]) {
     switch (state.sortBy) {
       case CategoryDisplaySortBy.nameAscending:
-        categories.sort((a, b) => a.name.compareTo(b.name));
+        categories.sort((a, b) => a.displayName.compareTo(b.displayName));
         break;
       case CategoryDisplaySortBy.nameDescending:
-        categories.sort((a, b) => b.name.compareTo(a.name));
+        categories.sort((a, b) => b.displayName.compareTo(a.displayName));
         break;
       case CategoryDisplaySortBy.productCountAscending:
-        // Since Category doesn't have a productCount property, we'll sort by name as fallback
-        // In a real implementation, you would need to add a productCount field to Category or
-        // have a way to calculate it
-        categories.sort((a, b) => a.name.compareTo(b.name));
+        categories.sort((a, b) => a.productCount?.compareTo(b.productCount ?? 0) ?? 0);
         break;
       case CategoryDisplaySortBy.productCountDescending:
         // Same fallback as above
-        categories.sort((a, b) => b.name.compareTo(a.name));
+        categories.sort((a, b) => b.productCount?.compareTo(a.productCount ?? 0) ?? 0);
         break;
     }
   }

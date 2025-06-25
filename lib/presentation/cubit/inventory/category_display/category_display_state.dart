@@ -1,5 +1,27 @@
 part of 'category_display_cubit.dart';
 
+class DisplayCategory {
+  factory DisplayCategory.fromCategory(Category category, {int? productCount}) {
+    return DisplayCategory(
+      category: category,
+      displayName: category.name,
+      productCount: productCount,
+    );
+  }
+  const DisplayCategory({
+    required this.category,
+    required this.displayName,
+    this.productCount,
+  });
+
+  final Category category;
+  final String displayName;
+  final int? productCount;
+
+  @override
+  String toString() => displayName;
+}
+
 class CategoryDisplayState with EquatableMixin {
   const CategoryDisplayState({
     this.allCategories,
@@ -16,15 +38,15 @@ class CategoryDisplayState with EquatableMixin {
         sortBy = CategoryDisplaySortBy.nameAscending,
         sortAscending = true;
 
-  final List<Category>? allCategories;
-  final List<Category>? filteredCategories;
+  final List<DisplayCategory>? allCategories;
+  final List<DisplayCategory>? filteredCategories;
   final String searchQuery;
   final CategoryDisplaySortBy sortBy;
   final bool sortAscending;
 
   CategoryDisplayState Function({
-    List<Category>? allCategories,
-    List<Category>? filteredCategories,
+    List<DisplayCategory>? allCategories,
+    List<DisplayCategory>? filteredCategories,
     String searchQuery,
     CategoryDisplaySortBy sortBy,
     bool sortAscending,

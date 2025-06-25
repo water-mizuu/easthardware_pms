@@ -7,6 +7,7 @@ import 'package:easthardware_pms/domain/models/unit.dart';
 import 'package:easthardware_pms/domain/models/user.dart';
 import 'package:easthardware_pms/domain/models/user_log.dart';
 import 'package:easthardware_pms/presentation/bloc/order/expense_type_list/expense_type_list_bloc.dart';
+import 'package:easthardware_pms/presentation/cubit/inventory/category_display/category_display_cubit.dart';
 import 'package:easthardware_pms/presentation/models/data_cell_functions.dart';
 import 'package:easthardware_pms/presentation/models/form_product.dart';
 import 'package:easthardware_pms/presentation/widgets/helper/currency_formatter.dart';
@@ -237,10 +238,10 @@ class DataRowMapper {
     );
   }
 
-  static DataRow mapCategoryToRow(Category category, int productCount, Function()? action) {
+  static DataRow mapCategoryToRow(DisplayCategory category, Function()? action) {
     return DataRow(cells: [
-      DataCell(Text(category.name, style: TextStyles.body)),
-      DataCell(Text(productCount.toString(), style: TextStyles.body)),
+      DataCell(Text(category.category.name, style: TextStyles.body)),
+      DataCell(Text(category.productCount.toString(), style: TextStyles.body)),
       DataCell(DropDownButton(
         title: const Text('Actions', style: TextStyles.body),
         items: [
