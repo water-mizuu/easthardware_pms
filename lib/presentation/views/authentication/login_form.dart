@@ -48,12 +48,12 @@ class LoginForm extends StatelessWidget {
                 const _FormPasswordField(),
                 if (kDebugMode) const _PreserveDebugLogin(),
                 const _FormButton(),
-                if (kDebugMode)
-                  BlocBuilder<AuthenticationBloc, AuthenticationState>(
-                    builder: (context, state) {
-                      return Text(state.loginAttempts.toString());
-                    },
-                  )
+                // if (kDebugMode)
+                //   BlocBuilder<AuthenticationBloc, AuthenticationState>(
+                //     builder: (context, state) {
+                //       return Text(state.loginAttempts.toString());
+                //     },
+                //   )
               ].withSpacing(() => Spacing.v16),
             ),
           ),

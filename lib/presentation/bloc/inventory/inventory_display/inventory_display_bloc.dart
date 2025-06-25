@@ -5,6 +5,7 @@ import 'package:easthardware_pms/domain/models/category.dart';
 import 'package:easthardware_pms/domain/models/product.dart';
 import 'package:easthardware_pms/presentation/bloc/inventory/'
     'inventory_display/inventory_display_enum.dart';
+import 'package:easthardware_pms/utils/boxed.dart';
 import 'package:easthardware_pms/utils/duration.dart';
 import 'package:easthardware_pms/utils/levenshtein.dart';
 import 'package:easthardware_pms/utils/undefined.dart';
@@ -70,12 +71,9 @@ class InventoryDisplayBloc extends Bloc<InventoryDisplayEvent, InventoryDisplayS
     InventoryDisplaySortEvent event,
     Emitter<InventoryDisplayState> emit,
   ) {
-    // Check if we're selecting the same sort type that's already active
     if (state.sortBy == event.sortBy) {
-      // Toggle the sort direction if the same sort type is selected again
+      printBoxed('InventoryDisplayBloc: Sorting by the same type, toggling direction');
       emit(state.copyWith(sortAscending: !state.sortAscending));
-
-      // Determine the appropriate sort type based on the field and direction
       final newSortBy = _getSortTypeBasedOnDirection(event.sortBy, !state.sortAscending);
 
       emit(state.copyWith(sortBy: newSortBy));
@@ -90,7 +88,6 @@ class InventoryDisplayBloc extends Bloc<InventoryDisplayEvent, InventoryDisplayS
     add(const _InventoryDisplayProcessQueryEvent());
   }
 
-  // Helper method to get the correct sort type based on direction
   InventoryDisplaySortBy _getSortTypeBasedOnDirection(
     InventoryDisplaySortBy currentSort,
     bool ascending,

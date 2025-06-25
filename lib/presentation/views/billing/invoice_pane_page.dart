@@ -114,18 +114,21 @@ class InvoiceDataTable extends StatelessWidget {
     switch (sortBy) {
       case InvoiceDisplaySortBy.invoiceDateAscending:
       case InvoiceDisplaySortBy.invoiceDateDescending:
-        return 0; // Index of the Date column
+        return 0;
       case InvoiceDisplaySortBy.numberAscending:
       case InvoiceDisplaySortBy.numberDescending:
-        return 1; // Index of the Invoice Number column
+        return 1;
       case InvoiceDisplaySortBy.customerAscending:
       case InvoiceDisplaySortBy.customerDescending:
-        return 2; // Index of the Customer column
+        return 2;
       case InvoiceDisplaySortBy.totalAscending:
       case InvoiceDisplaySortBy.totalDescending:
-        return 3; // Index of the Amount column
+        return 3;
+      case InvoiceDisplaySortBy.statusAscending:
+      case InvoiceDisplaySortBy.statusDescending:
+        return 4;
       default:
-        return null; // No column is being sorted
+        return null;
     }
   }
 
@@ -139,8 +142,8 @@ class InvoiceDataTable extends StatelessWidget {
               return const Center(child: ProgressRing());
             }
 
-            final invoiceBloc = context.read<InvoiceDisplayCubit>();
-            final invoices = invoiceBloc.state.filteredInvoices ?? invoiceBloc.state.allInvoices;
+            final displayCubit = context.read<InvoiceDisplayCubit>();
+            final invoices = displayCubit.state.filteredInvoices ?? displayCubit.state.allInvoices;
 
             if (invoices == null || invoices.isEmpty) {
               return Expanded(
@@ -172,70 +175,83 @@ class InvoiceDataTable extends StatelessWidget {
                     sortAscending: context.watch<InvoiceDisplayCubit>().state.sortAscending,
                     columns: [
                       DataColumn(
-                        label: ConstrainedBox(
-                          constraints: const BoxConstraints(minWidth: 75),
-                          child: Row(
-                            children: [
-                              const Text('Date'),
-                              if (_getSortColumnIndex(displayState.sortBy) != 0) ...[
-                                const Spacer(),
-                                const Icon(
-                                  FluentIcons.scroll_up_down,
-                                  size: 12,
-                                ),
-                              ],
-                            ],
-                          ),
-                        ),
-                        onSort: (_, __) => invoiceBloc.sort(
-                          displayState.sortBy == InvoiceDisplaySortBy.invoiceDateAscending
-                              ? InvoiceDisplaySortBy.invoiceDateDescending
-                              : InvoiceDisplaySortBy.invoiceDateAscending,
-                        ),
-                      ),
-                      DataColumn(
-                        label: Expanded(
-                          child: ConstrainedBox(
-                            constraints: const BoxConstraints(maxWidth: 75),
-                            child: Row(
-                              children: [
-                                const Text('Invoice No.', style: TextStyles.tableHeader),
-                                if (_getSortColumnIndex(displayState.sortBy) != 1) ...[
-                                  const Spacer(),
-                                  const Icon(
-                                    FluentIcons.scroll_up_down,
-                                    size: 12,
-                                  ),
+                          label: Expanded(
+                            child: ConstrainedBox(
+                              constraints: const BoxConstraints(minWidth: 75),
+                              child: Row(
+                                children: [
+                                  const Text('Date', style: TextStyles.tableHeader),
+                                  if (_getSortColumnIndex(displayState.sortBy) != 0) ...[
+                                    const Spacer(),
+                                    const Icon(
+                                      FluentIcons.scroll_up_down,
+                                      size: 12,
+                                    ),
+                                  ],
                                 ],
-                              ],
+                              ),
                             ),
                           ),
-                        ),
-                      ),
+                          onSort: (_, __) {
+                            if (displayState.sortBy == InvoiceDisplaySortBy.invoiceDateAscending ||
+                                displayState.sortBy == InvoiceDisplaySortBy.invoiceDateDescending) {
+                              displayCubit.sort(displayState.sortBy);
+                            } else {
+                              displayCubit.sort(InvoiceDisplaySortBy.invoiceDateAscending);
+                            }
+                          }),
                       DataColumn(
-                        label: Expanded(
-                          child: ConstrainedBox(
-                            constraints: const BoxConstraints(maxWidth: 100),
-                            child: Row(
-                              children: [
-                                const Text('Customer', style: TextStyles.tableHeader),
-                                if (_getSortColumnIndex(displayState.sortBy) != 2) ...[
-                                  const Spacer(),
-                                  const Icon(
-                                    FluentIcons.scroll_up_down,
-                                    size: 12,
-                                  ),
+                          label: Expanded(
+                            child: ConstrainedBox(
+                              constraints: const BoxConstraints(maxWidth: 75),
+                              child: Row(
+                                children: [
+                                  const Text('Invoice No.', style: TextStyles.tableHeader),
+                                  if (_getSortColumnIndex(displayState.sortBy) != 1) ...[
+                                    const Spacer(),
+                                    const Icon(
+                                      FluentIcons.scroll_up_down,
+                                      size: 12,
+                                    ),
+                                  ],
                                 ],
-                              ],
+                              ),
                             ),
                           ),
-                        ),
-                        onSort: (_, __) => invoiceBloc.sort(
-                          displayState.sortBy == InvoiceDisplaySortBy.customerAscending
-                              ? InvoiceDisplaySortBy.customerDescending
-                              : InvoiceDisplaySortBy.customerAscending,
-                        ),
-                      ),
+                          onSort: (_, __) {
+                            if (displayState.sortBy == InvoiceDisplaySortBy.numberAscending ||
+                                displayState.sortBy == InvoiceDisplaySortBy.numberDescending) {
+                              displayCubit.sort(displayState.sortBy);
+                            } else {
+                              displayCubit.sort(InvoiceDisplaySortBy.numberAscending);
+                            }
+                          }),
+                      DataColumn(
+                          label: Expanded(
+                            child: ConstrainedBox(
+                              constraints: const BoxConstraints(maxWidth: 100),
+                              child: Row(
+                                children: [
+                                  const Text('Customer', style: TextStyles.tableHeader),
+                                  if (_getSortColumnIndex(displayState.sortBy) != 2) ...[
+                                    const Spacer(),
+                                    const Icon(
+                                      FluentIcons.scroll_up_down,
+                                      size: 12,
+                                    ),
+                                  ],
+                                ],
+                              ),
+                            ),
+                          ),
+                          onSort: (_, __) {
+                            if (displayState.sortBy == InvoiceDisplaySortBy.customerAscending ||
+                                displayState.sortBy == InvoiceDisplaySortBy.customerDescending) {
+                              displayCubit.sort(displayState.sortBy);
+                            } else {
+                              displayCubit.sort(InvoiceDisplaySortBy.customerAscending);
+                            }
+                          }),
                       DataColumn(
                         label: Expanded(
                           child: ConstrainedBox(
@@ -254,11 +270,14 @@ class InvoiceDataTable extends StatelessWidget {
                             ),
                           ),
                         ),
-                        onSort: (_, __) => invoiceBloc.sort(
-                          displayState.sortBy == InvoiceDisplaySortBy.totalAscending
-                              ? InvoiceDisplaySortBy.totalDescending
-                              : InvoiceDisplaySortBy.totalAscending,
-                        ),
+                        onSort: (_, __) {
+                          if (displayState.sortBy == InvoiceDisplaySortBy.totalAscending ||
+                              displayState.sortBy == InvoiceDisplaySortBy.totalDescending) {
+                            displayCubit.sort(displayState.sortBy);
+                          } else {
+                            displayCubit.sort(InvoiceDisplaySortBy.totalAscending);
+                          }
+                        },
                       ),
                       DataColumn(
                         label: Expanded(
@@ -278,11 +297,14 @@ class InvoiceDataTable extends StatelessWidget {
                             ),
                           ),
                         ),
-                        onSort: (_, __) => invoiceBloc.sort(
-                          displayState.sortBy == InvoiceDisplaySortBy.totalAscending
-                              ? InvoiceDisplaySortBy.totalDescending
-                              : InvoiceDisplaySortBy.totalAscending,
-                        ),
+                        onSort: (_, __) {
+                          if (displayState.sortBy == InvoiceDisplaySortBy.statusAscending ||
+                              displayState.sortBy == InvoiceDisplaySortBy.statusDescending) {
+                            displayCubit.sort(displayState.sortBy);
+                          } else {
+                            displayCubit.sort(InvoiceDisplaySortBy.statusAscending);
+                          }
+                        },
                       ),
                       const DataColumn(
                         label: Expanded(child: Text('')),
@@ -291,7 +313,7 @@ class InvoiceDataTable extends StatelessWidget {
                     source: InvoiceDataSource(
                       invoices: invoices,
                       context: context,
-                      onSort: invoiceBloc.sort,
+                      onSort: displayCubit.sort,
                     ),
                   ),
                 ),

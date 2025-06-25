@@ -79,7 +79,9 @@ enum InvoiceDisplaySortBy {
   customerAscending('Customer Ascending'),
   customerDescending('Customer Descending'),
   totalAscending('Total Ascending'),
-  totalDescending('Total Descending');
+  totalDescending('Total Descending'),
+  statusAscending('Status Ascending'),
+  statusDescending('Status Descending');
 
   const InvoiceDisplaySortBy(this.name);
   final String name;

@@ -95,6 +95,14 @@ class InvoiceDisplayCubit extends Cubit<InvoiceDisplayState> {
         return ascending
             ? InvoiceDisplaySortBy.totalDescending
             : InvoiceDisplaySortBy.totalAscending;
+
+      case InvoiceDisplaySortBy.statusAscending:
+      case InvoiceDisplaySortBy.statusDescending:
+        return ascending
+            ? InvoiceDisplaySortBy.statusDescending
+            : InvoiceDisplaySortBy.statusAscending;
+      default:
+        return currentSort;
     }
   }
 
@@ -135,38 +143,52 @@ class InvoiceDisplayCubit extends Cubit<InvoiceDisplayState> {
     }
 
     // Sort based on the selected sort criteria directly using the enum's properties
-    _sortInvoices(filteredInvoices);
+    filteredInvoices = _sortInvoices(filteredInvoices);
 
     emit(state.copyWith(filteredInvoices: filteredInvoices));
   }
 
   // Helper method to sort invoices based on the enum type
-  void _sortInvoices(List<Invoice> invoices) {
+  List<Invoice> _sortInvoices(List<Invoice> invoices) {
+    final sortedInvoices = List<Invoice>.from(invoices);
     switch (state.sortBy) {
       case InvoiceDisplaySortBy.invoiceDateAscending:
-        invoices.sort((a, b) => a.invoiceDate.compareTo(b.invoiceDate));
+        sortedInvoices.sort((a, b) => a.invoiceDate.compareTo(b.invoiceDate));
         break;
       case InvoiceDisplaySortBy.invoiceDateDescending:
-        invoices.sort((a, b) => b.invoiceDate.compareTo(a.invoiceDate));
+        sortedInvoices.sort((a, b) => b.invoiceDate.compareTo(a.invoiceDate));
         break;
       case InvoiceDisplaySortBy.numberAscending:
-        invoices.sort((a, b) => a.id!.compareTo(b.id!));
+        sortedInvoices.sort((a, b) => a.id!.compareTo(b.id!));
         break;
       case InvoiceDisplaySortBy.numberDescending:
-        invoices.sort((a, b) => b.id!.compareTo(a.id!));
+        sortedInvoices.sort((a, b) => b.id!.compareTo(a.id!));
         break;
       case InvoiceDisplaySortBy.customerAscending:
-        invoices.sort((a, b) => a.customerName.compareTo(b.customerName));
+        sortedInvoices.sort((a, b) => a.customerName.compareTo(b.customerName));
         break;
       case InvoiceDisplaySortBy.customerDescending:
-        invoices.sort((a, b) => b.customerName.compareTo(a.customerName));
+        sortedInvoices.sort((a, b) => b.customerName.compareTo(a.customerName));
         break;
       case InvoiceDisplaySortBy.totalAscending:
-        invoices.sort((a, b) => a.amountDue.compareTo(b.amountDue));
+        sortedInvoices.sort((a, b) => a.amountDue.compareTo(b.amountDue));
         break;
       case InvoiceDisplaySortBy.totalDescending:
-        invoices.sort((a, b) => b.amountDue.compareTo(a.amountDue));
+        sortedInvoices.sort((a, b) => b.amountDue.compareTo(a.amountDue));
         break;
+      case InvoiceDisplaySortBy.statusAscending:
+        final paidInvoices = sortedInvoices.where((i) => i.paymentDate != null).toList();
+        final unpaidInvoices = sortedInvoices.where((i) => i.paymentDate == null).toList();
+        paidInvoices.sort((a, b) => a.paymentDate!.compareTo(b.paymentDate!));
+        unpaidInvoices.sort((a, b) => a.dueDate.compareTo(b.dueDate));
+        return [...unpaidInvoices, ...paidInvoices];
+      case InvoiceDisplaySortBy.statusDescending:
+        final paidInvoices = sortedInvoices.where((i) => i.paymentDate != null).toList();
+        final unpaidInvoices = sortedInvoices.where((i) => i.paymentDate == null).toList();
+        paidInvoices.sort((a, b) => b.paymentDate!.compareTo(a.paymentDate!));
+        unpaidInvoices.sort((a, b) => b.dueDate.compareTo(a.dueDate));
+        return [...paidInvoices, ...unpaidInvoices];
     }
+    return sortedInvoices;
   }
 }
