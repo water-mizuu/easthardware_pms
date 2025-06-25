@@ -364,6 +364,7 @@ class ServerBloc extends Bloc<ServerEvent, ServerState> {
       status: ServerStatus.running,
       databaseArgs: event.args,
       databaseHelper: ServerDatabaseHelper(Server(event.args.messageChannel!)),
+      customChannel: WebSocketCustomChannel(event.args.messageChannel!),
     ));
 
     if (event.popupToUser) {
@@ -414,6 +415,7 @@ class ServerBloc extends Bloc<ServerEvent, ServerState> {
       status: ServerStatus.running,
       databaseArgs: event.args,
       databaseHelper: ServerDatabaseHelper(Server(channel)),
+      customChannel: WebSocketCustomChannel(channel),
     ));
 
     if (event.popupToUser) {

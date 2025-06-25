@@ -238,26 +238,21 @@ class _SortBy extends StatelessWidget {
       children: [
         const Text('Sort By: '),
         Spacing.h8,
-        BlocSelector<InventoryReportBloc, InventoryReportState, InventoryDisplaySortBy>(
-          selector: (state) => state.queryData.sortBy,
-          builder: (context, sortBy) {
-            return ComboBox<InventoryDisplaySortBy>(
-              value: sortBy,
-              items: [
-                for (final value in InventoryDisplaySortBy.values)
-                  ComboBoxItem(
-                    value: value,
-                    child: Text(value.name),
-                  ),
-              ],
-              onChanged: (value) {
-                if (value != null) {
-                  context //
-                      .read<InventoryReportBloc>()
-                      .add(InventoryReportSetSortByEvent(value));
-                }
-              },
-            );
+        ComboBox<InventoryDisplaySortBy>(
+          value: context.select((InventoryReportBloc b) => b.state.queryData.sortBy),
+          items: [
+            for (final value in InventoryDisplaySortBy.values)
+              ComboBoxItem(
+                value: value,
+                child: Text(value.name),
+              ),
+          ],
+          onChanged: (value) {
+            if (value != null) {
+              context //
+                  .read<InventoryReportBloc>()
+                  .add(InventoryReportSetSortByEvent(value));
+            }
           },
         ),
       ],
@@ -270,22 +265,17 @@ class _DateSelection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocSelector<InventoryReportBloc, InventoryReportState, DateTime>(
-      selector: (state) => state.queryData.date ?? DateTime.now(),
-      builder: (context, selectedDate) {
-        return Row(
-          children: [
-            const Text('Report Date: '),
-            Spacing.h8,
-            BorderedDatePicker(
-              selected: selectedDate,
-              onChanged: (value) => context //
-                  .read<InventoryReportBloc>()
-                  .add(InventoryReportSetDateEvent(value)),
-            ),
-          ],
-        );
-      },
+    return Row(
+      children: [
+        const Text('Report Date: '),
+        Spacing.h8,
+        BorderedDatePicker(
+          selected: context.select((InventoryReportBloc b) => b.state.queryData.date),
+          onChanged: (value) => context //
+              .read<InventoryReportBloc>()
+              .add(InventoryReportSetDateEvent(value)),
+        ),
+      ],
     );
   }
 }
@@ -559,7 +549,7 @@ Future<void> _previewReport(
   }
 }
 
-const _cellPadding = pw.EdgeInsets.symmetric(horizontal: 8.0, vertical: 2.0);
+const _cellPadding = pw.EdgeInsets.symmetric(horizontal: 8.0);
 
 // PDF generation methods
 final class _InventoryReportPdfGenerator with PdfCommons implements PdfGenerator {
@@ -583,7 +573,7 @@ final class _InventoryReportPdfGenerator with PdfCommons implements PdfGenerator
       pw.MultiPage(
         pageFormat: format,
         margin: const pw.EdgeInsets.all(20),
-        header: (context) => buildPdfHeader(context, logo, selectedDate),
+        header: (context) => buildPdfHeaderSingleDate(context, logo, selectedDate),
         build: (context) {
           return [
             // Summary (only on first page)

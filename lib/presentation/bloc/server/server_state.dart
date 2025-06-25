@@ -18,6 +18,7 @@ class ServerState with EquatableMixin {
     required this.status,
     this.databaseArgs,
     this.databaseHelper,
+    this.customChannel,
     this.lastUpdated,
     this.bottomText,
     this.clientUserBeingLoggedOut,
@@ -26,6 +27,7 @@ class ServerState with EquatableMixin {
   final ServerStatus status;
   final DatabaseArgs? databaseArgs;
   final DatabaseHelper? databaseHelper;
+  final WebSocketCustomChannel? customChannel;
   final DateTime? lastUpdated;
   final String? bottomText;
   final int? clientUserBeingLoggedOut;
@@ -34,6 +36,7 @@ class ServerState with EquatableMixin {
     ServerStatus status,
     DatabaseArgs? databaseArgs,
     DatabaseHelper? databaseHelper,
+    WebSocketCustomChannel? customChannel,
     DateTime? lastUpdated,
     String bottomText,
     int? clientUserBeingLoggedOut,
@@ -42,6 +45,7 @@ class ServerState with EquatableMixin {
       Object? status = undefined,
       Object? databaseArgs = undefined,
       Object? databaseHelper = undefined,
+      Object? customChannel = undefined,
       Object? lastUpdated = undefined,
       Object? bottomText = undefined,
       Object? clientUserBeingLoggedOut = undefined,
@@ -50,6 +54,7 @@ class ServerState with EquatableMixin {
         status: status.or(this.status),
         databaseArgs: databaseArgs.or(this.databaseArgs),
         databaseHelper: databaseHelper.or(this.databaseHelper),
+        customChannel: customChannel.or(this.customChannel),
         lastUpdated: lastUpdated.or(this.lastUpdated),
         bottomText: bottomText.or(this.bottomText),
         clientUserBeingLoggedOut: clientUserBeingLoggedOut.or(this.clientUserBeingLoggedOut),
@@ -58,8 +63,15 @@ class ServerState with EquatableMixin {
   }
 
   @override
-  get props =>
-      [status, databaseArgs, databaseHelper, lastUpdated, bottomText, clientUserBeingLoggedOut];
+  get props => [
+        status,
+        databaseArgs,
+        databaseHelper,
+        customChannel,
+        lastUpdated,
+        bottomText,
+        clientUserBeingLoggedOut,
+      ];
 }
 
 sealed class DatabaseArgs {

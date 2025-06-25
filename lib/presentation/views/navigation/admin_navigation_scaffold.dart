@@ -1,5 +1,7 @@
 import 'dart:io' show Platform;
 
+import 'package:easthardware_pms/domain/backend/enum/database_mode.dart';
+import 'package:easthardware_pms/presentation/bloc/server/server_bloc.dart';
 import 'package:easthardware_pms/presentation/cubit/navigation/navigation_cubit.dart';
 import 'package:easthardware_pms/presentation/router/app_routes.dart';
 import 'package:easthardware_pms/presentation/views/navigation/common_side_panel_mixin.dart';
@@ -298,11 +300,12 @@ class _AdminNavigationViewState extends State<AdminNavigationView>
         icon: FluentIcons.settings,
         title: 'Settings',
         items: [
-          navItem(
-            icon: FluentIcons.save,
-            title: 'System Backup',
-            route: AppRoutes.admin.backup,
-          ),
+          if (context.read<ServerBloc>().state.databaseArgs?.databaseMode == DatabaseMode.server)
+            navItem(
+              icon: FluentIcons.save,
+              title: 'System Backup',
+              route: AppRoutes.admin.backup,
+            ),
           navItem(
             icon: FluentIcons.help,
             title: 'Help',

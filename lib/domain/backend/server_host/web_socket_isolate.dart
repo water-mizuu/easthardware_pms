@@ -148,6 +148,36 @@ Future<void> spawnWebSocketIsolate((RootIsolateToken, NamedSendPort) payload) as
             await _hookOntoUpdate(arguments);
           }
           break;
+        case ["create_backup", [final String key]]:
+          // Handle backup requests.
+          final result = await createBackup(key);
+          _notifyEveryoneAboutDatabaseChange(from: null, isServerUpdated: true);
+
+          sendPort.send(name, result);
+          break;
+        case ["restore_backup", [final String path, final String key]]:
+          // Handle restore requests.
+          try {
+            final (_) = await restoreBackup(path, key);
+            _notifyEveryoneAboutDatabaseChange(from: null, isServerUpdated: true);
+
+            sendPort.send(name, true);
+          } catch (e) {
+            sendPort.send(name, ["error", "Failed to restore backup: $e"]);
+          }
+          break;
+        case ["load_backups", _]:
+          final result = await readBackups();
+
+          sendPort.send(name, result);
+          break;
+        case _:
+          printBoxed("Unknown message type: $args", "MAIN2WS:invocation");
+          sendPort.send(name, [
+            "error",
+            "Unknown message type: $args",
+            StackTrace.current.toString(),
+          ]);
       }
     } else {
       if (kDebugMode) {

@@ -74,36 +74,10 @@ final expenseColumns = <_ExpenseColumn>[
     value: (args) => DateFormat('MM/dd/yyyy').format(args.order.orderDate),
   ),
   _ExpenseColumn(
-    name: 'Amount Due',
-    width: const pw.FlexColumnWidth(1),
-    value: (args) => CurrencyFormatter.full(args.order.amountDue, "Php "),
-    total: (data) => CurrencyFormatter.full(
-        data.map((e) => e.order.amountDue).fold<double>(0, (a, b) => a + b), "Php "),
-  ),
-  _ExpenseColumn(
     name: 'Amount Paid',
     width: const pw.FlexColumnWidth(1),
-    value: (args) => CurrencyFormatter.full(args.order.amountPaid ?? 0, "Php "),
-    total: (data) => CurrencyFormatter.full(
-        data.map((e) => e.order.amountPaid ?? 0).fold<double>(0, (a, b) => a + b), "Php "),
-  ),
-  _ExpenseColumn(
-    name: 'Remaining',
-    width: const pw.FlexColumnWidth(1),
-    value: (args) =>
-        CurrencyFormatter.full((args.order.amountDue - (args.order.amountPaid ?? 0)), "Php "),
-    total: (data) => CurrencyFormatter.full(
-        data
-            .map((e) => e.order.amountDue - (e.order.amountPaid ?? 0))
-            .fold<double>(0, (a, b) => a + b),
-        "Php "),
-  ),
-  _ExpenseColumn(
-    name: 'Status',
-    width: const pw.FlexColumnWidth(1),
-    value: (args) => args.order.amountPaid != null && args.order.amountPaid! >= args.order.amountDue
-        ? 'Paid'
-        : 'Unpaid',
+    value: (args) => CurrencyFormatter.full(args.order.amountDue, "Php "),
+    total: (data) => CurrencyFormatter.full(data.fold(0, (a, b) => a + b.amountDue), "Php "),
   ),
 ];
 

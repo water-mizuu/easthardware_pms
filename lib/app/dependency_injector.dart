@@ -312,8 +312,11 @@ class DependencyInjector extends ChangeNotifier {
         create: (context) {
           final state = _databaseInformationCubit?.state ?? const DatabaseInformationState();
 
-          return _databaseInformationCubit = DatabaseInformationCubit(_metadataDao, state)
-            ..mapIf(_databaseHelper != null, (c) => unawaited(c.loadMetadata()));
+          return _databaseInformationCubit = DatabaseInformationCubit(
+            context.read<ServerBloc>().state.customChannel,
+            _metadataDao,
+            state,
+          )..mapIf(_databaseHelper != null, (c) => unawaited(c.loadMetadata()));
         },
       ),
       BlocProvider(

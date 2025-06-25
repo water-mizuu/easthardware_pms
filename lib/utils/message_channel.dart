@@ -32,6 +32,9 @@ extension type const MessageChannel._((ListenedReceivePort, NamedSendPort) pair)
     /// The completer name is used to identify the response.
     sendPort.send(name, [id, payload]);
     final result = await receivePort.next(id);
+    if (result case ["error", final Object error, final StackTrace stackTrace]) {
+      Error.throwWithStackTrace(error, stackTrace);
+    }
     if (result case ["error", final Object error, final String stackTrace]) {
       final reconstructedStackTrace = StackTrace.fromString(stackTrace);
 

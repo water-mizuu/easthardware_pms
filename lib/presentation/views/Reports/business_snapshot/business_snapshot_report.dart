@@ -1,16 +1,22 @@
 import 'dart:async';
-import 'dart:typed_data';
 
 import 'package:easthardware_pms/presentation/bloc/business_snapshot/'
     'business_snapshot_report_bloc.dart';
+import 'package:easthardware_pms/presentation/router/app_routes.dart';
 import 'package:easthardware_pms/presentation/views/reports/'
     'business_snapshot/business_snapshot_query_data.dart';
+import 'package:easthardware_pms/presentation/views/reports/pdf_helpers/pdf_commons.dart';
 import 'package:easthardware_pms/presentation/views/reports/pdf_helpers/pdf_generation.dart';
+import 'package:easthardware_pms/presentation/widgets/animated_single_child_scroll_view.dart';
+import 'package:easthardware_pms/presentation/widgets/bordered_date_picker.dart';
 import 'package:easthardware_pms/presentation/widgets/helper/currency_formatter.dart';
 import 'package:easthardware_pms/presentation/widgets/layout/spacing.dart';
 import 'package:easthardware_pms/presentation/widgets/text.dart';
+import 'package:easthardware_pms/presentation/widgets/ui/text_button.dart';
 import 'package:easthardware_pms/utils/notification.dart';
+import 'package:easthardware_pms/utils/typed_routes.dart';
 import 'package:fluent_ui/fluent_ui.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import 'package:pdf/pdf.dart';
@@ -41,22 +47,33 @@ class _BusinessSnapshotReportState extends State<BusinessSnapshotReport> {
   Widget build(BuildContext context) {
     return BlocBuilder<BusinessSnapshotReportBloc, BusinessSnapshotReportState>(
       builder: (context, state) {
-        return ScaffoldPage.scrollable(
-          header: const PageHeader(title: Text('Business Snapshot Report')),
-          children: [
-            Spacing.v16,
-            _buildFilters(context, state),
-            Spacing.v16,
-            _buildKeyMetricsSection(context, state),
-            Spacing.v16,
-            _buildTopProductsSection(context, state),
-            Spacing.v16,
-            _buildExpenseBreakdownSection(context, state),
-            Spacing.v16,
-            _buildSalesHistorySection(context, state),
-            Spacing.v16,
-            _buildReportActionButtons(context, state),
-          ],
+        return Padding(
+          padding: AppPadding.panePadding,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const _Header(),
+              Spacing.v16,
+              Expanded(
+                child: AnimatedSingleChildScrollView(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      _buildFilters(context, state),
+                      Spacing.v16,
+                      _buildKeyMetricsSection(context, state),
+                      Spacing.v16,
+                      _buildTopProductsSection(context, state),
+                      Spacing.v16,
+                      _buildExpenseBreakdownSection(context, state),
+                      Spacing.v16,
+                      _buildSalesHistorySection(context, state),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
         );
       },
     );
@@ -66,59 +83,80 @@ class _BusinessSnapshotReportState extends State<BusinessSnapshotReport> {
     return Card(
       child: Padding(
         padding: AppPadding.cardPadding,
-        child: Column(
+        child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const SubheadingText('Report Filters'),
-            Spacing.v8,
-            Row(
-              children: [
-                Expanded(
-                  child: DatePicker(
-                    selected: state.queryData.currentPeriodStart,
-                    onChanged: (date) {
-                      context
-                          .read<BusinessSnapshotReportBloc>()
-                          .add(BusinessSnapshotReportSetStartDateEvent(date));
-                    },
-                  ),
-                ),
-                Spacing.h16,
-                Expanded(
-                  child: DatePicker(
-                    selected: state.queryData.currentPeriodEnd,
-                    onChanged: (date) {
-                      context
-                          .read<BusinessSnapshotReportBloc>()
-                          .add(BusinessSnapshotReportSetEndDateEvent(date));
-                    },
-                  ),
-                ),
-              ],
-            ),
-            Spacing.v8,
-            Row(
-              children: [
-                Expanded(
-                  child: ComboBox<BusinessSnapshotPeriod>(
-                    value: state.queryData.comparisonPeriod,
-                    items: [
-                      for (final period in BusinessSnapshotPeriod.values)
-                        ComboBoxItem<BusinessSnapshotPeriod>(
-                          value: period,
-                          child: Text(period.name),
-                        ),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const SubheadingText('Report Filters'),
+                  Spacing.v8,
+                  Row(
+                    children: [
+                      const SizedBox(width: 80, child: Text('Start Date: ')),
+                      Spacing.h8,
+                      BorderedDatePicker(
+                        selected: state.queryData.currentPeriodStart,
+                        onChanged: (date) {
+                          context
+                              .read<BusinessSnapshotReportBloc>()
+                              .add(BusinessSnapshotReportSetStartDateEvent(date));
+                        },
+                      ),
                     ],
-                    onChanged: (value) {
-                      if (value != null) {
-                        context
-                            .read<BusinessSnapshotReportBloc>()
-                            .add(BusinessSnapshotReportSetComparisonPeriodEvent(value));
-                      }
-                    },
                   ),
-                ),
-              ],
+                  Spacing.v8,
+                  Row(
+                    children: [
+                      const SizedBox(width: 80, child: Text('End Date: ')),
+                      Spacing.h8,
+                      BorderedDatePicker(
+                        selected: state.queryData.currentPeriodEnd,
+                        onChanged: (date) {
+                          context
+                              .read<BusinessSnapshotReportBloc>()
+                              .add(BusinessSnapshotReportSetEndDateEvent(date));
+                        },
+                      ),
+                    ],
+                  ),
+                  Spacing.v8,
+                  Row(
+                    children: [
+                      const Text('Comparison Period:'),
+                      Spacing.h8,
+                      ComboBox<BusinessSnapshotPeriod>(
+                        value: state.queryData.comparisonPeriod,
+                        items: [
+                          for (final period in BusinessSnapshotPeriod.values)
+                            ComboBoxItem<BusinessSnapshotPeriod>(
+                              value: period,
+                              child: Text(period.name),
+                            ),
+                        ],
+                        onChanged: (value) {
+                          if (value != null) {
+                            context
+                                .read<BusinessSnapshotReportBloc>()
+                                .add(BusinessSnapshotReportSetComparisonPeriodEvent(value));
+                          }
+                        },
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            BlocBuilder<BusinessSnapshotReportBloc, BusinessSnapshotReportState>(
+              builder: (context, reportState) {
+                return TextButtonFilled(
+                  'Generate Expense Report',
+                  onPressed: reportState.isGenerating
+                      ? null
+                      : () => unawaited(_generatePdfReport(context, reportState)),
+                );
+              },
             ),
           ],
         ),
@@ -143,6 +181,7 @@ class _BusinessSnapshotReportState extends State<BusinessSnapshotReport> {
                 Row(
                   children: [
                     const Text('Sort by:'),
+                    Spacing.h8,
                     ComboBox<BusinessMetricSortBy>(
                       value: state.queryData.keyMetricsSortBy,
                       items: [
@@ -241,6 +280,7 @@ class _BusinessSnapshotReportState extends State<BusinessSnapshotReport> {
                 Row(
                   children: [
                     const Text('Sort by:'),
+                    Spacing.h8,
                     Flexible(
                       child: ComboBox<TopSellingProductSortBy>(
                         value: state.queryData.topProductsSortBy,
@@ -259,8 +299,14 @@ class _BusinessSnapshotReportState extends State<BusinessSnapshotReport> {
                           }
                         },
                       ),
-                    ),
+                    )
+                  ],
+                ),
+                Spacing.v8,
+                Row(
+                  children: [
                     const Text('Show:'),
+                    Spacing.h8,
                     ConstrainedBox(
                       constraints: const BoxConstraints(
                         minWidth: 120,
@@ -270,11 +316,13 @@ class _BusinessSnapshotReportState extends State<BusinessSnapshotReport> {
                         value: state.queryData.maxTopProducts,
                         min: 3,
                         max: 20,
+                        mode: SpinButtonPlacementMode.none,
+                        clearButton: false,
                         onChanged: (value) {
                           if (value != null) {
-                            context.read<BusinessSnapshotReportBloc>().add(
-                                  BusinessSnapshotReportSetMaxTopProductsEvent(value),
-                                );
+                            context
+                                .read<BusinessSnapshotReportBloc>()
+                                .add(BusinessSnapshotReportSetMaxTopProductsEvent(value));
                           }
                         },
                       ),
@@ -522,32 +570,10 @@ class _BusinessSnapshotReportState extends State<BusinessSnapshotReport> {
     );
   }
 
-  Widget _buildReportActionButtons(BuildContext context, BusinessSnapshotReportState state) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.end,
-      children: [
-        Button(
-          onPressed: () async {
-            await _generatePdfReport(context, state);
-          },
-          child: const Text('Generate PDF Report'),
-        ),
-        Spacing.h8,
-        FilledButton(
-          onPressed: () async {
-            await _generatePdfReport(context, state, shouldPrint: true);
-          },
-          child: const Text('Print Report'),
-        ),
-      ],
-    );
-  }
-
   Future<void> _generatePdfReport(
     BuildContext context,
-    BusinessSnapshotReportState state, {
-    bool shouldPrint = false,
-  }) async {
+    BusinessSnapshotReportState state,
+  ) async {
     context
         .read<BusinessSnapshotReportBloc>()
         .add(const BusinessSnapshotReportSetGeneratingEvent(true));
@@ -573,7 +599,25 @@ class _BusinessSnapshotReportState extends State<BusinessSnapshotReport> {
   }
 }
 
-class _PdfGenerator implements PdfGenerator {
+class _Header extends StatelessWidget {
+  const _Header();
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        IconButton(
+          icon: const Icon(FluentIcons.back),
+          onPressed: () => context.navigate(AppRoutes.admin.reports),
+        ),
+        Spacing.h16,
+        const DisplayText('Business Snapshot Report'),
+      ],
+    );
+  }
+}
+
+class _PdfGenerator with PdfCommons implements PdfGenerator {
   const _PdfGenerator(this.state);
 
   final BusinessSnapshotReportState state;
@@ -585,23 +629,19 @@ class _PdfGenerator implements PdfGenerator {
   @override
   Future<Uint8List> generatePdf(PdfPageFormat? format) async {
     final pdf = pw.Document();
+    final logo = await rootBundle.load('assets/icons/app.png');
 
     // Add PDF generation logic here, similar to other reports
     pdf.addPage(
       pw.MultiPage(
         pageFormat: PdfPageFormat.a4,
         margin: const pw.EdgeInsets.all(32),
-        header: (context) {
-          return pw.Center(
-            child: pw.Text(
-              'Business Snapshot Report',
-              style: pw.TextStyle(
-                fontSize: 24,
-                fontWeight: pw.FontWeight.bold,
-              ),
-            ),
-          );
-        },
+        header: (context) => buildPdfHeaderDoubleDate(
+          context,
+          logo,
+          state.queryData.currentPeriodStart,
+          state.queryData.currentPeriodEnd,
+        ),
         footer: (context) {
           return pw.Center(
             child: pw.Text(

@@ -39,6 +39,30 @@ Future<DatabaseHelper> getWebSocketDatabaseHelper(int? savedHeartbeat) async {
   return DirectDatabaseHelper(database);
 }
 
+// Future<void> pauseDatabase() async {
+//   assertChildIsolate();
+//   if (kDebugMode) {
+//     printBoxed("Pausing database operations", "Database Pause");
+//   }
+
+//   _pauseCompleter = Completer<void>();
+//   isDatabasePaused = true;
+//   await _pauseCompleter!.future;
+//   _pauseCompleter = null;
+//   // Stop the queue to prevent further processing of jobs
+// }
+
+// Future<void> resumeDatabase() async {
+//   assertChildIsolate();
+//   if (kDebugMode) {
+//     printBoxed("Resuming database operations", "Database Resume");
+//   }
+
+//   isDatabasePaused = false;
+//   // Start the queue if it was paused
+//   unawaited(_dbMethodQueue.start());
+// }
+
 Future<void> resetDatabase() async {
   assertChildIsolate();
   if (kDebugMode) {
@@ -82,6 +106,120 @@ Future<void> resetDatabase() async {
   }
 }
 
+Future<String> createBackup(String key) async {
+  assertChildIsolate();
+
+  final completer = Completer<String>.sync();
+
+  /// Pause the database. Due to the nature of the dbMethodQueue, each job is executed
+  ///   sequentially in an atomic manner.
+  _dbMethodQueue.addJob((_) async {
+    final database = await _getDatabase(null);
+    final databasePath = database.path;
+    final backupPath = join(
+      await getDatabasesPath(),
+      'backups',
+      'backup_${DateTime.now().millisecondsSinceEpoch}.db',
+    );
+
+    await database.close(); // Close the database to release lock.
+    _databaseInstance = null;
+
+    final dbFile = File(databasePath);
+    if (!dbFile.existsSync()) {
+      throw FileSystemException("Database file does not exist at $databasePath");
+    }
+
+    final data = dbFile.readAsBytesSync();
+    final encryptedData = CryptographyService.encryptSymmetricUint8List(data, key);
+
+    assert(
+      CryptographyService.decryptSymmetricUint8List(encryptedData, key).toString() ==
+          data.toString(),
+      "The cryptography service should work.",
+    );
+
+    File(backupPath)
+      ..createSync(recursive: true)
+      ..writeAsBytesSync(encryptedData, flush: true);
+
+    if (kDebugMode) {
+      printBoxed(
+        "Database backup created at: $backupPath",
+        "Database Backup",
+      );
+    }
+
+    _databaseInstance = await _getDatabase(null);
+
+    completer.complete(backupPath);
+    return backupPath;
+  });
+
+  return completer.future;
+}
+
+Future<void> restoreBackup(String backupPath, String key) async {
+  assertChildIsolate();
+
+  final completer = Completer<void>.sync();
+
+  _dbMethodQueue.addJob((_) async {
+    final database = await _getDatabase(null);
+    final backupFile = File(backupPath);
+
+    if (!backupFile.existsSync()) {
+      throw FileSystemException("Backup file does not exist at $backupPath");
+    }
+
+    final encryptedData = backupFile.readAsBytesSync();
+    final decryptedData = CryptographyService.decryptSymmetricUint8List(encryptedData, key);
+
+    // Close the current database to release lock
+    await database.close();
+    _databaseInstance = null;
+
+    // Write the decrypted data back to the database file
+    final dbFile = File(database.path);
+    dbFile.writeAsBytesSync(decryptedData, flush: true);
+
+    if (kDebugMode) {
+      printBoxed(
+        "Database restored from backup: $backupPath",
+        "Database Restore",
+      );
+    }
+
+    _databaseInstance = await _getDatabase(null);
+    completer.complete();
+  });
+
+  return completer.future;
+}
+
+Future<List<String>> readBackups() async {
+  assertChildIsolate();
+
+  final completer = Completer<List<String>>.sync();
+
+  _dbMethodQueue.addJob((_) async {
+    final backups = <String>[];
+    final backupDir = Directory(join(await getDatabasesPath(), 'backups'));
+    if (backupDir.existsSync()) {
+      final backupFiles = backupDir.listSync();
+      for (final file in backupFiles) {
+        if (file is File) {
+          backups.add(file.path);
+        }
+      }
+    }
+
+    completer.complete(backups);
+  });
+
+  return completer.future;
+}
+
 /// Handles JSON encoded database method calls.
 /// Each job is executed sequentially in calling order, backed by an [AsyncQueue].
 Future<DatabaseMethodResult> serverHandleDatabaseMethod(
@@ -96,7 +234,6 @@ Future<DatabaseMethodResult> serverHandleDatabaseMethod(
   _dbMethodQueue.addJob((_) async {
     try {
       final isolateDatabase = await _getDatabase(savedHeartbeat);
-      final waitingDuration = DateTime.now().difference(start);
 
       DatabaseMethodResult? jobResult;
       switch ((method, arguments)) {
@@ -316,7 +453,6 @@ Future<DatabaseMethodResult> serverHandleDatabaseMethod(
       if (printDatabaseMessages) {
         printBoxed(
           "Method: '$method'\n"
-              "Waiting Time: ${waitingDuration.inMicroseconds}μs\n"
               "Turnaround Time: ${turnAroundDuration.inMicroseconds}μs\n"
               "Arguments:\n${jsonEncode(arguments).wrap.indent}",
           "Database Method Call",

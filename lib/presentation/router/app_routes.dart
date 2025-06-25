@@ -106,6 +106,7 @@ class AppRoutes {
     about: AppRoute<Null>('/staff/about'),
   );
 
+  static const backupActual = AppRoute<Null>('/admin/backup/actual');
   // static const admin = AppRoute<Null>('/admin');
   // static const staff = AppRoute<Null>('/staff');
   // static const inventoryPage = AppRoute<Null>('/inventory');

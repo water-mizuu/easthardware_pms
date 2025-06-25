@@ -2,6 +2,18 @@ import 'package:easthardware_pms/utils/message_channel.dart';
 import 'package:flutter/foundation.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
+class WebSocketCustomChannel {
+  const WebSocketCustomChannel(this.channel);
+
+  final MessageChannel channel;
+
+  bool get isOpen => !channel.receivePort.isClosed;
+
+  Future<dynamic> invoke(String method, [List<Object?>? arguments]) async {
+    return await channel.invoke(method, arguments);
+  }
+}
+
 /// Represents a database server connection.
 ///  Specifically, the database must be on another isolate
 ///  which supports invoking methods on the database.
@@ -12,11 +24,11 @@ class Server {
   bool get isOpen => !channel.receivePort.isClosed;
 
   Future<dynamic> invokeDatabaseMethod(String method, [List<Object?>? arguments]) async {
-    return await channel!.invoke("db", [method, arguments]);
+    return await channel.invoke("db", [method, arguments]);
   }
 
   Future<dynamic> invokeMethod(String method, [List<Object?>? arguments]) async {
-    return await channel!.invoke(method, arguments);
+    return await channel.invoke(method, arguments);
   }
 }
 

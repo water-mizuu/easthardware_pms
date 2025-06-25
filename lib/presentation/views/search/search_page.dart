@@ -47,14 +47,14 @@ class InvoicesBody extends SearchTableResult<Invoice> {
       : super(
           selector: (b) => b.state.results.invoices,
           columns: [
-            ('Invoice Number', (p) => p.id.toString()),
+            ('Invoice No.', (p) => p.id.toString()),
             ('Invoice Date', (p) => DateFormat('yyyy-MM-dd').format(p.invoiceDate)),
             ('Customer Name', (p) => p.customerName),
             ('Payment Reference No.', (p) => p.referenceNumber ?? ""),
             ('Memo', (p) => p.memo ?? ""),
           ],
           rowExtents: const {
-            0: FixedSpanExtent(64.00),
+            0: FixedSpanExtent(96.00),
             1: FixedSpanExtent(128.00),
             2: MaxSpanExtent(
               FixedSpanExtent(160.00),
@@ -74,14 +74,13 @@ class InvoicesBody extends SearchTableResult<Invoice> {
   static final InvoicesBody instance = InvoicesBody._();
 }
 
-/// FIXME: Improve the search.
 class OrdersBody extends SearchTableResult<Order> {
   factory OrdersBody() => instance;
   OrdersBody._()
       : super(
           selector: (b) => b.state.results.orders,
           columns: [
-            ('Order Number', (p) => p.id.toString()),
+            ('Order No.', (p) => p.id.toString()),
             ('Order Date', (p) => DateFormat('yyyy-MM-dd').format(p.orderDate)),
             ('Payee Name', (p) => p.payeeName),
             ('Expense Type', (p) => "${p.expenseType}"),
@@ -89,7 +88,7 @@ class OrdersBody extends SearchTableResult<Order> {
             ('Memo', (p) => p.memo ?? ""),
           ],
           rowExtents: const {
-            0: FixedSpanExtent(64.00),
+            0: FixedSpanExtent(96.00),
             1: FixedSpanExtent(128.00),
             2: MaxSpanExtent(
               FixedSpanExtent(160.00),

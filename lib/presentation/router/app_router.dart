@@ -1,9 +1,13 @@
+import 'package:easthardware_pms/domain/backend/enum/database_mode.dart';
 import 'package:easthardware_pms/domain/models/product.dart';
 import 'package:easthardware_pms/presentation/bloc/billing/invoicelist/invoice_list_bloc.dart';
-import 'package:easthardware_pms/presentation/bloc/business_snapshot/business_snapshot_report_bloc.dart';
+import 'package:easthardware_pms/presentation/bloc/business_snapshot/'
+    'business_snapshot_report_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/inventory/product_list/product_list_bloc.dart';
-import 'package:easthardware_pms/presentation/bloc/order/expense_type_list/expense_type_list_bloc.dart';
+import 'package:easthardware_pms/presentation/bloc/order/'
+    'expense_type_list/expense_type_list_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/order/orderlist/order_list_bloc.dart';
+import 'package:easthardware_pms/presentation/bloc/server/server_bloc.dart';
 import 'package:easthardware_pms/presentation/router/app_routes.dart';
 import 'package:easthardware_pms/presentation/views/archive/archive_pane_page.dart';
 import 'package:easthardware_pms/presentation/views/authentication/login_page.dart';
@@ -29,14 +33,18 @@ import 'package:easthardware_pms/presentation/views/order/manage_expense_type_pa
 import 'package:easthardware_pms/presentation/views/order/order_pane_page.dart';
 import 'package:easthardware_pms/presentation/views/payment/create_payment_page.dart';
 import 'package:easthardware_pms/presentation/views/payment/payments_pane_page.dart';
-import 'package:easthardware_pms/presentation/views/reports/business_snapshot/business_snapshot_report.dart';
+import 'package:easthardware_pms/presentation/views/reports/'
+    'business_snapshot/business_snapshot_report.dart';
 import 'package:easthardware_pms/presentation/views/reports/expense_report/expense_report.dart';
 import 'package:easthardware_pms/presentation/views/reports/'
     'inventory_report/inventory_report.dart';
-import 'package:easthardware_pms/presentation/views/reports/profit_loss_report/profit_loss_report.dart';
+import 'package:easthardware_pms/presentation/views/reports/'
+    'profit_loss_report/profit_loss_report.dart';
 import 'package:easthardware_pms/presentation/views/reports/report_list_pane.dart';
-import 'package:easthardware_pms/presentation/views/reports/sales_report/sales_by_category_page.dart';
-import 'package:easthardware_pms/presentation/views/reports/sales_report/sales_by_product_page.dart';
+import 'package:easthardware_pms/presentation/views/reports/'
+    'sales_report/sales_by_category_page.dart';
+import 'package:easthardware_pms/presentation/views/reports/'
+    'sales_report/sales_by_product_page.dart';
 import 'package:easthardware_pms/presentation/views/search/search_page.dart';
 import 'package:easthardware_pms/presentation/views/search/search_top_bar.dart';
 import 'package:easthardware_pms/presentation/views/security/create_user_page.dart';
@@ -316,6 +324,17 @@ final router = GoRouter(
               routes: [
                 TypedGoRoute(
                   route: AppRoutes.admin.backup,
+                  redirect: (context, state) async {
+                    if (context.read<ServerBloc>().state.databaseArgs?.databaseMode ==
+                        DatabaseMode.server) {
+                      return AppRoutes.backupActual.path;
+                    }
+
+                    return null;
+                  },
+                ),
+                TypedGoRoute(
+                  route: AppRoutes.backupActual,
                   builder: (context, state) => const SystemBackupPage(),
                 ),
                 TypedGoRoute(

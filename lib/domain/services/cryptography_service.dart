@@ -317,6 +317,106 @@ class CryptographyService {
     return utf8.decode(plaintextBytes);
   }
 
+  static Uint8List encryptSymmetricUint8List(Uint8List data, String key) {
+    if (key.isEmpty) {
+      return data;
+    }
+
+    final encryptionKey = EncryptionKey(_ChaCha20Poly1305._littleEndianToInt128(utf8.encode(key)));
+    final keyBytes = _ChaCha20Poly1305._bigIntToUint8List(encryptionKey.key, 32);
+    final nonce = generateSalt(12);
+
+    // Additional Authenticated Data (AAD).
+    // For this implementation, AAD is empty. If AAD were used,
+    // it would be included in the Poly1305 MAC calculation but not encrypted.
+    final aad = Uint8List(0);
+
+    // Encrypt the plaintext using ChaCha20.
+    final ciphertext = _ChaCha20Poly1305._chacha20(data, keyBytes, nonce);
+
+    // Generate the Poly1305 authentication tag.
+    // First, derive a one-time Poly1305 key from the main ChaCha20 key and the nonce.
+    final poly1305Key = _ChaCha20Poly1305._deriveAuthKey(keyBytes, nonce);
+
+    // Prepare the data for Poly1305 MAC calculation according to RFC 8439:
+    final dataToAuthenticate = _ChaCha20Poly1305._prepareAuthData(aad, ciphertext);
+
+    // Calculate the authentication tag (MAC).
+    final tag = _ChaCha20Poly1305._poly1305Mac(dataToAuthenticate, poly1305Key);
+
+    // Combine nonce, ciphertext, and tag into a single byte array for transmission/storage.
+    final combinedOutput = Uint8List(nonce.length + ciphertext.length + tag.length)
+      ..setAll(0, nonce)
+      ..setAll(nonce.length, ciphertext)
+      ..setAll(nonce.length + ciphertext.length, tag);
+
+    // Return the combined data as a Base64 encoded string.
+    return combinedOutput;
+  }
+
+  static Uint8List decryptSymmetricUint8List(Uint8List encrypt, String key) {
+    final encryptionKey = EncryptionKey(_ChaCha20Poly1305._littleEndianToInt128(utf8.encode(key)));
+
+    // Decode the Base64 input string.
+    const nonceLength = 12;
+    const tagLength = 16;
+    const minPayloadLength = nonceLength + tagLength; // Minimum length for nonce and tag.
+
+    // Ensure the combined data is long enough to contain at least the nonce and tag.
+    if (encrypt.length < minPayloadLength) {
+      throw ArgumentError('Invalid encrypted data format: too short to contain nonce and tag.');
+    }
+
+    // Extract the nonce (first 12 bytes).
+    final nonce = Uint8List(nonceLength)..setAll(0, encrypt.sublist(0, nonceLength));
+
+    // Extract the authentication tag (last 16 bytes).
+    final receivedTag = Uint8List(tagLength)
+      ..setAll(0, encrypt.sublist(encrypt.length - tagLength));
+
+    // Extract the ciphertext (data between nonce and tag).
+    final ciphertextLength = encrypt.length - nonceLength - tagLength;
+    if (ciphertextLength < 0) {
+      // Should ideally be caught by minPayloadLength check.
+      throw ArgumentError(
+        'Invalid encrypted data format: inconsistent lengths '
+        'leading to negative ciphertext length.',
+      );
+    }
+    final ciphertext = Uint8List(ciphertextLength)
+      ..setAll(0, encrypt.sublist(nonceLength, encrypt.length - tagLength));
+
+    // Convert the EncryptionKey to a 32-byte Uint8List.
+    final keyBytes = _ChaCha20Poly1305._bigIntToUint8List(encryptionKey.key, 32);
+
+    // AAD must be the same as used during encryption (empty in this implementation).
+    final aad = Uint8List(0);
+
+    // Derive the Poly1305 authentication key using the main ChaCha20 key and the nonce.
+    final poly1305Key = _ChaCha20Poly1305._deriveAuthKey(keyBytes, nonce);
+
+    // Prepare the data for Poly1305 MAC verification.
+    final dataToVerify = _ChaCha20Poly1305._prepareAuthData(aad, ciphertext);
+
+    // Calculate the expected authentication tag based on the received data.
+    final calculatedTag = _ChaCha20Poly1305._poly1305Mac(dataToVerify, poly1305Key);
+
+    // Verify that the calculated tag matches the received tag using a constant-time comparison
+    // to prevent timing attacks.
+    if (!_ChaCha20Poly1305._constantTimeEquals(calculatedTag, receivedTag)) {
+      throw ArgumentError(
+        'Authentication failed: Data may have been '
+        'tampered with or key is incorrect.',
+      );
+    }
+
+    // If authentication passed, decrypt the ciphertext using ChaCha20.
+    final plaintextBytes = _ChaCha20Poly1305._chacha20(ciphertext, keyBytes, nonce);
+
+    // Convert the decrypted plaintext bytes back to a UTF-8 string.
+    return plaintextBytes;
+  }
+
   static const _primeBasis = [
     ...[2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41],
     ...[43, 47, 53, 59, 61, 67, 71, 73, 79, 83, 89, 97],
