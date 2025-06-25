@@ -106,8 +106,20 @@ class ProductStatusChangedEvent extends ProductFormEvent {
   final int status;
 }
 
-class FormButtonPressedEvent extends ProductFormEvent {
-  const FormButtonPressedEvent({required this.productId, required this.creatorId});
+class SaveProductRequestEvent extends ProductFormEvent {
+  const SaveProductRequestEvent({required this.productId, required this.creatorId});
+  final int productId;
+  final int creatorId;
+}
+
+class UpdateProductRequestEvent extends ProductFormEvent {
+  const UpdateProductRequestEvent({required this.productId, required this.creatorId});
+  final int productId;
+  final int creatorId;
+}
+
+class ArchiveProductRequestEvent extends ProductFormEvent {
+  const ArchiveProductRequestEvent({required this.productId, required this.creatorId});
   final int productId;
   final int creatorId;
 }

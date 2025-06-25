@@ -193,7 +193,7 @@ class PageHeader extends StatelessWidget {
               'Product #${context.read<ProductFormBloc>().state.productId}',
               context.read<AuthenticationBloc>().state.user!,
             ))
-            ..read<ProductFormBloc>().add(FormButtonPressedEvent(
+            ..read<ProductFormBloc>().add(SaveProductRequestEvent(
               productId: productId,
               creatorId: creatorId,
             ));
@@ -203,7 +203,7 @@ class PageHeader extends StatelessWidget {
           final creatorId = context.read<AuthenticationBloc>().state.user!.id!;
           context //
               .read<ProductFormBloc>()
-              .add(FormButtonPressedEvent(
+              .add(SaveProductRequestEvent(
                 productId: state.productId!,
                 creatorId: creatorId,
               ));

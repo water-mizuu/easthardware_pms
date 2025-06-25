@@ -70,3 +70,20 @@ enum PaymentDisplaySortBy {
   @override
   String toString() => name;
 }
+
+enum InvoiceDisplaySortBy {
+  invoiceDateAscending('Date Ascending'),
+  invoiceDateDescending('Date Descending'),
+  numberAscending('Invoice Number Ascending'),
+  numberDescending('Invoice Number Descending'),
+  customerAscending('Customer Ascending'),
+  customerDescending('Customer Descending'),
+  totalAscending('Total Ascending'),
+  totalDescending('Total Descending');
+
+  const InvoiceDisplaySortBy(this.name);
+  final String name;
+
+  @override
+  String toString() => name;
+}

@@ -230,10 +230,6 @@ class _SearchElementState extends State<_SearchElement> {
               context.read<SearchBloc>().add(SearchQueryUpdated(value));
             },
           ),
-          // child: TextBox(
-          //   placeholder: 'Enter search keyword; e.g. product name, invoice number, etc.',
-          //   onChanged: (value) => context.read<SearchBloc>().add(SearchQueryUpdated(value)),
-          // ),
         ),
       ],
     );
