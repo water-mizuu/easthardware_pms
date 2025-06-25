@@ -593,12 +593,10 @@ class InvoiceProductTable extends StatelessWidget {
               for (var i = 0; i < state.invoiceProducts.length; i++) ...[
                 Container(
                   padding: const EdgeInsets.symmetric(vertical: 16.0),
-                  decoration: i % 2 == 0
-                      ? BoxDecoration(
-                          color: const Color(0xFFFAFAFA),
-                          border: Border(bottom: BorderSide(color: Colors.grey[40], width: 1)),
-                        )
-                      : null,
+                  decoration: BoxDecoration(
+                    color: i % 2 == 0 ? const Color(0xFFFAFAFA) : null,
+                    border: Border(bottom: BorderSide(color: Colors.grey[40], width: 1)),
+                  ),
                   child: Row(
                     children: [
                       SizedBox(width: 32.0, child: Center(child: Text('${i + 1}'))),
@@ -861,7 +859,7 @@ class InvoiceSummary extends StatelessWidget {
                     children: [
                       Text(
                         'OPEN BALANCE:',
-                        style: TextStyles.body.merge(TextStyles.onSurfaceVariant),
+                        style: TextStyles.title.merge(TextStyles.onSurfaceVariant),
                         textAlign: TextAlign.end,
                       ),
                       Text(
@@ -869,7 +867,7 @@ class InvoiceSummary extends StatelessWidget {
                                 context.watch<PaymentFormBloc>().state.amount -
                                 (invoice?.amountPaid ?? 0))
                             .toStringAsFixed(2),
-                        style: TextStyles.body.merge(TextStyles.strong),
+                        style: TextStyles.title,
                       ),
                     ],
                   ),

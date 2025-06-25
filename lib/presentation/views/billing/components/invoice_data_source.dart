@@ -37,6 +37,7 @@ class InvoiceDataSource extends DataTableSource {
       viewAction: () {
         unawaited(
           showDialog(
+            barrierDismissible: true,
             context: context,
             builder: (context) => InvoiceInformationContentDialog(
               context: context,

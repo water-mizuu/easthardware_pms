@@ -14,17 +14,17 @@ class TextStyles {
     fontWeight: FontWeight.w500,
   );
   static const TextStyle display = TextStyle(
-    fontSize: 20,
+    fontSize: 22,
   );
   static const TextStyle title = TextStyle(
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: FontWeight.w500,
   );
   static const TextStyle subtitle = TextStyle(
     fontSize: 16,
   );
   static const TextStyle body = TextStyle(
-    fontSize: 12,
+    fontSize: 14,
   );
   static const TextStyle caption = TextStyle(
     fontSize: 12,
@@ -39,11 +39,11 @@ class TextStyles {
     fontWeight: FontWeight.w600,
   );
   static const TextStyle tableHeader = TextStyle(
-    fontSize: 12,
+    fontSize: 14,
     fontWeight: FontWeight.w500,
   );
   static const TextStyle tableBody = TextStyle(
-    fontSize: 12,
+    fontSize: 14,
     fontWeight: FontWeight.w400,
   );
 }

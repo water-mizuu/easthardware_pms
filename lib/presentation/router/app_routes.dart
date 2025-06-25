@@ -92,6 +92,7 @@ class AppRoutes {
     ),
     billing: AppRoute<Null>('/staff/billing'),
     createInvoice: AppRoute<Null>('/staff/create/invoice'),
+    editInvoice: AppRoute<Invoice>('/staff/edit/invoice'),
     payInvoice: AppRoute<Null>('/staff/pay/invoice'),
     help: AppRoute<Null>('/staff/help'),
     about: AppRoute<Null>('/staff/about'),
