@@ -85,12 +85,18 @@ class AppRoutes {
   static const staff = (
     dashboard: AppRoute<Null>('/staff/dashboard'),
     inventory: AppRoute<Null>('/staff/inventory'),
+    payment: AppRoute<Null>('/staff/payment'),
     search: (
       products: AppRoute<Null>('/staff/search/products'),
       invoices: AppRoute<Null>('/staff/search/invoices'),
       orders: AppRoute<Null>('/staff/search/orders'),
     ),
     billing: AppRoute<Null>('/staff/billing'),
+    createPayment: (
+      withInvoice: AppRoute<Invoice>('/staff/create/payment'),
+      withoutInvoice: AppRoute<Null>('/staff/create/payment'),
+      route: AppRoute<Invoice?>('/staff/create/payment'),
+    ),
     createInvoice: AppRoute<Null>('/staff/create/invoice'),
     editInvoice: AppRoute<Invoice>('/staff/edit/invoice'),
     payInvoice: AppRoute<Null>('/staff/pay/invoice'),

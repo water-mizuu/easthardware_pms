@@ -310,6 +310,9 @@ class DataRowMapper {
   static DataRow mapInvoiceToRow(
     Invoice invoice, {
     required void Function()? viewAction,
+    required void Function()? editAction,
+    required void Function()? printAction,
+    required void Function()? receivePaymentAction,
   }) {
     final invoiceDate = DateFormat.yMMMMd().format(invoice.invoiceDate).toString();
     final invoiceId = invoice.id!.toString();
@@ -317,7 +320,30 @@ class DataRowMapper {
         ? invoice.customerName
         : "Unnamed Customer";
     final invoiceTotal = CurrencyFormatter.full(invoice.amountDue);
-
+    final actionsCell = editAction == null && printAction == null && receivePaymentAction == null
+        ? null
+        : DataCell(
+            DropDownButton(
+              title: const Text('Actions', style: TextStyles.body),
+              items: [
+                if (editAction != null)
+                  MenuFlyoutItem(
+                    text: const Text('Edit Invoice', style: TextStyles.body),
+                    onPressed: editAction,
+                  ),
+                if (printAction != null)
+                  MenuFlyoutItem(
+                    text: const Text('Print Invoice', style: TextStyles.body),
+                    onPressed: printAction,
+                  ),
+                if (receivePaymentAction != null)
+                  MenuFlyoutItem(
+                    text: const Text('Receive Payment', style: TextStyles.body),
+                    onPressed: receivePaymentAction,
+                  )
+              ],
+            ),
+          );
     if (invoice.paymentDate != null) {
       final paymentDate = DateFormat.yMMMMd().format(invoice.paymentDate!).toString();
       return DataRow(
@@ -328,7 +354,7 @@ class DataRowMapper {
           DataCell(Text(invoiceCustomer)),
           DataCell(Text(invoiceTotal)),
           DataCell(Row(children: [Badges.good('Paid on $paymentDate')])),
-          DataCell(Button(onPressed: viewAction, child: const Text('View'))),
+          if (actionsCell case final actionsCell?) actionsCell,
         ],
       );
     }
@@ -341,7 +367,7 @@ class DataRowMapper {
           DataCell(Text(invoiceCustomer)),
           DataCell(Text(invoiceTotal)),
           DataCell(Row(children: [Badges.bad('Overdue')])),
-          DataCell(Button(onPressed: viewAction, child: const Text('View'))),
+          if (actionsCell case final actionsCell?) actionsCell,
         ],
       );
     }
@@ -356,7 +382,7 @@ class DataRowMapper {
           DataCell(Row(children: [
             Badges.warn('Due in ${invoice.dueDate.difference(DateTime.now()).inDays} days')
           ])),
-          DataCell(Button(onPressed: viewAction, child: const Text('View'))),
+          if (actionsCell case final actionsCell?) actionsCell,
         ],
       );
     }
@@ -368,7 +394,7 @@ class DataRowMapper {
         DataCell(Text(invoiceCustomer)),
         DataCell(Text(invoiceTotal)),
         DataCell(Row(children: [Badges.normal('Due')])),
-        DataCell(Button(onPressed: viewAction, child: const Text('View'))),
+        if (actionsCell case final actionsCell?) actionsCell,
       ],
     );
   }

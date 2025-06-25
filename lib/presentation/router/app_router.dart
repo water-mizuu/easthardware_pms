@@ -408,7 +408,19 @@ final router = GoRouter(
                 ),
               ],
             ),
-
+            StatefulShellBranch(
+              initialLocation: AppRoutes.staff.payment.path,
+              routes: [
+                TypedGoRoute(
+                  route: AppRoutes.staff.payment,
+                  builder: (context, state) => const PaymentsPanePage(),
+                ),
+                TypedGoRoute(
+                  route: AppRoutes.staff.createPayment.route,
+                  builder: (context, state) => CreatePaymentPage(invoice: state.extra),
+                ),
+              ],
+            ),
             StatefulShellBranch(
               // initialLocation: AppRoutes.staff.createInvoice.path,
               routes: [
