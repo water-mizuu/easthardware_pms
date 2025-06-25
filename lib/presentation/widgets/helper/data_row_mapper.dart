@@ -1,5 +1,4 @@
 import 'package:easthardware_pms/domain/enums/enums.dart';
-import 'package:easthardware_pms/domain/models/category.dart';
 import 'package:easthardware_pms/domain/models/invoice.dart';
 import 'package:easthardware_pms/domain/models/order.dart';
 import 'package:easthardware_pms/domain/models/product.dart';
@@ -242,15 +241,7 @@ class DataRowMapper {
     return DataRow(cells: [
       DataCell(Text(category.category.name, style: TextStyles.body)),
       DataCell(Text(category.productCount.toString(), style: TextStyles.body)),
-      DataCell(DropDownButton(
-        title: const Text('Actions', style: TextStyles.body),
-        items: [
-          MenuFlyoutItem(
-            text: const Text('Edit Category', style: TextStyles.body),
-            onPressed: action,
-          ),
-        ],
-      )),
+      DataCell(Button(onPressed: action, child: const Text('Edit'))),
     ]);
   }
 

@@ -226,9 +226,7 @@ class _AdminNavigationViewState extends State<AdminNavigationView>
           navItem(
             icon: FluentIcons.text_document_edit,
             title: "Manage Payment Methods",
-            // route: AppRoutes.admin.createInvoice,
-
-            /// FIXME: Add manage payment methods
+            route: AppRoutes.admin.managePaymentMethods,
           ),
         ],
       ),

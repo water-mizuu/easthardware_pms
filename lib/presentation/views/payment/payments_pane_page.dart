@@ -66,6 +66,13 @@ class PageHeader extends StatelessWidget {
           style: TextStyles.display,
         ),
         const Spacer(),
+        TextButton(
+          'Manage Payment Methods',
+          onPressed: () {
+            context.navigate(AppRoutes.admin.managePaymentMethods);
+          },
+        ),
+        const SizedBox(width: 8),
         TextButtonFilled(
           'Add Payment',
           onPressed: () {

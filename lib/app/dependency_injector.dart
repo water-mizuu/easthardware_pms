@@ -44,6 +44,7 @@ import 'package:easthardware_pms/presentation/bloc/security/user_list/user_list_
 import 'package:easthardware_pms/presentation/bloc/security/user_log_list/user_log_list_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/server/server_bloc.dart';
 import 'package:easthardware_pms/presentation/cubit/billing/invoice_display/invoice_display_cubit.dart';
+import 'package:easthardware_pms/presentation/cubit/billing/payment_method_display/payment_method_display_cubit.dart';
 import 'package:easthardware_pms/presentation/cubit/database_information/'
     'database_information_cubit.dart';
 import 'package:easthardware_pms/presentation/cubit/inventory/'
@@ -348,6 +349,10 @@ class DependencyInjector extends ChangeNotifier {
       BlocProvider(
         key: key(),
         create: (context) => InvoiceDisplayCubit(),
+      ),
+      BlocProvider(
+        key: key(),
+        create: (context) => PaymentMethodDisplayCubit(),
       ),
     ];
   }

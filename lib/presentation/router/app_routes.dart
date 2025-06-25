@@ -49,6 +49,7 @@ class AppRoutes {
       withoutInvoice: AppRoute<Null>('/admin/create/payment'),
       route: AppRoute<Invoice?>('/admin/create/payment'),
     ),
+    managePaymentMethods: AppRoute<Null>('/admin/manage/payment_methods'),
 
     //Order Sub Pages
     createRestockOrder: (
