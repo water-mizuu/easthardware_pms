@@ -219,13 +219,11 @@ class BusinessSnapshotReportBloc
     final invoices = state.invoices;
     final invoiceProducts = state.invoiceProducts;
     final orders = state.orders;
-    final orderProducts = state.orderProducts;
     final expenseTypes = state.expenseTypes;
 
     final currentPeriodStart = state.queryData.currentPeriodStart;
     final currentPeriodEnd =
         state.queryData.currentPeriodEnd.add(const Duration(days: 1)); // Include end date
-    final comparisonPeriod = state.queryData.comparisonPeriod;
     final topProductsSortBy = state.queryData.topProductsSortBy;
     final expenseBreakdownSortBy = state.queryData.expenseBreakdownSortBy;
     final keyMetricsSortBy = state.queryData.keyMetricsSortBy;

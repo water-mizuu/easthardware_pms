@@ -2,8 +2,7 @@ import 'dart:async';
 
 import 'package:easthardware_pms/domain/models/expense_type.dart';
 import 'package:easthardware_pms/domain/models/order.dart';
-import 'package:easthardware_pms/presentation/bloc/expense/'
-    'expense_report/expense_report_bloc.dart';
+import 'package:easthardware_pms/presentation/bloc/order/expense_report/expense_report_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/order/'
     'expense_type_list/expense_type_list_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/order/orderlist/order_list_bloc.dart';

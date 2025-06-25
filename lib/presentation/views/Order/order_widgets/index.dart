@@ -1,7 +1,7 @@
 import 'package:easthardware_pms/domain/enums/enums.dart';
 import 'package:easthardware_pms/presentation/bloc/order/orderform/order_form_bloc.dart';
-import 'package:easthardware_pms/presentation/views/Order/create_expense_order_page.dart';
-import 'package:easthardware_pms/presentation/views/Order/create_restock_order_page.dart';
+import 'package:easthardware_pms/presentation/views/order/create_expense_order_page.dart';
+import 'package:easthardware_pms/presentation/views/order/create_restock_order_page.dart';
 import 'package:easthardware_pms/presentation/widgets/ui/form_table_cell.dart';
 import 'package:fluent_ui/fluent_ui.dart';
 import 'package:provider/provider.dart';

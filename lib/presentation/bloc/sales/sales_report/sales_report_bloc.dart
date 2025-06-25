@@ -7,7 +7,7 @@ import 'package:easthardware_pms/domain/models/invoice_product.dart';
 import 'package:easthardware_pms/domain/models/order.dart';
 import 'package:easthardware_pms/domain/models/order_product.dart';
 import 'package:easthardware_pms/domain/models/product.dart';
-import 'package:easthardware_pms/presentation/views/Reports/sales_report/sales_query_data.dart';
+import 'package:easthardware_pms/presentation/views/reports/sales_report/sales_query_data.dart';
 import 'package:easthardware_pms/utils/undefined.dart';
 import 'package:equatable/equatable.dart';
 import 'package:fluent_ui/fluent_ui.dart';

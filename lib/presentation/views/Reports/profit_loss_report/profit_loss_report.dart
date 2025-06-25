@@ -8,6 +8,7 @@ import 'package:easthardware_pms/presentation/router/app_routes.dart';
 import 'package:easthardware_pms/presentation/views/reports/pdf_helpers/pdf_generation.dart';
 import 'package:easthardware_pms/presentation/views/reports/profit_loss_report/profit_loss_query_data.dart';
 import 'package:easthardware_pms/presentation/widgets/animated_single_child_scroll_view.dart';
+import 'package:easthardware_pms/presentation/widgets/bordered_date_picker.dart';
 import 'package:easthardware_pms/presentation/widgets/helper/currency_formatter.dart';
 import 'package:easthardware_pms/presentation/widgets/layout/spacing.dart';
 import 'package:easthardware_pms/presentation/widgets/text.dart';
@@ -366,7 +367,7 @@ class _StartDateSelection extends StatelessWidget {
       children: [
         const Text('Start Date: '),
         Spacing.h8,
-        DatePicker(
+        BorderedDatePicker(
           selected: context.select((ProfitLossReportBloc b) => b.state.queryData.startDate),
           onChanged: (value) => context //
               .read<ProfitLossReportBloc>()
@@ -386,7 +387,7 @@ class _EndDateSelection extends StatelessWidget {
       children: [
         const Text('End Date: '),
         Spacing.h8,
-        DatePicker(
+        BorderedDatePicker(
           selected: context.select((ProfitLossReportBloc b) => b.state.queryData.endDate),
           onChanged: (value) => context //
               .read<ProfitLossReportBloc>()

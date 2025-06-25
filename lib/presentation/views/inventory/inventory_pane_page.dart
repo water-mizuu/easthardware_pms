@@ -12,7 +12,9 @@ import 'package:easthardware_pms/presentation/bloc/inventory/inventory_display/'
     'inventory_display_enum.dart';
 import 'package:easthardware_pms/presentation/bloc/inventory/product_list/product_list_bloc.dart';
 import 'package:easthardware_pms/presentation/router/app_routes.dart';
-import 'package:easthardware_pms/presentation/views/inventory/product_information_content_dialog.dart';
+import 'package:easthardware_pms/presentation/views/'
+    'inventory/product_information_content_dialog.dart';
+import 'package:easthardware_pms/presentation/widgets/animated_single_child_scroll_view.dart';
 import 'package:easthardware_pms/presentation/widgets/helper/data_row_mapper.dart';
 import 'package:easthardware_pms/presentation/widgets/layout/spacing.dart';
 import 'package:easthardware_pms/presentation/widgets/layout_mode_provider.dart';
@@ -26,7 +28,6 @@ import 'package:fluent_ui/fluent_ui.dart';
 import 'package:flutter/material.dart'
     show DataColumn, DataRow, DataTableSource, PaginatedDataTable;
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:scroll_animator/scroll_animator.dart';
 
 class InventoryPanePage extends StatefulWidget {
   const InventoryPanePage({super.key});
@@ -36,33 +37,25 @@ class InventoryPanePage extends StatefulWidget {
 }
 
 class _InventoryPanePageState extends State<InventoryPanePage> {
-  late final AnimatedScrollController _scrollController;
-  WeakReference<List<Product>>? _productListBlocRef;
-
   @override
   void initState() {
     super.initState();
 
-    _scrollController = AnimatedScrollController(animationFactory: const ChromiumEaseInOut());
     context //
         .read<InventoryDisplayBloc>()
-        .add(
-          InventoryDisplayItemsUpdatedEvent(
-              WeakReference(context.read<ProductListBloc>().state.allProducts)),
-        );
+        .add(InventoryDisplayItemsUpdatedEvent(
+          WeakReference(context.read<ProductListBloc>().state.allProducts),
+        ));
   }
 
   @override
   Widget build(BuildContext context) {
     return BlocListener<ProductListBloc, ProductListState>(
-      listenWhen: (prev, curr) => prev.allProducts != curr.allProducts,
+      listenWhen: (p, c) => p.allProducts != c.allProducts,
       listener: (context, state) {
-        final productList = state.allProducts;
-
-        _productListBlocRef = WeakReference(productList);
         context
             .read<InventoryDisplayBloc>()
-            .add(InventoryDisplayItemsUpdatedEvent(_productListBlocRef!));
+            .add(InventoryDisplayItemsUpdatedEvent(WeakReference(state.allProducts)));
       },
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -73,8 +66,7 @@ class _InventoryPanePageState extends State<InventoryPanePage> {
           ),
           Spacing.v4,
           Expanded(
-            child: SingleChildScrollView(
-              controller: _scrollController,
+            child: AnimatedSingleChildScrollView(
               child: Padding(
                 padding: EdgeInsets.symmetric(
                   horizontal: AppPadding.panePadding.horizontal / 2,

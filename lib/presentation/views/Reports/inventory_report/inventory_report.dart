@@ -13,6 +13,7 @@ import 'package:easthardware_pms/presentation/views/dashboard/cards/sales_overvi
 import 'package:easthardware_pms/presentation/views/reports/pdf_helpers/pdf_commons.dart';
 import 'package:easthardware_pms/presentation/views/reports/pdf_helpers/pdf_generation.dart';
 import 'package:easthardware_pms/presentation/widgets/animated_single_child_scroll_view.dart';
+import 'package:easthardware_pms/presentation/widgets/bordered_date_picker.dart';
 import 'package:easthardware_pms/presentation/widgets/helper/currency_formatter.dart';
 import 'package:easthardware_pms/presentation/widgets/layout/spacing.dart';
 import 'package:easthardware_pms/presentation/widgets/text.dart';
@@ -276,7 +277,7 @@ class _DateSelection extends StatelessWidget {
           children: [
             const Text('Report Date: '),
             Spacing.h8,
-            DatePicker(
+            BorderedDatePicker(
               selected: selectedDate,
               onChanged: (value) => context //
                   .read<InventoryReportBloc>()

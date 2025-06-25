@@ -1,4 +1,5 @@
 import 'package:easthardware_pms/presentation/widgets/layout/spacing.dart';
+import 'package:easthardware_pms/presentation/widgets/layout_mode_provider.dart';
 import 'package:easthardware_pms/presentation/widgets/text.dart';
 import 'package:fluent_ui/fluent_ui.dart';
 
@@ -37,31 +38,91 @@ class _UserManualSection extends StatelessWidget {
   const _UserManualSection();
   @override
   Widget build(BuildContext context) {
-    return const Column(
+    return Column(
+      mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children: [
-            _UserManualCard(
-                icon: FluentIcons.product_catalog,
-                title: 'Inventory Management',
-                description: 'Add, update, and track hardware products in your inventory system.'),
-            _UserManualCard(
-                icon: FluentIcons.shop,
-                title: 'Sales & Order Processing',
-                description: 'Creating and Tracking of Sales, and Orders data.'),
-            _UserManualCard(
-                icon: FluentIcons.chart,
-                title: 'Reports & Analytics',
-                description:
-                    'Generate inventory reports, sales analytics, and business performance metrics.'),
-            _UserManualCard(
-                icon: FluentIcons.settings,
-                title: 'System Security & Settings',
-                description: 'Configure system settings, access level, etc.'),
-          ],
+        Text(
+          'User Manual',
+          style: FluentTheme.of(context)
+              .typography
+              .subtitle //
+              ?.copyWith(fontWeight: FontWeight.normal),
         ),
+        Spacing.v16,
+        LayoutMode.builder((context, mode, keys) {
+          final cards = [
+            _UserManualCard(
+              icon: FluentIcons.product_catalog,
+              title: 'Inventory Management',
+              description: 'Add, update, and track hardware products in your inventory system.',
+              key: keys['0'],
+            ),
+            _UserManualCard(
+              icon: FluentIcons.shop,
+              title: 'Sales & Order Processing',
+              description: 'Creating and Tracking of Sales, and Orders data.',
+              key: keys['1'],
+            ),
+            _UserManualCard(
+              icon: FluentIcons.chart,
+              title: 'Reports & Analytics',
+              description:
+                  'Generate inventory reports, sales analytics, and business performance metrics.',
+              key: keys['2'],
+            ),
+            _UserManualCard(
+              icon: FluentIcons.settings,
+              title: 'System Security & Settings',
+              description: 'Configure system settings, access level, etc.',
+              key: keys['3'],
+            ),
+          ];
+
+          switch (mode) {
+            case LayoutMode.wide:
+              return IntrinsicHeight(
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    for (final card in cards) Expanded(child: card),
+                  ].withSpacing(() => Spacing.h8),
+                ),
+              );
+            case LayoutMode.constrained:
+              return Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  IntrinsicHeight(
+                    child: Row(
+                      children: [
+                        Expanded(child: cards[0]),
+                        Spacing.h8,
+                        Expanded(child: cards[1]),
+                      ],
+                    ),
+                  ),
+                  Spacing.v8,
+                  IntrinsicHeight(
+                    child: Row(
+                      children: [
+                        Expanded(child: cards[2]),
+                        Spacing.h8,
+                        Expanded(child: cards[3]),
+                      ],
+                    ),
+                  ),
+                ],
+              );
+            case LayoutMode.compact:
+              return Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  for (final card in cards) card,
+                ].withSpacing(() => Spacing.v8),
+              );
+          }
+        }),
       ],
     );
   }
@@ -69,6 +130,7 @@ class _UserManualSection extends StatelessWidget {
 
 class _UserManualCard extends StatelessWidget {
   const _UserManualCard({
+    super.key,
     required this.icon,
     required this.title,
     required this.description,
@@ -83,40 +145,38 @@ class _UserManualCard extends StatelessWidget {
 
     return Card(
       padding: const EdgeInsets.all(16.0),
-      child: Expanded(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: theme.accentColor.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Icon(
-                icon,
-                size: 36.0,
-                color: theme.accentColor,
-              ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: theme.accentColor.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(12),
             ),
-            Spacing.v16,
-            Text(
-              title,
-              style: theme.typography.body?.copyWith(
-                fontWeight: FontWeight.w600,
-              ),
-              textAlign: TextAlign.center,
+            child: Icon(
+              icon,
+              size: 36.0,
+              color: theme.accentColor,
             ),
-            Spacing.v8,
-            Text(
-              description,
-              style: theme.typography.body?.copyWith(
-                fontWeight: FontWeight.w300,
-              ),
-              textAlign: TextAlign.center,
+          ),
+          Spacing.v16,
+          Text(
+            title,
+            style: theme.typography.body?.copyWith(
+              fontWeight: FontWeight.w600,
             ),
-          ],
-        ),
+            textAlign: TextAlign.center,
+          ),
+          Spacing.v8,
+          Text(
+            description,
+            style: theme.typography.body?.copyWith(
+              fontWeight: FontWeight.w300,
+            ),
+            textAlign: TextAlign.center,
+          ),
+        ],
       ),
     );
   }
