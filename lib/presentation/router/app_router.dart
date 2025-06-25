@@ -5,12 +5,6 @@ import 'package:easthardware_pms/presentation/bloc/inventory/product_list/produc
 import 'package:easthardware_pms/presentation/bloc/order/expense_type_list/expense_type_list_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/order/orderlist/order_list_bloc.dart';
 import 'package:easthardware_pms/presentation/router/app_routes.dart';
-import 'package:easthardware_pms/presentation/views/Order/create_expense_order_page.dart';
-import 'package:easthardware_pms/presentation/views/Order/create_restock_order_page.dart';
-import 'package:easthardware_pms/presentation/views/Order/edit_expense_order_page.dart';
-import 'package:easthardware_pms/presentation/views/Order/edit_restock_order_page.dart';
-import 'package:easthardware_pms/presentation/views/Order/manage_expense_type_page.dart';
-import 'package:easthardware_pms/presentation/views/Order/order_pane_page.dart';
 import 'package:easthardware_pms/presentation/views/archive/archive_pane_page.dart';
 import 'package:easthardware_pms/presentation/views/authentication/login_page.dart';
 import 'package:easthardware_pms/presentation/views/authentication/new_password_page.dart';
@@ -26,6 +20,12 @@ import 'package:easthardware_pms/presentation/views/inventory/inventory_pane_pag
 import 'package:easthardware_pms/presentation/views/inventory/manage_categories_page.dart';
 import 'package:easthardware_pms/presentation/views/navigation/admin_navigation_scaffold.dart';
 import 'package:easthardware_pms/presentation/views/navigation/staff_navigation_scaffold.dart';
+import 'package:easthardware_pms/presentation/views/order/create_expense_order_page.dart';
+import 'package:easthardware_pms/presentation/views/order/create_restock_order_page.dart';
+import 'package:easthardware_pms/presentation/views/order/edit_expense_order_page.dart';
+import 'package:easthardware_pms/presentation/views/order/edit_restock_order_page.dart';
+import 'package:easthardware_pms/presentation/views/order/manage_expense_type_page.dart';
+import 'package:easthardware_pms/presentation/views/order/order_pane_page.dart';
 import 'package:easthardware_pms/presentation/views/payment/create_payment_page.dart';
 import 'package:easthardware_pms/presentation/views/payment/payments_pane_page.dart';
 import 'package:easthardware_pms/presentation/views/reports/business_snapshot/business_snapshot_report.dart';
@@ -39,7 +39,7 @@ import 'package:easthardware_pms/presentation/views/reports/sales_report/sales_b
 import 'package:easthardware_pms/presentation/views/search/search_page.dart';
 import 'package:easthardware_pms/presentation/views/search/search_top_bar.dart';
 import 'package:easthardware_pms/presentation/views/security/create_user_page.dart';
-import 'package:easthardware_pms/presentation/views/security/user_log_pane.dart';
+import 'package:easthardware_pms/presentation/views/security/user_logs_page.dart';
 import 'package:easthardware_pms/presentation/views/security/users_pane_page.dart';
 import 'package:easthardware_pms/presentation/views/settings/about_page.dart';
 import 'package:easthardware_pms/presentation/views/settings/help_page.dart';
@@ -302,7 +302,7 @@ final router = GoRouter(
                 ),
                 TypedGoRoute(
                   route: AppRoutes.admin.userLogs,
-                  builder: (context, state) => const UserLogPane(),
+                  builder: (context, state) => const UserLogsPage(),
                 ),
               ],
             ),

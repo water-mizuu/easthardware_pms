@@ -7,9 +7,11 @@ import 'package:easthardware_pms/presentation/bloc/inventory/product_list/produc
 import 'package:easthardware_pms/presentation/bloc/order/orderlist/order_list_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/sales/sales_report/sales_report_bloc.dart';
 import 'package:easthardware_pms/presentation/router/app_routes.dart';
-import 'package:easthardware_pms/presentation/views/Reports/pdf_helpers/pdf_generation.dart';
-import 'package:easthardware_pms/presentation/views/Reports/sales_report/sales_query_data.dart';
+import 'package:easthardware_pms/presentation/views/reports/pdf_helpers/pdf_generation.dart';
+import 'package:easthardware_pms/presentation/views/reports/sales_report/extensions/sales_by_category_datum.dart';
+import 'package:easthardware_pms/presentation/views/reports/sales_report/sales_query_data.dart';
 import 'package:easthardware_pms/presentation/widgets/animated_single_child_scroll_view.dart';
+import 'package:easthardware_pms/presentation/widgets/bordered_date_picker.dart';
 import 'package:easthardware_pms/presentation/widgets/helper/currency_formatter.dart';
 import 'package:easthardware_pms/presentation/widgets/layout/spacing.dart';
 import 'package:easthardware_pms/presentation/widgets/text.dart';
@@ -27,7 +29,6 @@ import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:provider/provider.dart';
 
-typedef SalesByCategoryDatum = (List<(Product, SalesExtras)>, Category);
 typedef SalesByCategoryFunction = String Function(SalesByCategoryDatum);
 typedef TotalSalesByCategoryFunction = String Function(List<SalesByCategoryDatum>);
 typedef _SalesColumnRecord = (
@@ -52,21 +53,6 @@ extension type const _SalesColumn._(_SalesColumnRecord record) {
   pw.TableColumnWidth get width => record.$3;
   SalesByCategoryFunction get value => record.$4;
   TotalSalesByCategoryFunction? get total => record.$5;
-}
-
-extension SalesByCategoryDatumShortcuts on SalesByCategoryDatum {
-  List<Product> get products => $1.map((e) => e.$1).toList();
-  Category get category => $2;
-  List<SalesExtras> get extras => $1.map((e) => e.$2).toList();
-
-  double get salePrice => products.map((p) => p.salePrice).sum();
-  double get orderCost => products.map((p) => p.orderCost).sum();
-
-  double get unitsSold => extras.map((e) => e.unitsSold).sum();
-  double get unitsOrdered => extras.map((e) => e.unitsOrdered).sum();
-  double get totalRevenue => $1.map((pair) => pair.$1.salePrice * pair.$2.unitsSold).sum();
-  double get totalCost => $1.map((pair) => pair.$1.orderCost * pair.$2.unitsOrdered).sum();
-  double get grossProfit => totalRevenue - totalCost;
 }
 
 final salesColumns = <_SalesColumn>[
@@ -263,7 +249,7 @@ class _StartDateSelection extends StatelessWidget {
       children: [
         const Text('Start Date: '),
         Spacing.h8,
-        DatePicker(
+        BorderedDatePicker(
           selected: context.select((SalesReportBloc b) => b.state.queryData.startDate),
           onChanged: (value) =>
               context.read<SalesReportBloc>().add(SalesReportSetStartDateEvent(value)),
@@ -282,7 +268,7 @@ class _EndDateSelection extends StatelessWidget {
       children: [
         const Text('End Date: '),
         Spacing.h8,
-        DatePicker(
+        BorderedDatePicker(
           selected: context.select((SalesReportBloc b) => b.state.queryData.endDate),
           onChanged: (value) =>
               context.read<SalesReportBloc>().add(SalesReportSetEndDateEvent(value)),

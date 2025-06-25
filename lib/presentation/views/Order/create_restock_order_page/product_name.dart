@@ -1,6 +1,6 @@
 import 'package:easthardware_pms/presentation/bloc/inventory/product_list/product_list_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/order/orderform/order_form_bloc.dart';
-import 'package:easthardware_pms/presentation/views/Order/create_restock_order_page.dart';
+import 'package:easthardware_pms/presentation/views/order/create_restock_order_page.dart';
 import 'package:easthardware_pms/presentation/widgets/auto_auto_suggest_box.dart';
 import 'package:easthardware_pms/presentation/widgets/ui/decorations.dart';
 import 'package:fluent_ui/fluent_ui.dart';

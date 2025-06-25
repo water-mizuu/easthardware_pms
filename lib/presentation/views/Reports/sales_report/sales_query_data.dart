@@ -1,7 +1,7 @@
 import 'package:easthardware_pms/domain/models/category.dart';
 import 'package:easthardware_pms/domain/models/product.dart';
 import 'package:easthardware_pms/presentation/views/dashboard/cards/sales_overview.dart';
-import 'package:easthardware_pms/presentation/views/Reports/sales_report/sales_by_category_page.dart';
+import 'package:easthardware_pms/presentation/views/reports/sales_report/extensions/sales_by_category_datum.dart';
 import 'package:easthardware_pms/utils/undefined.dart';
 import 'package:equatable/equatable.dart';
 
@@ -74,7 +74,7 @@ class SalesQueryData with EquatableMixin {
   final DateTime startDate;
   final DateTime endDate;
   final List<(Product, SalesExtras)>? salesByProductData;
-  final List<(List<(Product, SalesExtras)>, Category)>? salesByCategoryData;
+  final List<SalesByCategoryDatum>? salesByCategoryData;
   final SalesByProductReportSortBy productSortBy;
   final SalesByCategoryReportSortBy categorySortBy;
 

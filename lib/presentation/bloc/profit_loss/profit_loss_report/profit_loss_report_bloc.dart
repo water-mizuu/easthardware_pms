@@ -158,11 +158,8 @@ class ProfitLossReportBloc extends Bloc<ProfitLossReportEvent, ProfitLossReportS
   }
 
   void _recalculateProfitLossData(Emitter<ProfitLossReportState> emit) {
-    final products = state.products;
     final invoices = state.invoices;
-    final invoiceProducts = state.invoiceProducts;
     final orders = state.orders;
-    final orderProducts = state.orderProducts;
 
     final startDate = state.queryData.startDate;
     final endDate = state.queryData.endDate.add(const Duration(days: 1)); // Include end date

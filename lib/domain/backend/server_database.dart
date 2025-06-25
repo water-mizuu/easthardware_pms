@@ -488,7 +488,10 @@ Future<Database> _getDatabase(int? savedHeartbeat) async {
         final lastHeartbeat = DateTime.fromMillisecondsSinceEpoch(savedHeartbeat);
         for (final userMap in loggedInUsers) {
           await userLogsDao.insertUserLog(
-            UserLog.logout(user: User.fromMap(userMap), eventTime: lastHeartbeat),
+            UserLog.logout(
+              user: User.fromMap(userMap),
+              eventTime: lastHeartbeat,
+            ),
           );
         }
 

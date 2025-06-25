@@ -20,6 +20,8 @@ class SystemBackupPage extends StatelessWidget {
         children: const [
           _PageHeader(),
           _DatabaseAndBackupInformation(),
+          _DatabaseOptions(),
+          _DatabaseBackups(),
         ].withSpacing(() => Spacing.v4),
       ),
     );
@@ -102,5 +104,23 @@ class _RecordCountInDatabase extends StatelessWidget {
       value: recordCount.toNumberString(),
       isExpanded: false,
     );
+  }
+}
+
+class _DatabaseOptions extends StatelessWidget {
+  const _DatabaseOptions();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container();
+  }
+}
+
+class _DatabaseBackups extends StatelessWidget {
+  const _DatabaseBackups({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container();
   }
 }

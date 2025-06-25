@@ -7,10 +7,10 @@ import 'package:easthardware_pms/presentation/bloc/inventory/product_list/produc
 import 'package:easthardware_pms/presentation/bloc/order/orderlist/order_list_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/sales/sales_report/sales_report_bloc.dart';
 import 'package:easthardware_pms/presentation/router/app_routes.dart';
-import 'package:easthardware_pms/presentation/views/Reports/pdf_helpers/pdf_generation.dart';
-
-import 'package:easthardware_pms/presentation/views/Reports/sales_report/sales_query_data.dart';
+import 'package:easthardware_pms/presentation/views/reports/pdf_helpers/pdf_generation.dart';
+import 'package:easthardware_pms/presentation/views/reports/sales_report/sales_query_data.dart';
 import 'package:easthardware_pms/presentation/widgets/animated_single_child_scroll_view.dart';
+import 'package:easthardware_pms/presentation/widgets/bordered_date_picker.dart';
 import 'package:easthardware_pms/presentation/widgets/helper/currency_formatter.dart';
 import 'package:easthardware_pms/presentation/widgets/layout/spacing.dart';
 import 'package:easthardware_pms/presentation/widgets/text.dart';
@@ -284,7 +284,7 @@ class _StartDateSelection extends StatelessWidget {
       children: [
         const Text('Start Date: '),
         Spacing.h8,
-        DatePicker(
+        BorderedDatePicker(
           selected: context.select((SalesReportBloc b) => b.state.queryData.startDate),
           onChanged: (value) =>
               context.read<SalesReportBloc>().add(SalesReportSetStartDateEvent(value)),
@@ -303,7 +303,7 @@ class _EndDateSelection extends StatelessWidget {
       children: [
         const Text('End Date: '),
         Spacing.h8,
-        DatePicker(
+        BorderedDatePicker(
           selected: context.select((SalesReportBloc b) => b.state.queryData.endDate),
           onChanged: (value) =>
               context.read<SalesReportBloc>().add(SalesReportSetEndDateEvent(value)),

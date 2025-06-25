@@ -9,18 +9,20 @@ import 'package:easthardware_pms/presentation/bloc/order/expense_type_list/expen
 import 'package:easthardware_pms/presentation/bloc/order/orderform/order_form_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/order/orderform/order_form_validator.dart';
 import 'package:easthardware_pms/presentation/bloc/order/orderlist/order_list_bloc.dart';
-import 'package:easthardware_pms/presentation/bloc/payment/payment_method_list/payment_method_list_bloc.dart';
+import 'package:easthardware_pms/presentation/bloc/payment/'
+    'payment_method_list/payment_method_list_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/security/user_log_list/user_log_list_bloc.dart';
 import 'package:easthardware_pms/presentation/models/form_order_item.dart';
 import 'package:easthardware_pms/presentation/router/app_routes.dart';
-import 'package:easthardware_pms/presentation/views/Order/create_expense_order_page/item_name.dart';
-import 'package:easthardware_pms/presentation/views/Order/create_expense_order_page/quantity.dart';
-import 'package:easthardware_pms/presentation/views/Order/order_widgets/amount.dart';
-import 'package:easthardware_pms/presentation/views/Order/order_widgets/description.dart';
-import 'package:easthardware_pms/presentation/views/Order/order_widgets/header.dart';
-import 'package:easthardware_pms/presentation/views/Order/order_widgets/index.dart';
-import 'package:easthardware_pms/presentation/views/Order/order_widgets/rate.dart';
-import 'package:easthardware_pms/presentation/views/Order/order_widgets/remove_button.dart';
+import 'package:easthardware_pms/presentation/views/order/'
+    'create_expense_order_page/item_name.dart';
+import 'package:easthardware_pms/presentation/views/order/create_expense_order_page/quantity.dart';
+import 'package:easthardware_pms/presentation/views/order/order_widgets/amount.dart';
+import 'package:easthardware_pms/presentation/views/order/order_widgets/description.dart';
+import 'package:easthardware_pms/presentation/views/order/order_widgets/header.dart';
+import 'package:easthardware_pms/presentation/views/order/order_widgets/index.dart';
+import 'package:easthardware_pms/presentation/views/order/order_widgets/rate.dart';
+import 'package:easthardware_pms/presentation/views/order/order_widgets/remove_button.dart';
 import 'package:easthardware_pms/presentation/widgets/animated_single_child_scroll_view.dart';
 import 'package:easthardware_pms/presentation/widgets/expense_type_combo_box.dart';
 import 'package:easthardware_pms/presentation/widgets/helper/currency_formatter.dart';
@@ -57,6 +59,7 @@ class _EditExpenseOrderPageState extends State<EditExpenseOrderPage> {
 
         // Load order details asynchronously using the widget.order that's passed in
         Future.microtask(() async {
+          if (!context.mounted) return;
           final orderListBloc = context.read<OrderListBloc>();
           final paymentMethodListBloc = context.read<PaymentMethodListBloc>();
           final expenseTypeListBloc = context.read<ExpenseTypeListBloc>();
