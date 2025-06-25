@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:easthardware_pms/domain/models/category.dart';
-import 'package:easthardware_pms/domain/models/product.dart';
 import 'package:easthardware_pms/presentation/bloc/billing/invoicelist/invoice_list_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/inventory/product_list/product_list_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/order/orderlist/order_list_bloc.dart';
@@ -355,8 +354,7 @@ class _SalesTablePreview extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocSelector<SalesReportBloc, SalesReportState,
-        List<(List<(Product, SalesExtras)>, Category)>?>(
+    return BlocSelector<SalesReportBloc, SalesReportState, List<SalesByCategoryDatum>?>(
       selector: (state) => state.queryData.salesByCategoryData,
       builder: (context, salesData) {
         final data = salesData ?? [];

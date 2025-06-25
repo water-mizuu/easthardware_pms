@@ -7,6 +7,7 @@ import 'package:easthardware_pms/domain/models/invoice_product.dart';
 import 'package:easthardware_pms/domain/models/order.dart';
 import 'package:easthardware_pms/domain/models/order_product.dart';
 import 'package:easthardware_pms/domain/models/product.dart';
+import 'package:easthardware_pms/presentation/views/reports/sales_report/extensions/sales_by_category_datum.dart';
 import 'package:easthardware_pms/presentation/views/reports/sales_report/sales_query_data.dart';
 import 'package:easthardware_pms/utils/undefined.dart';
 import 'package:equatable/equatable.dart';
@@ -222,10 +223,10 @@ class SalesReportBloc extends Bloc<SalesReportEvent, SalesReportState> {
     return salesData;
   }
 
-  List<(List<(Product, SalesExtras)>, Category)> _calculateSalesCategoriesData(
+  List<SalesByCategoryDatum> _calculateSalesCategoriesData(
     List<(Product, SalesExtras)> salesData,
   ) {
-    final categoriesData = <(List<(Product, SalesExtras)>, Category)>[];
+    final categoriesData = <SalesByCategoryDatum>[];
     final categoryMap = {-1: const Category(name: '-')};
 
     for (final (product, productExtras) in salesData) {

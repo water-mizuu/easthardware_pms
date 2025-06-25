@@ -1,4 +1,3 @@
-import 'package:easthardware_pms/domain/models/category.dart';
 import 'package:easthardware_pms/domain/models/product.dart';
 import 'package:easthardware_pms/presentation/views/dashboard/cards/sales_overview.dart';
 import 'package:easthardware_pms/presentation/views/reports/sales_report/extensions/sales_by_category_datum.dart';
@@ -82,7 +81,7 @@ class SalesQueryData with EquatableMixin {
     DateTime startDate,
     DateTime endDate,
     List<(Product, SalesExtras)>? salesByProductData,
-    List<(List<(Product, SalesExtras)>, Category)>? salesByCategoryData,
+    List<SalesByCategoryDatum>? salesByCategoryData,
     SalesByProductReportSortBy productSortBy,
     SalesByCategoryReportSortBy categorySortBy,
   }) get copyWith {
@@ -279,10 +278,7 @@ enum SalesByCategoryReportSortBy {
     }
   }
 
-  int compare(
-    (List<(Product, SalesExtras)>, Category) a,
-    (List<(Product, SalesExtras)>, Category) b,
-  ) {
+  int compare(SalesByCategoryDatum a, SalesByCategoryDatum b) {
     late final totalRevenueA = a.totalRevenue;
     late final totalRevenueB = b.totalRevenue;
 
