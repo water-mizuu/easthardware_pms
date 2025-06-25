@@ -26,23 +26,25 @@ class DataRowMapper {
     required void Function()? editAction,
     required void Function()? orderAction,
   }) {
-    final actionsCell = DataCell(
-      DropDownButton(
-        title: const Text('Actions', style: TextStyles.body),
-        items: [
-          if (editAction != null)
-            MenuFlyoutItem(
-              text: const Text('Edit Product', style: TextStyles.body),
-              onPressed: editAction,
+    final actionsCell = editAction == null && orderAction == null
+        ? null
+        : DataCell(
+            DropDownButton(
+              title: const Text('Actions', style: TextStyles.body),
+              items: [
+                if (editAction != null)
+                  MenuFlyoutItem(
+                    text: const Text('Edit Product', style: TextStyles.body),
+                    onPressed: editAction,
+                  ),
+                if (orderAction != null)
+                  MenuFlyoutItem(
+                    text: const Text('Place Order', style: TextStyles.body),
+                    onPressed: orderAction,
+                  )
+              ],
             ),
-          if (orderAction != null)
-            MenuFlyoutItem(
-              text: const Text('Place Order', style: TextStyles.body),
-              onPressed: orderAction,
-            )
-        ],
-      ),
-    );
+          );
 
     if (product.isBelowCriticalLevel == true) {
       return DataRow(
@@ -87,7 +89,7 @@ class DataRowMapper {
               children: [Badges.bad('Low Stock')],
             ),
           ),
-          actionsCell,
+          if (actionsCell case final actionsCell?) actionsCell,
         ],
       );
     }
@@ -135,7 +137,7 @@ class DataRowMapper {
             children: [Badges.good('Fast Moving')],
           ),
         ),
-        actionsCell,
+        if (actionsCell case final actionsCell?) actionsCell,
       ]);
     }
 
@@ -181,7 +183,7 @@ class DataRowMapper {
               children: [Badges.dull('Dead Stock')],
             ),
           ),
-          actionsCell,
+          if (actionsCell case final actionsCell?) actionsCell,
         ],
       );
     }
@@ -230,7 +232,7 @@ class DataRowMapper {
             children: [Badges.normal('Normal')],
           ),
         ),
-        actionsCell,
+        if (actionsCell case final actionsCell?) actionsCell,
       ],
     );
   }

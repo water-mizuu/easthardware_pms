@@ -199,7 +199,7 @@ class _StaffNavigationViewState extends State<StaffNavigationView>
       ),
       navItem(
         icon: FluentIcons.bar_chart_vertical_fill,
-        title: 'Reports',
+        title: 'Inventory Reports',
         // route: AppRoutes.reportsPage,
       ),
       navItem(

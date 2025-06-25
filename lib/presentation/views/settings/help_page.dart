@@ -37,17 +37,10 @@ class _UserManualSection extends StatelessWidget {
   const _UserManualSection();
   @override
   Widget build(BuildContext context) {
-    return Column(
+    return const Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          'User Manual',
-          style: FluentTheme.of(context).typography.subtitle?.copyWith(
-                fontWeight: FontWeight.normal,
-              ),
-        ),
-        Spacing.v16,
-        const Row(
+        Row(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
             _UserManualCard(

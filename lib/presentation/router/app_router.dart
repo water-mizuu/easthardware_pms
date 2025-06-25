@@ -396,9 +396,15 @@ final router = GoRouter(
                   route: AppRoutes.staff.payInvoice,
                   builder: (context, state) => const InvoicePanePage(),
                 ),
+              ],
+            ),
+
+            StatefulShellBranch(
+              // initialLocation: AppRoutes.staff.createInvoice.path,
+              routes: [
                 TypedGoRoute(
-                  route: AppRoutes.staff.billing,
-                  builder: (context, state) => const InvoicePanePage(),
+                  route: AppRoutes.staff.help,
+                  builder: (context, state) => const HelpPage(),
                 ),
               ],
             ),

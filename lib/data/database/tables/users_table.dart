@@ -44,7 +44,7 @@ class UsersTable {
 
   // private function: create initial admin
   static Future<void> _insertInitialAdmin(DatabaseExecutor database) async {
-    const password = 'Admin123';
+    const password = '@Admin123';
 
     var id = 0;
     {

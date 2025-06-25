@@ -484,14 +484,16 @@ class ProductsDataTable extends StatelessWidget {
                 );
               },
             ),
-            DataColumn(
-              label: Expanded(
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(minWidth: 60),
-                  child: const Text('', style: TextStyles.strong),
+            if (context.select((AuthenticationBloc b) => b.state.user?.accessLevel) ==
+                AccessLevel.administrator)
+              DataColumn(
+                label: Expanded(
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(minWidth: 60),
+                    child: const Text('', style: TextStyles.strong),
+                  ),
                 ),
               ),
-            ),
           ],
           source: ProductDataSource(context: context, products: filtered ?? notArchived),
         ));
