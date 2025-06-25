@@ -265,6 +265,11 @@ class _AdminNavigationViewState extends State<AdminNavigationView>
         ],
       ),
       navItem(
+        icon: FluentIcons.archive,
+        title: 'System Archive',
+        route: AppRoutes.admin.archive,
+      ),
+      navItem(
         icon: FluentIcons.bar_chart_vertical_fill,
         title: 'Reports',
         route: AppRoutes.admin.reports,
@@ -295,11 +300,6 @@ class _AdminNavigationViewState extends State<AdminNavigationView>
         icon: FluentIcons.settings,
         title: 'Settings',
         items: [
-          navItem(
-            icon: FluentIcons.archive,
-            title: 'Archived Products',
-            // route: AppRoutes.admin.archivedProducts,
-          ),
           navItem(
             icon: FluentIcons.save,
             title: 'System Backup',

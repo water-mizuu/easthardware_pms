@@ -11,6 +11,7 @@ import 'package:easthardware_pms/presentation/views/Order/edit_expense_order_pag
 import 'package:easthardware_pms/presentation/views/Order/edit_restock_order_page.dart';
 import 'package:easthardware_pms/presentation/views/Order/manage_expense_type_page.dart';
 import 'package:easthardware_pms/presentation/views/Order/order_pane_page.dart';
+import 'package:easthardware_pms/presentation/views/archive/archive_pane_page.dart';
 import 'package:easthardware_pms/presentation/views/authentication/login_page.dart';
 import 'package:easthardware_pms/presentation/views/authentication/new_password_page.dart';
 import 'package:easthardware_pms/presentation/views/authentication/reset_password_page.dart';
@@ -222,6 +223,15 @@ final router = GoRouter(
                 TypedGoRoute(
                   route: AppRoutes.admin.editExpenseOrder,
                   builder: (context, state) => EditExpenseOrderPage(order: state.extra),
+                ),
+              ],
+            ),
+            StatefulShellBranch(
+              initialLocation: AppRoutes.admin.archive.path,
+              routes: [
+                TypedGoRoute(
+                  route: AppRoutes.admin.archive,
+                  builder: (context, state) => const ArchivePanePage(),
                 ),
               ],
             ),

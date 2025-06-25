@@ -39,7 +39,9 @@ class ProductFormBloc extends Bloc<ProductFormEvent, ProductFormState> {
     on<SecondaryUnitFieldAddedEvent>(_onSecondaryUnitAdded);
     on<SecondaryUnitFieldDeletedEvent>(_onSecondaryUnitDeleted);
     on<ProductStatusChangedEvent>(_onProductStatusChanged);
-    on<FormButtonPressedEvent>(_onButtonPressed);
+    on<SaveProductRequestEvent>(_onSaveProductRequest);
+    on<UpdateProductRequestEvent>(_onUpdateProductRequest);
+    on<ArchiveProductRequestEvent>(_onArchiveProductRequest);
     on<FormResetEvent>(_onFormReset);
     on<FormSubmittedEvent>(_onFormSubmitted);
     on<ProductLoadedEvent>(_onProductLoaded);
@@ -203,8 +205,80 @@ class ProductFormBloc extends Bloc<ProductFormEvent, ProductFormState> {
     return emit(state.copyWith(archivedStatus: status));
   }
 
-  Future<void> _onButtonPressed(
-    FormButtonPressedEvent event,
+  Future<void> _onSaveProductRequest(
+    SaveProductRequestEvent event,
+    Emitter<ProductFormState> emit,
+  ) async {
+    emit(state.copyWith(formStatus: FormStatus.validating));
+    await Future.delayed(Duration.zero);
+    if (isClosed) return;
+
+    try {
+      if (formKey.currentState case final FormState formState when formState.validate()) {
+        await Future.delayed(Duration.zero);
+
+        if (kDebugMode) {
+          printBoxed(event, 'ProductFormBloc: Button Pressed');
+        }
+
+        if (isClosed) return;
+
+        emit(state.copyWith(
+          formStatus: FormStatus.submitting,
+          creatorId: event.creatorId,
+          productId: event.productId,
+          archivedStatus: state.archivedStatus ?? 0,
+        ));
+      } else {
+        emit(state.copyWith(formStatus: FormStatus.invalid));
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        printBoxed(e.toString().wrap, 'ProductFormBloc: Error on Button Pressed');
+      }
+
+      emit(state.copyWith(formStatus: FormStatus.error, errorMessage: e.toString()));
+    }
+  }
+
+  Future<void> _onUpdateProductRequest(
+    UpdateProductRequestEvent event,
+    Emitter<ProductFormState> emit,
+  ) async {
+    emit(state.copyWith(formStatus: FormStatus.validating));
+    await Future.delayed(Duration.zero);
+    if (isClosed) return;
+
+    try {
+      if (formKey.currentState case final FormState formState when formState.validate()) {
+        await Future.delayed(Duration.zero);
+
+        if (kDebugMode) {
+          printBoxed(event, 'ProductFormBloc: Button Pressed');
+        }
+
+        if (isClosed) return;
+
+        emit(state.copyWith(
+          formStatus: FormStatus.submitting,
+          creatorId: event.creatorId,
+          productId: event.productId,
+          archivedStatus: state.archivedStatus ?? 0,
+        ));
+      } else {
+        emit(state.copyWith(formStatus: FormStatus.invalid));
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        printBoxed(e.toString().wrap, 'ProductFormBloc: Error on Button Pressed');
+      }
+
+      emit(state.copyWith(formStatus: FormStatus.error, errorMessage: e.toString()));
+    }
+  }
+
+  Future<void> _onArchiveProductRequest(
+    ArchiveProductRequestEvent event,
     Emitter<ProductFormState> emit,
   ) async {
     emit(state.copyWith(formStatus: FormStatus.validating));
@@ -261,10 +335,13 @@ class ProductFormBloc extends Bloc<ProductFormEvent, ProductFormState> {
         cost: event.product.orderCost,
         quantity: event.product.quantity,
         mainUnit: event.product.mainUnit,
+        creationDate: DateTime.parse(event.product.creationDate),
         secondaryUnits: event.secondaryUnits.isEmpty
             ? [const FormUnit.empty()]
             : event.secondaryUnits.map(FormUnit.fromUnit).toList(),
         criticalLevel: event.product.criticalLevel,
+        minReorderDelay: event.product.minReorderDelay,
+        maxReorderDelay: event.product.maxReorderDelay,
         deadStockThreshold: event.product.deadStockThreshold,
         fastMovingThreshold: event.product.fastMovingStockThreshold,
         archivedStatus: event.product.archiveStatus,

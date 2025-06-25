@@ -61,6 +61,8 @@ class AppRoutes {
     createExpenseOrder: AppRoute<Null>('/admin/create/expense_order'),
     manageExpenseType: AppRoute<Null>('/admin/manage/expense_type'),
 
+    // Archive Sub Pages
+    archive: AppRoute<Null>('/admin/archive'),
     // Reports Sub Pages
     inventoryReport: AppRoute<Null>('/admin/reports/inventory'),
     salesByProductReport: AppRoute<Null>('/admin/reports/sales_by_product'),

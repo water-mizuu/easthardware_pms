@@ -1,41 +1,52 @@
 import 'package:easthardware_pms/domain/enums/enums.dart';
-import 'package:easthardware_pms/domain/models/invoice.dart';
 import 'package:easthardware_pms/presentation/bloc/authentication/authentication/authentication_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/billing/invoicelist/invoice_list_bloc.dart';
+import 'package:easthardware_pms/presentation/cubit/billing/invoice_display/invoice_display_cubit.dart';
 import 'package:easthardware_pms/presentation/router/app_routes.dart';
-import 'package:easthardware_pms/presentation/widgets/animated_single_child_scroll_view.dart';
-import 'package:easthardware_pms/presentation/widgets/helper/data_row_mapper.dart';
+import 'package:easthardware_pms/presentation/views/billing/components/invoice_data_source.dart';
 import 'package:easthardware_pms/presentation/widgets/layout/spacing.dart';
 import 'package:easthardware_pms/presentation/widgets/text.dart';
+import 'package:easthardware_pms/presentation/widgets/ui/styles.dart';
+import 'package:easthardware_pms/presentation/widgets/ui/table_theme_data.dart';
 import 'package:easthardware_pms/presentation/widgets/ui/text_button.dart';
 import 'package:easthardware_pms/utils/typed_routes.dart';
 import 'package:fluent_ui/fluent_ui.dart';
-import 'package:flutter/material.dart'
-    show
-        CardTheme,
-        DataColumn,
-        DataRow,
-        DataTableSource,
-        DataTableThemeData,
-        PaginatedDataTable,
-        Theme,
-        ThemeData;
+import 'package:flutter/material.dart' show DataColumn, PaginatedDataTable;
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-class InvoicePanePage extends StatelessWidget {
+class InvoicePanePage extends StatefulWidget {
   const InvoicePanePage({super.key});
 
   @override
+  State<InvoicePanePage> createState() => _InvoicePanePageState();
+}
+
+class _InvoicePanePageState extends State<InvoicePanePage> {
+  @override
+  void initState() {
+    super.initState();
+    // Get invoices from the invoice bloc
+    context.read<InvoiceDisplayCubit>().updateInvoices(
+          context.read<InvoiceListBloc>().state.invoices,
+        );
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return AnimatedSingleChildScrollView(
+    return BlocListener<InvoiceListBloc, InvoiceListState>(
+      listenWhen: (previous, current) => previous.invoices != current.invoices,
+      listener: (context, state) {
+        context.read<InvoiceDisplayCubit>().updateInvoices(state.invoices);
+      },
       child: Padding(
         padding: AppPadding.panePadding,
         child: Column(
-          children: const [
-            PageHeader(),
-            PageActions(),
-            InvoiceDataTable(),
-          ].withSpacing(() => Spacing.v12),
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            const PageHeader(),
+            const PageActions(),
+            const InvoiceDataTable(),
+          ].withSpacing(() => Spacing.v16),
         ),
       ),
     );
@@ -75,11 +86,23 @@ class PageActions extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Expanded(child: TextFormBox(placeholder: "Search", onChanged: (value) {})),
-        const Spacer(flex: 2)
-      ].withSpacing(() => Spacing.h12),
+        const Text('List of Invoices', style: TextStyles.subtitle),
+        Spacing.v12,
+        Row(
+          children: [
+            Expanded(
+              child: TextBox(
+                placeholder: 'Search by invoice number, customer, or amount',
+                onChanged: (value) => context.read<InvoiceDisplayCubit>().search(value),
+              ),
+            ),
+            const Spacer(flex: 2)
+          ].withSpacing(() => Spacing.h8),
+        ),
+      ],
     );
   }
 }
@@ -87,66 +110,141 @@ class PageActions extends StatelessWidget {
 class InvoiceDataTable extends StatelessWidget {
   const InvoiceDataTable({super.key});
 
+  int? _getSortColumnIndex(InvoiceDisplaySortBy sortBy) {
+    switch (sortBy) {
+      case InvoiceDisplaySortBy.invoiceDateAscending:
+      case InvoiceDisplaySortBy.invoiceDateDescending:
+        return 0; // Index of the Date column
+      case InvoiceDisplaySortBy.numberAscending:
+      case InvoiceDisplaySortBy.numberDescending:
+        return 1; // Index of the Invoice Number column
+      case InvoiceDisplaySortBy.customerAscending:
+      case InvoiceDisplaySortBy.customerDescending:
+        return 2; // Index of the Customer column
+      case InvoiceDisplaySortBy.totalAscending:
+      case InvoiceDisplaySortBy.totalDescending:
+        return 3; // Index of the Amount column
+      default:
+        return null; // No column is being sorted
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<InvoiceListBloc, InvoiceListState>(
-      builder: (context, state) {
-        if (state.status == DataStatus.loading) {
-          return const Center(child: ProgressRing());
-        }
-        final invoices = state.invoices;
-        return Theme(
-          data: ThemeData(
-            dataTableTheme: const DataTableThemeData(
-              dividerThickness: 0,
-            ),
-            cardTheme: const CardTheme(
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(4))),
-              color: Colors.white,
-              elevation: 0,
-            ),
-          ),
-          child: FractionallySizedBox(
-            widthFactor: 1,
-            child: PaginatedDataTable(
-              dataRowMaxHeight: 36,
-              dataRowMinHeight: 32,
-              columns: const [
-                DataColumn(label: Text('Invoice Date')),
-                DataColumn(label: Text('ID')),
-                DataColumn(label: Text('Customer')),
-                DataColumn(label: Text('Amount')),
-                DataColumn(label: Text('Actions')),
-              ],
-              source: InvoiceDataSource(invoices, context),
-            ),
-          ),
+    return BlocBuilder<InvoiceDisplayCubit, InvoiceDisplayState>(
+      builder: (context, displayState) {
+        return BlocBuilder<InvoiceListBloc, InvoiceListState>(
+          builder: (context, state) {
+            if (state.status == DataStatus.loading) {
+              return const Center(child: ProgressRing());
+            }
+
+            final invoiceBloc = context.read<InvoiceDisplayCubit>();
+            final invoices = invoiceBloc.state.filteredInvoices ?? invoiceBloc.state.allInvoices;
+
+            if (invoices == null || invoices.isEmpty) {
+              return Expanded(
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  child: const Center(
+                    child: Text('No invoices found', style: TextStyles.body),
+                  ),
+                ),
+              );
+            }
+
+            return Expanded(
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  color: FluentTheme.of(context).acrylicBackgroundColor,
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: TableThemeData(
+                  child: PaginatedDataTable(
+                    showCheckboxColumn: false,
+                    columnSpacing: 16.0,
+                    header: null,
+                    rowsPerPage: 10,
+                    sortColumnIndex: _getSortColumnIndex(displayState.sortBy),
+                    sortAscending: context.watch<InvoiceDisplayCubit>().state.sortAscending,
+                    columns: [
+                      DataColumn(
+                        label: ConstrainedBox(
+                          constraints: const BoxConstraints(minWidth: 75),
+                          child: const Text('Date'),
+                        ),
+                        onSort: (_, __) => invoiceBloc.sort(
+                          displayState.sortBy == InvoiceDisplaySortBy.invoiceDateAscending
+                              ? InvoiceDisplaySortBy.invoiceDateDescending
+                              : InvoiceDisplaySortBy.invoiceDateAscending,
+                        ),
+                      ),
+                      DataColumn(
+                        label: Expanded(
+                          child: ConstrainedBox(
+                            constraints: const BoxConstraints(maxWidth: 75),
+                            child: const Text('Invoice No.', style: TextStyles.tableHeader),
+                          ),
+                        ),
+                      ),
+                      DataColumn(
+                        label: Expanded(
+                          child: ConstrainedBox(
+                            constraints: const BoxConstraints(maxWidth: 100),
+                            child: const Text('Customer', style: TextStyles.tableHeader),
+                          ),
+                        ),
+                        onSort: (_, __) => invoiceBloc.sort(
+                          displayState.sortBy == InvoiceDisplaySortBy.customerAscending
+                              ? InvoiceDisplaySortBy.customerDescending
+                              : InvoiceDisplaySortBy.customerAscending,
+                        ),
+                      ),
+                      DataColumn(
+                        label: Expanded(
+                          child: ConstrainedBox(
+                            constraints: const BoxConstraints(maxWidth: 75),
+                            child: const Text('Total', style: TextStyles.tableHeader),
+                          ),
+                        ),
+                        onSort: (_, __) => invoiceBloc.sort(
+                          displayState.sortBy == InvoiceDisplaySortBy.totalAscending
+                              ? InvoiceDisplaySortBy.totalDescending
+                              : InvoiceDisplaySortBy.totalAscending,
+                        ),
+                      ),
+                      DataColumn(
+                        label: Expanded(
+                          child: ConstrainedBox(
+                            constraints: const BoxConstraints(maxWidth: 75),
+                            child: const Text('Status', style: TextStyles.tableHeader),
+                          ),
+                        ),
+                        onSort: (_, __) => invoiceBloc.sort(
+                          displayState.sortBy == InvoiceDisplaySortBy.totalAscending
+                              ? InvoiceDisplaySortBy.totalDescending
+                              : InvoiceDisplaySortBy.totalAscending,
+                        ),
+                      ),
+                      const DataColumn(
+                        label: Expanded(child: Text('')),
+                      ),
+                    ],
+                    source: InvoiceDataSource(
+                      invoices: invoices,
+                      context: context,
+                      onSort: invoiceBloc.sort,
+                    ),
+                  ),
+                ),
+              ),
+            );
+          },
         );
       },
     );
   }
-}
-
-class InvoiceDataSource extends DataTableSource {
-  InvoiceDataSource(this._invoices, this._context);
-  final List<Invoice> _invoices;
-  final BuildContext _context;
-
-  @override
-  DataRow? getRow(int index) {
-    if (index >= _invoices.length) return null;
-    final invoice = _invoices[index];
-    return DataRowMapper.mapInvoiceToRow(invoice, () {
-      _context.navigateWithExtra(AppRoutes.admin.editInvoice, invoice);
-    });
-  }
-
-  @override
-  bool get isRowCountApproximate => false;
-
-  @override
-  int get rowCount => _invoices.length;
-
-  @override
-  int get selectedRowCount => 0;
 }

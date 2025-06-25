@@ -193,7 +193,7 @@ class PageHeader extends StatelessWidget {
 
             context //
                 .read<ProductFormBloc>()
-                .add(FormButtonPressedEvent(productId: productId, creatorId: creatorId));
+                .add(SaveProductRequestEvent(productId: productId, creatorId: creatorId));
           },
         ),
       ].withSpacing(() => Spacing.h16),

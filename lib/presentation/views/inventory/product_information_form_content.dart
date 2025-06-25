@@ -286,7 +286,10 @@ class ProductNameField extends StatelessWidget with ProductFormValidator {
         TextFormBox(
           autofocus: true,
           initialValue: context.read<ProductFormBloc>().state.name,
-          validator: (value) => validateProductName(value, products.map((e) => e.name).toList()),
+          validator: (value) => validateProductName(
+            value,
+            products.map((e) => e.name).toList()..remove(value),
+          ),
           onChanged: (value) {
             final bloc = context.read<ProductFormBloc>();
             bloc.add(NameFieldChangedEvent(value));

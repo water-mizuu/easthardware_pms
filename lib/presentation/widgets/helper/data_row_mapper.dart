@@ -245,10 +245,6 @@ class DataRowMapper {
         title: const Text('Actions', style: TextStyles.body),
         items: [
           MenuFlyoutItem(
-            text: const Text('View Products', style: TextStyles.body),
-            onPressed: action,
-          ),
-          MenuFlyoutItem(
             text: const Text('Edit Category', style: TextStyles.body),
             onPressed: action,
           ),
@@ -300,16 +296,21 @@ class DataRowMapper {
   }
 
   static DataRow mapUserLogToRow(UserLog log, User user) {
-    return DataRow(cells: [
-      DataCell(Text('${log.id}')),
-      DataCell(Text('${user.firstName} ${user.lastName}')),
-      DataCell(Text(DateFormat.yMMMMd().format(log.eventTime))),
-      DataCell(Text(DateFormat('hh:mm a').format(log.eventTime))),
-      DataCell(Text(log.event)),
-    ]);
+    return DataRow(
+      cells: [
+        DataCell(Text('${log.id}')),
+        DataCell(Text('${user.firstName} ${user.lastName}')),
+        DataCell(Text(DateFormat.yMMMMd().format(log.eventTime))),
+        DataCell(Text(DateFormat('hh:mm a').format(log.eventTime))),
+        DataCell(Text(log.event)),
+      ],
+    );
   }
 
-  static DataRow mapInvoiceToRow(Invoice invoice, Function() action) {
+  static DataRow mapInvoiceToRow(
+    Invoice invoice, {
+    required void Function()? viewAction,
+  }) {
     final invoiceDate = DateFormat.yMMMMd().format(invoice.invoiceDate).toString();
     final invoiceId = invoice.id!.toString();
     final invoiceCustomer = invoice.customerName.isNotEmpty //
@@ -317,13 +318,59 @@ class DataRowMapper {
         : "Unnamed Customer";
     final invoiceTotal = CurrencyFormatter.full(invoice.amountDue);
 
-    return DataRow(cells: [
-      DataCell(Text(invoiceDate)),
-      DataCell(Text(invoiceId)),
-      DataCell(Text(invoiceCustomer)),
-      DataCell(Text(invoiceTotal)),
-      DataCell(HyperlinkButton(onPressed: action, child: const Text('Edit'))),
-    ]);
+    if (invoice.paymentDate != null) {
+      final paymentDate = DateFormat.yMMMMd().format(invoice.paymentDate!).toString();
+      return DataRow(
+        onSelectChanged: viewAction != null ? (_) => viewAction() : null,
+        cells: [
+          DataCell(Text(invoiceDate)),
+          DataCell(Text(invoiceId)),
+          DataCell(Text(invoiceCustomer)),
+          DataCell(Text(invoiceTotal)),
+          DataCell(Row(children: [Badges.good('Paid on $paymentDate')])),
+          DataCell(Button(onPressed: viewAction, child: const Text('View'))),
+        ],
+      );
+    }
+    if (invoice.dueDate.isBefore(DateTime.now())) {
+      return DataRow(
+        onSelectChanged: viewAction != null ? (_) => viewAction() : null,
+        cells: [
+          DataCell(Text(invoiceDate)),
+          DataCell(Text(invoiceId)),
+          DataCell(Text(invoiceCustomer)),
+          DataCell(Text(invoiceTotal)),
+          DataCell(Row(children: [Badges.bad('Overdue')])),
+          DataCell(Button(onPressed: viewAction, child: const Text('View'))),
+        ],
+      );
+    }
+    if (invoice.dueDate.add(const Duration(days: 7)).isAfter(DateTime.now())) {
+      return DataRow(
+        onSelectChanged: viewAction != null ? (_) => viewAction() : null,
+        cells: [
+          DataCell(Text(invoiceDate)),
+          DataCell(Text(invoiceId)),
+          DataCell(Text(invoiceCustomer)),
+          DataCell(Text(invoiceTotal)),
+          DataCell(Row(children: [
+            Badges.warn('Due in ${invoice.dueDate.difference(DateTime.now()).inDays} days')
+          ])),
+          DataCell(Button(onPressed: viewAction, child: const Text('View'))),
+        ],
+      );
+    }
+    return DataRow(
+      onSelectChanged: viewAction != null ? (_) => viewAction() : null,
+      cells: [
+        DataCell(Text(invoiceDate)),
+        DataCell(Text(invoiceId)),
+        DataCell(Text(invoiceCustomer)),
+        DataCell(Text(invoiceTotal)),
+        DataCell(Row(children: [Badges.normal('Due')])),
+        DataCell(Button(onPressed: viewAction, child: const Text('View'))),
+      ],
+    );
   }
 
   static DataRow mapInvoiceProductToRow(
@@ -365,12 +412,7 @@ class DataRowMapper {
         CompoundButton(
           onTextChanged: (value) => functions.onQuantityChanged,
           onComboBoxSelected: (value) => functions.onUnitSelected,
-          items: units
-              .map((unit) => ComboBoxItem(
-                    value: unit,
-                    child: Text(unit.name),
-                  ))
-              .toList(),
+          items: units.map((unit) => ComboBoxItem(value: unit, child: Text(unit.name))).toList(),
           text: product.quantity.toString(),
         ),
       ),
