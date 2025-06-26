@@ -9,6 +9,9 @@ class AuthenticationLoginEvent implements AuthenticationEvent {
 
   final String username;
   final String password;
+
+  @override
+  String toString() => 'AuthenticationLoginEvent(username: $username, password: $password)';
 }
 
 class AuthenticationLogoutEvent implements AuthenticationEvent {

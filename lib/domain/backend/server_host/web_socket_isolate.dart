@@ -151,7 +151,7 @@ Future<void> spawnWebSocketIsolate((RootIsolateToken, NamedSendPort) payload) as
         case ["create_backup", [final String key]]:
           // Handle backup requests.
           final result = await createBackup(key);
-          _notifyEveryoneAboutDatabaseChange(from: null, isServerUpdated: true);
+          __notifyEveryoneAboutDatabaseChangeInstantly(from: null, isServerUpdated: true);
 
           sendPort.send(name, result);
           break;
@@ -159,12 +159,27 @@ Future<void> spawnWebSocketIsolate((RootIsolateToken, NamedSendPort) payload) as
           // Handle restore requests.
           try {
             final (_) = await restoreBackup(path, key);
-            _notifyEveryoneAboutDatabaseChange(from: null, isServerUpdated: true);
+            __notifyEveryoneAboutDatabaseChangeInstantly(from: null, isServerUpdated: true);
 
             sendPort.send(name, true);
           } catch (e) {
             sendPort.send(name, ["error", "Failed to restore backup: $e"]);
           }
+          break;
+        case ["delete_backup", [final String path]]:
+          // Handle delete backup requests.
+          try {
+            final (_) = await deleteBackup(path);
+            __notifyEveryoneAboutDatabaseChangeInstantly(from: null, isServerUpdated: true);
+
+            sendPort.send(name, true);
+          } catch (e) {
+            sendPort.send(name, ["error", "Failed to delete backup: $e"]);
+          }
+        case ["get_database_size", _]:
+          // Handle get database size requests.
+          final size = await getDatabaseSize();
+          sendPort.send(name, size);
           break;
         case ["load_backups", _]:
           final result = await readBackups();
@@ -264,6 +279,7 @@ Future<void> _handleConnection(
     }
 
     final [name as String, message] = object as List<Object?>;
+    final sendPort = messageChannel.sendPort;
 
     switch (message) {
       case ["resetDb", _]:
@@ -271,7 +287,6 @@ Future<void> _handleConnection(
         break;
       case ["db", [final String method, final List<Object?> arguments]]:
         // Handle each db method call.
-        final sendPort = messageChannel.sendPort;
         final hasChanged = await _handleDbMessage(method, arguments, sendPort, name);
 
         /// If the method was not successfully handled, ignore the rest of this body.
@@ -285,6 +300,45 @@ Future<void> _handleConnection(
           await _hookOntoUpdate(arguments, (webSocketChannel, messageChannel));
         }
 
+        break;
+      case ["create_backup", [final String key]]:
+        // Handle backup requests.
+        final result = await createBackup(key);
+        __notifyEveryoneAboutDatabaseChangeInstantly(from: null, isServerUpdated: true);
+
+        sendPort.send(name, result);
+        break;
+      case ["restore_backup", [final String path, final String key]]:
+        // Handle restore requests.
+        try {
+          final (_) = await restoreBackup(path, key);
+          __notifyEveryoneAboutDatabaseChangeInstantly(from: null, isServerUpdated: true);
+
+          sendPort.send(name, true);
+        } catch (e) {
+          sendPort.send(name, ["error", "Failed to restore backup: $e"]);
+        }
+        break;
+      case ["delete_backup", [final String path]]:
+        // Handle delete backup requests.
+        try {
+          final (_) = await deleteBackup(path);
+          __notifyEveryoneAboutDatabaseChangeInstantly(from: null, isServerUpdated: true);
+
+          sendPort.send(name, true);
+        } catch (e) {
+          sendPort.send(name, ["error", "Failed to delete backup: $e"]);
+        }
+      case ["get_database_size", _]:
+        // Handle get database size requests.
+        final size = await getDatabaseSize();
+
+        sendPort.send(name, size);
+        break;
+      case ["load_backups", _]:
+        final result = await readBackups();
+
+        sendPort.send(name, result);
         break;
       case _:
         if (kDebugMode) {
@@ -308,12 +362,16 @@ Future<bool?> _handleDbMessage(
   String name,
 ) async {
   assertChildIsolate();
+  // printBoxed(
+  //   "Handling database method: $method with arguments: $arguments",
+  //   "WebSocket Isolate",
+  // );
 
   final (output, error) = await serverHandleDatabaseMethod(method, arguments, _savedHeartbeat) //
       .tryCatch();
 
   if (error case (final Object error, final StackTrace stackTrace)) {
-    sendPort.send(name, ["error", error, stackTrace.toString()]);
+    sendPort.send(name, ["error", error.toString(), stackTrace.toString()]);
     return null;
   }
   if (output == null) {
@@ -359,20 +417,32 @@ void _notifyEveryoneAboutDatabaseChange({
   _isServerUpdated = _isServerUpdated || isServerUpdated;
 
   _notifyTimer = Timer(notifyTimerDuration, () {
-    if (isServerUpdated && mainChannel.isOpen) {
-      mainChannel.sendPort.send("main", ["didUpdate", DateTime.now().millisecondsSinceEpoch]);
-    }
-
-    for (final (client, channel, _) in _clientChannels) {
-      if (client != from && channel.isOpen) {
-        // Notify all other clients about the database change.
-        channel.sendPort.send("client", ["didUpdate", DateTime.now().millisecondsSinceEpoch]);
-      }
-    }
+    __notifyEveryoneAboutDatabaseChangeInstantly(
+      isServerUpdated: _isServerUpdated,
+      from: _fromChannel,
+    );
 
     _fromChannel = null;
     _isServerUpdated = false;
   });
+}
+
+void __notifyEveryoneAboutDatabaseChangeInstantly({
+  required WebSocketChannel? from,
+  required bool isServerUpdated,
+}) {
+  assertChildIsolate();
+
+  if (isServerUpdated && mainChannel.isOpen) {
+    mainChannel.sendPort.send("main", ["didUpdate", DateTime.now().millisecondsSinceEpoch]);
+  }
+
+  for (final (client, channel, _) in _clientChannels) {
+    if (client != from && channel.isOpen) {
+      // Notify all other clients about the database change.
+      channel.sendPort.send("client", ["didUpdate", DateTime.now().millisecondsSinceEpoch]);
+    }
+  }
 }
 
 /// This method hooks onto the database update that signifies that the user has logged in.

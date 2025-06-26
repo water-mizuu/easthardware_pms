@@ -1,4 +1,3 @@
-import 'package:easthardware_pms/domain/backend/enum/database_mode.dart';
 import 'package:easthardware_pms/domain/models/product.dart';
 import 'package:easthardware_pms/presentation/bloc/billing/invoicelist/invoice_list_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/business_snapshot/'
@@ -7,7 +6,6 @@ import 'package:easthardware_pms/presentation/bloc/inventory/product_list/produc
 import 'package:easthardware_pms/presentation/bloc/order/'
     'expense_type_list/expense_type_list_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/order/orderlist/order_list_bloc.dart';
-import 'package:easthardware_pms/presentation/bloc/server/server_bloc.dart';
 import 'package:easthardware_pms/presentation/router/app_routes.dart';
 import 'package:easthardware_pms/presentation/views/archive/archive_pane_page.dart';
 import 'package:easthardware_pms/presentation/views/authentication/login_page.dart';
@@ -325,12 +323,7 @@ final router = GoRouter(
                 TypedGoRoute(
                   route: AppRoutes.admin.backup,
                   redirect: (context, state) async {
-                    if (context.read<ServerBloc>().state.databaseArgs?.databaseMode ==
-                        DatabaseMode.server) {
-                      return AppRoutes.backupActual.path;
-                    }
-
-                    return null;
+                    return AppRoutes.backupActual.path;
                   },
                 ),
                 TypedGoRoute(

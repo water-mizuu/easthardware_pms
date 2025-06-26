@@ -123,7 +123,6 @@ extension MessageChannelExtension on WebSocketChannel {
         .listen(
       (message) {
         if (kDebugMode) {
-          /// Log the received message.
           const encoder = JsonEncoder.withIndent('  ');
           final messageString = encoder.convert(message);
 
