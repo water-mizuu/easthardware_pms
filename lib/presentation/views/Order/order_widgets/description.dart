@@ -60,15 +60,33 @@ class _DescriptionState extends State<Description> {
 
     // Handle restock orders
     if (_isRestock) {
-      final (_, currentProductId) = context.watch<IndexedProductId>();
+      final (index, currentProductId) = context.watch<IndexedProductId>();
 
       if (_currentProductId != currentProductId) {
-        final currentProduct = (context.read<ProductListBloc>().state.allProducts)
-            .where((p) => currentProductId != null && p.id == currentProductId)
-            .firstOrNull;
-
+        // Get the form product from the OrderFormBloc state instead of the default product data
+        // This ensures we get the saved description, not the default product description
+        final formProduct = context.read<OrderFormBloc>().state.products?[index];
+        
+        // If we have a form product and it has a description, use that
+        if (formProduct != null) {
+          // Log to help debug description loading
+          print('[Description] Loading description for ${formProduct.productName}: "${formProduct.description}"');
+          
+          // Only if there's no saved description, fall back to the default product description
+          if (formProduct.description == null || formProduct.description!.isEmpty) {
+            final defaultProduct = (context.read<ProductListBloc>().state.allProducts)
+                .where((p) => currentProductId != null && p.id == currentProductId)
+                .firstOrNull;
+                
+            _controller.text = defaultProduct?.description ?? '';
+            print('[Description] Using default product description: "${_controller.text}"');
+          } else {
+            // Use the saved description from the form product
+            _controller.text = formProduct.description ?? '';
+          }
+        }
+        
         _currentProductId = currentProductId;
-        _controller.text = currentProduct?.description ?? '';
       }
     }
     // Handle expense orders - update the controller when the order item changes
@@ -85,7 +103,6 @@ class _DescriptionState extends State<Description> {
       }
     }
   }
-
   void _onTextChanged() {
     final value = _controller.text.trim();
 
@@ -94,9 +111,29 @@ class _DescriptionState extends State<Description> {
       final currentFormProduct = context.read<OrderFormBloc>().state.products![index];
 
       if (currentFormProduct.description != value) {
+        // Log the description change to help with debugging
+        print('[Description] Updating description for ${currentFormProduct.productName}:');
+        print('[Description] - Old: "${currentFormProduct.description}"');
+        print('[Description] - New: "$value"');
+        
+        // Create a copy with the updated description to ensure we don't lose other fields
+        final updatedProduct = currentFormProduct.copyWith(
+          description: value,
+          // Make sure to keep these important fields
+          productId: currentFormProduct.productId,
+          productName: currentFormProduct.productName,
+          quantity: currentFormProduct.quantity,
+          rate: currentFormProduct.rate,
+          unit: currentFormProduct.unit,
+          unitId: currentFormProduct.unitId,
+          conversionFactor: currentFormProduct.conversionFactor,
+          amount: currentFormProduct.amount,
+        );
+        
+        // Update the product with our updated version
         context
             .read<OrderFormBloc>()
-            .add(ProductUpdatedEvent(currentFormProduct.copyWith(description: value), index));
+            .add(ProductUpdatedEvent(updatedProduct, index));
       }
     } else {
       final (index, currentItem) = context.read<IndexedOrderItem>();

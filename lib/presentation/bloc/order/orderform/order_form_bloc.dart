@@ -61,11 +61,21 @@ class OrderFormBloc extends Bloc<OrderFormEvent, OrderFormState> {
       orderRepository: orderRepository,
     );
   }
-  factory OrderFormBloc.fromExistingRestockOrder(Product? product, int? orderId,
-      {OrderRepository? orderRepository}) {
+  factory OrderFormBloc.fromExistingRestockOrder(
+    Order order,
+    List<FormProduct> products,
+    PaymentMethod paymentMethod,
+    ExpenseType expenseType, {
+    OrderRepository? orderRepository,
+  }) {
     // Create a basic OrderFormBloc
     final bloc = OrderFormBloc(
-      OrderFormState.restockOrder(product, orderId),
+      OrderFormState.fromExistingRestockOrder(
+        order,
+        products,
+        paymentMethod,
+        expenseType,
+      ),
       orderRepository: orderRepository,
     );
     // If orderId is provided, we'll load the order details
@@ -82,20 +92,20 @@ class OrderFormBloc extends Bloc<OrderFormEvent, OrderFormState> {
 
   final GlobalKey<FormState> formKey;
 
-  @override
-  void onEvent(OrderFormEvent event) {
-    // ignore: invalid_use_of_visible_for_testing_member
-    super.onEvent(event);
+  // @override
+  // void onEvent(OrderFormEvent event) {
+  //   // ignore: invalid_use_of_visible_for_testing_member
+  //   super.onEvent(event);
 
-    printBoxed(event, 'OrderFormBloc');
-  }
+  //   printBoxed(event, 'OrderFormBloc');
+  // }
 
   @override
   void emit(OrderFormState state) {
     // ignore: invalid_use_of_visible_for_testing_member
     super.emit(state);
 
-    printBoxed(const JsonEncoder.withIndent('. ').convert(state.toMap()), 'OrderFormBloc');
+    // printBoxed(const JsonEncoder.withIndent('. ').convert(state.toMap()), 'OrderFormBloc');
   }
 
   void _onPayeeNameChanged(PayeeNameChangedEvent event, Emitter<OrderFormState> emit) {
@@ -115,13 +125,13 @@ class OrderFormBloc extends Bloc<OrderFormEvent, OrderFormState> {
 
   void _onExpenseTypeChanged(ExpenseTypeChangedEvent event, Emitter<OrderFormState> emit) {
     try {
-      printBoxed("Changing expense type to: ${event.expenseType!.id}");
+      // printBoxed("Changing expense type to: ${event.expenseType!.id}");
       emit(state.copyWith(
         expenseType: event.expenseType,
         expenseTypeErrorMessage: event.expenseType == null ? 'Expense type is required.' : null,
       ));
     } catch (e, stackTrace) {
-      printBoxed('Error changing expense type: $e \n $stackTrace', 'OrderFormBloc');
+      // printBoxed('Error changing expense type: $e \n $stackTrace', 'OrderFormBloc');
       emit(state.copyWith(
         status: FormStatus.error,
         dialogErrorMessage: 'Failed to change expense type.',
@@ -170,25 +180,35 @@ class OrderFormBloc extends Bloc<OrderFormEvent, OrderFormState> {
   //     emit(state.copyWith(products: updatedProducts));
   //   }
   // }
-
   void _onProductUpdated(ProductUpdatedEvent event, Emitter<OrderFormState> emit) {
     final updatedProducts = List<FormProduct>.from(state.products!);
     if (event.index != -1) {
       final adjustedRate = event.product.rate * (event.product.conversionFactor ?? 1);
+
+      // Debug: Log product update details to trace description changes
+      // print('[ProductUpdatedEvent] Updating product at index ${event.index}:');
+      // print('[ProductUpdatedEvent] Product: ${event.product.productName}');
+      // print(
+      // '[ProductUpdatedEvent] Description before: "${updatedProducts[event.index].description}"');
+      // print('[ProductUpdatedEvent] Description being set: "${event.product.description}"');
+
+      // Always calculate amount based on the provided product's quantity and the adjusted rate
+      // This ensures the amount is always consistent with the latest changes
       final adjustedProduct = event.product.copyWith(
         rate: adjustedRate,
         amount: adjustedRate * event.product.quantity,
       );
+
       updatedProducts[event.index] = adjustedProduct;
       final amountDue = updatedProducts.fold<double>(
         0,
         (previousValue, element) => previousValue + (element.amount),
       );
 
-      printBoxed(
-        'Updated product at index ${event.index} with amount:\n$adjustedProduct',
-        'OrderFormBloc',
-      );
+      // printBoxed(
+      //   'Updated product at index ${event.index} with amount:\n$adjustedProduct',
+      //   'OrderFormBloc',
+      // );
       emit(state.copyWith(products: updatedProducts, amountDue: amountDue));
     }
   }
@@ -251,7 +271,8 @@ class OrderFormBloc extends Bloc<OrderFormEvent, OrderFormState> {
     await Future.delayed(Duration.zero);
 
     // Fetch existing reference numbers for validation, excluding the current order if we're editing
-    List<String> existingReferenceNumbers = await _getExistingReferenceNumbers(excludeOrderId: state.orderId);
+    List<String> existingReferenceNumbers =
+        await _getExistingReferenceNumbers(excludeOrderId: state.orderId);
 
     /// Checks for Expense Orders
     /// - Payee Name must not be empty
@@ -293,21 +314,21 @@ class OrderFormBloc extends Bloc<OrderFormEvent, OrderFormState> {
     final referenceNumberErrorMessage = state.referenceNumberErrorMessage;
     final expenseTypeErrorMessage = state.expenseTypeErrorMessage;
 
-    final info = [
-      'Order Type: ${state.orderType.name}',
-      'Payee Name: ${state.payeeName}',
-      'Order Date: ${state.orderDate}',
-      'Expense Type: ${state.expenseType?.name ?? 'N/A'}',
-      'Payment Method: ${state.paymentMethod?.name ?? 'N/A'}',
-      'Reference Number: ${state.referenceNumber}',
-      'Memo: ${state.memo ?? 'N/A'}',
-      'Order Items: ${state.orderItems}',
-      'Amount Due: ${state.amountDue}',
-      'Creation Date: ${state.creationDate}',
-      'Creator ID: ${state.creatorId ?? 'N/A'}',
-    ].map((e) => e.toString()).join('\n -');
+    // final info = [
+    //   'Order Type: ${state.orderType.name}',
+    //   'Payee Name: ${state.payeeName}',
+    //   'Order Date: ${state.orderDate}',
+    //   'Expense Type: ${state.expenseType?.name ?? 'N/A'}',
+    //   'Payment Method: ${state.paymentMethod?.name ?? 'N/A'}',
+    //   'Reference Number: ${state.referenceNumber}',
+    //   'Memo: ${state.memo ?? 'N/A'}',
+    //   'Order Items: ${state.orderItems}',
+    //   'Amount Due: ${state.amountDue}',
+    //   'Creation Date: ${state.creationDate}',
+    //   'Creator ID: ${state.creatorId ?? 'N/A'}',
+    // ].map((e) => e.toString()).join('\n -');
 
-    printBoxed('Submitting Expense Order Form: ${info.toString().wrap}', 'CreateExpenseOrderPage');
+    // printBoxed('Submitting Expense Order Form: ${info.toString().wrap}', 'CreateExpenseOrderPage');
 
     // Start validation
     emit(state.copyWith(status: FormStatus.validating));
@@ -402,7 +423,8 @@ class OrderFormBloc extends Bloc<OrderFormEvent, OrderFormState> {
     await Future.delayed(Duration.zero);
 
     // Fetch existing reference numbers for validation, excluding the current order if we're editing
-    List<String> existingReferenceNumbers = await _getExistingReferenceNumbers(excludeOrderId: state.orderId);
+    List<String> existingReferenceNumbers =
+        await _getExistingReferenceNumbers(excludeOrderId: state.orderId);
 
     /// Checks
     /// - Payee Name must not be empty
@@ -467,7 +489,7 @@ class OrderFormBloc extends Bloc<OrderFormEvent, OrderFormState> {
           products: products
               .map(
                 (product) => product.copyWith(
-                  errorMessage: 'Order items cannot be empty',
+                  errorMessage: 'Please add at least one product.',
                 ),
               )
               .toList(),
@@ -503,7 +525,7 @@ class OrderFormBloc extends Bloc<OrderFormEvent, OrderFormState> {
         state.copyWith(
           status: FormStatus.error,
           products: taggedProducts,
-          dialogErrorMessage: 'Please fill in all product details.',
+          dialogErrorMessage: 'Please fill in all product\'s required details.',
         ),
       );
     }
@@ -551,21 +573,75 @@ class OrderFormBloc extends Bloc<OrderFormEvent, OrderFormState> {
     final paymentMethod = event.paymentMethod;
     final orderProducts = event.products;
 
-    // Convert OrderProduct list to FormProduct list
-    final formProducts = orderProducts.map((product) {
-      return FormProduct(
-        productId: product.productId,
-        productName: product.productName,
-        description: product.description ?? '',
-        quantity: product.quantity,
-        unit: product.secondaryUnit.toString(),
-        unitId: product.secondaryUnit,
-        conversionFactor: product.conversionFactor,
-        rate: product.rate,
-        amount: product.amount,
-        discountType: DiscountType.value,
-      );
-    }).toList();
+    // Debug: Log order products being loaded into the form
+    printBoxed('[OrderFormBloc] Loading order products:', '_onLoadExistingRestockOrder');
+    for (final product in orderProducts) {
+      printBoxed(
+          '[OrderFormBloc] Product: ${product.productName}, description: "${product.description}"',
+          'OrderProducts');
+    }
+
+    // Instead of creating new FormProduct instances, modify the existing state products
+    // to ensure we don't lose any data that might have been set correctly
+    final List<FormProduct> formProducts;
+
+    // If we have existing products in state, use those as a base and update them
+    if (state.products != null && state.products!.isNotEmpty) {
+      // Create a map of existing form products by productId for quick lookup
+      final existingProductsMap = {
+        for (var p in state.products!)
+          if (p.productId != null) p.productId: p
+      };
+
+      formProducts = orderProducts.map((product) {
+        // Check if we have an existing form product for this product ID
+        final existingProduct = existingProductsMap[product.productId];
+
+        // If we have an existing product, update it with values from the order product
+        // but preserve any fields that might be more accurate in the existing product
+        if (existingProduct != null) {
+          return existingProduct.copyWith(
+            productName: product.productName,
+            description: product.description ?? existingProduct.description,
+            quantity: product.quantity,
+            unitId: product.secondaryUnit,
+            conversionFactor: product.conversionFactor,
+            rate: product.rate,
+            amount: product.amount,
+          );
+        }
+
+        // If no existing product, create a new FormProduct
+        return FormProduct(
+          productId: product.productId,
+          productName: product.productName,
+          description: product.description, // Preserve exact description from database
+          quantity: product.quantity,
+          unit: product.secondaryUnit?.toString() ?? '', // Will be updated by UI components
+          unitId: product.secondaryUnit,
+          conversionFactor: product.conversionFactor,
+          rate: product.rate,
+          amount: product.amount,
+          discountType: DiscountType.value,
+        );
+      }).toList();
+    } else {
+      // If no existing products, create new FormProduct instances
+      formProducts = orderProducts.map((product) {
+        return FormProduct(
+          productId: product.productId,
+          productName: product.productName,
+          description: product.description,
+          quantity: product.quantity,
+          unit: product.secondaryUnit?.toString() ?? '',
+          unitId: product.secondaryUnit,
+          conversionFactor: product.conversionFactor,
+          rate: product.rate,
+          amount: product.amount,
+          discountType: DiscountType.value,
+        );
+      }).toList();
+    }
 
     // Update the state with the loaded order data
     emit(state.copyWith(
@@ -639,7 +715,7 @@ class OrderFormBloc extends Bloc<OrderFormEvent, OrderFormState> {
 
       return existingRefNumbers;
     } catch (e, stackTrace) {
-      printBoxed('Error fetching reference numbers: $e \n $stackTrace', 'OrderFormBloc');
+      // printBoxed('Error fetching reference numbers: $e \n $stackTrace', 'OrderFormBloc');
       return [];
     }
   }

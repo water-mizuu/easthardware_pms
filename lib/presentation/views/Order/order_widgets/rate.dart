@@ -41,14 +41,14 @@ class _RateState extends State<Rate> {
 
     if (_isRestock) {
       final (index, currentProductId) = context.watch<IndexedProductId>();
-      final currentFormProduct = context.read<OrderFormBloc>().state.products![index];
+      final currentFormProduct = context.watch<OrderFormBloc>().state.products![index];
 
       if (_currentProductId != currentProductId) {
         _currentProductId = currentProductId;
         _controller.text = currentFormProduct.rate.toNumberString();
       }
     } else {
-      final (_, orderItem) = context.read<IndexedOrderItem>();
+      final (_, orderItem) = context.watch<IndexedOrderItem>();
       final newRate = orderItem.rate.toNumberString();
 
       if (_controller.text != newRate) {
@@ -62,15 +62,18 @@ class _RateState extends State<Rate> {
 
     if (_isRestock) {
       final (index, _) = context.read<IndexedProductId>();
+      // Always get the latest state to ensure we have the most up-to-date product data
       final currentFormProduct = context.read<OrderFormBloc>().state.products![index];
 
       if (currentFormProduct.rate != newRate) {
+        // Use the current quantity from the product to ensure we have the latest quantity
+        final currentQuantity = currentFormProduct.quantity;
         context //
             .read<OrderFormBloc>()
             .add(ProductUpdatedEvent(
               currentFormProduct.copyWith(
                 rate: newRate,
-                amount: currentFormProduct.quantity * newRate,
+                amount: currentQuantity * newRate,
               ),
               index,
             ));

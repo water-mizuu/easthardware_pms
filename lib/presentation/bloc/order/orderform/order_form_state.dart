@@ -1,6 +1,48 @@
 part of 'order_form_bloc.dart';
 
 class OrderFormState {
+  factory OrderFormState.fromExistingRestockOrder(
+    Order order,
+    List<FormProduct> products,
+    PaymentMethod paymentMethod,
+    ExpenseType expenseType,
+  ) {
+    assert(
+      expenseType.name == "Inventory Restock",
+      'Expense type must be Inventory Restock for restock orders',
+    );
+    products.map((p) {
+      final info = [
+        p.productId,
+        p.productName,
+        p.description,
+        p.quantity,
+        p.unit,
+        p.rate,
+        p.amount,
+        p.errorMessage,
+      ];
+      printBoxed(
+        'Restock Order Product Info: ${info.join(', \n')}',
+      );
+    });
+    return OrderFormState(
+      orderType: OrderType.restock,
+      orderId: order.id,
+      payeeName: order.payeeName,
+      orderDate: order.orderDate,
+      paymentMethod: paymentMethod,
+      referenceNumber: order.referenceNumber!,
+      memo: order.memo,
+      amountDue: order.amountDue,
+      paymentDate: order.paymentDate,
+      creationDate: order.creationDate,
+      creatorId: order.creatorId,
+      orderItems: null,
+      expenseType: expenseType, // Restock orders do not have an expense type
+      products: products,
+    );
+  }
   factory OrderFormState.restockOrder(Product? product, int? orderId) {
     return OrderFormState(
       orderType: OrderType.restock,

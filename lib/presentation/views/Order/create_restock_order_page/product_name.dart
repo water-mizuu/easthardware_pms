@@ -122,10 +122,13 @@ class _ProductNameState extends State<ProductName> {
         foregroundDecoration: BoxDecorations.ghost,
         items: [
           for (final product in products)
-            AutoSuggestBoxItem(
-              value: product,
-              label: product.name,
-            ),
+            if (context.select((OrderFormBloc b) =>
+                    b.state.products?.any((p) => p.productId == product.id) ?? false) ==
+                false)
+              AutoSuggestBoxItem(
+                value: product,
+                label: product.name,
+              ),
         ],
 
         /// We do nothing on select, as this should be handled by the change listener.

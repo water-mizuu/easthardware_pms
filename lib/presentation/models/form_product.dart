@@ -33,6 +33,20 @@ class FormProduct with EquatableMixin {
       discountType: DiscountType.value,
     );
   }
+  factory FormProduct.fromOrderProduct(OrderProduct orderProduct) {
+    return FormProduct(
+      productId: orderProduct.productId,
+      productName: orderProduct.productName,
+      description: orderProduct.description,
+      quantity: orderProduct.quantity,
+      unit: orderProduct.secondaryUnit?.toString() ?? '',
+      unitId: orderProduct.secondaryUnit,
+      conversionFactor: orderProduct.conversionFactor,
+      rate: orderProduct.rate,
+      amount: orderProduct.amount,
+      discountType: DiscountType.value,
+    );
+  }
   const FormProduct({
     this.productId,
     required this.productName,

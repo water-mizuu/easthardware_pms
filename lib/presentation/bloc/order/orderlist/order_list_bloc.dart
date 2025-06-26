@@ -176,16 +176,15 @@ class OrderListBloc extends Bloc<OrderListEvent, OrderListState> {
     emit(state.copyWith(status: DataStatus.loading));
     try {
       // Fetch the original order products to reverse their quantities
-      final originalOrderProducts =
-          await _orderProductRepository.getOrderProductsByOrderId(event.order.id!);
+      final og = await _orderProductRepository.getOrderProductsByOrderId(event.order.id!);
 
       // First, reverse the effects of the original order by updating product quantities
       // with negative values of the original quantities
-      final reverseOriginalStockFutures = originalOrderProducts.map((product) {
-        // We use negative quantity to subtract from current inventory
-        return _productRepository.updateProductStock(product.productId, -product.quantity);
-      }).toList();
-      await Future.wait(reverseOriginalStockFutures);
+      await og
+          // We use negative quantity to subtract from current inventory
+          .map((p) => _productRepository.updateProductStock(p.productId, -p.quantity))
+          .toList()
+          .wait;
 
       // Update the order
       await _repository.updateOrder(event.order);
@@ -194,20 +193,31 @@ class OrderListBloc extends Bloc<OrderListEvent, OrderListState> {
       await _orderProductRepository.deleteOrderProductsByOrderId(event.order.id!);
 
       // Then insert the new order products
-      final productFutures = event.products
+      await event.products
           .map((product) => _orderProductRepository.insertOrderProduct(product))
-          .toList();
-      await Future.wait(productFutures);
+          .toList()
+          .wait;
 
       // Now add the new quantities to the inventory
-      final updateStockFutures = event.products.map((product) {
-        return _productRepository.updateProductStock(product.productId, product.quantity);
-      }).toList();
-      await Future.wait(updateStockFutures);
+      await event.products
+          .map((p) => _productRepository.updateProductStock(p.productId, p.quantity))
+          .toList()
+          .wait;
 
       // Update the orders list in the state
       final orders = state.allOrders.map((o) => o.id == event.order.id ? event.order : o).toList();
-      emit(state.copyWith(allOrders: orders, status: DataStatus.success));
+
+      // Refresh all order products in state by removing old ones for this order and adding new ones
+      final updatedOrderProducts = state.allOrderProducts
+          .where((p) => p.orderId != event.order.id)
+          .toList()
+        ..addAll(event.products);
+
+      emit(state.copyWith(
+        allOrders: orders,
+        allOrderProducts: updatedOrderProducts,
+        status: DataStatus.success,
+      ));
     } catch (e) {
       print('[OrderListBloc] Error updating order: $e');
       emit(state.copyWith(status: DataStatus.error));

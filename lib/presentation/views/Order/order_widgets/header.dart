@@ -61,23 +61,7 @@ class Header extends StatelessWidget {
     // Check for empty items before submitting
     final state = formBloc.state;
     if (isRestock) {
-      // For restock orders
-      if (state.products != null && state.products!.isNotEmpty) {
-        final anyEmpty = state.products!.any((product) =>
-            product.productId == null &&
-            product.quantity <= 0 &&
-            product.rate <= 0 &&
-            (product.description == null || product.description!.isEmpty));
-
-        if (state.products!.length == 1 && anyEmpty) {
-          showNotification.warning(
-            title: 'Warning',
-            message: 'Please add at least one product to the order.',
-          );
-          return;
-        }
-      }
-
+      // For restock order
       final restockExpenseType = (context.read<ExpenseTypeListBloc>().state.expenseTypes)
           .firstWhere((type) => type.name == 'Inventory Restock');
 
@@ -91,24 +75,6 @@ class Header extends StatelessWidget {
         );
     } else {
       // For expense orders
-      if (state.orderItems != null && state.orderItems!.isNotEmpty) {
-        // Check if any items have been added or if they're all empty
-        final allEmpty = state.orderItems!.any((item) =>
-            (item.name == null || item.name!.isEmpty) &&
-            item.quantity <= 0 &&
-            item.rate <= 0 &&
-            (item.description == null || item.description!.isEmpty));
-
-        if (state.orderItems!.length == 1 && allEmpty) {
-          showNotification.warning(
-            title: 'Warning',
-            message: 'Please add at least one item to the order.',
-          );
-          return;
-        }
-      }
-
-      // Continue with saving expense order
       formBloc.add(
         SaveExpenseOrderRequestEvent(
           creationDate: creationDate,

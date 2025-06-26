@@ -28,20 +28,24 @@ class _QuantityAndUnitState extends State<QuantityAndUnit> {
     _quantityController.addListener(() {
       /// Synchronize the quantity in the controller and the current form product.
       final (index, currentProductId) = context.read<IndexedProductId>();
+      // Always get the latest state to ensure we have the most up-to-date product data
       final currentFormProduct = (context.read<OrderFormBloc>().state.products!)
           .firstWhere((p) => p.productId == currentProductId);
       final newQuantity = double.tryParse(_quantityController.text) ?? 0;
 
       if (currentFormProduct.quantity != newQuantity) {
+        // Use the current rate from the product to ensure we have the latest rate
+        final currentRate = currentFormProduct.rate;
         context //
             .read<OrderFormBloc>()
             .add(ProductUpdatedEvent(
               currentFormProduct.copyWith(
                 quantity: newQuantity,
-                amount: newQuantity * currentFormProduct.rate,
+                amount: newQuantity * currentRate,
               ),
               index,
             ));
+
         _updateQuantityControllerWithQuantity(newQuantity);
       }
     });
@@ -56,7 +60,7 @@ class _QuantityAndUnitState extends State<QuantityAndUnit> {
     // Check if product ID is changed or it's the first time loading
     if (_currentProductId != currentProductId) {
       _currentProductId = currentProductId;
-      
+
       // Clear the controller if the product was removed (currentProductId is null)
       if (currentProductId == null) {
         _quantityController.clear();

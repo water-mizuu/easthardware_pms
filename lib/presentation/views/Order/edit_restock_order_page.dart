@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:easthardware_pms/domain/enums/enums.dart';
 import 'package:easthardware_pms/domain/models/order.dart';
+import 'package:easthardware_pms/domain/models/order_product.dart';
 import 'package:easthardware_pms/domain/models/payment_method.dart';
 import 'package:easthardware_pms/domain/repository/order_repository.dart';
 import 'package:easthardware_pms/presentation/bloc/authentication/authentication/authentication_bloc.dart';
@@ -11,6 +12,7 @@ import 'package:easthardware_pms/presentation/bloc/order/orderform/order_form_bl
 import 'package:easthardware_pms/presentation/bloc/order/orderlist/order_list_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/payment/payment_method_list/payment_method_list_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/security/user_log_list/user_log_list_bloc.dart';
+import 'package:easthardware_pms/presentation/models/form_product.dart';
 import 'package:easthardware_pms/presentation/router/app_routes.dart';
 import 'package:easthardware_pms/presentation/views/order/create_restock_order_page/product_name.dart';
 import 'package:easthardware_pms/presentation/views/order/create_restock_order_page/quantity_and_unit.dart';
@@ -29,6 +31,7 @@ import 'package:easthardware_pms/presentation/widgets/text.dart';
 import 'package:easthardware_pms/presentation/widgets/ui/styles.dart';
 import 'package:easthardware_pms/presentation/widgets/ui/form_table_column.dart';
 import 'package:easthardware_pms/presentation/widgets/ui/text_button.dart';
+import 'package:easthardware_pms/utils/boxed.dart';
 import 'package:easthardware_pms/utils/notification.dart';
 import 'package:easthardware_pms/utils/typed_routes.dart';
 import 'package:fluent_ui/fluent_ui.dart';
@@ -44,50 +47,74 @@ class EditRestockOrderPage extends StatefulWidget {
   State<EditRestockOrderPage> createState() => _EditRestockOrderPageState();
 }
 
-// // Global key for overlay entry
-// final overlayWidgetKey = GlobalKey();
-
 class _EditRestockOrderPageState extends State<EditRestockOrderPage> {
-  // OverlayEntry? overlayEntry;
-
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      key: UniqueKey(),
+      key: ValueKey(widget.order.id),
       create: (context) {
+        final order = widget.order;
+        // Get all order products for this order
+        final orderProducts = (context.read<OrderListBloc>().state.allOrderProducts)
+            .where((p) => p.orderId == order.id)
+            .toList();
+
+        // Get necessary payment method and expense type
+        final paymentMethod = (context.read<PaymentMethodListBloc>().state.paymentMethods)
+            .firstWhere((p) => p.id == order.paymentMethod);
+
+        final expenseType = (context.read<ExpenseTypeListBloc>().state.expenseTypes)
+            .firstWhere((e) => e.id == order.expenseType);
+
+        // First, create the correct FormProduct objects with proper descriptions from order products
+        final productItems = orderProducts.map((p) {
+          final product = context.read<ProductListBloc>().state.allProducts.firstWhere(
+              (prod) => prod.id == p.productId,
+              orElse: () => throw Exception('Product not found'));
+
+          // Create FormProduct with correct unit information from the actual product
+          return FormProduct(
+            productId: p.productId,
+            productName: p.productName,
+            description: p.description, // Preserve the exact description from the order
+            quantity: p.quantity,
+            unit: product.mainUnit, // Use the actual unit name from the product
+            unitId: p.secondaryUnit,
+            conversionFactor: p.conversionFactor,
+            rate: p.rate,
+            amount: p.amount,
+            discountType: DiscountType.value,
+          );
+        }).toList();
+
+        // Debug log to see what we're loading
+        printBoxed('Loading ${productItems.length} products for order ${order.id}',
+            'EditRestockOrderPage');
+        for (final item in productItems) {
+          printBoxed(
+              'Product: ${item.productName}, '
+                  'description: "${item.description}", '
+                  'unit: ${item.unit}, '
+                  'quantity: ${item.quantity}',
+              'ProductItem');
+        }
+
+        // Create the bloc with our properly initialized product items
         final bloc = OrderFormBloc.fromExistingRestockOrder(
-          null,
-          widget.order.id,
+          order,
+          productItems,
+          paymentMethod,
+          expenseType,
           orderRepository: RepositoryProvider.of<OrderRepository>(context),
         );
 
-        // Load order details asynchronously using the widget.order that's passed in
-        Future.microtask(() async {
-          final orderListBloc = context.read<OrderListBloc>();
-          final paymentMethodListBloc = context.read<PaymentMethodListBloc>();
-          final expenseTypeListBloc = context.read<ExpenseTypeListBloc>();
-
-          // Get the order products for this order
-          final orderProducts = orderListBloc.state.allOrderProducts
-              .where((p) => p.orderId == widget.order.id)
-              .toList();
-
-          // Find the payment method from the payment method ID
-          final paymentMethod = paymentMethodListBloc.state.paymentMethods
-              .firstWhere((p) => p.id == widget.order.paymentMethod);
-
-          // Find the expense type from the expense type ID
-          final expenseType = expenseTypeListBloc.state.expenseTypes
-              .firstWhere((e) => e.id == widget.order.expenseType);
-
-          // Load the existing order data into the form using the LoadExistingOrderEvent
-          bloc.add(LoadExistingRestockOrderEvent(
-            order: widget.order,
-            products: orderProducts,
-            paymentMethod: paymentMethod,
-            expenseType: expenseType,
-          ));
-        });
+        // Load the order details using our event to ensure complete consistency
+        bloc.add(LoadExistingRestockOrderEvent(
+          order: order,
+          expenseType: expenseType,
+          paymentMethod: paymentMethod,
+          products: orderProducts,
+        ));
 
         return bloc;
       },
@@ -95,7 +122,8 @@ class _EditRestockOrderPageState extends State<EditRestockOrderPage> {
         listeners: [
           BlocListener<OrderFormBloc, OrderFormState>(
             listenWhen: (p, c) =>
-                p.status != c.status || p.dialogErrorMessage != c.dialogErrorMessage,
+                p.status != c.status || //
+                p.dialogErrorMessage != c.dialogErrorMessage,
             listener: (context, state) {
               if (state.status == FormStatus.error && state.dialogErrorMessage != null) {
                 unawaited(showDialog<String>(
@@ -115,10 +143,82 @@ class _EditRestockOrderPageState extends State<EditRestockOrderPage> {
                 ));
               } else if (state.status == FormStatus.submitting) {
                 final order = state.copyWith().toOrder();
-                final products = state.products
-                    ?.map((product) => product.toOrderProduct(order.id ?? 0))
-                    .toList();
-                context.read<OrderListBloc>().add(UpdateRestockOrderEvent(order, products!));
+
+                // Log the full state before conversion to help debugging
+                printBoxed('Current state products before conversion:', 'EditRestockOrder');
+                for (final stateProduct in state.products!) {
+                  printBoxed(
+                      'Product: ${stateProduct.productName}, '
+                          'ID: ${stateProduct.productId}, '
+                          'Description: "${stateProduct.description}", '
+                          'Quantity: ${stateProduct.quantity}, '
+                          'Unit: ${stateProduct.unit}',
+                      'StateProduct');
+                }
+
+                // Map products to order products ensuring descriptions are preserved
+                final products = state.products?.map((formProduct) {
+                  // Create OrderProduct directly from FormProduct
+                  final orderProduct = formProduct.toOrderProduct(order.id ?? 0);
+
+                  // Log the conversion to verify description preservation
+                  printBoxed(
+                      'Converting: ${formProduct.productName}\n'
+                          'FormProduct description: "${formProduct.description}"\n'
+                          'OrderProduct description: "${orderProduct.description}"',
+                      'ProductConversion');
+
+                  return orderProduct;
+                }).toList();
+
+                // Final verification to ensure all descriptions are preserved
+                printBoxed('Preparing to submit order update', 'EditRestockOrder');
+
+                // Create a new list with corrected descriptions
+                final List<OrderProduct> correctedProducts = [];
+
+                for (int i = 0; i < products!.length; i++) {
+                  final product = products[i];
+                  final originalProduct = state.products![i];
+
+                  // Check if description was lost in the conversion
+                  if (originalProduct.description != null &&
+                      originalProduct.description != product.description) {
+                    printBoxed(
+                        'Description mismatch for ${product.productName}:\n'
+                            'Original: "${originalProduct.description}"\n'
+                            'New: "${product.description}"',
+                        'DescriptionError');
+
+                    // Create a corrected version with the right description
+                    final correctedProduct = OrderProduct(
+                        id: product.id,
+                        orderId: product.orderId,
+                        productId: product.productId,
+                        productName: product.productName,
+                        description: originalProduct.description, // Use the original description
+                        quantity: product.quantity,
+                        secondaryUnit: product.secondaryUnit,
+                        conversionFactor: product.conversionFactor,
+                        rate: product.rate,
+                        amount: product.amount);
+
+                    correctedProducts.add(correctedProduct);
+                    printBoxed('Fixed description to: "${correctedProduct.description}"',
+                        'DescriptionFix');
+                  } else {
+                    // No correction needed
+                    correctedProducts.add(product);
+                  }
+
+                  print('[EditRestockOrder] Saving product: ${product.productName}, '
+                      'description: "${product.description}"');
+                }
+
+                // Always proceed with the update using our corrected products
+                context
+                    .read<OrderListBloc>()
+                    .add(UpdateRestockOrderEvent(order, correctedProducts));
               }
             },
           ),
@@ -139,27 +239,6 @@ class _EditRestockOrderPageState extends State<EditRestockOrderPage> {
                 );
                 context.navigate(AppRoutes.admin.order);
               }),
-          // BlocListener<OrderFormBloc, OrderFormState>(
-          //   listener: (context, state) {
-          //     final overlay = Overlay.of(overlayWidgetKey.currentContext!);
-          //     if (state.status == FormStatus.submitting) {
-          //       if (overlayEntry == null) {
-          //         overlayEntry = OverlayEntry(builder: (context) {
-          //           return Container(
-          //             color: Colors.black.withOpacity(0.2),
-          //             child: const Center(child: ProgressRing()),
-          //           );
-          //         });
-          //         overlay.insert(overlayEntry!);
-          //       } else {
-          //         return;
-          //       }
-          //     } else {
-          //       overlayEntry?.remove();
-          //       overlayEntry = null;
-          //     }
-          //   },
-          // ),
         ],
         child: Padding(
           padding: AppPadding.panePadding,
@@ -202,6 +281,21 @@ class _OrderPageFormState extends State<_OrderPageForm> {
     super.initState();
     _payeeNameController = TextEditingController();
     _referenceNumberController = TextEditingController();
+
+    // Add listeners for controllers
+    _payeeNameController.addListener(() {
+      if (context.read<OrderFormBloc>().state.payeeName != _payeeNameController.text) {
+        context.read<OrderFormBloc>().add(PayeeNameChangedEvent(_payeeNameController.text));
+      }
+    });
+
+    _referenceNumberController.addListener(() {
+      if (context.read<OrderFormBloc>().state.referenceNumber != _referenceNumberController.text) {
+        context
+            .read<OrderFormBloc>()
+            .add(ReferenceNumberChangedEvent(_referenceNumberController.text));
+      }
+    });
   }
 
   @override
@@ -216,7 +310,8 @@ class _OrderPageFormState extends State<_OrderPageForm> {
     super.didChangeDependencies();
     final state = context.watch<OrderFormBloc>().state;
 
-    // Update controllers when the state changes
+    // Update controllers when the state changes, but avoid infinite loops
+    // by checking if values actually differ
     if (_payeeNameController.text != state.payeeName) {
       _payeeNameController.text = state.payeeName;
     }
@@ -542,6 +637,18 @@ class _RestockOrderFormTableRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final currentProduct = context.watch<OrderFormBloc>().state.products![index];
+    // Debug info to trace product data changes
+    final info = [
+      'productId: ${currentProduct.productId}',
+      'name: ${currentProduct.productName}',
+      'description: ${currentProduct.description}',
+      'quantity: ${currentProduct.quantity}',
+      'unit: ${currentProduct.unit}',
+      'rate: ${currentProduct.rate}',
+      'amount: ${currentProduct.amount}',
+      'error: ${currentProduct.errorMessage}',
+    ];
+    printBoxed('Restock Order Row $index: ${info.join('\n')}', 'EditRestockOrderRow');
 
     return InheritedProvider<IndexedProductId>.value(
       /// Instead of "prop drilling", we expose the index and the current product

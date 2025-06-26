@@ -5,6 +5,7 @@ import 'package:easthardware_pms/presentation/views/order/create_restock_order_p
 import 'package:easthardware_pms/presentation/widgets/helper/currency_formatter.dart';
 import 'package:easthardware_pms/presentation/widgets/ui/form_table_cell.dart';
 import 'package:easthardware_pms/presentation/widgets/ui/text_form_boxes.dart';
+import 'package:easthardware_pms/utils/boxed.dart';
 import 'package:fluent_ui/fluent_ui.dart';
 import 'package:provider/provider.dart';
 
@@ -13,11 +14,18 @@ class Amount extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isRestock = context.select((OrderFormBloc b) => b.state.orderType == OrderType.restock);
+    final isRestock = context.watch<OrderFormBloc>().state.orderType == OrderType.restock;
+
     if (isRestock) {
       return Builder(builder: (context) {
         final (index, _) = context.watch<IndexedProductId>();
         final currentFormProduct = context.watch<OrderFormBloc>().state.products![index];
+        printBoxed(
+          'Current Form Product: $currentFormProduct\n'
+          'Current Quantity: ${currentFormProduct.quantity}\n'
+          'Current Rate: ${currentFormProduct.rate}',
+        );
+
         final calculatedAmount = currentFormProduct.quantity * currentFormProduct.rate;
         final displayText = CurrencyFormatter.full(calculatedAmount);
 
