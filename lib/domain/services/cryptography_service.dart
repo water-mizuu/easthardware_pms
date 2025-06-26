@@ -355,6 +355,10 @@ class CryptographyService {
   }
 
   static Uint8List decryptSymmetricUint8List(Uint8List encrypt, String key) {
+    if (key.isEmpty) {
+      return encrypt;
+    }
+
     final encryptionKey = EncryptionKey(_ChaCha20Poly1305._littleEndianToInt128(utf8.encode(key)));
 
     // Decode the Base64 input string.

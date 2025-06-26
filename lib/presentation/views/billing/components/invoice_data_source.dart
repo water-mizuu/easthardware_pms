@@ -1,10 +1,14 @@
 import 'dart:async';
 
-import 'package:easthardware_pms/domain/models/invoice.dart';
 import 'package:easthardware_pms/domain/enums/enums.dart';
+import 'package:easthardware_pms/domain/models/invoice.dart';
 import 'package:easthardware_pms/presentation/bloc/authentication/authentication/authentication_bloc.dart';
+import 'package:easthardware_pms/presentation/bloc/billing/invoicelist/invoice_list_bloc.dart';
+import 'package:easthardware_pms/presentation/bloc/inventory/category_list/category_list_bloc.dart';
+import 'package:easthardware_pms/presentation/bloc/inventory/product_list/product_list_bloc.dart';
 import 'package:easthardware_pms/presentation/router/app_routes.dart';
 import 'package:easthardware_pms/presentation/views/billing/components/invoice_information_content_dialog.dart';
+import 'package:easthardware_pms/presentation/views/billing/components/print_invoice.dart';
 import 'package:easthardware_pms/presentation/widgets/helper/data_row_mapper.dart';
 import 'package:easthardware_pms/utils/typed_routes.dart';
 import 'package:fluent_ui/fluent_ui.dart';
@@ -58,12 +62,15 @@ class InvoiceDataSource extends DataTableSource {
               : () {
                   context.navigateWithExtra(AppRoutes.staff.editInvoice, invoice);
                 },
-      printAction:
-          context.read<AuthenticationBloc>().state.user?.accessLevel == AccessLevel.administrator
-              ? () {
-                  // context.navigateWithExtra(AppRoutes.admin.printInvoice, invoice);
-                }
-              : () {},
+      printAction: () {
+        final allCategories = context.read<CategoryListBloc>().state.categories;
+        final allProducts = context.read<ProductListBloc>().state.allProducts;
+        final invoiceProducts = (context.read<InvoiceListBloc>().state.invoiceProducts)
+            .where((p) => p.invoiceId == invoice.id)
+            .toList();
+
+        generateInvoicePdf(invoice, invoiceProducts, allProducts, allCategories);
+      },
       receivePaymentAction:
           context.read<AuthenticationBloc>().state.user?.accessLevel == AccessLevel.administrator
               ? () {

@@ -2,8 +2,11 @@ import 'package:easthardware_pms/domain/enums/enums.dart';
 import 'package:easthardware_pms/domain/models/invoice.dart';
 import 'package:easthardware_pms/presentation/bloc/authentication/authentication/authentication_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/billing/invoicelist/invoice_list_bloc.dart';
+import 'package:easthardware_pms/presentation/bloc/inventory/category_list/category_list_bloc.dart';
+import 'package:easthardware_pms/presentation/bloc/inventory/product_list/product_list_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/payment/payment_list/payment_list_bloc.dart';
 import 'package:easthardware_pms/presentation/router/app_routes.dart';
+import 'package:easthardware_pms/presentation/views/billing/components/print_invoice.dart';
 import 'package:easthardware_pms/presentation/widgets/layout/spacing.dart';
 import 'package:easthardware_pms/presentation/widgets/ui/styles.dart';
 import 'package:easthardware_pms/utils/typed_routes.dart';
@@ -97,8 +100,15 @@ class DialogTitle extends StatelessWidget {
                 ),
               ),
               onPressed: () {
-                // TODO:
                 Navigator.of(dialogContext).pop();
+
+                final allCategories = context.read<CategoryListBloc>().state.categories;
+                final allProducts = context.read<ProductListBloc>().state.allProducts;
+                final invoiceProducts = (context.read<InvoiceListBloc>().state.invoiceProducts)
+                    .where((p) => p.invoiceId == invoice.id)
+                    .toList();
+
+                generateInvoicePdf(invoice, invoiceProducts, allProducts, allCategories);
               },
             ),
             Spacing.h8,

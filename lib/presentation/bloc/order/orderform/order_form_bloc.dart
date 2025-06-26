@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:bloc/bloc.dart';
 import 'package:easthardware_pms/domain/enums/enums.dart' show DiscountType, FormStatus, OrderType;
 import 'package:easthardware_pms/domain/models/expense_type.dart';
@@ -22,8 +20,6 @@ part 'order_form_event.dart';
 part 'order_form_state.dart';
 
 class OrderFormBloc extends Bloc<OrderFormEvent, OrderFormState> {
-  final OrderRepository? _orderRepository;
-
   OrderFormBloc(super.state, {OrderRepository? orderRepository})
       : _orderRepository = orderRepository,
         formKey = GlobalKey<FormState>() {
@@ -89,6 +85,7 @@ class OrderFormBloc extends Bloc<OrderFormEvent, OrderFormState> {
       orderRepository: orderRepository,
     );
   }
+  final OrderRepository? _orderRepository;
 
   final GlobalKey<FormState> formKey;
 
@@ -271,7 +268,7 @@ class OrderFormBloc extends Bloc<OrderFormEvent, OrderFormState> {
     await Future.delayed(Duration.zero);
 
     // Fetch existing reference numbers for validation, excluding the current order if we're editing
-    List<String> existingReferenceNumbers =
+    final existingReferenceNumbers =
         await _getExistingReferenceNumbers(excludeOrderId: state.orderId);
 
     /// Checks for Expense Orders
@@ -422,8 +419,8 @@ class OrderFormBloc extends Bloc<OrderFormEvent, OrderFormState> {
 
     await Future.delayed(Duration.zero);
 
-    // Fetch existing reference numbers for validation, excluding the current order if we're editing
-    List<String> existingReferenceNumbers =
+    // Fetch existing reference numbers for validation, excluding the current order if we're´ editing
+    final existingReferenceNumbers =
         await _getExistingReferenceNumbers(excludeOrderId: state.orderId);
 
     /// Checks
@@ -589,7 +586,7 @@ class OrderFormBloc extends Bloc<OrderFormEvent, OrderFormState> {
     if (state.products != null && state.products!.isNotEmpty) {
       // Create a map of existing form products by productId for quick lookup
       final existingProductsMap = {
-        for (var p in state.products!)
+        for (final p in state.products!)
           if (p.productId != null) p.productId: p
       };
 

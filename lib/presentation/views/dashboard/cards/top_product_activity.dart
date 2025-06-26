@@ -4,6 +4,7 @@ import 'dart:math';
 import 'package:easthardware_pms/domain/models/invoice.dart';
 import 'package:easthardware_pms/domain/repository/invoice_product_repository.dart';
 import 'package:easthardware_pms/presentation/bloc/billing/invoicelist/invoice_list_bloc.dart';
+import 'package:easthardware_pms/presentation/views/dashboard/cards/sales_overview.dart';
 import 'package:easthardware_pms/presentation/widgets/layout/spacing.dart';
 import 'package:easthardware_pms/presentation/widgets/text.dart';
 import 'package:easthardware_pms/utils/boxed.dart';
@@ -66,11 +67,11 @@ enum TopProductActivityChoice {
   bool check(DateTime date) {
     switch (this) {
       case today:
-        return date.isAfter(DateTime.now().subtract(const Duration(days: 1)));
+        return date.isAfter(DateTime.now().zeroedTime().subtract(const Duration(days: 1)));
       case lastWeek:
-        return date.isAfter(DateTime.now().subtract(const Duration(days: 7)));
+        return date.isAfter(DateTime.now().zeroedTime().subtract(const Duration(days: 7)));
       case last30Days:
-        return date.isAfter(DateTime.now().subtract(const Duration(days: 30)));
+        return date.isAfter(DateTime.now().zeroedTime().subtract(const Duration(days: 30)));
       case currentMonth:
         return date.month == DateTime.now().month && date.year == DateTime.now().year;
       case currentYear:
@@ -189,6 +190,10 @@ class _TopProductActivityState extends State<TopProductActivity> {
     final invoiceProductRepository = context.read<InvoiceProductRepository>();
 
     final chosenLimit = _productActivityChoice.value;
+    printBoxed((invoices
+        .where((i) => _productActivityChoice.value.check(i.creationDate))
+        .map((i) => i.creationDate)
+        .join("\n")));
     final (products, error) = await invoices
         // Take only the invoices that match the chosen time frame.
         .where((i) => _productActivityChoice.value.check(i.creationDate))
@@ -302,6 +307,9 @@ class _TopProductActivityState extends State<TopProductActivity> {
             );
 
             final index = value.toInt();
+            if (!(0 <= index && index < products.length)) {
+              return const SizedBox.shrink();
+            }
             assert(
               0 <= index && index < products.length,
               "The value given $index should be a valid index for the product list!",

@@ -28,17 +28,18 @@ class SystemBackupPage extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: const [
-          _PageHeader(),
+        children: [
+          const _PageHeader(),
           Expanded(
             child: AnimatedSingleChildScrollView(
               child: Column(
                 mainAxisSize: MainAxisSize.min,
-                children: [
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: const [
                   _DatabaseAndBackupInformation(),
                   _DatabaseOptions(),
                   _DatabaseBackups(),
-                ],
+                ].withSpacing(() => Spacing.v8),
               ),
             ),
           ),
@@ -266,24 +267,36 @@ class _DatabaseOptions extends StatelessWidget {
                 builder: (context) {
                   return ContentDialog(
                     title: const Text('Create backup'),
-                    content: IntrinsicWidth(
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          const SubheadingText('Encryption Key'),
-                          TextBox(
-                            controller: textController,
-                            placeholder: 'Enter an encryption key',
-                            autofocus: true,
-                          ),
-                          const RedText(
-                            'The encryption key is used to encrypt the backup file. '
-                            'Please remember this key, as will be required '
-                            'to restore the backup.',
-                          ),
-                        ].withSpacing(() => Spacing.v8),
-                      ),
+                    content: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        const SubheadingText('Encryption Key'),
+                        Spacing.v8,
+                        TextBox(
+                          controller: textController,
+                          placeholder: 'Enter an optional encryption key',
+                          autofocus: true,
+                        ),
+                        ListenableBuilder(
+                          listenable: textController,
+                          builder: (context, child) {
+                            return Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                if (textController.text.isNotEmpty) ...[
+                                  Spacing.v8,
+                                  const RedText(
+                                    'The encryption key is used to encrypt the backup file. '
+                                    'Please remember this key, as will be required '
+                                    'to restore the backup.',
+                                  ),
+                                ]
+                              ],
+                            );
+                          },
+                        ),
+                      ],
                     ),
                     actions: [
                       Button(
@@ -296,7 +309,6 @@ class _DatabaseOptions extends StatelessWidget {
                         child: const Text('Ok'),
                         onPressed: () {
                           final key = textController.text.trim();
-                          if (key.isEmpty) return;
 
                           context
                             ..read<DatabaseInformationCubit>().createBackup(key: key)
@@ -440,8 +452,6 @@ class _BackupRow extends StatelessWidget {
               child: const Text('Ok'),
               onPressed: () async {
                 final key = textController.text.trim();
-                if (key.isEmpty) return;
-
                 final didSucceed = await context //
                     .read<DatabaseInformationCubit>()
                     .restoreBackup(path: backup, key: key);
