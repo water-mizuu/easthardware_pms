@@ -1,5 +1,9 @@
 import 'dart:async';
 
+import 'package:easthardware_pms/presentation/bloc/authentication/'
+    'authentication/authentication_bloc.dart';
+import 'package:easthardware_pms/presentation/bloc/security/'
+    'user_log_list/user_log_list_bloc.dart';
 import 'package:easthardware_pms/presentation/cubit/'
     'database_information/database_information_cubit.dart';
 import 'package:easthardware_pms/presentation/widgets/animated_single_child_scroll_view.dart';
@@ -313,6 +317,9 @@ class _DatabaseOptions extends StatelessWidget {
                           context
                             ..read<DatabaseInformationCubit>().createBackup(key: key)
                             ..pop();
+
+                          final user = context.read<AuthenticationBloc>().state.user!;
+                          context.read<UserLogListBloc>().add(CreateBackupEvent(user));
                         },
                       ),
                     ],
@@ -463,6 +470,9 @@ class _BackupRow extends StatelessWidget {
                     title: 'Backup restored',
                     message: 'Backup restored successfully to $dateCreated',
                   );
+
+                  final user = context.read<AuthenticationBloc>().state.user!;
+                  context.read<UserLogListBloc>().add(RestoreBackupEvent(user));
 
                   context.pop();
                 } else {

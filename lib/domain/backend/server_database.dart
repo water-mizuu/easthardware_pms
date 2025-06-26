@@ -154,6 +154,30 @@ Future<void> restoreBackup(String backupPath, String key) async {
       final encryptedData = backupFile.readAsBytesSync();
       final decryptedData = CryptographyService.decryptSymmetricUint8List(encryptedData, key);
 
+      final tempFile = File(join(await getDatabasesPath(), 'temp_restore.db'));
+      try {
+        /// Write the bytes to a temporary file to ensure the data is valid.
+        tempFile
+          ..createSync(recursive: true)
+          ..writeAsBytesSync(decryptedData, flush: true);
+
+        // Open and close the database real quick to see if it is valid
+        final recoveredDb = await openDatabase(tempFile.path, onOpen: (db) async {
+          // This is just to ensure the database is valid
+          await db.query('SELECT * FROM sqlite_master');
+        });
+
+        await recoveredDb.close();
+      } on Object catch (e) {
+        printBoxed(e);
+        completer.completeError(
+          FileSystemException("Decrypted data is not a valid SQLite database at $backupPath"),
+        );
+        return;
+      } finally {
+        tempFile.deleteSync();
+      }
+
       // Close the current database to release lock
       await database.close();
       _databaseInstance = null;

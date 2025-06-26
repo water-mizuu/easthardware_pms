@@ -1,7 +1,7 @@
 #!/bin/sh
 # This is a generated file; do not edit or check into version control.
-export "FLUTTER_ROOT=/Users/mackenziecerenio/fvm/versions/3.24.3"
-export "FLUTTER_APPLICATION_PATH=/Users/mackenziecerenio/Developer/Flutter/EastHardware-PMS"
+export "FLUTTER_ROOT=/Users/michael/fvm/versions/3.24.3"
+export "FLUTTER_APPLICATION_PATH=/Users/michael/Programming/projects/dart/flutter/easthardware_pms"
 export "COCOAPODS_PARALLEL_CODE_SIGN=true"
 export "FLUTTER_TARGET=lib/main.dart"
 export "FLUTTER_BUILD_DIR=build"

@@ -116,7 +116,7 @@ class _BusinessSnapshotReportState extends State<BusinessSnapshotReport> {
                     children: [
                       const SizedBox(width: 80, child: Text('End Date: ')),
                       Spacing.h8,
-                      BorderedDatePicker(
+                      DatePicker(
                         selected: state.queryData.currentPeriodEnd,
                         onChanged: (date) {
                           context

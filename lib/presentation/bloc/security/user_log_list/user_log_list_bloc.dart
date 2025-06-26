@@ -34,6 +34,8 @@ class UserLogListBloc extends Bloc<UserLogListEvent, UserLogListState> {
     on<DeleteUserLogEvent>(_onDeleteUserLog);
     on<AddLoginEvent>(_onAddLoginLog);
     on<AddLogoutEvent>(_onAddLogoutLog);
+    on<CreateBackupEvent>(_onCreateBackupLog);
+    on<RestoreBackupEvent>(_onRestoreBackupLog);
 
     on<SearchQueryUpdatedEvent>(_onSearchQueryUpdated, transformer: debounce(1.seconds));
     on<AccessLevelQueryUpdatedEvent>(_onAccessLevelQueryUpdated);
@@ -265,5 +267,38 @@ class UserLogListBloc extends Bloc<UserLogListEvent, UserLogListState> {
   ) async {
     emit(state.copyWith(queryData: state.queryData.copyWith(endDate: event.endDate)));
     add(const _FilterUserLogsEvent());
+  }
+
+  Future<void> _onCreateBackupLog(CreateBackupEvent event, Emitter<UserLogListState> emit) async {
+    try {
+      final userLog = UserLog.backupDatabase(user: event.user);
+      final insertedUserLog = await _userLogRepository.insertUserLog(userLog);
+      final userLogs = List<UserLog>.from(state.userLogs)..add(insertedUserLog);
+
+      emit(state.copyWith(userLogs: userLogs, status: DataStatus.success));
+    } catch (e) {
+      if (kDebugMode) {
+        print("BLoC Error inserting user log: $e");
+      }
+      emit(state.copyWith(status: DataStatus.error, errorMessage: e.toString()));
+    }
+  }
+
+  Future<void> _onRestoreBackupLog(
+    RestoreBackupEvent event,
+    Emitter<UserLogListState> emit,
+  ) async {
+    try {
+      final userLog = UserLog.restoreDatabase(user: event.user);
+      final insertedUserLog = await _userLogRepository.insertUserLog(userLog);
+      final userLogs = List<UserLog>.from(state.userLogs)..add(insertedUserLog);
+
+      emit(state.copyWith(userLogs: userLogs, status: DataStatus.success));
+    } catch (e) {
+      if (kDebugMode) {
+        print("BLoC Error inserting user log: $e");
+      }
+      emit(state.copyWith(status: DataStatus.error, errorMessage: e.toString()));
+    }
   }
 }

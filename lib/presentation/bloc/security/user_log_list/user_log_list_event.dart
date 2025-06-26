@@ -80,3 +80,15 @@ class DeleteUserLogEvent implements UserLogListEvent {
 
   final UserLog userLog;
 }
+
+class CreateBackupEvent implements UserLogListEvent {
+  const CreateBackupEvent(this.user);
+
+  final User user;
+}
+
+class RestoreBackupEvent implements UserLogListEvent {
+  const RestoreBackupEvent(this.user);
+
+  final User user;
+}
