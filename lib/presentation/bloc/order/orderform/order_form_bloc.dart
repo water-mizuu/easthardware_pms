@@ -8,6 +8,7 @@ import 'package:easthardware_pms/domain/models/order_item.dart';
 import 'package:easthardware_pms/domain/models/order_product.dart';
 import 'package:easthardware_pms/domain/models/payment_method.dart';
 import 'package:easthardware_pms/domain/models/product.dart';
+import 'package:easthardware_pms/domain/repository/order_repository.dart';
 import 'package:easthardware_pms/domain/services/cryptography_service.dart';
 import 'package:easthardware_pms/presentation/models/form_order_item.dart';
 import 'package:easthardware_pms/presentation/models/form_product.dart';
@@ -21,7 +22,11 @@ part 'order_form_event.dart';
 part 'order_form_state.dart';
 
 class OrderFormBloc extends Bloc<OrderFormEvent, OrderFormState> {
-  OrderFormBloc(super.state) : formKey = GlobalKey<FormState>() {
+  final OrderRepository? _orderRepository;
+
+  OrderFormBloc(super.state, {OrderRepository? orderRepository})
+      : _orderRepository = orderRepository,
+        formKey = GlobalKey<FormState>() {
     on<PayeeNameChangedEvent>(_onPayeeNameChanged);
     on<OrderDateChangedEvent>(_onOrderDateChanged);
     on<ExpenseTypeChangedEvent>(_onExpenseTypeChanged);
@@ -44,26 +49,35 @@ class OrderFormBloc extends Bloc<OrderFormEvent, OrderFormState> {
     on<LoadExistingExpenseOrderEvent>(_onLoadExistingExpenseOrder); // Add this line
   }
 
-  factory OrderFormBloc.fromRestockOrder(Product? product) {
+  factory OrderFormBloc.fromRestockOrder(Product? product, {OrderRepository? orderRepository}) {
     return OrderFormBloc(
       OrderFormState.restockOrder(product, null),
+      orderRepository: orderRepository,
     );
   }
-  factory OrderFormBloc.fromExpenseOrder() {
+  factory OrderFormBloc.fromExpenseOrder({OrderRepository? orderRepository}) {
     return OrderFormBloc(
       OrderFormState.expenseOrder(null),
+      orderRepository: orderRepository,
     );
   }
-  factory OrderFormBloc.fromExistingRestockOrder(Product? product, int? orderId) {
+  factory OrderFormBloc.fromExistingRestockOrder(Product? product, int? orderId,
+      {OrderRepository? orderRepository}) {
     // Create a basic OrderFormBloc
-    final bloc = OrderFormBloc(OrderFormState.restockOrder(product, orderId));
+    final bloc = OrderFormBloc(
+      OrderFormState.restockOrder(product, orderId),
+      orderRepository: orderRepository,
+    );
     // If orderId is provided, we'll load the order details
     // in the EditRestockOrderPage instead of here
     return bloc;
   }
-  factory OrderFormBloc.fromExistingExpenseOrder(int? orderId) {
+  factory OrderFormBloc.fromExistingExpenseOrder(int? orderId, {OrderRepository? orderRepository}) {
     // TODO: Implement
-    return OrderFormBloc(OrderFormState.expenseOrder(orderId));
+    return OrderFormBloc(
+      OrderFormState.expenseOrder(orderId),
+      orderRepository: orderRepository,
+    );
   }
 
   final GlobalKey<FormState> formKey;
@@ -236,6 +250,9 @@ class OrderFormBloc extends Bloc<OrderFormEvent, OrderFormState> {
 
     await Future.delayed(Duration.zero);
 
+    // Fetch existing reference numbers for validation, excluding the current order if we're editing
+    List<String> existingReferenceNumbers = await _getExistingReferenceNumbers(excludeOrderId: state.orderId);
+
     /// Checks for Expense Orders
     /// - Payee Name must not be empty
     /// - Order Items must not be empty
@@ -253,7 +270,9 @@ class OrderFormBloc extends Bloc<OrderFormEvent, OrderFormState> {
       referenceNumber: state.referenceNumber,
       referenceNumberErrorMessage: state.referenceNumber.trim().isEmpty //
           ? 'Reference number is required.'
-          : null,
+          : existingReferenceNumbers.contains(state.referenceNumber.trim())
+              ? 'Reference number already exists.'
+              : null,
       paymentMethod: state.paymentMethod,
       paymentMethodErrorMessage: state.paymentMethod == null //
           ? 'Payment method is required.'
@@ -382,6 +401,9 @@ class OrderFormBloc extends Bloc<OrderFormEvent, OrderFormState> {
 
     await Future.delayed(Duration.zero);
 
+    // Fetch existing reference numbers for validation, excluding the current order if we're editing
+    List<String> existingReferenceNumbers = await _getExistingReferenceNumbers(excludeOrderId: state.orderId);
+
     /// Checks
     /// - Payee Name must not be empty
     /// - Products must not be empty
@@ -395,8 +417,11 @@ class OrderFormBloc extends Bloc<OrderFormEvent, OrderFormState> {
       payeeName: state.payeeName,
       payeeNameErrorMessage: state.payeeName.trim().isEmpty ? 'Payee name is required.' : null,
       referenceNumber: state.referenceNumber,
-      referenceNumberErrorMessage:
-          state.referenceNumber.trim().isEmpty ? 'Reference number is required.' : null,
+      referenceNumberErrorMessage: state.referenceNumber.trim().isEmpty
+          ? 'Reference number is required.'
+          : existingReferenceNumbers.contains(state.referenceNumber.trim())
+              ? 'Reference number already exists.'
+              : null,
       paymentMethod: state.paymentMethod,
       paymentMethodErrorMessage: state.paymentMethod == null ? 'Payment method is required.' : null,
       orderDate: state.orderDate,
@@ -592,5 +617,30 @@ class OrderFormBloc extends Bloc<OrderFormEvent, OrderFormState> {
       orderItems: formOrderItems,
       status: FormStatus.initial,
     ));
+  }
+
+  // Method to get all existing reference numbers from the repository, excluding the current order's reference number
+  Future<List<String>> _getExistingReferenceNumbers({int? excludeOrderId}) async {
+    if (_orderRepository == null) {
+      return [];
+    }
+
+    try {
+      // Get all orders from the repository
+      final orders = await _orderRepository.getAllOrders();
+
+      // Extract the reference numbers from orders, excluding the current order if provided
+      final existingRefNumbers = orders
+          .where((order) => order.id != excludeOrderId) // Exclude the current order if editing
+          .map((order) => order.referenceNumber)
+          .where((refNum) => refNum != null && refNum.isNotEmpty)
+          .map((refNum) => refNum!)
+          .toList();
+
+      return existingRefNumbers;
+    } catch (e, stackTrace) {
+      printBoxed('Error fetching reference numbers: $e \n $stackTrace', 'OrderFormBloc');
+      return [];
+    }
   }
 }

@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:easthardware_pms/domain/enums/enums.dart';
 import 'package:easthardware_pms/domain/models/payment_method.dart';
+import 'package:easthardware_pms/domain/repository/order_repository.dart';
 import 'package:easthardware_pms/presentation/bloc/authentication/'
     'authentication/authentication_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/order/orderform/order_form_bloc.dart';
@@ -47,7 +48,9 @@ class _CreateExpenseOrderPageState extends State<CreateExpenseOrderPage> {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (_) => OrderFormBloc.fromExpenseOrder(),
+      create: (context) => OrderFormBloc.fromExpenseOrder(
+        orderRepository: RepositoryProvider.of<OrderRepository>(context),
+      ),
       child: MultiBlocListener(
         listeners: [
           BlocListener<OrderFormBloc, OrderFormState>(

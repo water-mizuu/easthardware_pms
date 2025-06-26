@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:easthardware_pms/domain/enums/enums.dart' show DataStatus, FormStatus;
 import 'package:easthardware_pms/domain/models/payment_method.dart';
 import 'package:easthardware_pms/domain/models/product.dart';
+import 'package:easthardware_pms/domain/repository/order_repository.dart';
 import 'package:easthardware_pms/presentation/bloc/authentication/'
     'authentication/authentication_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/inventory/product_list/product_list_bloc.dart';
@@ -55,7 +56,10 @@ class _CreateRestockOrderPageState extends State<CreateRestockOrderPage> {
   Widget build(BuildContext context) {
     return BlocProvider(
       key: UniqueKey(),
-      create: (_) => OrderFormBloc.fromRestockOrder(widget.product),
+      create: (context) => OrderFormBloc.fromRestockOrder(
+        widget.product,
+        orderRepository: RepositoryProvider.of<OrderRepository>(context),
+      ),
       child: MultiBlocListener(
         listeners: [
           BlocListener<OrderFormBloc, OrderFormState>(

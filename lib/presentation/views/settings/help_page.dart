@@ -42,13 +42,6 @@ class _UserManualSection extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          'User Manual',
-          style: FluentTheme.of(context)
-              .typography
-              .subtitle //
-              ?.copyWith(fontWeight: FontWeight.normal),
-        ),
         Spacing.v16,
         LayoutMode.builder((context, mode, keys) {
           final cards = [

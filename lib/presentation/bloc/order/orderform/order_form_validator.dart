@@ -28,10 +28,15 @@ mixin OrderFormValidator on Widget {
     return null;
   }
 
-  String? validateReferenceNumber(String? value) {
+  String? validateReferenceNumberUnique(String? value, List<String> existingReferenceNumbers) {
     if (value == null || value.trim().isEmpty) {
       return 'Reference number is required';
     }
+
+    if (existingReferenceNumbers.contains(value.trim())) {
+      return 'Reference number already exists';
+    }
+
     return null;
   }
 
