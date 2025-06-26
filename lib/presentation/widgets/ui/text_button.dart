@@ -6,11 +6,13 @@ class TextButton extends StatelessWidget {
   const TextButton(
     this.text, {
     required this.onPressed,
+    this.color,
     super.key,
   });
 
   final String text;
   final Function()? onPressed;
+  final Color? color;
 
   @override
   Widget build(BuildContext context) {
@@ -18,7 +20,7 @@ class TextButton extends StatelessWidget {
       onPressed: onPressed,
       child: Padding(
         padding: AppPadding.a4,
-        child: ButtonText(text),
+        child: ButtonText(text, color: color),
       ),
     );
   }

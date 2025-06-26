@@ -2,7 +2,6 @@ import 'package:easthardware_pms/presentation/bloc/authentication/'
     'authentication/authentication_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/server/server_bloc.dart';
 import 'package:easthardware_pms/presentation/widgets/dialog/log_out_dialog.dart';
-import 'package:easthardware_pms/utils/boxed.dart';
 import 'package:easthardware_pms/utils/typed_routes.dart';
 import 'package:fluent_ui/fluent_ui.dart';
 import 'package:flutter/foundation.dart';
@@ -69,20 +68,6 @@ mixin CommonSidePanelMixin on NavigationPanelMixin {
   List<NavigationPaneItem> footerItems(BuildContext context) {
     return [
       if (kDebugMode) ...[
-        navItem(
-          icon: FluentIcons.build,
-          title: 'Create backup',
-          color: Colors.blue,
-          onTap: () async {
-            final serverBloc = context.read<ServerBloc>();
-
-            if (serverBloc.state.customChannel case final channel?) {
-              final objects = await channel.invoke("backup");
-
-              printBoxed(objects, "hi");
-            }
-          },
-        ),
         navItem(
           icon: FluentIcons.device_bug,
           title: 'Clear database',

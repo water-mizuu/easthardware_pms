@@ -149,6 +149,30 @@ class GrayText extends StatelessWidget {
   }
 }
 
+class RedText extends StatelessWidget {
+  const RedText(
+    this.data, {
+    this.textAlign = TextAlign.left,
+    this.overflow,
+    super.key,
+  });
+
+  final String data;
+  final TextAlign textAlign;
+  final TextOverflow? overflow;
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(data,
+        textAlign: textAlign,
+        overflow: overflow,
+        style: TextStyle(
+          fontSize: 14.0,
+          color: Colors.red.dark,
+        ));
+  }
+}
+
 class CaptionText extends StatelessWidget {
   const CaptionText(
     this.data, {
@@ -178,11 +202,13 @@ class ButtonText extends StatelessWidget {
     this.data, {
     this.textAlign = TextAlign.left,
     this.overflow,
+    this.color,
     super.key,
   });
   final String data;
   final TextAlign textAlign;
   final TextOverflow? overflow;
+  final Color? color;
 
   @override
   Widget build(BuildContext context) {
@@ -190,8 +216,9 @@ class ButtonText extends StatelessWidget {
       data,
       textAlign: textAlign,
       overflow: overflow,
-      style: const TextStyle(
+      style: TextStyle(
         fontSize: 14.0,
+        color: color,
       ),
     );
   }

@@ -39,30 +39,6 @@ Future<DatabaseHelper> getWebSocketDatabaseHelper(int? savedHeartbeat) async {
   return DirectDatabaseHelper(database);
 }
 
-// Future<void> pauseDatabase() async {
-//   assertChildIsolate();
-//   if (kDebugMode) {
-//     printBoxed("Pausing database operations", "Database Pause");
-//   }
-
-//   _pauseCompleter = Completer<void>();
-//   isDatabasePaused = true;
-//   await _pauseCompleter!.future;
-//   _pauseCompleter = null;
-//   // Stop the queue to prevent further processing of jobs
-// }
-
-// Future<void> resumeDatabase() async {
-//   assertChildIsolate();
-//   if (kDebugMode) {
-//     printBoxed("Resuming database operations", "Database Resume");
-//   }
-
-//   isDatabasePaused = false;
-//   // Start the queue if it was paused
-//   unawaited(_dbMethodQueue.start());
-// }
-
 Future<void> resetDatabase() async {
   assertChildIsolate();
   if (kDebugMode) {
@@ -116,13 +92,9 @@ Future<String> createBackup(String key) async {
   _dbMethodQueue.addJob((_) async {
     final database = await _getDatabase(null);
     final databasePath = database.path;
-    final backupPath = join(
-      await getDatabasesPath(),
-      'backups',
-      'backup_${DateTime.now().millisecondsSinceEpoch}.db',
-    );
 
-    await database.close(); // Close the database to release lock.
+    // Close the database to release lock.
+    await database.close();
     _databaseInstance = null;
 
     final dbFile = File(databasePath);
@@ -139,6 +111,11 @@ Future<String> createBackup(String key) async {
       "The cryptography service should work.",
     );
 
+    final backupPath = join(
+      await getDatabasesPath(),
+      'backups',
+      'backup_${DateTime.now().millisecondsSinceEpoch}.db',
+    );
     File(backupPath)
       ..createSync(recursive: true)
       ..writeAsBytesSync(encryptedData, flush: true);
@@ -165,33 +142,98 @@ Future<void> restoreBackup(String backupPath, String key) async {
   final completer = Completer<void>.sync();
 
   _dbMethodQueue.addJob((_) async {
-    final database = await _getDatabase(null);
-    final backupFile = File(backupPath);
+    try {
+      final database = await _getDatabase(null);
+      final backupFile = File(backupPath);
 
+      if (!backupFile.existsSync()) {
+        completer.completeError(FileSystemException("Backup file does not exist at $backupPath"));
+        return;
+      }
+
+      final encryptedData = backupFile.readAsBytesSync();
+      final decryptedData = CryptographyService.decryptSymmetricUint8List(encryptedData, key);
+
+      // Close the current database to release lock
+      await database.close();
+      _databaseInstance = null;
+
+      // Write the decrypted data back to the database file
+      final dbFile = File(database.path);
+      dbFile.writeAsBytesSync(decryptedData, flush: true);
+
+      if (kDebugMode) {
+        printBoxed(
+          "Database restored from backup: $backupPath",
+          "Database Restore",
+        );
+      }
+
+      _databaseInstance = await _getDatabase(null);
+      completer.complete();
+    } catch (e, st) {
+      completer.completeError(e, st);
+    }
+  });
+
+  return completer.future;
+}
+
+Future<void> deleteBackup(String backupPath) async {
+  assertChildIsolate();
+
+  final completer = Completer<void>.sync();
+
+  _dbMethodQueue.addJob((_) async {
+    final backupFile = File(backupPath);
     if (!backupFile.existsSync()) {
-      throw FileSystemException("Backup file does not exist at $backupPath");
+      completer.completeError(FileSystemException("Backup file does not exist at $backupPath"));
+      return;
     }
 
-    final encryptedData = backupFile.readAsBytesSync();
-    final decryptedData = CryptographyService.decryptSymmetricUint8List(encryptedData, key);
-
-    // Close the current database to release lock
-    await database.close();
-    _databaseInstance = null;
-
-    // Write the decrypted data back to the database file
-    final dbFile = File(database.path);
-    dbFile.writeAsBytesSync(decryptedData, flush: true);
-
+    try {
+      await backupFile.delete();
+    } catch (e, st) {
+      completer.completeError(e, st);
+      return;
+    }
     if (kDebugMode) {
       printBoxed(
-        "Database restored from backup: $backupPath",
-        "Database Restore",
+        "Backup deleted: $backupPath",
+        "Database Backup Deletion",
       );
     }
 
-    _databaseInstance = await _getDatabase(null);
     completer.complete();
+  });
+
+  return completer.future;
+}
+
+Future<int> getDatabaseSize() async {
+  assertChildIsolate();
+
+  final completer = Completer<int>.sync();
+
+  _dbMethodQueue.addJob((_) async {
+    final database = await _getDatabase(null);
+    final dbFile = File(database.path);
+
+    if (!dbFile.existsSync()) {
+      completer
+          .completeError(FileSystemException("Database file does not exist at ${dbFile.path}"));
+      return;
+    }
+
+    final size = await dbFile.length();
+    if (kDebugMode) {
+      printBoxed(
+        "Database size: $size bytes",
+        "Database Size",
+      );
+    }
+
+    completer.complete(size);
   });
 
   return completer.future;
@@ -241,7 +283,10 @@ Future<DatabaseMethodResult> serverHandleDatabaseMethod(
             'delete',
             [
               final String table,
-              {'where': final String? where, 'whereArgs': final List<Object?>? whereArgs}
+              {
+                'where': final String? where,
+                'whereArgs': final List? whereArgs,
+              }
             ]
           ):
           final result = await isolateDatabase.delete(table, where: where, whereArgs: whereArgs);
@@ -249,7 +294,7 @@ Future<DatabaseMethodResult> serverHandleDatabaseMethod(
           jobResult = DatabaseMethodResult(result: result, hasChanged: hasChanged);
           break;
 
-        case ('execute', [final String sql, final List<Object?>? sqlArgs]):
+        case ('execute', [final String sql, final List? sqlArgs]):
           await isolateDatabase.execute(sql, sqlArgs);
           // Execute doesn't return a count, but we assume it modified the database
           jobResult = const DatabaseMethodResult(result: null, hasChanged: true);
@@ -259,7 +304,7 @@ Future<DatabaseMethodResult> serverHandleDatabaseMethod(
             'insert',
             [
               final String table,
-              final Map<String, Object?> values,
+              final Map values,
               {
                 'nullColumnHack': final String? nullColumnHack,
                 'conflictAlgorithm': final int? conflictAlgorithm
@@ -268,7 +313,7 @@ Future<DatabaseMethodResult> serverHandleDatabaseMethod(
           ):
           final result = await isolateDatabase.insert(
             table,
-            values,
+            values.cast(),
             nullColumnHack: nullColumnHack,
             conflictAlgorithm: conflictAlgorithm != null //
                 ? ConflictAlgorithm.values[conflictAlgorithm]
@@ -284,9 +329,9 @@ Future<DatabaseMethodResult> serverHandleDatabaseMethod(
               final String table,
               {
                 'distinct': final bool? distinct,
-                'columns': final List<String>? columns,
+                'columns': final List? columns,
                 'where': final String? where,
-                'whereArgs': final List<Object?>? whereArgs,
+                'whereArgs': final List? whereArgs,
                 'groupBy': final String? groupBy,
                 'having': final String? having,
                 'orderBy': final String? orderBy,
@@ -298,7 +343,7 @@ Future<DatabaseMethodResult> serverHandleDatabaseMethod(
           final result = await isolateDatabase.query(
             table,
             distinct: distinct,
-            columns: columns,
+            columns: columns?.cast(),
             where: where,
             whereArgs: whereArgs,
             groupBy: groupBy,
@@ -317,9 +362,9 @@ Future<DatabaseMethodResult> serverHandleDatabaseMethod(
               final String table,
               {
                 'distinct': final bool? distinct,
-                'columns': final List<String>? columns,
+                'columns': final List? columns,
                 'where': final String? where,
-                'whereArgs': final List<Object?>? whereArgs,
+                'whereArgs': final List? whereArgs,
                 'groupBy': final String? groupBy,
                 'having': final String? having,
                 'orderBy': final String? orderBy,
@@ -332,7 +377,7 @@ Future<DatabaseMethodResult> serverHandleDatabaseMethod(
           final result = await isolateDatabase.queryCursor(
             table,
             distinct: distinct,
-            columns: columns,
+            columns: columns?.cast(),
             where: where,
             whereArgs: whereArgs,
             groupBy: groupBy,
@@ -342,23 +387,24 @@ Future<DatabaseMethodResult> serverHandleDatabaseMethod(
             offset: offset,
             bufferSize: bufferSize,
           );
+
           // Query operations don't modify the database
           jobResult = DatabaseMethodResult(result: result, hasChanged: false);
           break;
 
-        case ('rawDelete', [final String sql, final List<Object?>? args]):
+        case ('rawDelete', [final String sql, final List? args]):
           final result = await isolateDatabase.rawDelete(sql, args);
           final hasChanged = result > 0;
           jobResult = DatabaseMethodResult(result: result, hasChanged: hasChanged);
           break;
 
-        case ('rawInsert', [final String sql, final List<Object?>? args]):
+        case ('rawInsert', [final String sql, final List? args]):
           final result = await isolateDatabase.rawInsert(sql, args);
           final hasChanged = result > 0;
           jobResult = DatabaseMethodResult(result: result, hasChanged: hasChanged);
           break;
 
-        case ('rawQuery', [final String sql, final List<Object?>? args]):
+        case ('rawQuery', [final String sql, final List? args]):
           final result = await isolateDatabase.rawQuery(sql, args);
           // Query operations don't modify the database
           jobResult = DatabaseMethodResult(result: result, hasChanged: false);
@@ -366,14 +412,14 @@ Future<DatabaseMethodResult> serverHandleDatabaseMethod(
 
         case (
             'rawQueryCursor',
-            [final String sql, final List<Object?>? args, {'bufferSize': final int? bufferSize}]
+            [final String sql, final List? args, {'bufferSize': final int? bufferSize}]
           ):
           final result = await isolateDatabase.rawQueryCursor(sql, args, bufferSize: bufferSize);
           // Query operations don't modify the database
           jobResult = DatabaseMethodResult(result: result, hasChanged: false);
           break;
 
-        case ('rawUpdate', [final String sql, final List<Object?>? args]):
+        case ('rawUpdate', [final String sql, final List? args]):
           final result = await isolateDatabase.rawUpdate(sql, args);
           final hasChanged = result > 0;
           jobResult = DatabaseMethodResult(result: result, hasChanged: hasChanged);
@@ -389,17 +435,17 @@ Future<DatabaseMethodResult> serverHandleDatabaseMethod(
             'update',
             [
               final String table,
-              final Map<String, Object?> values,
+              final Map values,
               {
                 'where': final String? where,
-                'whereArgs': final List<Object?>? whereArgs,
+                'whereArgs': final List? whereArgs,
                 'conflictAlgorithm': final int? conflictAlgorithm,
               }
             ]
           ):
           final result = await isolateDatabase.update(
             table,
-            values,
+            values.cast(),
             where: where,
             whereArgs: whereArgs,
             conflictAlgorithm: conflictAlgorithm != null //
@@ -413,7 +459,7 @@ Future<DatabaseMethodResult> serverHandleDatabaseMethod(
         case (
             'batch.commit',
             [
-              final List<Object> operations,
+              final List operations,
               {
                 'exclusive': final bool? exclusive,
                 'noResult': final bool? noResult,
@@ -423,7 +469,7 @@ Future<DatabaseMethodResult> serverHandleDatabaseMethod(
           ):
           jobResult = await _executeBatch(
             isolateDatabase,
-            operations,
+            operations.cast(),
             exclusive,
             noResult,
             continueOnError,
@@ -434,13 +480,13 @@ Future<DatabaseMethodResult> serverHandleDatabaseMethod(
         case (
             'batch.apply',
             [
-              final List<Object> operations,
+              final List operations,
               {'noResult': final bool? noResult, 'continueOnError': final bool? continueOnError}
             ]
           ):
           jobResult = await _executeBatch(
             isolateDatabase,
-            operations,
+            operations.cast(),
             null, // exclusive not used for apply
             noResult,
             continueOnError,

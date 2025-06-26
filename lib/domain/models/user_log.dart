@@ -89,6 +89,36 @@ class UserLog {
     return userLog;
   }
 
+  factory UserLog.backupDatabase({
+    required User user,
+    DateTime? eventTime,
+  }) {
+    final logEvent = "User '${user.username}' created a backup";
+    final logDateTime = eventTime ?? DateTime.now();
+    final userLog = UserLog(
+      userId: user.id!,
+      event: logEvent,
+      eventTime: logDateTime,
+    );
+
+    return userLog;
+  }
+
+  factory UserLog.restoreDatabase({
+    required User user,
+    DateTime? eventTime,
+  }) {
+    final logEvent = "User '${user.username}' restored a backup";
+    final logDateTime = eventTime ?? DateTime.now();
+    final userLog = UserLog(
+      userId: user.id!,
+      event: logEvent,
+      eventTime: logDateTime,
+    );
+
+    return userLog;
+  }
+
   factory UserLog.fromMap(Map<String, dynamic> map) {
     return UserLog(
       id: map['id'],
