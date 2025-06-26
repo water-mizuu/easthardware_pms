@@ -1,4 +1,6 @@
 import 'package:easthardware_pms/presentation/bloc/authentication/new_password_form/new_password_form_bloc.dart';
+import 'package:easthardware_pms/presentation/bloc/security/user_list/user_list_bloc.dart';
+import 'package:easthardware_pms/presentation/bloc/security/user_log_list/user_log_list_bloc.dart';
 import 'package:easthardware_pms/presentation/router/app_routes.dart';
 import 'package:easthardware_pms/presentation/widgets/layout/spacing.dart';
 import 'package:easthardware_pms/utils/typed_routes.dart';
@@ -20,18 +22,14 @@ class _NewPasswordPageState extends State<NewPasswordPage> {
   @override
   void initState() {
     super.initState();
-    context
-        .read<NewPasswordFormBloc>()
-        .add(NewPasswordFormReset(widget.username));
+    context.read<NewPasswordFormBloc>().add(NewPasswordFormReset(widget.username));
   }
 
   @override
   void didUpdateWidget(NewPasswordPage oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.username != widget.username) {
-      context
-          .read<NewPasswordFormBloc>()
-          .add(NewPasswordFormReset(widget.username));
+      context.read<NewPasswordFormBloc>().add(NewPasswordFormReset(widget.username));
     }
   }
 
@@ -88,8 +86,7 @@ class _FormHeader extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: const [
         HeadingText("New Password", textAlign: TextAlign.start),
-        GrayText("Fill in the form below to update your password",
-            textAlign: TextAlign.start),
+        GrayText("Fill in the form below to update your password", textAlign: TextAlign.start),
       ].withSpacing(() => Spacing.v8),
     );
   }
@@ -99,8 +96,7 @@ class NewPasswordInputSection extends StatefulWidget {
   const NewPasswordInputSection({super.key});
 
   @override
-  State<NewPasswordInputSection> createState() =>
-      _NewPasswordInputSectionState();
+  State<NewPasswordInputSection> createState() => _NewPasswordInputSectionState();
 }
 
 class _NewPasswordInputSectionState extends State<NewPasswordInputSection> {
@@ -120,9 +116,7 @@ class _NewPasswordInputSectionState extends State<NewPasswordInputSection> {
             onPressed: () => setState(() => obscureText = !obscureText),
           ),
           onChanged: (value) {
-            context
-                .read<NewPasswordFormBloc>()
-                .add(NewPasswordChanged(value.trim()));
+            context.read<NewPasswordFormBloc>().add(NewPasswordChanged(value.trim()));
           },
         ),
         const CaptionText(
@@ -137,12 +131,10 @@ class ConfirmPasswordInputSection extends StatefulWidget {
   const ConfirmPasswordInputSection({super.key});
 
   @override
-  State<ConfirmPasswordInputSection> createState() =>
-      _ConfirmPasswordInputSectionState();
+  State<ConfirmPasswordInputSection> createState() => _ConfirmPasswordInputSectionState();
 }
 
-class _ConfirmPasswordInputSectionState
-    extends State<ConfirmPasswordInputSection> {
+class _ConfirmPasswordInputSectionState extends State<ConfirmPasswordInputSection> {
   var obscureText = true;
 
   @override
@@ -157,14 +149,11 @@ class _ConfirmPasswordInputSectionState
               placeholder: 'Confirm password',
               obscureText: obscureText,
               suffix: IconButton(
-                icon:
-                    Icon(obscureText ? Icons.visibility : Icons.visibility_off),
+                icon: Icon(obscureText ? Icons.visibility : Icons.visibility_off),
                 onPressed: () => setState(() => obscureText = !obscureText),
               ),
               onChanged: (value) {
-                context
-                    .read<NewPasswordFormBloc>()
-                    .add(ConfirmPasswordChanged(value.trim()));
+                context.read<NewPasswordFormBloc>().add(ConfirmPasswordChanged(value.trim()));
               },
             ),
           ].withSpacing(() => Spacing.v8),
@@ -191,20 +180,27 @@ class SubmitSection extends StatelessWidget {
             children: [
               Expanded(
                 child: FilledButton(
-                  onPressed:
-                      state.status == FormStatus.loading || !state.isValid
-                          ? null
-                          : () {
-                              primaryFocus?.unfocus();
-                              context
-                                  .read<NewPasswordFormBloc>()
-                                  .add(const NewPasswordFormSubmitted());
-                            },
+                  onPressed: state.status == FormStatus.loading || !state.isValid
+                      ? null
+                      : () {
+                          primaryFocus?.unfocus();
+                          context.read<NewPasswordFormBloc>().add(const NewPasswordFormSubmitted());
+
+                          final username = context.read<NewPasswordFormBloc>().state.username;
+                          final user = context
+                              .read<UserListBloc>()
+                              .state
+                              .users
+                              .firstWhere((u) => u.username == username);
+
+                          context //
+                              .read<UserLogListBloc>()
+                              .add(AddUpdateEvent('password', user));
+                        },
                   child: Padding(
                     padding: AppPadding.a8,
                     child: state.status == FormStatus.loading
-                        ? const SizedBox(
-                            height: 16, width: 16, child: ProgressRing())
+                        ? const SizedBox(height: 16, width: 16, child: ProgressRing())
                         : const ButtonText("Submit"),
                   ),
                 ),

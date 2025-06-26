@@ -350,14 +350,18 @@ class OrderFormBloc extends Bloc<OrderFormEvent, OrderFormState> {
     final taggedOrderItems = orderItems.map(
       (item) {
         // Only validate if any field has been touched
-        if ((item.description != null && item.description!.isNotEmpty) ||
-            item.quantity > 0 ||
-            item.rate > 0) {
-          if (item.quantity <= 0) {
-            return item.copyWith(errorMessage: 'Quantity must be greater than 0');
-          } else if (item.rate <= 0) {
-            return item.copyWith(errorMessage: 'Rate must be greater than 0');
-          }
+        if (item.description == null || item.description!.isEmpty) {
+          // If description is empty, mark as error
+          return item.copyWith(errorMessage: 'Item cannot be blank');
+        } else if (item.quantity <= 0) {
+          // If quantity is zero or negative, mark as error
+          return item.copyWith(errorMessage: 'Item cannot be blank');
+        } else if (item.rate <= 0) {
+          // If rate is zero or negative, mark as error
+          return item.copyWith(errorMessage: 'Item cannot be blank');
+        } else if (item.name == null || item.name!.isEmpty) {
+          // If name is empty, mark as error
+          return item.copyWith(errorMessage: 'Item cannot be blank');
         }
         return item.copyWith(errorMessage: null); // Clear any existing errors
       },
@@ -504,14 +508,14 @@ class OrderFormBloc extends Bloc<OrderFormEvent, OrderFormState> {
           if (product.quantity > 0 || product.description != null || product.rate > 0) {
             return product.copyWith(errorMessage: 'Item cannot be blank');
           }
-        } else if (product.productId == -1) {
-          // For expense items, check if all required fields are filled
-          if (product.description == null ||
-              product.description!.isEmpty ||
-              product.quantity <= 0 ||
-              product.rate <= 0) {
-            return product.copyWith(errorMessage: 'Please fill in all item details');
-          }
+        } else if (product.quantity <= 0) {
+          return product.copyWith(errorMessage: 'Item cannot be blank');
+        } else if (product.rate <= 0) {
+          return product.copyWith(errorMessage: 'Item cannot be blank');
+        } else if (product.description != null && product.description!.isEmpty) {
+          return product.copyWith(errorMessage: 'Item cannot be blank');
+        } else {
+          return product.copyWith(errorMessage: null); // Clear any existing errors
         }
         return product;
       },

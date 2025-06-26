@@ -62,7 +62,7 @@ class UserLog {
     required String item,
     DateTime? eventTime,
   }) {
-    final logEvent = "User '${user.username}' Updated $item";
+    final logEvent = "User '${user.username}' updated $item";
     final logDateTime = eventTime ?? DateTime.now();
     final userLog = UserLog(
       userId: user.id!,
