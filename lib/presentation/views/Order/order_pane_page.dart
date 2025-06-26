@@ -1,44 +1,64 @@
+import 'dart:async';
+
 import 'package:easthardware_pms/domain/enums/enums.dart';
 import 'package:easthardware_pms/domain/models/order.dart';
+import 'package:easthardware_pms/presentation/bloc/order/expense_type_list/expense_type_list_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/order/orderlist/order_list_bloc.dart';
+import 'package:easthardware_pms/presentation/cubit/order/cubit/order_display_cubit.dart';
+import 'package:easthardware_pms/presentation/cubit/order/cubit/order_display_enum.dart';
 import 'package:easthardware_pms/presentation/router/app_routes.dart';
-import 'package:easthardware_pms/presentation/widgets/animated_single_child_scroll_view.dart';
+import 'package:easthardware_pms/presentation/views/order/components/order_information_content_dialog.dart';
 import 'package:easthardware_pms/presentation/widgets/helper/data_row_mapper.dart';
 import 'package:easthardware_pms/presentation/widgets/layout/spacing.dart';
 import 'package:easthardware_pms/presentation/widgets/text.dart';
-import 'package:easthardware_pms/presentation/widgets/ui/data_table_place_holder.dart';
+import 'package:easthardware_pms/presentation/widgets/ui/styles.dart';
+import 'package:easthardware_pms/presentation/widgets/ui/table_theme_data.dart';
 import 'package:easthardware_pms/presentation/widgets/ui/text_button.dart';
 import 'package:easthardware_pms/utils/typed_routes.dart';
 import 'package:fluent_ui/fluent_ui.dart';
 import 'package:flutter/material.dart'
-    show
-        CardTheme,
-        DataColumn,
-        DataRow,
-        DataTableSource,
-        DataTableThemeData,
-        PaginatedDataTable,
-        Theme,
-        ThemeData;
+    show DataColumn, DataRow, DataTableSource, PaginatedDataTable;
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-class OrderPanePage extends StatelessWidget {
+class OrderPanePage extends StatefulWidget {
   const OrderPanePage({super.key});
 
   @override
+  State<OrderPanePage> createState() => _OrderPanePageState();
+}
+
+class _OrderPanePageState extends State<OrderPanePage> {
+  @override
+  void initState() {
+    super.initState();
+    // Get orders from the order list bloc
+    context.read<OrderDisplayCubit>().updateOrders(
+          context.read<OrderListBloc>().state.allOrders,
+        );
+
+    // Ensure expense type list is loaded
+    final expenseTypeListBloc = context.read<ExpenseTypeListBloc>();
+    if (expenseTypeListBloc.state.expenseTypes.isEmpty) {
+      expenseTypeListBloc.add(FetchAllExpenseTypesEvent());
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return const AnimatedSingleChildScrollView(
+    return BlocListener<OrderListBloc, OrderListState>(
+      listenWhen: (previous, current) => previous.allOrders != current.allOrders,
+      listener: (context, state) {
+        context.read<OrderDisplayCubit>().updateOrders(state.allOrders);
+      },
       child: Padding(
         padding: AppPadding.panePadding,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            PageHeader(),
-            Spacing.v16,
-            PageActions(),
-            Spacing.v16,
-            OrdersDataTable(),
-          ],
+            const PageHeader(),
+            const PageActions(),
+            const OrdersDataTable(),
+          ].withSpacing(() => Spacing.v16),
         ),
       ),
     );
@@ -76,11 +96,23 @@ class PageActions extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        const Expanded(child: TextBox(placeholder: "Search")),
-        const Spacer(flex: 2),
-      ].withSpacing(() => Spacing.h12),
+        const Text('List of Orders', style: TextStyles.subtitle),
+        Spacing.v12,
+        Row(
+          children: [
+            Expanded(
+              child: TextBox(
+                placeholder: 'Search by ID, payee, or amount',
+                onChanged: (value) => context.read<OrderDisplayCubit>().search(value),
+              ),
+            ),
+            const Spacer(flex: 2)
+          ].withSpacing(() => Spacing.h8),
+        ),
+      ],
     );
   }
 }
@@ -88,46 +120,215 @@ class PageActions extends StatelessWidget {
 class OrdersDataTable extends StatelessWidget {
   const OrdersDataTable({super.key});
 
+  int? _getSortColumnIndex(OrderDisplaySortBy sortBy) {
+    switch (sortBy) {
+      case OrderDisplaySortBy.orderDateAscending:
+      case OrderDisplaySortBy.orderDateDescending:
+        return 1;
+      case OrderDisplaySortBy.idAscending:
+      case OrderDisplaySortBy.idDescending:
+        return 0;
+      case OrderDisplaySortBy.payeeNameAscending:
+      case OrderDisplaySortBy.payeeNameDescending:
+        return 2;
+      case OrderDisplaySortBy.expenseTypeAscending:
+      case OrderDisplaySortBy.expenseTypeDescending:
+        return 3;
+      case OrderDisplaySortBy.amountDueAscending:
+      case OrderDisplaySortBy.amountDueDescending:
+        return 4;
+      default:
+        return null;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<OrderListBloc, OrderListState>(
-      builder: (context, state) {
-        if (state.status == DataStatus.loading) {
-          return const Center(child: ProgressRing());
-        }
+    return BlocBuilder<OrderDisplayCubit, OrderDisplayState>(
+      builder: (context, displayState) {
+        return BlocBuilder<OrderListBloc, OrderListState>(
+          builder: (context, state) {
+            if (state.status == DataStatus.loading) {
+              return const Center(child: ProgressRing());
+            }
 
-        final orders = state.allOrders;
-        if (orders.isEmpty) {
-          return const DataTablePlaceHolder(FluentIcons.product_list, 'Orders');
-        }
+            final displayCubit = context.read<OrderDisplayCubit>();
+            final orders = displayCubit.state.filteredOrders ?? displayCubit.state.allOrders;
 
-        return Theme(
-          data: ThemeData(
-            dataTableTheme: const DataTableThemeData(dividerThickness: 0),
-            cardTheme: const CardTheme(
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.all(Radius.circular(4)),
+            if (orders == null || orders.isEmpty) {
+              return Expanded(
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  child: const Center(
+                    child: Text('No orders found', style: TextStyles.body),
+                  ),
+                ),
+              );
+            }
+
+            return Expanded(
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  color: FluentTheme.of(context).acrylicBackgroundColor,
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: TableThemeData(
+                  child: PaginatedDataTable(
+                    showCheckboxColumn: false,
+                    columnSpacing: 16.0,
+                    header: null,
+                    rowsPerPage: 10,
+                    sortColumnIndex: _getSortColumnIndex(displayState.sortBy),
+                    sortAscending: displayState.sortAscending,
+                    columns: [
+                      DataColumn(
+                        label: Expanded(
+                          child: ConstrainedBox(
+                            constraints: const BoxConstraints(minWidth: 50),
+                            child: Row(
+                              children: [
+                                const Text('ID', style: TextStyles.tableHeader),
+                                if (_getSortColumnIndex(displayState.sortBy) != 0) ...[
+                                  const Spacer(),
+                                  const Icon(
+                                    FluentIcons.scroll_up_down,
+                                    size: 12,
+                                  ),
+                                ],
+                              ],
+                            ),
+                          ),
+                        ),
+                        onSort: (_, __) {
+                          if (displayState.sortBy == OrderDisplaySortBy.idAscending ||
+                              displayState.sortBy == OrderDisplaySortBy.idDescending) {
+                            displayCubit.sort(displayState.sortBy);
+                          } else {
+                            displayCubit.sort(OrderDisplaySortBy.idAscending);
+                          }
+                        },
+                      ),
+                      DataColumn(
+                        label: Expanded(
+                          child: ConstrainedBox(
+                            constraints: const BoxConstraints(minWidth: 75),
+                            child: Row(
+                              children: [
+                                const Text('Order Date', style: TextStyles.tableHeader),
+                                if (_getSortColumnIndex(displayState.sortBy) != 1) ...[
+                                  const Spacer(),
+                                  const Icon(
+                                    FluentIcons.scroll_up_down,
+                                    size: 12,
+                                  ),
+                                ],
+                              ],
+                            ),
+                          ),
+                        ),
+                        onSort: (_, __) {
+                          if (displayState.sortBy == OrderDisplaySortBy.orderDateAscending ||
+                              displayState.sortBy == OrderDisplaySortBy.orderDateDescending) {
+                            displayCubit.sort(displayState.sortBy);
+                          } else {
+                            displayCubit.sort(OrderDisplaySortBy.orderDateAscending);
+                          }
+                        },
+                      ),
+                      DataColumn(
+                        label: Expanded(
+                          child: ConstrainedBox(
+                            constraints: const BoxConstraints(minWidth: 100),
+                            child: Row(
+                              children: [
+                                const Text('Payee', style: TextStyles.tableHeader),
+                                if (_getSortColumnIndex(displayState.sortBy) != 2) ...[
+                                  const Spacer(),
+                                  const Icon(
+                                    FluentIcons.scroll_up_down,
+                                    size: 12,
+                                  ),
+                                ],
+                              ],
+                            ),
+                          ),
+                        ),
+                        onSort: (_, __) {
+                          if (displayState.sortBy == OrderDisplaySortBy.payeeNameAscending ||
+                              displayState.sortBy == OrderDisplaySortBy.payeeNameDescending) {
+                            displayCubit.sort(displayState.sortBy);
+                          } else {
+                            displayCubit.sort(OrderDisplaySortBy.payeeNameAscending);
+                          }
+                        },
+                      ),
+                      DataColumn(
+                        label: Expanded(
+                          child: ConstrainedBox(
+                            constraints: const BoxConstraints(minWidth: 100),
+                            child: Row(
+                              children: [
+                                const Text('Expense Type', style: TextStyles.tableHeader),
+                                if (_getSortColumnIndex(displayState.sortBy) != 3) ...[
+                                  const Spacer(),
+                                  const Icon(
+                                    FluentIcons.scroll_up_down,
+                                    size: 12,
+                                  ),
+                                ],
+                              ],
+                            ),
+                          ),
+                        ),
+                        onSort: (_, __) {
+                          if (displayState.sortBy == OrderDisplaySortBy.expenseTypeAscending ||
+                              displayState.sortBy == OrderDisplaySortBy.expenseTypeDescending) {
+                            displayCubit.sort(displayState.sortBy);
+                          } else {
+                            displayCubit.sort(OrderDisplaySortBy.expenseTypeAscending);
+                          }
+                        },
+                      ),
+                      DataColumn(
+                        label: Expanded(
+                          child: ConstrainedBox(
+                            constraints: const BoxConstraints(minWidth: 75),
+                            child: Row(
+                              children: [
+                                const Text('Amount', style: TextStyles.tableHeader),
+                                if (_getSortColumnIndex(displayState.sortBy) != 4) ...[
+                                  const Spacer(),
+                                  const Icon(
+                                    FluentIcons.scroll_up_down,
+                                    size: 12,
+                                  ),
+                                ],
+                              ],
+                            ),
+                          ),
+                        ),
+                        onSort: (_, __) {
+                          if (displayState.sortBy == OrderDisplaySortBy.amountDueAscending ||
+                              displayState.sortBy == OrderDisplaySortBy.amountDueDescending) {
+                            displayCubit.sort(displayState.sortBy);
+                          } else {
+                            displayCubit.sort(OrderDisplaySortBy.amountDueAscending);
+                          }
+                        },
+                      ),
+                      const DataColumn(
+                        label: Expanded(child: Text('Actions', style: TextStyles.tableHeader)),
+                      ),
+                    ],
+                    source: OrderDataSource(orders, context),
+                  ),
+                ),
               ),
-              color: Colors.white,
-              elevation: 0,
-            ),
-          ),
-          child: FractionallySizedBox(
-            widthFactor: 1,
-            child: PaginatedDataTable(
-              dataRowMaxHeight: 36,
-              dataRowMinHeight: 32,
-              columns: const [
-                DataColumn(label: Text('ID')),
-                DataColumn(label: Text('Order Date')),
-                DataColumn(label: Text('Payee')),
-                DataColumn(label: Text('Expense Type')),
-                DataColumn(label: Text('Amount')),
-                DataColumn(label: Text('Actions')),
-              ],
-              source: OrderDataSource(orders, context),
-            ),
-          ),
+            );
+          },
         );
       },
     );
@@ -144,12 +345,14 @@ class OrderDataSource extends DataTableSource {
     if (index >= _orders.length) return null;
     final order = _orders[index];
     return DataRowMapper.mapOrderToRow(order, () {
-      // Check if the order is a restock order or an expense order
-      if (order.expenseType == 1) {
-        _context.navigateWithExtra(AppRoutes.admin.editRestockOrder, order);
-      } else {
-        _context.navigateWithExtra(AppRoutes.admin.editExpenseOrder, order);
-      }
+      // Show order information dialog
+      unawaited(showDialog(
+        context: _context,
+        builder: (context) => OrderInformationContentDialog(
+          context: context,
+          order: order,
+        ),
+      ));
     });
   }
 

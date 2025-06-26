@@ -105,9 +105,7 @@ class CategoriesDataTable extends StatelessWidget {
 
             return Expanded(
               child: DecoratedBox(
-                decoration: BoxDecoration(
-                    color: FluentTheme.of(context).acrylicBackgroundColor,
-                    borderRadius: BorderRadius.circular(4)),
+                decoration: BoxDecoration(borderRadius: BorderRadius.circular(4)),
                 child: categories == null || categories.isEmpty
                     ? Container(
                         decoration: const BoxDecoration(color: Colors.white),

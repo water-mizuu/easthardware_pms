@@ -12,13 +12,6 @@ mixin ProductFormValidator {
     return null;
   }
 
-  String? validateProductCategory(String? value) {
-    if (value == null || value.trim().isEmpty) {
-      return "Product category cannot be empty";
-    }
-    return null;
-  }
-
   String? validateProductCriticalLevel(String? value) {
     if (value == null || value.trim().isEmpty) {
       return "Critical level cannot be empty";
@@ -70,6 +63,16 @@ mixin ProductFormValidator {
     return null;
   }
 
+  String? validateStockKeepingUnit(String? value, List<String> existingSKUs) {
+    if (value == null || value.trim().isEmpty) {
+      return "Stock Keeping Unit (SKU) cannot be empty.";
+    }
+    if (existingSKUs.contains(value.trim())) {
+      return "SKU already exists.";
+    }
+    return null;
+  }
+
   String? validateProductUnitFactor(String? value) {
     if (value == null || value.trim().isEmpty) {
       return "Conversion factor cannot be empty.";
@@ -82,7 +85,6 @@ mixin ProductFormValidator {
   }
 
   String? validateMinReorderDelay(String? value, int maxReorderDelay) {
-    print('Validating min: $value against max: $maxReorderDelay');
     if (value == null || value.trim().isEmpty) {
       return "Minimum reorder delay cannot be empty.";
     }
@@ -97,8 +99,6 @@ mixin ProductFormValidator {
   }
 
   String? validateMaxReorderDelay(String? value, int minReorderDelay) {
-    print('Validating max: $value against min: $minReorderDelay');
-
     if (value == null || value.trim().isEmpty) {
       return "Maximum reorder delay cannot be empty.";
     }
@@ -128,7 +128,7 @@ mixin ProductFormValidator {
     }
 
     if (name == null || name.isEmpty) {
-      return "Alternate unit name cannot be empty.";
+      return "Secondary unit name cannot be empty.";
     }
 
     if (existingNames.last == name.value) {
@@ -193,10 +193,7 @@ mixin ProductFormValidator {
   }
 
   String? validateDeadStockThreshold(String? value) {
-    if (value == null || value.trim().isEmpty) {
-      return null;
-    }
-    final deadStockThreshold = double.tryParse(value);
+    final deadStockThreshold = double.tryParse(value?.trim() ?? '');
     if (deadStockThreshold == null || deadStockThreshold < 0) {
       return "Dead stock threshold must be a non-negative number";
     }
@@ -204,10 +201,7 @@ mixin ProductFormValidator {
   }
 
   String? validateFastMovingThreshold(String? value) {
-    if (value == null || value.trim().isEmpty) {
-      return null;
-    }
-    final fastMovingThreshold = double.tryParse(value);
+    final fastMovingThreshold = double.tryParse(value?.trim() ?? '');
     if (fastMovingThreshold == null || fastMovingThreshold < 0) {
       return "Fast moving threshold must be a non-negative number";
     }

@@ -4,93 +4,104 @@ import 'package:easthardware_pms/domain/enums/enums.dart';
 import 'package:easthardware_pms/domain/models/expense_type.dart';
 import 'package:easthardware_pms/presentation/bloc/order/expense_type_list/expense_type_list_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/order/orderlist/order_list_bloc.dart';
+import 'package:easthardware_pms/presentation/cubit/order/expense_type_display/display_expense_type.dart';
+import 'package:easthardware_pms/presentation/cubit/order/expense_type_display/expense_type_display_cubit.dart';
+import 'package:easthardware_pms/presentation/cubit/order/expense_type_display/expense_type_display_enum.dart';
 import 'package:easthardware_pms/presentation/cubit/order/expense_type_form_cubit.dart';
-import 'package:easthardware_pms/presentation/widgets/animated_single_child_scroll_view.dart';
-import 'package:easthardware_pms/presentation/widgets/helper/data_row_mapper.dart';
+import 'package:easthardware_pms/presentation/views/order/expense_type_data_source.dart';
 import 'package:easthardware_pms/presentation/widgets/layout/spacing.dart';
 import 'package:easthardware_pms/presentation/widgets/text.dart';
+import 'package:easthardware_pms/presentation/widgets/ui/styles.dart';
+import 'package:easthardware_pms/presentation/widgets/ui/table_theme_data.dart';
 import 'package:easthardware_pms/presentation/widgets/ui/text_button.dart';
 import 'package:easthardware_pms/utils/show_single_dialog.dart';
 import 'package:fluent_ui/fluent_ui.dart';
-import 'package:flutter/material.dart' show DataColumn, DataTable;
+import 'package:flutter/material.dart' show DataColumn, PaginatedDataTable;
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:scroll_animator/scroll_animator.dart';
 
-class ManageExpenseTypePage extends StatelessWidget {
+class ManageExpenseTypePage extends StatefulWidget {
   const ManageExpenseTypePage({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: AppPadding.panePadding,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: const [
-          PageHeader(),
-          PageTable(),
-        ].withSpacing(() => Spacing.v16),
-      ),
-    );
-  }
+  State<ManageExpenseTypePage> createState() => _ManageExpenseTypePageState();
 }
 
-class PageTable extends StatelessWidget {
-  const PageTable({
-    super.key,
-  });
+class _ManageExpenseTypePageState extends State<ManageExpenseTypePage> {
+  late final AnimatedScrollController _scrollController;
+
+  @override
+  void initState() {
+    super.initState();
+    _scrollController = AnimatedScrollController(animationFactory: const ChromiumEaseInOut());
+
+    // Initial loading of expense types with order counts
+    final orders = context.read<OrderListBloc>().state.allOrders;
+    final expenseTypes = context.read<ExpenseTypeListBloc>().state.expenseTypes;
+
+    // Count orders for each expense type
+    final expenseTypeOrderMap = <int, int>{};
+    for (final order in orders) {
+      expenseTypeOrderMap.update(order.expenseType, (count) => count + 1, ifAbsent: () => 1);
+    }
+
+    // Create display expense types with order counts
+    final displayExpenseTypes = expenseTypes
+        .map((expenseType) => DisplayExpenseType.fromExpenseType(
+              expenseType,
+              orderCount: expenseTypeOrderMap[expenseType.id] ?? 0,
+            ))
+        .toList();
+
+    // Update the display cubit
+    context.read<ExpenseTypeDisplayCubit>().updateExpenseTypes(displayExpenseTypes);
+  }
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<OrderListBloc, OrderListState>(
-      builder: (context, orderState) {
-        final orders = orderState.allOrders;
+    return BlocListener<ExpenseTypeListBloc, ExpenseTypeListState>(
+      listenWhen: (prev, curr) => prev.expenseTypes != curr.expenseTypes,
+      listener: (context, state) {
+        // When expense types change, update the display with order counts
+        final orders = context.read<OrderListBloc>().state.allOrders;
         final expenseTypeOrderMap = <int, int>{};
-
-        // Count orders for each expense type
         for (final order in orders) {
           expenseTypeOrderMap.update(order.expenseType, (count) => count + 1, ifAbsent: () => 1);
         }
 
-        return BlocBuilder<ExpenseTypeListBloc, ExpenseTypeListState>(
-          builder: (context, state) {
-            final expenseTypes = context.read<ExpenseTypeListBloc>().state.expenseTypes;
+        final displayExpenseTypes = state.expenseTypes
+            .map((expenseType) => DisplayExpenseType.fromExpenseType(
+                  expenseType,
+                  orderCount: expenseTypeOrderMap[expenseType.id] ?? 0,
+                ))
+            .toList();
 
-            return Expanded(
-              child: DecoratedBox(
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(4),
-                ),
-                child: AnimatedSingleChildScrollView(
-                  child: DataTable(
-                    columns: const [
-                      DataColumn(label: Text('ID')),
-                      DataColumn(label: Text("Expense Type Name")),
-                      DataColumn(label: Text("Orders")),
-                      DataColumn(label: Text("Action")),
-                    ],
-                    rows: expenseTypes
-                        .map(
-                          (expenseType) => DataRowMapper.mapExpenseTypeToRow(
-                            expenseType,
-                            expenseTypeOrderMap[expenseType.id] ?? 0,
-                            // Only allow editing if it's not an inventory restock type (assuming id 1 is inventory restock)
-                            // You may need to adjust this condition based on your actual data structure
-                            expenseType.id == 1
-                                ? null
-                                : () {
-                                    unawaited(showContentDialog(context, expenseType));
-                                  },
-                          ),
-                        )
-                        .toList(),
-                  ),
+        context.read<ExpenseTypeDisplayCubit>().updateExpenseTypes(displayExpenseTypes);
+      },
+      child: Padding(
+        padding: AppPadding.panePadding,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            const PageHeader(),
+            Spacing.v16,
+            Expanded(
+              child: SingleChildScrollView(
+                controller: _scrollController,
+                child: const Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    SearchRow(),
+                    Spacing.v16,
+                    ExpenseTypesDataTable(),
+                  ],
                 ),
               ),
-            );
-          },
-        );
-      },
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
@@ -104,21 +115,167 @@ class PageHeader extends StatelessWidget {
       children: [
         const DisplayText('Manage Expense Types'),
         const Spacer(flex: 2),
-        const PageActions(),
+        TextButtonFilled('Add Expense Type', onPressed: () async => showContentDialog(context)),
       ].withSpacing(() => Spacing.h16),
     );
   }
 }
 
-class PageActions extends StatelessWidget {
-  const PageActions({super.key});
+class SearchRow extends StatelessWidget {
+  const SearchRow({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      children: [
-        TextButtonFilled('Add Expense Type', onPressed: () async => showContentDialog(context))
-      ].withSpacing(() => Spacing.h8),
+    return SizedBox(
+      height: 32,
+      child: Row(
+        children: [
+          Expanded(
+            child: TextBox(
+              placeholder: 'Search expense type',
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+              onChanged: (value) {
+                context.read<ExpenseTypeDisplayCubit>().updateSearch(value);
+              },
+            ),
+          ),
+          const SizedBox(width: 48),
+          const Spacer(flex: 2),
+        ],
+      ),
+    );
+  }
+}
+
+class ExpenseTypesDataTable extends StatelessWidget {
+  const ExpenseTypesDataTable({super.key});
+
+  int? _getSortColumnIndex(ExpenseTypeDisplaySortBy sortBy) {
+    switch (sortBy) {
+      case ExpenseTypeDisplaySortBy.idAscending:
+      case ExpenseTypeDisplaySortBy.idDescending:
+        return 0; // Index of the ID column
+      case ExpenseTypeDisplaySortBy.nameAscending:
+      case ExpenseTypeDisplaySortBy.nameDescending:
+        return 1; // Index of the Name column
+      case ExpenseTypeDisplaySortBy.ordersAscending:
+      case ExpenseTypeDisplaySortBy.ordersDescending:
+        return 2; // Index of the Orders column
+      default:
+        return null; // No column is being sorted
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<ExpenseTypeDisplayCubit, ExpenseTypeDisplayState>(
+      builder: (context, state) {
+        final expenseTypeDisplayCubit = context.read<ExpenseTypeDisplayCubit>();
+        final filtered = state.filteredExpenseTypes;
+        final allExpenseTypes = state.allExpenseTypes ?? [];
+
+        return TableThemeData(
+          child: PaginatedDataTable(
+            showFirstLastButtons: true,
+            showCheckboxColumn: false,
+            horizontalMargin: 20,
+            columnSpacing: 16,
+            sortColumnIndex: _getSortColumnIndex(state.sortBy),
+            sortAscending: state.sortAscending,
+            checkboxHorizontalMargin: 0,
+            columns: [
+              DataColumn(
+                label: Expanded(
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(minHeight: 48),
+                    child: Row(
+                      children: [
+                        const Text('ID'),
+                        if (_getSortColumnIndex(state.sortBy) != 0) ...[
+                          const Spacer(),
+                          const Icon(
+                            FluentIcons.scroll_up_down,
+                            size: 12,
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+                ),
+                onSort: (_, __) {
+                  // Toggle between ascending and descending based on current sort type
+                  if (state.sortBy == ExpenseTypeDisplaySortBy.idAscending) {
+                    expenseTypeDisplayCubit.updateSort(ExpenseTypeDisplaySortBy.idDescending);
+                  } else {
+                    expenseTypeDisplayCubit.updateSort(ExpenseTypeDisplaySortBy.idAscending);
+                  }
+                },
+              ),
+              DataColumn(
+                label: Expanded(
+                  child: Row(
+                    children: [
+                      const Text('Expense Type Name'),
+                      if (_getSortColumnIndex(state.sortBy) != 1) ...[
+                        const Spacer(),
+                        const Icon(
+                          FluentIcons.scroll_up_down,
+                          size: 12,
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+                onSort: (_, __) {
+                  // Toggle between ascending and descending based on current sort type
+                  if (state.sortBy == ExpenseTypeDisplaySortBy.nameAscending) {
+                    expenseTypeDisplayCubit.updateSort(ExpenseTypeDisplaySortBy.nameDescending);
+                  } else {
+                    expenseTypeDisplayCubit.updateSort(ExpenseTypeDisplaySortBy.nameAscending);
+                  }
+                },
+              ),
+              DataColumn(
+                label: Expanded(
+                  child: Row(
+                    children: [
+                      const Text('Orders'),
+                      const Spacer(),
+                      if (_getSortColumnIndex(state.sortBy) != 2) ...[
+                        const Spacer(),
+                        const Icon(
+                          FluentIcons.scroll_up_down,
+                          size: 12,
+                        ),
+                      ]
+                    ],
+                  ),
+                ),
+                onSort: (_, __) {
+                  // Toggle between ascending and descending based on current sort type
+                  if (state.sortBy == ExpenseTypeDisplaySortBy.ordersAscending) {
+                    expenseTypeDisplayCubit.updateSort(ExpenseTypeDisplaySortBy.ordersDescending);
+                  } else {
+                    expenseTypeDisplayCubit.updateSort(ExpenseTypeDisplaySortBy.ordersAscending);
+                  }
+                },
+              ),
+              const DataColumn(
+                label: Expanded(
+                  child: Text('Action'),
+                ),
+              ),
+            ],
+            source: ExpenseTypeDataSource(
+              context: context,
+              expenseTypes: filtered ?? allExpenseTypes,
+              onEdit: (displayExpenseType) {
+                unawaited(showContentDialog(context, displayExpenseType.expenseType));
+              },
+            ),
+          ),
+        );
+      },
     );
   }
 }
@@ -142,6 +299,7 @@ Future<void> showContentDialog(BuildContext context, [ExpenseType? expenseType])
   }
 
   await showSingleDialog(
+    barrierDismissible: true,
     (context) {
       final bloc = context.read<ExpenseTypeListBloc>();
       final existingNames = bloc.state.expenseTypes.map((expenseType) => expenseType.name).toList();
@@ -168,8 +326,10 @@ Future<void> showContentDialog(BuildContext context, [ExpenseType? expenseType])
               }
             },
             child: ContentDialog(
-              title: SubheadingText(
-                  isAdding ? 'Create a new Expense Type' : 'Edit ${expenseType.name}'),
+              title: Text(
+                isAdding ? 'Create a new Expense Type' : 'Edit ${expenseType.name}',
+                style: TextStyles.title,
+              ),
               content: Form(
                 key: formKey,
                 child: Column(

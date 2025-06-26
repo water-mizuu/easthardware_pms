@@ -130,14 +130,17 @@ class ProductListBloc extends Bloc<ProductListEvent, ProductListState> {
     emit(state.copyWith(status: DataStatus.loading));
     try {
       // 1. Insert Category if not exist
-      final insertedCategory = await _categoryRepository.getCategoryByName(event.category.name) ??
-          await _categoryRepository.insertCategory(event.category);
+      Category? insertedCategory;
+      if (event.category.name.isNotEmpty) {
+        insertedCategory = await _categoryRepository.getCategoryByName(event.category.name) ??
+            await _categoryRepository.insertCategory(event.category);
+      }
 
       // 2. Insert Product
       final insertedProduct = await _productRepository.insertProduct(
         event.product.copyWith(
-          categoryId: insertedCategory.id,
-          categoryName: insertedCategory.name,
+          categoryId: insertedCategory?.id,
+          categoryName: insertedCategory?.name,
         ),
       );
 

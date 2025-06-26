@@ -95,11 +95,12 @@ class PageActions extends StatelessWidget {
           children: [
             Expanded(
               child: TextBox(
-                placeholder: 'Search by invoice number, customer, or amount',
+                placeholder: 'Search',
                 onChanged: (value) => context.read<InvoiceDisplayCubit>().search(value),
               ),
             ),
-            const Spacer(flex: 2)
+            const SizedBox(width: 48),
+            const Spacer(flex: 2),
           ].withSpacing(() => Spacing.h8),
         ),
       ],
@@ -175,31 +176,32 @@ class InvoiceDataTable extends StatelessWidget {
                     sortAscending: context.watch<InvoiceDisplayCubit>().state.sortAscending,
                     columns: [
                       DataColumn(
-                          label: Expanded(
-                            child: ConstrainedBox(
-                              constraints: const BoxConstraints(minWidth: 75),
-                              child: Row(
-                                children: [
-                                  const Text('Date', style: TextStyles.tableHeader),
-                                  if (_getSortColumnIndex(displayState.sortBy) != 0) ...[
-                                    const Spacer(),
-                                    const Icon(
-                                      FluentIcons.scroll_up_down,
-                                      size: 12,
-                                    ),
-                                  ],
+                        label: Expanded(
+                          child: ConstrainedBox(
+                            constraints: const BoxConstraints(minWidth: 75),
+                            child: Row(
+                              children: [
+                                const Text('Date', style: TextStyles.tableHeader),
+                                if (_getSortColumnIndex(displayState.sortBy) != 0) ...[
+                                  const Spacer(),
+                                  const Icon(
+                                    FluentIcons.scroll_up_down,
+                                    size: 12,
+                                  ),
                                 ],
-                              ),
+                              ],
                             ),
                           ),
-                          onSort: (_, __) {
-                            if (displayState.sortBy == InvoiceDisplaySortBy.invoiceDateAscending ||
-                                displayState.sortBy == InvoiceDisplaySortBy.invoiceDateDescending) {
-                              displayCubit.sort(displayState.sortBy);
-                            } else {
-                              displayCubit.sort(InvoiceDisplaySortBy.invoiceDateAscending);
-                            }
-                          }),
+                        ),
+                        onSort: (_, __) {
+                          if (displayState.sortBy == InvoiceDisplaySortBy.invoiceDateAscending ||
+                              displayState.sortBy == InvoiceDisplaySortBy.invoiceDateDescending) {
+                            displayCubit.sort(displayState.sortBy);
+                          } else {
+                            displayCubit.sort(InvoiceDisplaySortBy.invoiceDateAscending);
+                          }
+                        },
+                      ),
                       DataColumn(
                           label: Expanded(
                             child: ConstrainedBox(

@@ -301,7 +301,7 @@ class ProductNameField extends StatelessWidget with ProductFormValidator {
   }
 }
 
-class StockKeepingUnitField extends StatelessWidget {
+class StockKeepingUnitField extends StatelessWidget with ProductFormValidator {
   const StockKeepingUnitField({super.key});
 
   @override
@@ -318,7 +318,11 @@ class StockKeepingUnitField extends StatelessWidget {
           onChanged: (value) {
             context.read<ProductFormBloc>().add(SkuFieldChangedEvent(value));
           },
-        )
+          validator: (value) => validateStockKeepingUnit(
+              value,
+              context.read<ProductListBloc>().state.allProducts.map((e) => e.sku).toList()
+                ..remove(context.read<ProductFormBloc>().state.sku)),
+        ),
       ],
     );
   }
@@ -339,7 +343,6 @@ class CategoryField extends StatelessWidget with ProductFormValidator {
           builder: (context, state) => AutoSuggestBox.form(
             controller:
                 TextEditingController(text: context.read<ProductFormBloc>().state.categoryName),
-            validator: validateProductCategory,
             items: [
               for (final category in state.categories)
                 AutoSuggestBoxItem(value: category, label: category.name),

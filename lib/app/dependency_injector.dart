@@ -50,6 +50,8 @@ import 'package:easthardware_pms/presentation/cubit/database_information/'
 import 'package:easthardware_pms/presentation/cubit/inventory/'
     'category_display/category_display_cubit.dart';
 import 'package:easthardware_pms/presentation/cubit/navigation/navigation_cubit.dart';
+import 'package:easthardware_pms/presentation/cubit/order/cubit/order_display_cubit.dart';
+import 'package:easthardware_pms/presentation/cubit/order/expense_type_display/expense_type_display_cubit.dart';
 import 'package:easthardware_pms/presentation/cubit/payment/'
     'payment_display/payment_display_cubit.dart';
 import 'package:easthardware_pms/presentation/widgets/bottom_text.dart';
@@ -355,6 +357,14 @@ class DependencyInjector extends ChangeNotifier {
       BlocProvider(
         key: key(),
         create: (context) => PaymentMethodDisplayCubit(),
+      ),
+      BlocProvider(
+        key: key(),
+        create: (context) => OrderDisplayCubit(),
+      ),
+      BlocProvider(
+        key: key(),
+        create: (context) => ExpenseTypeDisplayCubit(),
       ),
     ];
   }

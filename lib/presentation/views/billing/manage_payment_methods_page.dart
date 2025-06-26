@@ -6,6 +6,7 @@ import 'package:easthardware_pms/presentation/bloc/authentication/authentication
 import 'package:easthardware_pms/presentation/bloc/payment/payment_method_list/payment_method_list_bloc.dart';
 import 'package:easthardware_pms/presentation/cubit/billing/payment_method_display/payment_method_display_cubit.dart';
 import 'package:easthardware_pms/presentation/cubit/billing/payment_method_display/payment_method_display_enum.dart';
+import 'package:easthardware_pms/presentation/cubit/billing/payment_method_form/payment_method_form_cubit.dart';
 import 'package:easthardware_pms/presentation/widgets/layout/spacing.dart';
 import 'package:easthardware_pms/presentation/widgets/text.dart';
 import 'package:easthardware_pms/presentation/widgets/ui/styles.dart';
@@ -91,7 +92,7 @@ class PageHeader extends StatelessWidget {
 
     return Row(
       children: [
-        const HeadingText('Payment Methods'),
+        const Text('Payment Methods', style: TextStyles.display),
         const Spacer(flex: 1),
         TextButtonFilled('New Payment Method', onPressed: () {
           _showAddPaymentMethodDialog(context);
@@ -101,55 +102,99 @@ class PageHeader extends StatelessWidget {
   }
 
   void _showAddPaymentMethodDialog(BuildContext context) {
-    final nameController = TextEditingController();
-
-    showDialog(
+    unawaited(showDialog(
       context: context,
       builder: (context) {
-        return ContentDialog(
-          title: const Text('Add Payment Method'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text('Name', style: TextStyles.body),
-              Spacing.v4,
-              TextBox(
-                controller: nameController,
-                placeholder: 'Enter payment method name',
-                autofocus: true,
-              ),
-            ],
+        final bloc = context.read<PaymentMethodListBloc>();
+        final existingNames = bloc.state.paymentMethods.map((pm) => pm.name).toList();
+
+        return BlocProvider(
+          create: (context) => PaymentMethodFormCubit(),
+          child: Builder(
+            builder: (context) {
+              final formKey = context.read<PaymentMethodFormCubit>().formKey;
+              return BlocListener<PaymentMethodFormCubit, PaymentMethodFormState>(
+                listenWhen: (previous, current) => previous.status != current.status,
+                listener: (context, state) {
+                  if (state.status == FormStatus.submitting) {
+                    bloc.add(AddPaymentMethodEvent(PaymentMethod(name: state.name)));
+                    context.read<PaymentMethodFormCubit>().onSubmit();
+                  } else if (state.status == FormStatus.submitted) {
+                    if (context.mounted) {
+                      Navigator.pop(context);
+                      context.read<PaymentMethodFormCubit>().onFormReset();
+                    }
+                  }
+                },
+                child: ContentDialog(
+                  title: const Text('Add Payment Method', style: TextStyles.title),
+                  content: Form(
+                    key: formKey,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text('Name', style: TextStyles.body),
+                        Spacing.v4,
+                        BlocBuilder<PaymentMethodFormCubit, PaymentMethodFormState>(
+                          buildWhen: (previous, current) =>
+                              previous.name != current.name ||
+                              previous.errorMessage != current.errorMessage ||
+                              previous.status != current.status,
+                          builder: (context, state) {
+                            final controller = TextEditingController(text: state.name);
+                            controller.selection = TextSelection.fromPosition(
+                              TextPosition(offset: state.name.length),
+                            );
+
+                            return Column(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                TextBox(
+                                  controller: controller,
+                                  onChanged: context.read<PaymentMethodFormCubit>().onNameChanged,
+                                  placeholder: 'Enter payment method name',
+                                  autofocus: true,
+                                ),
+                                if (state.errorMessage != null && state.status == FormStatus.error)
+                                  Padding(
+                                    padding: const EdgeInsets.only(top: 4.0),
+                                    child: Text(
+                                      state.errorMessage!,
+                                      style: TextStyle(color: Colors.red),
+                                    ),
+                                  ),
+                              ],
+                            );
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
+                  actions: [
+                    Button(
+                      child: const Text('Cancel'),
+                      onPressed: () {
+                        Navigator.pop(context);
+                      },
+                    ),
+                    FilledButton(
+                      child: const Text('Add'),
+                      onPressed: () => context.read<PaymentMethodFormCubit>().onButtonPressed(
+                            existingNames: existingNames,
+                            isAdding: true,
+                            currentName: null,
+                          ),
+                    ),
+                  ],
+                ),
+              );
+            },
           ),
-          actions: [
-            Button(
-              child: const Text('Cancel'),
-              onPressed: () {
-                Navigator.pop(context);
-              },
-            ),
-            FilledButton(
-              child: const Text('Add'),
-              onPressed: () {
-                if (nameController.text.trim().isEmpty) {
-                  return;
-                }
-
-                final newPaymentMethod = PaymentMethod(
-                  name: nameController.text.trim(),
-                );
-
-                context.read<PaymentMethodListBloc>().add(
-                      AddPaymentMethodEvent(newPaymentMethod),
-                    );
-
-                Navigator.pop(context);
-              },
-            ),
-          ],
         );
       },
-    );
+    ));
   }
 }
 
@@ -184,13 +229,15 @@ class SearchRow extends StatelessWidget {
         children: [
           Expanded(
             child: TextBox(
-              placeholder: 'Search payment methods',
+              placeholder: 'Search',
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
               onChanged: (value) {
                 context.read<PaymentMethodDisplayCubit>().updateSearch(value);
               },
             ),
           ),
+          const SizedBox(width: 48),
+          const Spacer(flex: 2),
         ],
       ),
     );
@@ -335,52 +382,97 @@ class PaymentMethodDataSource extends DataTableSource {
   int get selectedRowCount => 0;
 
   void _showEditPaymentMethodDialog(BuildContext context, PaymentMethod paymentMethod) {
-    final nameController = TextEditingController(text: paymentMethod.name);
-
     unawaited(showDialog(
       context: context,
       builder: (context) {
-        return ContentDialog(
-          title: const Text('Edit Payment Method'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text('Name', style: TextStyles.body),
-              Spacing.v4,
-              TextBox(
-                controller: nameController,
-                placeholder: 'Enter payment method name',
-                autofocus: true,
-              ),
-            ],
+        final bloc = context.read<PaymentMethodListBloc>();
+        final existingNames = bloc.state.paymentMethods.map((pm) => pm.name).toList()
+          ..remove(paymentMethod.name);
+
+        return BlocProvider(
+          create: (context) => PaymentMethodFormCubit()..onNameChanged(paymentMethod.name),
+          child: Builder(
+            builder: (context) {
+              final formKey = context.read<PaymentMethodFormCubit>().formKey;
+              return BlocListener<PaymentMethodFormCubit, PaymentMethodFormState>(
+                listenWhen: (previous, current) => previous.status != current.status,
+                listener: (context, state) {
+                  if (state.status == FormStatus.submitting) {
+                    bloc.add(UpdatePaymentMethodEvent(paymentMethod.copyWith(name: state.name)));
+                    context.read<PaymentMethodFormCubit>().onSubmit();
+                  } else if (state.status == FormStatus.submitted) {
+                    if (context.mounted) {
+                      Navigator.pop(context);
+                      context.read<PaymentMethodFormCubit>().onFormReset();
+                    }
+                  }
+                },
+                child: ContentDialog(
+                  title: Text('Edit ${paymentMethod.name}', style: TextStyles.title),
+                  content: Form(
+                    key: formKey,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text('Name', style: TextStyles.body),
+                        Spacing.v4,
+                        BlocBuilder<PaymentMethodFormCubit, PaymentMethodFormState>(
+                          buildWhen: (previous, current) =>
+                              previous.name != current.name ||
+                              previous.errorMessage != current.errorMessage ||
+                              previous.status != current.status,
+                          builder: (context, state) {
+                            final controller = TextEditingController(text: state.name);
+                            controller.selection = TextSelection.fromPosition(
+                              TextPosition(offset: state.name.length),
+                            );
+
+                            return Column(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                TextBox(
+                                  controller: controller,
+                                  onChanged: context.read<PaymentMethodFormCubit>().onNameChanged,
+                                  placeholder: 'Enter payment method name',
+                                  autofocus: true,
+                                ),
+                                if (state.errorMessage != null && state.status == FormStatus.error)
+                                  Padding(
+                                    padding: const EdgeInsets.only(top: 4.0),
+                                    child: Text(
+                                      state.errorMessage!,
+                                      style: TextStyle(color: Colors.red),
+                                    ),
+                                  ),
+                              ],
+                            );
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
+                  actions: [
+                    Button(
+                      child: const Text('Cancel'),
+                      onPressed: () {
+                        Navigator.pop(context);
+                      },
+                    ),
+                    FilledButton(
+                      child: const Text('Save'),
+                      onPressed: () => context.read<PaymentMethodFormCubit>().onButtonPressed(
+                            existingNames: existingNames,
+                            isAdding: false,
+                            currentName: paymentMethod.name,
+                          ),
+                    ),
+                  ],
+                ),
+              );
+            },
           ),
-          actions: [
-            Button(
-              child: const Text('Cancel'),
-              onPressed: () {
-                Navigator.pop(context);
-              },
-            ),
-            FilledButton(
-              child: const Text('Save'),
-              onPressed: () {
-                if (nameController.text.trim().isEmpty) {
-                  return;
-                }
-
-                final updatedPaymentMethod = paymentMethod.copyWith(
-                  name: nameController.text.trim(),
-                );
-
-                context.read<PaymentMethodListBloc>().add(
-                      UpdatePaymentMethodEvent(updatedPaymentMethod),
-                    );
-
-                Navigator.pop(context);
-              },
-            ),
-          ],
         );
       },
     ));

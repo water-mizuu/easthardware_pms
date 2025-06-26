@@ -461,31 +461,69 @@ class DataRowMapper {
   static DataRow mapOrderToRow(Order order, void Function() onEditPressed) {
     final orderId = order.id?.toString() ?? 'N/A';
     final orderDate = DateFormat.yMMMMd().format(order.orderDate);
-    final payee = order.payeeName.isNotEmpty == true ? order.payeeName : 'Unknown Payee';
-    // Map expenseType to label
-    // final expenseType = order.expenseType.toString();
+    final payee = order.payeeName;
     final amount = CurrencyFormatter.full(order.amountDue);
 
-    return DataRow(cells: [
-      DataCell(Text(orderId)),
-      DataCell(Text(orderDate)),
-      DataCell(Text(payee)),
-      DataCell(Builder(builder: (context) {
-        final expenseType = order.expenseType;
-        final expenseTypeLabel = context
-                .read<ExpenseTypeListBloc>()
-                .state
-                .expenseTypes
-                .where((e) => e.id == expenseType)
-                .firstOrNull
-                ?.name ??
-            'Unknown';
+    final actionsCell = DataCell(
+      DropDownButton(
+        title: const Text('Actions', style: TextStyles.body),
+        items: [
+          MenuFlyoutItem(
+            text: const Text('Edit Order', style: TextStyles.body),
+            onPressed: onEditPressed,
+          ),
+        ],
+      ),
+    );
 
-        return Text(expenseTypeLabel);
-      })),
-      DataCell(Text(amount)),
-      DataCell(HyperlinkButton(onPressed: onEditPressed, child: const Text('Edit'))),
-    ]);
+    return DataRow(
+      onSelectChanged: (_) => onEditPressed(),
+      cells: [
+        DataCell(
+          Align(
+            alignment: Alignment.centerLeft,
+            child: Text(orderId, style: TextStyles.body),
+          ),
+        ),
+        DataCell(
+          Align(
+            alignment: Alignment.centerLeft,
+            child: Text(orderDate, style: TextStyles.body),
+          ),
+        ),
+        DataCell(
+          Align(
+            alignment: Alignment.centerLeft,
+            child: Text(payee, style: TextStyles.body),
+          ),
+        ),
+        DataCell(
+          Builder(builder: (context) {
+            final expenseType = order.expenseType;
+            final expenseTypeLabel = context
+                    .read<ExpenseTypeListBloc>()
+                    .state
+                    .expenseTypes
+                    .where((e) => e.id == expenseType)
+                    .firstOrNull
+                    ?.name ??
+                'Unknown';
+
+            return Align(
+              alignment: Alignment.centerLeft,
+              child: Text(expenseTypeLabel, style: TextStyles.body),
+            );
+          }),
+        ),
+        DataCell(
+          Align(
+            alignment: Alignment.centerLeft,
+            child: Text(amount, style: TextStyles.body),
+          ),
+        ),
+        actionsCell,
+      ],
+    );
   }
 
   static DataRow mapOrderProductToRow(
