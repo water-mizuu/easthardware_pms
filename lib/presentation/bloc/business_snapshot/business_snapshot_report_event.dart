@@ -158,3 +158,57 @@ class BusinessSnapshotReportSetChartImageEvent extends BusinessSnapshotReportEve
   @override
   List<Object?> get props => [chartImage];
 }
+
+class BusinessSnapshotReportSetSelectedProductsEvent extends BusinessSnapshotReportEvent {
+  const BusinessSnapshotReportSetSelectedProductsEvent(this.selectedProducts);
+
+  final List<Product> selectedProducts;
+
+  @override
+  List<Object?> get props => [selectedProducts];
+}
+
+class BusinessSnapshotReportSetSelectedCategoriesEvent extends BusinessSnapshotReportEvent {
+  const BusinessSnapshotReportSetSelectedCategoriesEvent(this.selectedCategories);
+
+  final List<Category> selectedCategories;
+
+  @override
+  List<Object?> get props => [selectedCategories];
+}
+
+class BusinessSnapshotReportAddSelectedProductEvent extends BusinessSnapshotReportEvent {
+  const BusinessSnapshotReportAddSelectedProductEvent(this.product);
+
+  final Product product;
+
+  @override
+  List<Object?> get props => [product];
+}
+
+class BusinessSnapshotReportRemoveSelectedProductEvent extends BusinessSnapshotReportEvent {
+  const BusinessSnapshotReportRemoveSelectedProductEvent(this.product);
+
+  final Product product;
+
+  @override
+  List<Object?> get props => [product];
+}
+
+class BusinessSnapshotReportAddSelectedCategoryEvent extends BusinessSnapshotReportEvent {
+  const BusinessSnapshotReportAddSelectedCategoryEvent(this.category);
+
+  final Category category;
+
+  @override
+  List<Object?> get props => [category];
+}
+
+class BusinessSnapshotReportRemoveSelectedCategoryEvent extends BusinessSnapshotReportEvent {
+  const BusinessSnapshotReportRemoveSelectedCategoryEvent(this.category);
+
+  final Category category;
+
+  @override
+  List<Object?> get props => [category];
+}

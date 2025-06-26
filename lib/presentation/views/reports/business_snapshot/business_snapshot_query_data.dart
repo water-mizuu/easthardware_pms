@@ -1,3 +1,4 @@
+import 'package:easthardware_pms/domain/models/category.dart';
 import 'package:easthardware_pms/domain/models/expense_type.dart';
 import 'package:easthardware_pms/domain/models/product.dart';
 import 'package:easthardware_pms/utils/undefined.dart';
@@ -326,6 +327,138 @@ enum BusinessMetricSortBy {
   }
 }
 
+/// Data class for product-specific sales trends
+class ProductSalesTrend extends Equatable {
+  const ProductSalesTrend({
+    required this.date,
+    required this.product,
+    required this.quantitySold,
+    required this.revenue,
+    required this.profit,
+  });
+
+  final DateTime date;
+  final Product product;
+  final double quantitySold;
+  final double revenue;
+  final double profit;
+
+  ProductSalesTrend copyWith({
+    DateTime? date,
+    Product? product,
+    double? quantitySold,
+    double? revenue,
+    double? profit,
+  }) {
+    return ProductSalesTrend(
+      date: date ?? this.date,
+      product: product ?? this.product,
+      quantitySold: quantitySold ?? this.quantitySold,
+      revenue: revenue ?? this.revenue,
+      profit: profit ?? this.profit,
+    );
+  }
+
+  @override
+  List<Object?> get props => [
+        date,
+        product,
+        quantitySold,
+        revenue,
+        profit,
+      ];
+}
+
+/// Data class for category-specific sales trends
+class CategorySalesTrend extends Equatable {
+  const CategorySalesTrend({
+    required this.date,
+    required this.category,
+    required this.totalQuantitySold,
+    required this.totalRevenue,
+    required this.totalProfit,
+  });
+
+  final DateTime date;
+  final Category category;
+  final double totalQuantitySold;
+  final double totalRevenue;
+  final double totalProfit;
+
+  CategorySalesTrend copyWith({
+    DateTime? date,
+    Category? category,
+    double? totalQuantitySold,
+    double? totalRevenue,
+    double? totalProfit,
+  }) {
+    return CategorySalesTrend(
+      date: date ?? this.date,
+      category: category ?? this.category,
+      totalQuantitySold: totalQuantitySold ?? this.totalQuantitySold,
+      totalRevenue: totalRevenue ?? this.totalRevenue,
+      totalProfit: totalProfit ?? this.totalProfit,
+    );
+  }
+
+  @override
+  List<Object?> get props => [
+        date,
+        category,
+        totalQuantitySold,
+        totalRevenue,
+        totalProfit,
+      ];
+}
+
+/// Data class for grouping product sales trends over time
+class ProductSalesTrendSeries extends Equatable {
+  const ProductSalesTrendSeries({
+    required this.product,
+    required this.trends,
+  });
+
+  final Product product;
+  final List<ProductSalesTrend> trends;
+
+  ProductSalesTrendSeries copyWith({
+    Product? product,
+    List<ProductSalesTrend>? trends,
+  }) {
+    return ProductSalesTrendSeries(
+      product: product ?? this.product,
+      trends: trends ?? this.trends,
+    );
+  }
+
+  @override
+  List<Object?> get props => [product, trends];
+}
+
+/// Data class for grouping category sales trends over time
+class CategorySalesTrendSeries extends Equatable {
+  const CategorySalesTrendSeries({
+    required this.category,
+    required this.trends,
+  });
+
+  final Category category;
+  final List<CategorySalesTrend> trends;
+
+  CategorySalesTrendSeries copyWith({
+    Category? category,
+    List<CategorySalesTrend>? trends,
+  }) {
+    return CategorySalesTrendSeries(
+      category: category ?? this.category,
+      trends: trends ?? this.trends,
+    );
+  }
+
+  @override
+  List<Object?> get props => [category, trends];
+}
+
 /// Query data for business snapshot report
 class BusinessSnapshotQueryData extends Equatable {
   factory BusinessSnapshotQueryData.empty() {
@@ -335,7 +468,6 @@ class BusinessSnapshotQueryData extends Equatable {
       currentPeriodEnd: now,
     );
   }
-
   const BusinessSnapshotQueryData({
     required this.currentPeriodStart,
     required this.currentPeriodEnd,
@@ -348,9 +480,12 @@ class BusinessSnapshotQueryData extends Equatable {
     this.keyMetrics,
     this.revenueTrends,
     this.summary,
+    this.productSalesTrendSeries = const [],
+    this.categorySalesTrendSeries = const [],
     this.maxTopProducts = 10,
+    this.selectedProducts = const [],
+    this.selectedCategories = const [],
   });
-
   final DateTime currentPeriodStart;
   final DateTime currentPeriodEnd;
   final BusinessSnapshotPeriod comparisonPeriod;
@@ -362,8 +497,11 @@ class BusinessSnapshotQueryData extends Equatable {
   final List<BusinessMetric>? keyMetrics;
   final List<RevenueTrend>? revenueTrends;
   final BusinessSummary? summary;
+  final List<ProductSalesTrendSeries> productSalesTrendSeries;
+  final List<CategorySalesTrendSeries> categorySalesTrendSeries;
   final int maxTopProducts; // Maximum number of top products to show
-
+  final List<Product> selectedProducts; // Selected products for chart display
+  final List<Category> selectedCategories; // Selected categories for chart display
   BusinessSnapshotQueryData Function({
     DateTime? currentPeriodStart,
     DateTime? currentPeriodEnd,
@@ -376,7 +514,11 @@ class BusinessSnapshotQueryData extends Equatable {
     List<BusinessMetric>? keyMetrics,
     List<RevenueTrend>? revenueTrends,
     BusinessSummary? summary,
+    List<ProductSalesTrendSeries>? productSalesTrendSeries,
+    List<CategorySalesTrendSeries>? categorySalesTrendSeries,
     int? maxTopProducts,
+    List<Product>? selectedProducts,
+    List<Category>? selectedCategories,
   }) get copyWith {
     return ({
       Object? currentPeriodStart = undefined,
@@ -390,7 +532,11 @@ class BusinessSnapshotQueryData extends Equatable {
       Object? keyMetrics = undefined,
       Object? revenueTrends = undefined,
       Object? summary = undefined,
+      Object? productSalesTrendSeries = undefined,
+      Object? categorySalesTrendSeries = undefined,
       Object? maxTopProducts = undefined,
+      Object? selectedProducts = undefined,
+      Object? selectedCategories = undefined,
     }) {
       return BusinessSnapshotQueryData(
         currentPeriodStart: currentPeriodStart.or(this.currentPeriodStart),
@@ -404,7 +550,11 @@ class BusinessSnapshotQueryData extends Equatable {
         keyMetrics: keyMetrics.or(this.keyMetrics),
         revenueTrends: revenueTrends.or(this.revenueTrends),
         summary: summary.or(this.summary),
+        productSalesTrendSeries: productSalesTrendSeries.or(this.productSalesTrendSeries),
+        categorySalesTrendSeries: categorySalesTrendSeries.or(this.categorySalesTrendSeries),
         maxTopProducts: maxTopProducts.or(this.maxTopProducts),
+        selectedProducts: selectedProducts.or(this.selectedProducts),
+        selectedCategories: selectedCategories.or(this.selectedCategories),
       );
     };
   }
@@ -422,6 +572,10 @@ class BusinessSnapshotQueryData extends Equatable {
         keyMetrics,
         revenueTrends,
         summary,
+        productSalesTrendSeries,
+        categorySalesTrendSeries,
         maxTopProducts,
+        selectedProducts,
+        selectedCategories,
       ];
 }

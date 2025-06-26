@@ -1,6 +1,7 @@
 import 'dart:typed_data';
 
 import 'package:bloc/bloc.dart';
+import 'package:easthardware_pms/domain/models/category.dart';
 import 'package:easthardware_pms/domain/models/expense_type.dart';
 import 'package:easthardware_pms/domain/models/invoice.dart';
 import 'package:easthardware_pms/domain/models/invoice_product.dart';
@@ -54,6 +55,14 @@ class BusinessSnapshotReportBloc
     on<BusinessSnapshotReportUpdateOrderProductsEvent>(_onUpdateOrderProducts);
     on<BusinessSnapshotReportUpdateExpenseTypesEvent>(_onUpdateExpenseTypes);
     on<BusinessSnapshotReportSetChartImageEvent>(_onSetChartImage);
+
+    // Product and Category Selection Events
+    on<BusinessSnapshotReportSetSelectedProductsEvent>(_onSetSelectedProducts);
+    on<BusinessSnapshotReportAddSelectedProductEvent>(_onAddSelectedProduct);
+    on<BusinessSnapshotReportRemoveSelectedProductEvent>(_onRemoveSelectedProduct);
+    on<BusinessSnapshotReportSetSelectedCategoriesEvent>(_onSetSelectedCategories);
+    on<BusinessSnapshotReportAddSelectedCategoryEvent>(_onAddSelectedCategory);
+    on<BusinessSnapshotReportRemoveSelectedCategoryEvent>(_onRemoveSelectedCategory);
 
     // Initialize the query data
     add(const BusinessSnapshotReportInitializeEvent());
@@ -212,6 +221,79 @@ class BusinessSnapshotReportBloc
     Emitter<BusinessSnapshotReportState> emit,
   ) {
     emit(state.copyWith(chartImage: event.chartImage));
+  }
+
+  // Product and Category Selection Event Handlers
+  void _onSetSelectedProducts(
+    BusinessSnapshotReportSetSelectedProductsEvent event,
+    Emitter<BusinessSnapshotReportState> emit,
+  ) {
+    emit(state.copyWith(
+      queryData: state.queryData.copyWith(selectedProducts: event.selectedProducts),
+    ));
+    _recalculateBusinessSnapshotData(emit);
+  }
+
+  void _onAddSelectedProduct(
+    BusinessSnapshotReportAddSelectedProductEvent event,
+    Emitter<BusinessSnapshotReportState> emit,
+  ) {
+    final currentProducts = List<Product>.from(state.queryData.selectedProducts);
+    if (!currentProducts.any((p) => p.id == event.product.id)) {
+      currentProducts.add(event.product);
+      emit(state.copyWith(
+        queryData: state.queryData.copyWith(selectedProducts: currentProducts),
+      ));
+      _recalculateBusinessSnapshotData(emit);
+    }
+  }
+
+  void _onRemoveSelectedProduct(
+    BusinessSnapshotReportRemoveSelectedProductEvent event,
+    Emitter<BusinessSnapshotReportState> emit,
+  ) {
+    final currentProducts = List<Product>.from(state.queryData.selectedProducts);
+    currentProducts.removeWhere((p) => p.id == event.product.id);
+    emit(state.copyWith(
+      queryData: state.queryData.copyWith(selectedProducts: currentProducts),
+    ));
+    _recalculateBusinessSnapshotData(emit);
+  }
+
+  void _onSetSelectedCategories(
+    BusinessSnapshotReportSetSelectedCategoriesEvent event,
+    Emitter<BusinessSnapshotReportState> emit,
+  ) {
+    emit(state.copyWith(
+      queryData: state.queryData.copyWith(selectedCategories: event.selectedCategories),
+    ));
+    _recalculateBusinessSnapshotData(emit);
+  }
+
+  void _onAddSelectedCategory(
+    BusinessSnapshotReportAddSelectedCategoryEvent event,
+    Emitter<BusinessSnapshotReportState> emit,
+  ) {
+    final currentCategories = List<Category>.from(state.queryData.selectedCategories);
+    if (!currentCategories.any((c) => c.id == event.category.id)) {
+      currentCategories.add(event.category);
+      emit(state.copyWith(
+        queryData: state.queryData.copyWith(selectedCategories: currentCategories),
+      ));
+      _recalculateBusinessSnapshotData(emit);
+    }
+  }
+
+  void _onRemoveSelectedCategory(
+    BusinessSnapshotReportRemoveSelectedCategoryEvent event,
+    Emitter<BusinessSnapshotReportState> emit,
+  ) {
+    final currentCategories = List<Category>.from(state.queryData.selectedCategories);
+    currentCategories.removeWhere((c) => c.id == event.category.id);
+    emit(state.copyWith(
+      queryData: state.queryData.copyWith(selectedCategories: currentCategories),
+    ));
+    _recalculateBusinessSnapshotData(emit);
   }
 
   void _recalculateBusinessSnapshotData(Emitter<BusinessSnapshotReportState> emit) {
@@ -479,9 +561,7 @@ class BusinessSnapshotReportBloc
         expenses: periodExpenses,
         profit: periodProfit,
       ));
-    }
-
-    // Create business summary
+    } // Create business summary
     final summary = BusinessSummary(
       totalRevenue: currentRevenue,
       totalExpenses: currentExpenses,
@@ -491,8 +571,83 @@ class BusinessSnapshotReportBloc
       lowStockProducts: lowStockProducts,
       totalOrders: currentInvoices.length,
       pendingOrders: orders.where((o) => (o.amountPaid ?? 0) < o.amountDue).length,
-    );
+    ); // Calculate product sales trends for selected products
+    final productSalesTrendSeries = <ProductSalesTrendSeries>[];
+    for (final selectedProduct in state.queryData.selectedProducts) {
+      final productTrends = <ProductSalesTrend>[];
 
+      for (var i = 0; i < dataPoints; i++) {
+        final date = currentPeriodStart.add(Duration(days: (i * interval).round()));
+        final endDate = i < dataPoints - 1
+            ? currentPeriodStart.add(Duration(days: ((i + 1) * interval).round()))
+            : currentPeriodEnd;
+
+        var periodSales = 0.0;
+        var periodQuantity = 0.0;
+        for (final invoice in currentInvoices) {
+          if (invoice.invoiceDate.isAfter(date) && invoice.invoiceDate.isBefore(endDate)) {
+            final productInvoices = invoiceProducts
+                .where((ip) => ip.invoiceId == invoice.id && ip.productId == selectedProduct.id)
+                .toList();
+            periodSales += productInvoices.map((ip) => ip.rate * ip.quantity).sum();
+            periodQuantity += productInvoices.map((ip) => ip.quantity).sum();
+          }
+        }
+
+        productTrends.add(ProductSalesTrend(
+          date: date,
+          product: selectedProduct,
+          quantitySold: periodQuantity,
+          revenue: periodSales,
+          profit: periodSales, // Simplified - just sales revenue
+        ));
+      }
+
+      productSalesTrendSeries.add(ProductSalesTrendSeries(
+        product: selectedProduct,
+        trends: productTrends,
+      ));
+    }
+
+    // Calculate category sales trends for selected categories
+    final categorySalesTrendSeries = <CategorySalesTrendSeries>[];
+    for (final selectedCategory in state.queryData.selectedCategories) {
+      final categoryTrends = <CategorySalesTrend>[];
+      final categoryProducts = products.where((p) => p.categoryId == selectedCategory.id).toList();
+
+      for (var i = 0; i < dataPoints; i++) {
+        final date = currentPeriodStart.add(Duration(days: (i * interval).round()));
+        final endDate = i < dataPoints - 1
+            ? currentPeriodStart.add(Duration(days: ((i + 1) * interval).round()))
+            : currentPeriodEnd;
+
+        var periodSales = 0.0;
+        var periodQuantity = 0.0;
+        for (final invoice in currentInvoices) {
+          if (invoice.invoiceDate.isAfter(date) && invoice.invoiceDate.isBefore(endDate)) {
+            final categoryInvoices = invoiceProducts
+                .where((ip) =>
+                    ip.invoiceId == invoice.id && categoryProducts.any((p) => p.id == ip.productId))
+                .toList();
+            periodSales += categoryInvoices.map((ip) => ip.rate * ip.quantity).sum();
+            periodQuantity += categoryInvoices.map((ip) => ip.quantity).sum();
+          }
+        }
+
+        categoryTrends.add(CategorySalesTrend(
+          date: date,
+          category: selectedCategory,
+          totalQuantitySold: periodQuantity,
+          totalRevenue: periodSales,
+          totalProfit: periodSales, // Simplified - just sales revenue
+        ));
+      }
+
+      categorySalesTrendSeries.add(CategorySalesTrendSeries(
+        category: selectedCategory,
+        trends: categoryTrends,
+      ));
+    }
     emit(state.copyWith(
       queryData: state.queryData.copyWith(
         topSellingProducts: limitedTopProducts,
@@ -500,6 +655,8 @@ class BusinessSnapshotReportBloc
         keyMetrics: keyMetrics,
         revenueTrends: revenueTrends,
         summary: summary,
+        productSalesTrendSeries: productSalesTrendSeries,
+        categorySalesTrendSeries: categorySalesTrendSeries,
       ),
     ));
   }
