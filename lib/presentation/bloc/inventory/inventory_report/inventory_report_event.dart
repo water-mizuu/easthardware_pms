@@ -100,3 +100,12 @@ class InventoryReportSetCategoryEvent extends InventoryReportEvent {
   @override
   List<Object?> get props => [category];
 }
+
+class InventoryReportSetTakeEvent extends InventoryReportEvent {
+  const InventoryReportSetTakeEvent(this.take);
+
+  final int take;
+
+  @override
+  List<Object?> get props => [take];
+}

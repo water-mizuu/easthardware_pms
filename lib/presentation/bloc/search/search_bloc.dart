@@ -51,6 +51,7 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
         i.referenceNumber,
         i.customerName,
         i.referenceNumber,
+        i.memo,
       }.whereType<String>(),
     );
   }

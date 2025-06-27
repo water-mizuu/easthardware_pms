@@ -104,6 +104,7 @@ Future<String> createBackup(String key) async {
 
     final data = dbFile.readAsBytesSync();
     final encryptedData = CryptographyService.encryptSymmetricUint8List(data, key);
+    final isEncrypted = key.isNotEmpty;
 
     assert(
       CryptographyService.decryptSymmetricUint8List(encryptedData, key).toString() ==
@@ -114,7 +115,7 @@ Future<String> createBackup(String key) async {
     final backupPath = join(
       await getDatabasesPath(),
       'backups',
-      'backup_${DateTime.now().millisecondsSinceEpoch}.db',
+      'backup${isEncrypted ? '_E' : ''}_${DateTime.now().millisecondsSinceEpoch}.db',
     );
     File(backupPath)
       ..createSync(recursive: true)
@@ -164,7 +165,7 @@ Future<void> restoreBackup(String backupPath, String key) async {
         // Open and close the database real quick to see if it is valid
         final recoveredDb = await openDatabase(tempFile.path, onOpen: (db) async {
           // This is just to ensure the database is valid
-          await db.query('SELECT * FROM sqlite_master');
+          await db.rawQuery('SELECT * FROM sqlite_master');
         });
 
         await recoveredDb.close();

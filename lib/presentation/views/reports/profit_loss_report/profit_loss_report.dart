@@ -247,6 +247,7 @@ class ProfitLossReportOptions extends StatelessWidget {
                     _EndDateSelection(),
                     _GroupBySelection(),
                     _SortBySelection(),
+                    _TakeSelection(),
                   ].withSpacing(() => Spacing.v16),
                 ),
               ),
@@ -460,6 +461,36 @@ class _SortBySelection extends StatelessWidget {
   }
 }
 
+class _TakeSelection extends StatelessWidget {
+  const _TakeSelection();
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        const Text('Row Limit: '),
+        Spacing.h8,
+        Expanded(
+          child: NumberBox<int>(
+            value: context.select((ProfitLossReportBloc b) => b.state.queryData.take),
+            onChanged: (value) {
+              if (value != null && value > 0) {
+                context //
+                    .read<ProfitLossReportBloc>()
+                    .add(ProfitLossReportSetTakeEvent(value));
+              }
+            },
+            min: 1,
+            max: 1000,
+            smallChange: 1,
+            largeChange: 10,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
 class _GenerateButtons extends StatelessWidget {
   const _GenerateButtons();
 
@@ -467,7 +498,7 @@ class _GenerateButtons extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocBuilder<ProfitLossReportBloc, ProfitLossReportState>(
       builder: (context, reportState) {
-        final profitLossData = reportState.queryData.profitLossData ?? [];
+        final profitLossData = reportState.queryData.profitLossDataWithTake ?? [];
 
         return Row(
           children: [
@@ -506,7 +537,8 @@ class _ProfitLossTablePreview extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final data = context.select((ProfitLossReportBloc b) => b.state.queryData.profitLossData) ?? [];
+    final data =
+        context.select((ProfitLossReportBloc b) => b.state.queryData.profitLossDataWithTake) ?? [];
 
     return Container(
       padding: AppPadding.cardPadding,

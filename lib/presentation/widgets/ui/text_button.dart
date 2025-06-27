@@ -7,9 +7,11 @@ class TextButton extends StatelessWidget {
     this.text, {
     required this.onPressed,
     this.color,
+    this.icon,
     super.key,
   });
 
+  final IconData? icon;
   final String text;
   final Function()? onPressed;
   final Color? color;
@@ -20,7 +22,13 @@ class TextButton extends StatelessWidget {
       onPressed: onPressed,
       child: Padding(
         padding: AppPadding.a4,
-        child: ButtonText(text, color: color),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (icon case final icon?) ...[Icon(icon, size: 12.0), Spacing.h8],
+            ButtonText(text, color: color),
+          ],
+        ),
       ),
     );
   }

@@ -12,6 +12,7 @@ class InventoryQueryData {
     required this.searchQuery,
     required this.category,
     required this.sortBy,
+    this.take,
   });
 
   InventoryQueryData.empty()
@@ -19,13 +20,15 @@ class InventoryQueryData {
         filteredProducts = const [],
         searchQuery = '',
         category = null,
-        sortBy = InventoryDisplaySortBy.urgencyAscending;
+        sortBy = InventoryDisplaySortBy.urgencyAscending,
+        take = null;
 
   final DateTime? date;
   final List<Product>? filteredProducts;
   final String searchQuery;
   final Category? category;
   final InventoryDisplaySortBy sortBy;
+  final int? take;
 
   InventoryQueryData Function({
     DateTime? date,
@@ -33,6 +36,7 @@ class InventoryQueryData {
     String searchQuery,
     Category? category,
     InventoryDisplaySortBy sortBy,
+    int? take,
   }) get copyWith {
     return ({
       Object? date = undefined,
@@ -40,6 +44,7 @@ class InventoryQueryData {
       Object? searchQuery = undefined,
       Object? category = undefined,
       Object? sortBy = undefined,
+      Object? take = undefined,
     }) {
       return InventoryQueryData(
         date: date.or(this.date),
@@ -47,7 +52,15 @@ class InventoryQueryData {
         searchQuery: searchQuery.or(this.searchQuery),
         category: category.or(this.category),
         sortBy: sortBy.or(this.sortBy),
+        take: take.or(this.take),
       );
     };
+  }
+
+  List<Product>? get filteredProductsWithTake {
+    if (take != null && filteredProducts != null) {
+      return filteredProducts?.take(take!).toList();
+    }
+    return filteredProducts;
   }
 }

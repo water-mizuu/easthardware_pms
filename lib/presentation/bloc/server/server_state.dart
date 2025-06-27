@@ -10,6 +10,8 @@ enum ServerStatus {
   promptingServerInformation,
   running,
   closing,
+  disconnected,
+  reconnecting,
 }
 
 @immutable
@@ -22,6 +24,8 @@ class ServerState with EquatableMixin {
     this.lastUpdated,
     this.bottomText,
     this.clientUserBeingLoggedOut,
+    this.reconnectAttempts = 0,
+    this.lastDisconnectionTime,
   });
 
   final ServerStatus status;
@@ -31,6 +35,8 @@ class ServerState with EquatableMixin {
   final DateTime? lastUpdated;
   final String? bottomText;
   final int? clientUserBeingLoggedOut;
+  final int reconnectAttempts;
+  final DateTime? lastDisconnectionTime;
 
   ServerState Function({
     ServerStatus status,
@@ -40,6 +46,8 @@ class ServerState with EquatableMixin {
     DateTime? lastUpdated,
     String bottomText,
     int? clientUserBeingLoggedOut,
+    int reconnectAttempts,
+    DateTime? lastDisconnectionTime,
   }) get copyWith {
     return ({
       Object? status = undefined,
@@ -49,6 +57,8 @@ class ServerState with EquatableMixin {
       Object? lastUpdated = undefined,
       Object? bottomText = undefined,
       Object? clientUserBeingLoggedOut = undefined,
+      Object? reconnectAttempts = undefined,
+      Object? lastDisconnectionTime = undefined,
     }) {
       return ServerState(
         status: status.or(this.status),
@@ -58,6 +68,8 @@ class ServerState with EquatableMixin {
         lastUpdated: lastUpdated.or(this.lastUpdated),
         bottomText: bottomText.or(this.bottomText),
         clientUserBeingLoggedOut: clientUserBeingLoggedOut.or(this.clientUserBeingLoggedOut),
+        reconnectAttempts: reconnectAttempts.or(this.reconnectAttempts),
+        lastDisconnectionTime: lastDisconnectionTime.or(this.lastDisconnectionTime),
       );
     };
   }
@@ -71,6 +83,8 @@ class ServerState with EquatableMixin {
         lastUpdated,
         bottomText,
         clientUserBeingLoggedOut,
+        reconnectAttempts,
+        lastDisconnectionTime,
       ];
 }
 

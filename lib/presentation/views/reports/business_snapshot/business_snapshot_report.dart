@@ -65,15 +65,11 @@ class _BusinessSnapshotReportState extends State<BusinessSnapshotReport> {
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       _buildFilters(context, state),
-                      Spacing.v16,
                       _buildKeyMetricsSection(context, state),
-                      Spacing.v16,
                       _buildTopProductsSection(context, state),
-                      Spacing.v16,
                       _buildExpenseBreakdownSection(context, state),
-                      Spacing.v16,
                       _buildSalesHistorySection(context, state),
-                    ],
+                    ].withSpacing(() => Spacing.v16),
                   ),
                 ),
               ),
@@ -98,31 +94,37 @@ class _BusinessSnapshotReportState extends State<BusinessSnapshotReport> {
                   const SubheadingText('Report Filters'),
                   Spacing.v8,
                   Row(
+                    mainAxisSize: MainAxisSize.min,
                     children: [
                       const SizedBox(width: 80, child: Text('Start Date: ')),
                       Spacing.h8,
-                      BorderedDatePicker(
-                        selected: state.queryData.currentPeriodStart,
-                        onChanged: (date) {
-                          context
-                              .read<BusinessSnapshotReportBloc>()
-                              .add(BusinessSnapshotReportSetStartDateEvent(date));
-                        },
+                      Flexible(
+                        child: BorderedDatePicker(
+                          selected: state.queryData.currentPeriodStart,
+                          onChanged: (date) {
+                            context
+                                .read<BusinessSnapshotReportBloc>()
+                                .add(BusinessSnapshotReportSetStartDateEvent(date));
+                          },
+                        ),
                       ),
                     ],
                   ),
                   Spacing.v8,
                   Row(
+                    mainAxisSize: MainAxisSize.min,
                     children: [
                       const SizedBox(width: 80, child: Text('End Date: ')),
                       Spacing.h8,
-                      DatePicker(
-                        selected: state.queryData.currentPeriodEnd,
-                        onChanged: (date) {
-                          context
-                              .read<BusinessSnapshotReportBloc>()
-                              .add(BusinessSnapshotReportSetEndDateEvent(date));
-                        },
+                      Flexible(
+                        child: BorderedDatePicker(
+                          selected: state.queryData.currentPeriodEnd,
+                          onChanged: (date) {
+                            context
+                                .read<BusinessSnapshotReportBloc>()
+                                .add(BusinessSnapshotReportSetEndDateEvent(date));
+                          },
+                        ),
                       ),
                     ],
                   ),
@@ -157,10 +159,11 @@ class _BusinessSnapshotReportState extends State<BusinessSnapshotReport> {
                 ],
               ),
             ),
+            Spacing.h16,
             BlocBuilder<BusinessSnapshotReportBloc, BusinessSnapshotReportState>(
               builder: (context, reportState) {
                 return TextButtonFilled(
-                  'Generate Expense Report',
+                  'Generate Business Snapshot Report',
                   onPressed: reportState.isGenerating
                       ? null
                       : () => unawaited(_generatePdfReport(context, reportState)),
@@ -682,7 +685,7 @@ class _BusinessSnapshotReportState extends State<BusinessSnapshotReport> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Text('Selected Products for Chart:'),
-        Spacing.v4,
+        Spacing.v8,
         Wrap(
           spacing: 8,
           runSpacing: 4,
@@ -710,15 +713,9 @@ class _BusinessSnapshotReportState extends State<BusinessSnapshotReport> {
                     ],
                   ),
                 )),
-            Button(
-              child: const Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(FluentIcons.add, size: 12),
-                  Spacing.h4,
-                  Text('Add Product', style: TextStyle(fontSize: 12)),
-                ],
-              ),
+            TextButton(
+              'Add Product',
+              icon: FluentIcons.add,
               onPressed: () => unawaited(_showProductSelectionDialog(context, state)),
             ),
           ],
@@ -732,43 +729,38 @@ class _BusinessSnapshotReportState extends State<BusinessSnapshotReport> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Text('Selected Categories for Chart:'),
-        Spacing.v4,
+        Spacing.v8,
         Wrap(
           spacing: 8,
           runSpacing: 4,
           children: [
-            ...state.queryData.selectedCategories.map((category) => Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: Colors.green.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: Colors.green.withOpacity(0.3)),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(category.name, style: const TextStyle(fontSize: 12)),
-                      Spacing.h4,
-                      IconButton(
-                        icon: const Icon(FluentIcons.cancel, size: 12),
-                        onPressed: () {
-                          context
-                              .read<BusinessSnapshotReportBloc>()
-                              .add(BusinessSnapshotReportRemoveSelectedCategoryEvent(category));
-                        },
-                      ),
-                    ],
-                  ),
-                )),
-            Button(
-              child: const Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(FluentIcons.add, size: 12),
-                  Spacing.h4,
-                  Text('Add Category', style: TextStyle(fontSize: 12)),
-                ],
+            for (final category in state.queryData.selectedCategories)
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: Colors.green.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.green.withOpacity(0.3)),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(category.name, style: const TextStyle(fontSize: 12)),
+                    Spacing.h4,
+                    IconButton(
+                      icon: const Icon(FluentIcons.cancel, size: 12),
+                      onPressed: () {
+                        context
+                            .read<BusinessSnapshotReportBloc>()
+                            .add(BusinessSnapshotReportRemoveSelectedCategoryEvent(category));
+                      },
+                    ),
+                  ],
+                ),
               ),
+            TextButton(
+              'Add Product',
+              icon: FluentIcons.add,
               onPressed: () => unawaited(_showCategorySelectionDialog(context, state)),
             ),
           ],
@@ -778,11 +770,13 @@ class _BusinessSnapshotReportState extends State<BusinessSnapshotReport> {
   }
 
   Future<void> _showProductSelectionDialog(
-      BuildContext context, BusinessSnapshotReportState state) async {
+    BuildContext context,
+    BusinessSnapshotReportState state,
+  ) async {
     final availableProducts = state.products
-        .where((product) =>
-            !state.queryData.selectedProducts.any((selected) => selected.id == product.id))
-        .toList();
+        .where((p) => !state.queryData.selectedProducts.any((s) => s.id == p.id))
+        .toList()
+      ..sort((a, b) => a.name.compareTo(b.name));
 
     if (availableProducts.isEmpty) {
       showNotification(
@@ -799,16 +793,20 @@ class _BusinessSnapshotReportState extends State<BusinessSnapshotReport> {
       context: context,
       builder: (dialogContext) => ContentDialog(
         title: const Text('Select Product'),
-        content: ComboBox<Product>(
-          placeholder: const Text('Choose a product...'),
-          items: availableProducts
-              .map((product) => ComboBoxItem(
-                    value: product,
-                    child: Text(product.name),
-                  ))
-              .toList(),
-          onChanged: (value) => selectedProduct = value,
-        ),
+        content: StatefulBuilder(builder: (context, setState) {
+          return ComboBox<Product>(
+            placeholder: const Text('Choose a product...'),
+            value: selectedProduct,
+            items: [
+              for (final product in availableProducts)
+                ComboBoxItem<Product>(
+                  value: product,
+                  child: Text(product.name),
+                ),
+            ],
+            onChanged: (value) => setState(() => selectedProduct = value),
+          );
+        }),
         actions: [
           Button(
             child: const Text('Cancel'),
@@ -831,7 +829,9 @@ class _BusinessSnapshotReportState extends State<BusinessSnapshotReport> {
   }
 
   Future<void> _showCategorySelectionDialog(
-      BuildContext context, BusinessSnapshotReportState state) async {
+    BuildContext context,
+    BusinessSnapshotReportState state,
+  ) async {
     // We need to get categories from the bloc or from another source
     // For now, let's get unique categories from products
     final availableCategories = <int, String>{};
@@ -854,22 +854,26 @@ class _BusinessSnapshotReportState extends State<BusinessSnapshotReport> {
       return;
     }
 
-    MapEntry<int, String>? selectedCategory;
+    (int, String)? selectedCategory;
 
     await showDialog<void>(
       context: context,
       builder: (dialogContext) => ContentDialog(
         title: const Text('Select Category'),
-        content: ComboBox<MapEntry<int, String>>(
-          placeholder: const Text('Choose a category...'),
-          items: filteredCategories.entries
-              .map((entry) => ComboBoxItem(
-                    value: entry,
-                    child: Text(entry.value),
-                  ))
-              .toList(),
-          onChanged: (value) => selectedCategory = value,
-        ),
+        content: StatefulBuilder(builder: (context, setState) {
+          return ComboBox<(int, String)>(
+            placeholder: const Text('Choose a category...'),
+            value: selectedCategory,
+            onChanged: (value) => setState(() => selectedCategory = value),
+            items: [
+              for (final MapEntry(key: key, value: value) in filteredCategories.entries)
+                ComboBoxItem(
+                  value: (key, value),
+                  child: Text(value),
+                ),
+            ],
+          );
+        }),
         actions: [
           Button(
             child: const Text('Cancel'),
@@ -880,10 +884,9 @@ class _BusinessSnapshotReportState extends State<BusinessSnapshotReport> {
             onPressed: () {
               if (selectedCategory != null) {
                 // Create a Category object from the selected entry
-                final category = Category(
-                  id: selectedCategory!.key,
-                  name: selectedCategory!.value,
-                );
+                final (id, name) = selectedCategory!;
+                final category = Category(id: id, name: name);
+
                 context
                     .read<BusinessSnapshotReportBloc>()
                     .add(BusinessSnapshotReportAddSelectedCategoryEvent(category));
@@ -905,19 +908,17 @@ class _BusinessSnapshotReportState extends State<BusinessSnapshotReport> {
         .add(const BusinessSnapshotReportSetGeneratingEvent(true));
 
     try {
-      final image = await () async {
+      final image = await () {
         final context = _chartKey.currentContext;
         if (context == null) return null;
 
         final renderObject = context.findRenderObject();
-        if (renderObject is RenderRepaintBoundary) {
-          return renderObject
-              .toImage(pixelRatio: MediaQuery.of(context).devicePixelRatio)
-              .then((img) => img.toByteData(format: ImageByteFormat.png))
-              .then((value) => value!.buffer.asUint8List());
-        }
+        if (renderObject == null) return null;
 
-        return null;
+        return (renderObject as RenderRepaintBoundary)
+            .toImage(pixelRatio: MediaQuery.of(context).devicePixelRatio)
+            .then((img) => img.toByteData(format: ImageByteFormat.png))
+            .then((value) => value!.buffer.asUint8List());
       }();
       showPdfOverlay(builder: (context, overlay) {
         return PdfOverlay(
@@ -974,75 +975,45 @@ class _PdfGenerator with PdfCommons implements PdfGenerator {
     final pdf = pw.Document();
     final logo = await rootBundle.load('assets/icons/app.png');
 
-    // Add PDF generation logic here, similar to other reports
     pdf.addPage(
       pw.MultiPage(
-        pageFormat: PdfPageFormat.a4,
+        pageFormat: format ?? PdfPageFormat.a4,
         margin: const pw.EdgeInsets.all(32),
-        header: (context) => buildPdfHeaderDoubleDate(
-          context,
-          logo,
-          state.queryData.currentPeriodStart,
-          state.queryData.currentPeriodEnd,
-        ),
-        footer: (context) {
-          return pw.Center(
-            child: pw.Text(
-              'Page ${context.pageNumber} of ${context.pagesCount}',
-              style: const pw.TextStyle(
-                fontSize: 12,
-              ),
-            ),
-          );
-        },
+        header: (context) => _buildPdfHeader(context, logo),
+        footer: (context) => _buildPdfFooter(context),
         build: (pw.Context context) {
           return [
-            pw.Header(
-              level: 1,
-              child: pw.Text(
-                'Business Snapshot Report',
-                style: pw.TextStyle(
-                  fontSize: 18,
-                  fontWeight: pw.FontWeight.bold,
-                ),
-              ),
-            ),
-            pw.Paragraph(
-              text:
-                  'Report Period: ${DateFormat('MMM d, yyyy').format(state.queryData.currentPeriodStart)} to ${DateFormat('MMM d, yyyy').format(state.queryData.currentPeriodEnd)}',
-            ),
-            pw.SizedBox(height: 16),
+            _buildPdfTitle(),
+            pw.SizedBox(height: 20),
+            _buildPdfSummary(),
+            pw.SizedBox(height: 24),
 
             // Key Metrics Section
-            pw.Header(level: 2, text: 'Key Business Metrics'),
-            pw.SizedBox(height: 8),
+            _buildPdfSectionHeader('Key Business Metrics'),
+            pw.SizedBox(height: 12),
             _buildPdfMetricsTable(state),
-            pw.SizedBox(height: 16),
+            pw.NewPage(),
 
             // Top Products Section
-            pw.Header(level: 2, text: 'Top Performing Products'),
-            pw.SizedBox(height: 8),
+            _buildPdfSectionHeader('Top Performing Products'),
+            pw.SizedBox(height: 12),
             _buildPdfTopProductsTable(state),
-            pw.SizedBox(height: 16),
+            pw.SizedBox(height: 24),
 
             // Expense Breakdown Section
-            pw.Header(level: 2, text: 'Expense Breakdown'),
-            pw.SizedBox(height: 8),
+            _buildPdfSectionHeader('Expense Breakdown'),
+            pw.SizedBox(height: 12),
             _buildPdfExpenseBreakdownTable(state),
 
             if (chartImage case final chartImage?) ...[
-              pw.SizedBox(height: 16),
-              pw.Header(level: 2, text: 'Sales History'),
-              pw.SizedBox(height: 8),
-              pw.Container(
-                height: 200,
-                decoration: pw.BoxDecoration(
-                  border: pw.Border.all(),
-                ),
-                alignment: pw.Alignment.center,
-                child: pw.Image(pw.MemoryImage(chartImage)),
-              ),
-            ]
+              pw.NewPage(),
+              _buildPdfSectionHeader('Sales History Chart'),
+              pw.SizedBox(height: 12),
+              _buildPdfChart(chartImage),
+            ],
+
+            pw.SizedBox(height: 24),
+            _buildPdfFooterNote(),
           ];
         },
       ),
@@ -1051,190 +1022,526 @@ class _PdfGenerator with PdfCommons implements PdfGenerator {
     return pdf.save();
   }
 
-  pw.Widget _buildPdfMetricsTable(BusinessSnapshotReportState state) {
-    final metrics = state.queryData.keyMetrics ?? [];
-
-    return pw.Table(
-      border: pw.TableBorder.all(),
-      columnWidths: {
-        0: const pw.FlexColumnWidth(2),
-        1: const pw.FlexColumnWidth(1),
-        2: const pw.FlexColumnWidth(1),
-        3: const pw.FlexColumnWidth(1),
-      },
-      children: [
-        pw.TableRow(
-          decoration: const pw.BoxDecoration(color: PdfColors.grey200),
-          children: [
-            pw.Padding(
-              padding: const pw.EdgeInsets.all(8.0),
-              child: pw.Text('Metric Name', style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
-            ),
-            pw.Padding(
-              padding: const pw.EdgeInsets.all(8.0),
-              child: pw.Text('Current Value', style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
-            ),
-            pw.Padding(
-              padding: const pw.EdgeInsets.all(8.0),
-              child: pw.Text('Previous Value', style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
-            ),
-            pw.Padding(
-              padding: const pw.EdgeInsets.all(8.0),
-              child: pw.Text('Change %', style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
-            ),
-          ],
-        ),
-        ...metrics.map((metric) => pw.TableRow(
+  pw.Widget _buildPdfHeader(pw.Context context, ByteData logo) {
+    return pw.Container(
+      margin: const pw.EdgeInsets.only(bottom: 20),
+      child: pw.Row(
+        crossAxisAlignment: pw.CrossAxisAlignment.start,
+        children: [
+          pw.Image(
+            pw.MemoryImage(logo.buffer.asUint8List()),
+            width: 60,
+            height: 60,
+          ),
+          pw.SizedBox(width: 20),
+          pw.Expanded(
+            child: pw.Column(
+              crossAxisAlignment: pw.CrossAxisAlignment.start,
               children: [
-                pw.Padding(
-                  padding: const pw.EdgeInsets.all(8.0),
-                  child: pw.Text(metric.name),
+                pw.Text(
+                  'East Hardware',
+                  style: pw.TextStyle(
+                    fontSize: 24,
+                    fontWeight: pw.FontWeight.bold,
+                  ),
                 ),
-                pw.Padding(
-                  padding: const pw.EdgeInsets.all(8.0),
-                  child: pw.Text(CurrencyFormatter.full(metric.currentValue, "Php ")),
-                ),
-                pw.Padding(
-                  padding: const pw.EdgeInsets.all(8.0),
-                  child: pw.Text(CurrencyFormatter.full(metric.previousValue, "Php ")),
-                ),
-                pw.Padding(
-                  padding: const pw.EdgeInsets.all(8.0),
-                  child: pw.Text(
-                    '${metric.percentageChange >= 0 ? "+" : ""}${metric.percentageChange.toStringAsFixed(1)}%',
+                pw.SizedBox(height: 4),
+                pw.Text(
+                  'Business Management System',
+                  style: const pw.TextStyle(
+                    fontSize: 12,
+                    color: PdfColors.grey600,
                   ),
                 ),
               ],
-            )),
-      ],
+            ),
+          ),
+          pw.Column(
+            crossAxisAlignment: pw.CrossAxisAlignment.end,
+            children: [
+              pw.Text(
+                'Generated: ${DateFormat('MMM d, yyyy • h:mm a').format(DateTime.now())}',
+                style: const pw.TextStyle(fontSize: 10, color: PdfColors.grey600),
+              ),
+              pw.SizedBox(height: 2),
+              pw.Text(
+                'Page ${context.pageNumber} of ${context.pagesCount}',
+                style: const pw.TextStyle(fontSize: 10, color: PdfColors.grey600),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  pw.Widget _buildPdfFooter(pw.Context context) {
+    return pw.Container(
+      margin: const pw.EdgeInsets.only(top: 20),
+      padding: const pw.EdgeInsets.symmetric(vertical: 8),
+      decoration: const pw.BoxDecoration(
+        border: pw.Border(top: pw.BorderSide(color: PdfColors.grey300)),
+      ),
+      child: pw.Row(
+        mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+        children: [
+          pw.Text(
+            'East Hardware Business Snapshot Report',
+            style: const pw.TextStyle(fontSize: 10, color: PdfColors.grey600),
+          ),
+          pw.Text(
+            'Confidential',
+            style: pw.TextStyle(
+              fontSize: 10,
+              color: PdfColors.grey600,
+              fontWeight: pw.FontWeight.bold,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  pw.Widget _buildPdfTitle() {
+    return pw.Container(
+      padding: const pw.EdgeInsets.symmetric(vertical: 16),
+      decoration: const pw.BoxDecoration(
+        border: pw.Border(bottom: pw.BorderSide(color: PdfColors.blue, width: 3)),
+      ),
+      child: pw.Column(
+        crossAxisAlignment: pw.CrossAxisAlignment.start,
+        children: [
+          pw.Text(
+            'Business Snapshot Report',
+            style: pw.TextStyle(
+              fontSize: 28,
+              fontWeight: pw.FontWeight.bold,
+              color: PdfColors.blue800,
+            ),
+          ),
+          pw.SizedBox(height: 8),
+          pw.Text(
+            'Comprehensive Business Performance Overview',
+            style: pw.TextStyle(
+              fontSize: 14,
+              color: PdfColors.grey700,
+              fontStyle: pw.FontStyle.italic,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  pw.Widget _buildPdfSummary() {
+    return pw.Container(
+      padding: const pw.EdgeInsets.all(16),
+      decoration: pw.BoxDecoration(
+        color: PdfColors.grey100,
+        borderRadius: pw.BorderRadius.circular(8),
+        border: pw.Border.all(color: PdfColors.grey300),
+      ),
+      child: pw.Column(
+        crossAxisAlignment: pw.CrossAxisAlignment.start,
+        children: [
+          pw.Text(
+            'Report Summary',
+            style: pw.TextStyle(
+              fontSize: 16,
+              fontWeight: pw.FontWeight.bold,
+              color: PdfColors.blue800,
+            ),
+          ),
+          pw.SizedBox(height: 8),
+          pw.Row(
+            children: [
+              pw.Expanded(
+                child: pw.Column(
+                  crossAxisAlignment: pw.CrossAxisAlignment.start,
+                  children: [
+                    pw.Text(
+                      'Report Period:',
+                      style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
+                    ),
+                    pw.Text(
+                      '${DateFormat('MMM d, yyyy').format(state.queryData.currentPeriodStart)} to ${DateFormat('MMM d, yyyy').format(state.queryData.currentPeriodEnd)}',
+                      style: const pw.TextStyle(fontSize: 12),
+                    ),
+                  ],
+                ),
+              ),
+              pw.Expanded(
+                child: pw.Column(
+                  crossAxisAlignment: pw.CrossAxisAlignment.start,
+                  children: [
+                    pw.Text(
+                      'Comparison Period:',
+                      style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
+                    ),
+                    pw.Text(
+                      state.queryData.comparisonPeriod.name,
+                      style: const pw.TextStyle(fontSize: 12),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          if (state.queryData.selectedProducts.isNotEmpty ||
+              state.queryData.selectedCategories.isNotEmpty) ...[
+            pw.SizedBox(height: 12),
+            pw.Text(
+              'Filters Applied:',
+              style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
+            ),
+            pw.SizedBox(height: 4),
+            if (state.queryData.selectedProducts.isNotEmpty)
+              pw.Text(
+                'Products: ${state.queryData.selectedProducts.map((p) => p.name).join(", ")}',
+                style: const pw.TextStyle(fontSize: 11),
+              ),
+            if (state.queryData.selectedCategories.isNotEmpty)
+              pw.Text(
+                'Categories: ${state.queryData.selectedCategories.map((c) => c.name).join(", ")}',
+                style: const pw.TextStyle(fontSize: 11),
+              ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  pw.Widget _buildPdfSectionHeader(String title) {
+    return pw.Container(
+      margin: const pw.EdgeInsets.only(top: 8),
+      padding: const pw.EdgeInsets.symmetric(vertical: 8),
+      decoration: const pw.BoxDecoration(
+        border: pw.Border(bottom: pw.BorderSide(color: PdfColors.blue300, width: 2)),
+      ),
+      child: pw.Text(
+        title,
+        style: pw.TextStyle(
+          fontSize: 18,
+          fontWeight: pw.FontWeight.bold,
+          color: PdfColors.blue800,
+        ),
+      ),
+    );
+  }
+
+  pw.Widget _buildPdfChart(Uint8List chartImage) {
+    return pw.Container(
+      decoration: pw.BoxDecoration(
+        border: pw.Border.all(color: PdfColors.grey300),
+        borderRadius: pw.BorderRadius.circular(8),
+      ),
+      padding: const pw.EdgeInsets.all(16),
+      child: pw.Column(
+        children: [
+          pw.Text(
+            'Sales History Trend Analysis',
+            style: pw.TextStyle(
+              fontSize: 14,
+              fontWeight: pw.FontWeight.bold,
+              color: PdfColors.grey700,
+            ),
+          ),
+          pw.SizedBox(height: 12),
+          pw.Container(
+            height: 300,
+            width: double.infinity,
+            child: pw.Image(
+              pw.MemoryImage(chartImage),
+              fit: pw.BoxFit.contain,
+            ),
+          ),
+          pw.SizedBox(height: 8),
+          pw.Text(
+            'Chart shows revenue, expenses, profit trends, and selected product/category performance over time.',
+            style: const pw.TextStyle(
+              fontSize: 10,
+              color: PdfColors.grey600,
+            ),
+            textAlign: pw.TextAlign.center,
+          ),
+        ],
+      ),
+    );
+  }
+
+  pw.Widget _buildPdfFooterNote() {
+    return pw.Container(
+      margin: const pw.EdgeInsets.only(top: 16),
+      padding: const pw.EdgeInsets.all(12),
+      decoration: pw.BoxDecoration(
+        color: PdfColors.blue50,
+        borderRadius: pw.BorderRadius.circular(6),
+        border: pw.Border.all(color: PdfColors.blue200),
+      ),
+      child: pw.Column(
+        crossAxisAlignment: pw.CrossAxisAlignment.start,
+        children: [
+          pw.Text(
+            'Important Notes:',
+            style: pw.TextStyle(
+              fontSize: 12,
+              fontWeight: pw.FontWeight.bold,
+              color: PdfColors.blue800,
+            ),
+          ),
+          pw.SizedBox(height: 4),
+          pw.Text(
+            '• This report contains confidential business information',
+            style: const pw.TextStyle(fontSize: 10, color: PdfColors.grey700),
+          ),
+          pw.Text(
+            '• Data accuracy depends on proper record-keeping and data entry',
+            style: const pw.TextStyle(fontSize: 10, color: PdfColors.grey700),
+          ),
+          pw.Text(
+            '• Trends and comparisons are based on the selected time periods',
+            style: const pw.TextStyle(fontSize: 10, color: PdfColors.grey700),
+          ),
+          pw.Text(
+            '• For questions about this report, contact the system administrator',
+            style: const pw.TextStyle(fontSize: 10, color: PdfColors.grey700),
+          ),
+        ],
+      ),
+    );
+  }
+
+  pw.Widget _buildPdfMetricsTable(BusinessSnapshotReportState state) {
+    final metrics = state.queryData.keyMetrics ?? [];
+
+    if (metrics.isEmpty) {
+      return _buildEmptyStateMessage('No key metrics data available');
+    }
+
+    return pw.Container(
+      decoration: pw.BoxDecoration(
+        border: pw.Border.all(color: PdfColors.grey300),
+        borderRadius: pw.BorderRadius.circular(8),
+      ),
+      child: pw.Table(
+        border: pw.TableBorder.all(color: PdfColors.grey300, width: 0.5),
+        columnWidths: const {
+          0: pw.FlexColumnWidth(2.5),
+          1: pw.FlexColumnWidth(1.5),
+          2: pw.FlexColumnWidth(1.5),
+          3: pw.FlexColumnWidth(1),
+        },
+        children: [
+          // Header row
+          pw.TableRow(
+            decoration: const pw.BoxDecoration(color: PdfColors.blue600),
+            children: [
+              _buildTableHeaderCell('Metric Name'),
+              _buildTableHeaderCell('Current Value'),
+              _buildTableHeaderCell('Previous Value'),
+              _buildTableHeaderCell('Change'),
+            ],
+          ),
+          // Data rows
+          ...metrics.asMap().entries.map((entry) {
+            final index = entry.key;
+            final metric = entry.value;
+            final isEven = index % 2 == 0;
+
+            return pw.TableRow(
+              decoration: pw.BoxDecoration(
+                color: isEven ? PdfColors.grey50 : PdfColors.white,
+              ),
+              children: [
+                _buildTableCell(metric.name, isLeftAligned: true),
+                _buildTableCell(CurrencyFormatter.full(metric.currentValue, "₱")),
+                _buildTableCell(CurrencyFormatter.full(metric.previousValue, "₱")),
+                _buildTableCell(
+                  '${metric.percentageChange >= 0 ? "+" : ""}${metric.percentageChange.toStringAsFixed(1)}%',
+                  color: metric.isPositiveChange ? PdfColors.green700 : PdfColors.red700,
+                  isBold: true,
+                ),
+              ],
+            );
+          }),
+        ],
+      ),
     );
   }
 
   pw.Widget _buildPdfTopProductsTable(BusinessSnapshotReportState state) {
     final products = state.queryData.topSellingProducts ?? [];
 
-    return pw.Table(
-      border: pw.TableBorder.all(),
-      columnWidths: {
-        0: const pw.FlexColumnWidth(2),
-        1: const pw.FlexColumnWidth(1),
-        2: const pw.FlexColumnWidth(1),
-        3: const pw.FlexColumnWidth(1),
-      },
-      children: [
-        pw.TableRow(
-          decoration: const pw.BoxDecoration(color: PdfColors.grey200),
-          children: [
-            pw.Padding(
-              padding: const pw.EdgeInsets.all(8.0),
-              child: pw.Text('Product Name', style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
-            ),
-            pw.Padding(
-              padding: const pw.EdgeInsets.all(8.0),
-              child: pw.Text('Quantity Sold', style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
-            ),
-            pw.Padding(
-              padding: const pw.EdgeInsets.all(8.0),
-              child: pw.Text('Revenue', style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
-            ),
-            pw.Padding(
-              padding: const pw.EdgeInsets.all(8.0),
-              child: pw.Text('Profit', style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
-            ),
-          ],
-        ),
-        ...products.map((product) => pw.TableRow(
+    if (products.isEmpty) {
+      return _buildEmptyStateMessage('No top products data available');
+    }
+
+    return pw.Container(
+      decoration: pw.BoxDecoration(
+        border: pw.Border.all(color: PdfColors.grey300),
+        borderRadius: pw.BorderRadius.circular(8),
+      ),
+      child: pw.Table(
+        border: pw.TableBorder.all(color: PdfColors.grey300, width: 0.5),
+        columnWidths: const {
+          0: pw.FlexColumnWidth(2.5),
+          1: pw.FlexColumnWidth(1),
+          2: pw.FlexColumnWidth(1.5),
+          3: pw.FlexColumnWidth(1.5),
+        },
+        children: [
+          // Header row
+          pw.TableRow(
+            decoration: const pw.BoxDecoration(color: PdfColors.green600),
+            children: [
+              _buildTableHeaderCell('Product Name'),
+              _buildTableHeaderCell('Qty Sold'),
+              _buildTableHeaderCell('Revenue'),
+              _buildTableHeaderCell('Profit'),
+            ],
+          ),
+          // Data rows
+          ...products.asMap().entries.map((entry) {
+            final index = entry.key;
+            final product = entry.value;
+            final isEven = index % 2 == 0;
+
+            return pw.TableRow(
+              decoration: pw.BoxDecoration(
+                color: isEven ? PdfColors.grey50 : PdfColors.white,
+              ),
               children: [
-                pw.Padding(
-                  padding: const pw.EdgeInsets.all(8.0),
-                  child: pw.Text(product.product.name),
-                ),
-                pw.Padding(
-                  padding: const pw.EdgeInsets.all(8.0),
-                  child: pw.Text(product.quantitySold.toStringAsFixed(2)),
-                ),
-                pw.Padding(
-                  padding: const pw.EdgeInsets.all(8.0),
-                  child: pw.Text(CurrencyFormatter.full(product.revenue, "Php ")),
-                ),
-                pw.Padding(
-                  padding: const pw.EdgeInsets.all(8.0),
-                  child: pw.Text(CurrencyFormatter.full(product.profit, "Php ")),
+                _buildTableCell(product.product.name, isLeftAligned: true),
+                _buildTableCell(product.quantitySold.toStringAsFixed(0)),
+                _buildTableCell(CurrencyFormatter.full(product.revenue, "₱")),
+                _buildTableCell(
+                  CurrencyFormatter.full(product.profit, "₱"),
+                  color: product.profit >= 0 ? PdfColors.green700 : PdfColors.red700,
                 ),
               ],
-            )),
-      ],
+            );
+          }),
+        ],
+      ),
     );
   }
 
   pw.Widget _buildPdfExpenseBreakdownTable(BusinessSnapshotReportState state) {
     final expenses = state.queryData.expenseBreakdown ?? [];
 
-    return pw.Table(
-      border: pw.TableBorder.all(),
-      columnWidths: {
-        0: const pw.FlexColumnWidth(2),
-        1: const pw.FlexColumnWidth(1),
-        2: const pw.FlexColumnWidth(1),
-      },
-      children: [
-        pw.TableRow(
-          decoration: const pw.BoxDecoration(color: PdfColors.grey200),
-          children: [
-            pw.Padding(
-              padding: const pw.EdgeInsets.all(8.0),
-              child: pw.Text('Expense Type', style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
-            ),
-            pw.Padding(
-              padding: const pw.EdgeInsets.all(8.0),
-              child: pw.Text('Amount', style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
-            ),
-            pw.Padding(
-              padding: const pw.EdgeInsets.all(8.0),
-              child: pw.Text('Percentage', style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
-            ),
-          ],
-        ),
-        ...expenses.map((expense) => pw.TableRow(
-              children: [
-                pw.Padding(
-                  padding: const pw.EdgeInsets.all(8.0),
-                  child: pw.Text(expense.expenseType.name),
-                ),
-                pw.Padding(
-                  padding: const pw.EdgeInsets.all(8.0),
-                  child: pw.Text(CurrencyFormatter.full(expense.amount, "Php ")),
-                ),
-                pw.Padding(
-                  padding: const pw.EdgeInsets.all(8.0),
-                  child: pw.Text('${expense.percentage.toStringAsFixed(1)}%'),
-                ),
-              ],
-            )),
-        pw.TableRow(
-          decoration: const pw.BoxDecoration(color: PdfColors.grey200),
-          children: [
-            pw.Padding(
-              padding: const pw.EdgeInsets.all(8.0),
-              child: pw.Text('Total', style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
-            ),
-            pw.Padding(
-              padding: const pw.EdgeInsets.all(8.0),
-              child: pw.Text(
-                CurrencyFormatter.full(
-                  expenses.fold<double>(0, (sum, expense) => sum + expense.amount),
-                  "Php ",
-                ),
-                style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
+    if (expenses.isEmpty) {
+      return _buildEmptyStateMessage('No expense breakdown data available');
+    }
+
+    final totalExpenses = expenses.fold<double>(0, (sum, expense) => sum + expense.amount);
+
+    return pw.Container(
+      decoration: pw.BoxDecoration(
+        border: pw.Border.all(color: PdfColors.grey300),
+        borderRadius: pw.BorderRadius.circular(8),
+      ),
+      child: pw.Table(
+        border: pw.TableBorder.all(color: PdfColors.grey300, width: 0.5),
+        columnWidths: const {
+          0: pw.FlexColumnWidth(2.5),
+          1: pw.FlexColumnWidth(1.5),
+          2: pw.FlexColumnWidth(1),
+        },
+        children: [
+          // Header row
+          pw.TableRow(
+            decoration: const pw.BoxDecoration(color: PdfColors.red600),
+            children: [
+              _buildTableHeaderCell('Expense Type'),
+              _buildTableHeaderCell('Amount'),
+              _buildTableHeaderCell('Percentage'),
+            ],
+          ),
+          // Data rows
+          ...expenses.asMap().entries.map((entry) {
+            final index = entry.key;
+            final expense = entry.value;
+            final isEven = index % 2 == 0;
+
+            return pw.TableRow(
+              decoration: pw.BoxDecoration(
+                color: isEven ? PdfColors.grey50 : PdfColors.white,
               ),
-            ),
-            pw.Padding(
-              padding: const pw.EdgeInsets.all(8.0),
-              child: pw.Text('100%', style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
-            ),
-          ],
+              children: [
+                _buildTableCell(expense.expenseType.name, isLeftAligned: true),
+                _buildTableCell(CurrencyFormatter.full(expense.amount, "₱")),
+                _buildTableCell('${expense.percentage.toStringAsFixed(1)}%'),
+              ],
+            );
+          }),
+          // Total row
+          pw.TableRow(
+            decoration: const pw.BoxDecoration(color: PdfColors.orange600),
+            children: [
+              _buildTableHeaderCell('Total'),
+              _buildTableHeaderCell(CurrencyFormatter.full(totalExpenses, "₱")),
+              _buildTableHeaderCell('100.0%'),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  pw.Widget _buildTableHeaderCell(String text) {
+    return pw.Padding(
+      padding: const pw.EdgeInsets.all(10),
+      child: pw.Text(
+        text,
+        style: pw.TextStyle(
+          fontWeight: pw.FontWeight.bold,
+          color: PdfColors.white,
+          fontSize: 11,
         ),
-      ],
+        textAlign: pw.TextAlign.center,
+      ),
+    );
+  }
+
+  pw.Widget _buildTableCell(
+    String text, {
+    bool isLeftAligned = false,
+    PdfColor? color,
+    bool isBold = false,
+  }) {
+    return pw.Padding(
+      padding: const pw.EdgeInsets.all(8),
+      child: pw.Text(
+        text,
+        style: pw.TextStyle(
+          fontSize: 10,
+          color: color ?? PdfColors.grey800,
+          fontWeight: isBold ? pw.FontWeight.bold : pw.FontWeight.normal,
+        ),
+        textAlign: isLeftAligned ? pw.TextAlign.left : pw.TextAlign.center,
+      ),
+    );
+  }
+
+  pw.Widget _buildEmptyStateMessage(String message) {
+    return pw.Container(
+      padding: const pw.EdgeInsets.all(32),
+      decoration: pw.BoxDecoration(
+        color: PdfColors.grey100,
+        borderRadius: pw.BorderRadius.circular(8),
+        border: pw.Border.all(color: PdfColors.grey300),
+      ),
+      child: pw.Center(
+        child: pw.Text(
+          message,
+          style: pw.TextStyle(
+            fontSize: 12,
+            color: PdfColors.grey600,
+            fontStyle: pw.FontStyle.italic,
+          ),
+          textAlign: pw.TextAlign.center,
+        ),
+      ),
     );
   }
 }

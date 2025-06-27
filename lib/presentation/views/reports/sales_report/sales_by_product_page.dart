@@ -263,6 +263,7 @@ class SalesReportOptions extends StatelessWidget {
                     _StartDateSelection(),
                     _EndDateSelection(),
                     _SortBySelection(),
+                    _TakeSelection(),
                   ].withSpacing(() => Spacing.v16),
                 ),
               ),
@@ -349,6 +350,39 @@ class _SortBySelection extends StatelessWidget {
   }
 }
 
+class _TakeSelection extends StatelessWidget {
+  const _TakeSelection();
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        const Text('Take: '),
+        Spacing.h8,
+        ConstrainedBox(
+          constraints: const BoxConstraints(
+            minWidth: 120,
+            maxWidth: 180,
+          ),
+          child: NumberBox<int>(
+            value: context.select((SalesReportBloc b) => b.state.queryData.take),
+            min: 1,
+            mode: SpinButtonPlacementMode.none,
+            clearButton: false,
+            onChanged: (value) {
+              if (value != null) {
+                context
+                    .read<SalesReportBloc>() //
+                    .add(SalesReportSetTakeEvent(value));
+              }
+            },
+          ),
+        ),
+      ],
+    );
+  }
+}
+
 class _GenerateButtons extends StatelessWidget {
   const _GenerateButtons();
 
@@ -356,7 +390,7 @@ class _GenerateButtons extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocBuilder<SalesReportBloc, SalesReportState>(
       builder: (context, reportState) {
-        final salesData = reportState.queryData.salesByProductData ?? [];
+        final salesData = reportState.queryData.salesByProductDataWithTake ?? [];
 
         return Row(
           children: [
@@ -399,7 +433,7 @@ class _SalesTablePreview extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocSelector<SalesReportBloc, SalesReportState, List<(Product, SalesExtras)>?>(
-      selector: (state) => state.queryData.salesByProductData,
+      selector: (state) => state.queryData.salesByProductDataWithTake,
       builder: (context, salesData) {
         final data = salesData ?? [];
 

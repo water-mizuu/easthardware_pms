@@ -386,7 +386,7 @@ class _BackupRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final (dateCreated, fileName) = _readFileName(backup);
+    final (isEncrypted, dateCreated, fileName) = _readFileName(backup);
 
     return Container(
       padding: AppPadding.cardPadding,
@@ -397,13 +397,17 @@ class _BackupRow extends StatelessWidget {
           TimerWidget(builder: (context, now) {
             final formattedDate = _formatDate(dateCreated, now);
 
-            return Text('Backup created on $formattedDate');
+            if (isEncrypted) {
+              return Text('Encrypted backup created on $formattedDate');
+            } else {
+              return Text('Unencrypted backup created on $formattedDate');
+            }
           }),
           Row(
             children: [
               TextButton(
                 'Restore',
-                onPressed: _onRestorePressed,
+                onPressed: () => unawaited(_onRestorePressed(context)),
               ),
               Spacing.h8,
               TextButton(
@@ -418,7 +422,34 @@ class _BackupRow extends StatelessWidget {
     );
   }
 
-  Future<void> _onRestorePressed() async {
+  Future<void> _onRestorePressed(BuildContext context) async {
+    final (isEncrypted, dateCreated, _) = _readFileName(backup);
+
+    if (!isEncrypted) {
+      final didSucceed = await context //
+          .read<DatabaseInformationCubit>()
+          .restoreBackup(path: backup, key: '');
+
+      if (!context.mounted) return;
+      if (didSucceed) {
+        showNotification.success(
+          title: 'Backup restored',
+          message: 'Backup restored successfully to $dateCreated',
+        );
+
+        final user = context.read<AuthenticationBloc>().state.user!;
+
+        context.read<UserLogListBloc>().add(RestoreBackupEvent(user));
+        context.pop();
+      } else {
+        showNotification.error(
+          title: 'Error',
+          message: 'Failed to restore backup. Please check the key and try again.',
+        );
+      }
+      return;
+    }
+
     final errorNotifier = ValueNotifier<String?>(null);
     final textController = TextEditingController();
     try {
@@ -465,15 +496,14 @@ class _BackupRow extends StatelessWidget {
 
                 if (!context.mounted) return;
                 if (didSucceed) {
-                  final (dateCreated, _) = _readFileName(backup);
                   showNotification.success(
                     title: 'Backup restored',
                     message: 'Backup restored successfully to $dateCreated',
                   );
 
                   final user = context.read<AuthenticationBloc>().state.user!;
-                  context.read<UserLogListBloc>().add(RestoreBackupEvent(user));
 
+                  context.read<UserLogListBloc>().add(RestoreBackupEvent(user));
                   context.pop();
                 } else {
                   errorNotifier.value =
@@ -504,13 +534,13 @@ class _BackupRow extends StatelessWidget {
     );
   }
 
-  static (DateTime, String) _readFileName(String backup) {
+  static (bool, DateTime, String) _readFileName(String backup) {
     final fileName = path.basenameWithoutExtension(backup);
-    final intPart = fileName.split('_').last;
+    final [..., isEncrypted, intPart] = fileName.split('_');
     final datePart = int.parse(intPart);
     final date = DateTime.fromMillisecondsSinceEpoch(datePart);
 
-    return (date, fileName);
+    return (isEncrypted == 'E', date, fileName);
   }
 
   static String _formatDate(DateTime date, DateTime now) {

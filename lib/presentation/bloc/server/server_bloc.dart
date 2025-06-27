@@ -16,6 +16,7 @@ import 'package:easthardware_pms/presentation/bloc/server/services/server_prefer
     as server_preferences;
 import 'package:easthardware_pms/presentation/router/app_router.dart';
 import 'package:easthardware_pms/presentation/widgets/dialog/client_connection_dialog.dart';
+import 'package:easthardware_pms/presentation/widgets/dialog/connection_lost_dialog.dart';
 import 'package:easthardware_pms/presentation/widgets/dialog/server_configuration_dialog.dart';
 import 'package:easthardware_pms/presentation/widgets/dialog/server_mode_selection_dialog.dart';
 import 'package:easthardware_pms/presentation/widgets/dialog/server_success_dialogs.dart';
@@ -64,6 +65,13 @@ class ServerBloc extends Bloc<ServerEvent, ServerState> {
     on<ServerDatabaseUpdated>(_onDatabaseUpdated);
     on<_ServerResetBottomText>(_onResetBottomText);
 
+    // Reconnection event handlers
+    on<_ServerConnectionLost>(_onConnectionLost);
+    on<_ServerAttemptReconnection>(_onAttemptReconnection);
+    on<ServerCancelReconnection>(_onCancelReconnection);
+    on<_ServerReconnectionSucceeded>(_onReconnectionSucceeded);
+    on<_ServerReconnectionFailed>(_onReconnectionFailed);
+
     if (kDebugMode) {
       on<ServerDatabaseCleared>(_onServerDatabaseCleared);
       on<ServerMockDataAdded>(_onServerMockDataAdded);
@@ -80,7 +88,7 @@ class ServerBloc extends Bloc<ServerEvent, ServerState> {
   }
 
   /// A helper method that connects to the server. It indicates that whenever the connection
-  ///   is disposed, the server is reset.
+  ///   is disposed, the server attempts reconnection.
   Future<(WebSocketChannel, MessageChannel, Stream<ServerEvent>)> _connectToServer(
     String serverIp,
     int port,
@@ -98,15 +106,15 @@ class ServerBloc extends Bloc<ServerEvent, ServerState> {
           );
         }
 
-        /// If the connection is closed, we reset the server state.
-        ///   We also reset the authentication bloc.
-
+        /// If the connection is closed unexpectedly, trigger reconnection logic
+        /// We also reset the authentication bloc but don't fully reset the server state
         final authenticationBloc = innerContext.read<AuthenticationBloc>();
         if (authenticationBloc.state.user != null) {
           authenticationBloc.add(const AuthenticationLogoutEvent());
         }
 
-        add(const ServerReset());
+        // Trigger connection lost event instead of full reset
+        add(const _ServerConnectionLost());
       },
     );
   }
@@ -499,16 +507,19 @@ class ServerBloc extends Bloc<ServerEvent, ServerState> {
       final databaseHelper = state.databaseHelper;
       if (databaseHelper == null) {
         print("Database helper is null, cannot clear database");
-        showNotification(
+        showNotification.error(
           title: "Error",
           message: "Database helper is null",
-          severity: InfoBarSeverity.error,
         );
         return;
       }
 
       if (databaseHelper.database case final ResettableDatabase database) {
         await database.reset();
+        showNotification.success(
+          title: "Success",
+          message: "Database has been reset successfully.",
+        );
         if (isClosed) return;
 
         add(ServerDatabaseUpdated(lastUpdated: DateTime.now()));
@@ -527,6 +538,241 @@ class ServerBloc extends Bloc<ServerEvent, ServerState> {
       if (isClosed) return;
       add(ServerDatabaseUpdated(lastUpdated: DateTime.now()));
     }
+  }
+
+  Future<void> _onConnectionLost(
+    _ServerConnectionLost event,
+    Emitter<ServerState> emit,
+  ) async {
+    emit(state.copyWith(
+      status: ServerStatus.disconnected,
+      bottomText: "Connection lost. Preparing to reconnect...",
+      lastDisconnectionTime: DateTime.now(),
+      reconnectAttempts: 0,
+    ));
+
+    // Show the connection lost dialog and start the reconnection timer
+    _showConnectionLostDialog();
+
+    // Schedule the first reconnection attempt
+    // ignore: discarded_futures
+    Timer(const Duration(seconds: 5), () {
+      if (!isClosed && state.status == ServerStatus.disconnected) {
+        add(const _ServerAttemptReconnection());
+      }
+    });
+  }
+
+  void _showConnectionLostDialog() {
+    const maxAttempts = 5;
+    final nextRetryTime = DateTime.now().add(const Duration(seconds: 60));
+
+    // Show the dialog without awaiting to avoid blocking the bloc
+    // ignore: discarded_futures
+    ConnectionLostDialog.show(
+      onRetryNow: () {
+        add(const _ServerAttemptReconnection());
+      },
+      onCancel: () {
+        add(const ServerCancelReconnection());
+      },
+      reconnectAttempts: state.reconnectAttempts,
+      maxReconnectAttempts: maxAttempts,
+      nextReconnectTime: nextRetryTime,
+    );
+  }
+
+  Timer? _reconnectTimer;
+
+  Future<void> _onAttemptReconnection(
+    _ServerAttemptReconnection event,
+    Emitter<ServerState> emit,
+  ) async {
+    final currentAttempts = state.reconnectAttempts + 1;
+    const maxAttempts = 5;
+
+    if (currentAttempts > maxAttempts) {
+      emit(state.copyWith(
+        bottomText: "Max reconnection attempts reached. Returning to setup.",
+      ));
+      add(const _ServerPromptingUserFromNull());
+      return;
+    }
+
+    emit(state.copyWith(
+      status: ServerStatus.reconnecting,
+      bottomText: "Attempting to reconnect... (Attempt $currentAttempts of $maxAttempts)",
+      reconnectAttempts: currentAttempts,
+    ));
+
+    // Extract the last known good configuration
+    final lastKnownArgs = state.databaseArgs;
+
+    if (lastKnownArgs is ClientDatabaseArgs) {
+      await _attemptClientReconnection(lastKnownArgs, emit, currentAttempts, maxAttempts);
+    } else if (lastKnownArgs is ServerDatabaseArgs) {
+      await _attemptServerReconnection(lastKnownArgs, emit, currentAttempts, maxAttempts);
+    }
+  }
+
+  Future<void> _attemptClientReconnection(
+    ClientDatabaseArgs lastKnownArgs,
+    Emitter<ServerState> emit,
+    int currentAttempts,
+    int maxAttempts,
+  ) async {
+    try {
+      // Close any existing connections first
+      await lastKnownArgs.close?.call();
+
+      final (webSocket, message, stream) = await _connectToServer(
+        lastKnownArgs.parentIp,
+        lastKnownArgs.port,
+      );
+
+      // Successfully reconnected
+      emit(state.copyWith(
+        status: ServerStatus.running,
+        databaseArgs: ClientDatabaseArgs(
+          parentIp: lastKnownArgs.parentIp,
+          port: lastKnownArgs.port,
+          webSocketChannel: webSocket,
+          messageChannel: message,
+          close: () async {
+            await webSocket.sink.close();
+          },
+          stream: stream,
+        ),
+        databaseHelper: ServerDatabaseHelper(Server(message)),
+        customChannel: WebSocketCustomChannel(message),
+        bottomText: "Reconnected successfully to ${lastKnownArgs.parentIp}:${lastKnownArgs.port}",
+        reconnectAttempts: 0,
+      ));
+
+      // Restart listening to the stream
+      stream.listen(add);
+
+      add(const _ServerReconnectionSucceeded());
+    } catch (e) {
+      if (kDebugMode) {
+        print("Client reconnection attempt $currentAttempts failed: $e");
+      }
+      add(const _ServerReconnectionFailed());
+    }
+  }
+
+  Future<void> _attemptServerReconnection(
+    ServerDatabaseArgs lastKnownArgs,
+    Emitter<ServerState> emit,
+    int currentAttempts,
+    int maxAttempts,
+  ) async {
+    try {
+      // Close any existing servers first
+      await lastKnownArgs.landingServer.close();
+      await lastKnownArgs.webSocketServer.close();
+
+      final port = lastKnownArgs.port;
+      final localIp = await connection_service.getLocalIpAddress();
+
+      // Restart the servers
+      final (landing, webSocket, stream) = await connection_service.startServers(port);
+
+      // Successfully reconnected
+      emit(state.copyWith(
+        status: ServerStatus.running,
+        databaseArgs: ServerDatabaseArgs(
+          ip: localIp,
+          port: port,
+          landingServer: landing,
+          webSocketServer: webSocket,
+          stream: stream,
+        ),
+        databaseHelper: ServerDatabaseHelper(Server(webSocket.channel)),
+        customChannel: WebSocketCustomChannel(webSocket.channel),
+        bottomText: "Server restarted successfully at $localIp:$port",
+        reconnectAttempts: 0,
+      ));
+
+      // Restart listening to the stream
+      stream.listen(add);
+
+      add(const _ServerReconnectionSucceeded());
+    } catch (e) {
+      if (kDebugMode) {
+        print("Server reconnection attempt $currentAttempts failed: $e");
+      }
+      add(const _ServerReconnectionFailed());
+    }
+  }
+
+  Future<void> _onCancelReconnection(
+    ServerCancelReconnection event,
+    Emitter<ServerState> emit,
+  ) async {
+    _reconnectTimer?.cancel();
+
+    emit(state.copyWith(
+      bottomText: "Reconnection cancelled. Returning to setup.",
+    ));
+
+    // Return to the setup screen
+    add(const _ServerPromptingUserFromNull());
+  }
+
+  Future<void> _onReconnectionSucceeded(
+    _ServerReconnectionSucceeded event,
+    Emitter<ServerState> emit,
+  ) async {
+    _reconnectTimer?.cancel();
+
+    // The state is already updated in the attempt methods
+    // Reset the bottom text after a short delay
+    // ignore: discarded_futures
+    Timer(const Duration(seconds: 3), () {
+      if (!isClosed && state.status == ServerStatus.running) {
+        add(const _ServerResetBottomText());
+      }
+    });
+  }
+
+  Future<void> _onReconnectionFailed(
+    _ServerReconnectionFailed event,
+    Emitter<ServerState> emit,
+  ) async {
+    const maxAttempts = 5;
+    final currentAttempts = state.reconnectAttempts;
+
+    if (currentAttempts >= maxAttempts) {
+      emit(state.copyWith(
+        status: ServerStatus.disconnected,
+        bottomText: "Maximum reconnection attempts reached. Please check your connection.",
+      ));
+      return;
+    }
+
+    emit(state.copyWith(
+      status: ServerStatus.disconnected,
+      bottomText: "Reconnection failed. Will retry in 60 seconds...",
+    ));
+
+    // Schedule the next reconnection attempt
+    _reconnectTimer = Timer(const Duration(seconds: 60), () {
+      if (!isClosed && state.status == ServerStatus.disconnected) {
+        add(const _ServerAttemptReconnection());
+      }
+    });
+  }
+
+  @override
+  Future<void> close() {
+    _reconnectTimer?.cancel();
+    return super.close();
+  }
+
+  @override
+  String toString() {
+    return 'ServerBloc{status: ${state.status}, databaseArgs: ${state.databaseArgs}}';
   }
 }
 

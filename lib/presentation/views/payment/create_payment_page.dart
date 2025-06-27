@@ -1,4 +1,5 @@
 import 'dart:async';
+
 import 'package:easthardware_pms/domain/enums/enums.dart'
     show AccessLevel, DataStatus, DiscountType, FormStatus;
 import 'package:easthardware_pms/domain/models/invoice.dart';
@@ -8,9 +9,11 @@ import 'package:easthardware_pms/presentation/bloc/authentication/'
 import 'package:easthardware_pms/presentation/bloc/billing/invoicelist/invoice_list_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/payment/payment_form/payment_form_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/payment/payment_list/payment_list_bloc.dart';
+import 'package:easthardware_pms/presentation/bloc/payment/payment_method_list/payment_method_list_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/security/user_log_list/user_log_list_bloc.dart';
 import 'package:easthardware_pms/presentation/cubit/payment/payment_method_form/payment_method_form_cubit.dart';
 import 'package:easthardware_pms/presentation/router/app_routes.dart';
+import 'package:easthardware_pms/presentation/views/payment/print_receipt.dart';
 import 'package:easthardware_pms/presentation/widgets/layout/spacing.dart';
 import 'package:easthardware_pms/presentation/widgets/payment_method_combo_box.dart';
 import 'package:easthardware_pms/presentation/widgets/ui/loading_page.dart';
@@ -176,7 +179,51 @@ class PageHeader extends StatelessWidget {
         TextButton(
           'Print Receipt',
           onPressed: () {
-            context.read<PaymentFormBloc>().add(const SavePaymentRequestEvent());
+            final paymentFormState = context.read<PaymentFormBloc>().state;
+            final paymentMethods = context.read<PaymentMethodListBloc>().state.paymentMethods;
+
+            // Validate form data before printing
+            if (paymentFormState.invoice == null) {
+              // Show error - no invoice selected
+              return;
+            }
+
+            if (paymentFormState.paymentMethod == null) {
+              // Show error - no payment method selected
+              return;
+            }
+
+            if (paymentFormState.paymentReference.isEmpty) {
+              // Show error - no reference number
+              return;
+            }
+
+            if (paymentFormState.amount <= 0) {
+              // Show error - invalid amount
+              return;
+            }
+
+            // Find the selected payment method details
+            final selectedPaymentMethod = paymentMethods.firstWhere(
+              (method) => method.id == paymentFormState.paymentMethod!.id,
+              orElse: () => paymentFormState.paymentMethod!,
+            );
+
+            // Create a temporary payment object for the receipt
+            final tempPayment = paymentFormState
+                .copyWith(
+                  id: 999999, // Temporary ID for preview
+                  creatorId: context.read<AuthenticationBloc>().state.user!.id,
+                  creationDate: DateTime.now(),
+                )
+                .toPayment();
+
+            // Generate the receipt PDF
+            generateReceiptPdf(
+              tempPayment,
+              paymentFormState.invoice!,
+              selectedPaymentMethod,
+            );
           },
         ),
         Spacing.h12,

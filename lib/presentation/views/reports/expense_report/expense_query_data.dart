@@ -59,17 +59,12 @@ enum ExpenseReportSortBy {
   remainingDescending("Remaining (High to Low)"),
   dateAscending("Date (Oldest First)"),
   dateDescending("Date (Newest First)"),
-  statusPaid("Status (Paid First)"),
-  statusUnpaid("Status (Unpaid First)"),
   ;
 
   const ExpenseReportSortBy(this.name);
   final String name;
 
-  int compare(
-    (Order, ExpenseType) a,
-    (Order, ExpenseType) b,
-  ) {
+  int compare((Order, ExpenseType) a, (Order, ExpenseType) b) {
     switch (this) {
       case ExpenseReportSortBy.expenseTypeAscending:
         return a.expenseType.name.compareTo(b.expenseType.name);
@@ -97,16 +92,6 @@ enum ExpenseReportSortBy {
         return a.order.orderDate.compareTo(b.order.orderDate);
       case ExpenseReportSortBy.dateDescending:
         return b.order.orderDate.compareTo(a.order.orderDate);
-      case ExpenseReportSortBy.statusPaid:
-        // Paid first (true before false)
-        final aPaid = (a.order.amountPaid ?? 0) >= a.order.amountDue;
-        final bPaid = (b.order.amountPaid ?? 0) >= b.order.amountDue;
-        return bPaid == aPaid ? 0 : (aPaid ? -1 : 1);
-      case ExpenseReportSortBy.statusUnpaid:
-        // Unpaid first (false before true)
-        final aPaid = (a.order.amountPaid ?? 0) >= a.order.amountDue;
-        final bPaid = (b.order.amountPaid ?? 0) >= b.order.amountDue;
-        return bPaid == aPaid ? 0 : (aPaid ? 1 : -1);
     }
   }
 }
@@ -115,6 +100,7 @@ enum ExpenseReportSortBy {
 class ExpenseQueryData extends Equatable {
   factory ExpenseQueryData.empty() {
     final now = DateTime.now();
+
     return ExpenseQueryData(
       startDate: DateTime(now.year, now.month, 1),
       endDate: now,
@@ -126,6 +112,7 @@ class ExpenseQueryData extends Equatable {
     this.expenseData,
     this.expenseSummary,
     this.sortBy = ExpenseReportSortBy.dateDescending,
+    this.take,
   });
 
   final DateTime startDate;
@@ -133,13 +120,15 @@ class ExpenseQueryData extends Equatable {
   final List<(Order, ExpenseType)>? expenseData;
   final List<ExpenseExtras>? expenseSummary;
   final ExpenseReportSortBy sortBy;
+  final int? take;
 
   ExpenseQueryData Function({
-    DateTime? startDate,
-    DateTime? endDate,
+    DateTime startDate,
+    DateTime endDate,
     List<(Order, ExpenseType)>? expenseData,
     List<ExpenseExtras>? expenseSummary,
-    ExpenseReportSortBy? sortBy,
+    ExpenseReportSortBy sortBy,
+    int? take,
   }) get copyWith {
     return ({
       Object? startDate = undefined,
@@ -147,6 +136,7 @@ class ExpenseQueryData extends Equatable {
       Object? expenseData = undefined,
       Object? expenseSummary = undefined,
       Object? sortBy = undefined,
+      Object? take = undefined,
     }) {
       return ExpenseQueryData(
         startDate: startDate.or(this.startDate),
@@ -154,10 +144,18 @@ class ExpenseQueryData extends Equatable {
         expenseData: expenseData.or(this.expenseData),
         expenseSummary: expenseSummary.or(this.expenseSummary),
         sortBy: sortBy.or(this.sortBy),
+        take: take.or(this.take),
       );
     };
   }
 
   @override
-  List<Object?> get props => [startDate, endDate, expenseData, expenseSummary, sortBy];
+  List<Object?> get props => [startDate, endDate, expenseData, expenseSummary, sortBy, take];
+
+  List<(Order, ExpenseType)>? get expenseDataWithTake {
+    if (take != null && expenseData != null) {
+      return expenseData?.take(take!).toList();
+    }
+    return expenseData;
+  }
 }

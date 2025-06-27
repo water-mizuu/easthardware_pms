@@ -46,6 +46,7 @@ class SalesReportBloc extends Bloc<SalesReportEvent, SalesReportState> {
     on<SalesReportUpdateInvoiceProductsEvent>(_onUpdateInvoiceProducts);
     on<SalesReportUpdateOrdersEvent>(_onUpdateOrders);
     on<SalesReportUpdateOrderProductsEvent>(_onUpdateOrderProducts);
+    on<SalesReportSetTakeEvent>(_onSetTake);
 
     // Initialize the query data
     add(const SalesReportInitializeEvent());
@@ -136,6 +137,11 @@ class SalesReportBloc extends Bloc<SalesReportEvent, SalesReportState> {
     Emitter<SalesReportState> emit,
   ) async {
     emit(state.copyWith(queryData: state.queryData.copyWith(categorySortBy: event.sortBy)));
+    _recalculateSalesData(emit);
+  }
+
+  void _onSetTake(SalesReportSetTakeEvent event, Emitter<SalesReportState> emit) {
+    emit(state.copyWith(queryData: state.queryData.copyWith(take: event.take)));
     _recalculateSalesData(emit);
   }
 

@@ -26,6 +26,7 @@ class ExpenseReportBloc extends Bloc<ExpenseReportEvent, ExpenseReportState> {
     on<ExpenseReportSetStartDateEvent>(_onSetStartDate);
     on<ExpenseReportSetEndDateEvent>(_onSetEndDate);
     on<ExpenseReportSetSortByEvent>(_onSetSortBy);
+    on<ExpenseReportSetTakeEvent>(_onSetTake);
     on<ExpenseReportSetOverlayEvent>(_onSetOverlay);
     on<ExpenseReportRemoveOverlayEvent>(_onRemoveOverlay);
     on<ExpenseReportUpdateOrdersEvent>(_onUpdateOrders);
@@ -64,6 +65,11 @@ class ExpenseReportBloc extends Bloc<ExpenseReportEvent, ExpenseReportState> {
     emit(state.copyWith(
       queryData: state.queryData.copyWith(sortBy: event.sortBy),
     ));
+    _recalculateExpenseData(emit);
+  }
+
+  FutureOr<void> _onSetTake(ExpenseReportSetTakeEvent event, Emitter<ExpenseReportState> emit) {
+    emit(state.copyWith(queryData: state.queryData.copyWith(take: event.take)));
     _recalculateExpenseData(emit);
   }
 
@@ -116,7 +122,8 @@ class ExpenseReportBloc extends Bloc<ExpenseReportEvent, ExpenseReportState> {
 
     // Calculate expense summary by type
     final expenseSummaryMap = <int, ExpenseExtras>{};
-    for (final (order, expenseType) in expenseData) {
+    for (final (order, expenseType)
+        in expenseData.take(state.queryData.take ?? expenseData.length)) {
       final id = expenseType.id ?? -1;
       final current = expenseSummaryMap[id];
       if (current == null) {

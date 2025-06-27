@@ -217,6 +217,8 @@ class InventoryReportOptions extends StatelessWidget {
                     _DateSelection(),
                     Spacing.v8,
                     _SortBy(),
+                    Spacing.v8,
+                    _TakeSelection(),
                   ],
                 ),
               ),
@@ -260,6 +262,39 @@ class _SortBy extends StatelessWidget {
   }
 }
 
+class _TakeSelection extends StatelessWidget {
+  const _TakeSelection();
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        const Text('Take: '),
+        Spacing.h8,
+        ConstrainedBox(
+          constraints: const BoxConstraints(
+            minWidth: 120,
+            maxWidth: 180,
+          ),
+          child: NumberBox<int>(
+            value: context.select((InventoryReportBloc b) => b.state.queryData.take),
+            min: 1,
+            mode: SpinButtonPlacementMode.none,
+            clearButton: false,
+            onChanged: (value) {
+              if (value != null) {
+                context
+                    .read<InventoryReportBloc>() //
+                    .add(InventoryReportSetTakeEvent(value));
+              }
+            },
+          ),
+        ),
+      ],
+    );
+  }
+}
+
 class _DateSelection extends StatelessWidget {
   const _DateSelection();
 
@@ -287,7 +322,7 @@ class _GenerateButtons extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocBuilder<InventoryReportBloc, InventoryReportState>(
       builder: (context, reportState) {
-        final filteredProducts = reportState.queryData.filteredProducts ??
+        final filteredProducts = reportState.queryData.filteredProductsWithTake ??
             context.read<ProductListBloc>().state.allProducts;
 
         return Row(
@@ -402,7 +437,7 @@ class _ProductTablePreview extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocSelector<InventoryReportBloc, InventoryReportState, List<Product>?>(
-      selector: (state) => state.queryData.filteredProducts,
+      selector: (state) => state.queryData.filteredProductsWithTake,
       builder: (context, filteredProducts) {
         final products = filteredProducts ?? context.read<ProductListBloc>().state.allProducts;
 

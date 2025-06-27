@@ -69,6 +69,7 @@ class SalesQueryData with EquatableMixin {
     this.salesByCategoryData,
     this.productSortBy = SalesByProductReportSortBy.skuAscending,
     this.categorySortBy = SalesByCategoryReportSortBy.categoryNameAscending,
+    this.take,
   });
 
   final DateTime startDate;
@@ -77,6 +78,7 @@ class SalesQueryData with EquatableMixin {
   final List<SalesByCategoryDatum>? salesByCategoryData;
   final SalesByProductReportSortBy productSortBy;
   final SalesByCategoryReportSortBy categorySortBy;
+  final int? take;
 
   SalesQueryData Function({
     DateTime startDate,
@@ -85,6 +87,7 @@ class SalesQueryData with EquatableMixin {
     List<SalesByCategoryDatum>? salesByCategoryData,
     SalesByProductReportSortBy productSortBy,
     SalesByCategoryReportSortBy categorySortBy,
+    int? take,
   }) get copyWith {
     return ({
       Object? startDate = undefined,
@@ -93,6 +96,7 @@ class SalesQueryData with EquatableMixin {
       Object? salesByCategoryData = undefined,
       Object? productSortBy = undefined,
       Object? categorySortBy = undefined,
+      Object? take = undefined,
     }) {
       return SalesQueryData(
         startDate: startDate.or(this.startDate),
@@ -101,6 +105,7 @@ class SalesQueryData with EquatableMixin {
         salesByCategoryData: salesByCategoryData.or(this.salesByCategoryData),
         productSortBy: productSortBy.or(this.productSortBy),
         categorySortBy: categorySortBy.or(this.categorySortBy),
+        take: take.or(this.take),
       );
     };
   }
@@ -113,7 +118,22 @@ class SalesQueryData with EquatableMixin {
         salesByCategoryData,
         productSortBy,
         categorySortBy,
+        take,
       ];
+
+  List<(Product, SalesExtras)>? get salesByProductDataWithTake {
+    if (take != null && salesByProductData != null) {
+      return salesByProductData?.take(take!).toList();
+    }
+    return salesByProductData;
+  }
+
+  List<SalesByCategoryDatum>? get salesByCategoryDataWithTake {
+    if (take != null && salesByCategoryData != null) {
+      return salesByCategoryData?.take(take!).toList();
+    }
+    return salesByCategoryData;
+  }
 }
 
 enum SalesByProductReportSortBy {

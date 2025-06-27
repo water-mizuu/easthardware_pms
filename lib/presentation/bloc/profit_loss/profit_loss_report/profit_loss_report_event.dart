@@ -102,3 +102,11 @@ class ProfitLossReportUpdateOrderProductsEvent extends ProfitLossReportEvent {
   @override
   List<Object?> get props => [orderProducts];
 }
+
+class ProfitLossReportSetTakeEvent extends ProfitLossReportEvent {
+  const ProfitLossReportSetTakeEvent(this.take);
+  final int take;
+
+  @override
+  List<Object?> get props => [take];
+}

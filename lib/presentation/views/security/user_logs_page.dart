@@ -16,6 +16,7 @@ import 'package:easthardware_pms/utils/typed_routes.dart';
 import 'package:fluent_ui/fluent_ui.dart';
 import 'package:flutter/material.dart' show DataColumn, DataTable;
 import 'package:flutter/services.dart';
+import 'package:intl/intl.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:provider/provider.dart';
@@ -31,8 +32,17 @@ class UserLogsPage extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           const PageHeader(),
-          const PageActions(),
-          const UserLogDataTable(),
+          Expanded(
+            child: AnimatedSingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: const [
+                  PageActions(),
+                  UserLogDataTable(),
+                ].withSpacing(() => Spacing.v16),
+              ),
+            ),
+          ),
         ].withSpacing(() => Spacing.v16),
       ),
     );
@@ -52,7 +62,7 @@ class PageHeader extends StatelessWidget {
             context.navigate(AppRoutes.admin.users);
           },
         ),
-        const HeadingText('User Logs'),
+        const DisplayText('User Logs'),
       ].withSpacing(() => Spacing.h16),
     );
   }
@@ -65,20 +75,39 @@ class PageActions extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       mainAxisSize: MainAxisSize.max,
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Expanded(
           child: Column(
             mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(
                 children: [
-                  /// Wrap the thing in a builder to avoid rerendering the entire widget
-                  ///   and localize the changes to just the ComboBox.
+                  const SizedBox(width: 80, child: Text('Search: ')),
+                  Spacing.h8,
+                  SizedBox(
+                    width: 480,
+                    child: TextBox(
+                      placeholder: 'Search',
+                      onChanged: (value) {
+                        context.read<UserLogListBloc>().add(SearchQueryUpdatedEvent(value));
+                      },
+                    ),
+                  ),
+                ],
+              ),
+              Row(
+                children: [
+                  const SizedBox(width: 80, child: Text('Filter: ')),
+                  Spacing.h8,
                   Selector(
                     selector: (_, UserLogListBloc bloc) => bloc.state.queryData.accessLevel,
                     builder: (context, accessLevel, _) {
                       return ComboBox<AccessLevel?>(
-                        value: context.select((UserLogListBloc b) => b.state.queryData.accessLevel),
+                        value: context.select((UserLogListBloc b) {
+                          return b.state.queryData.accessLevel;
+                        }),
                         onChanged: (value) {
                           context.read<UserLogListBloc>().add(AccessLevelQueryUpdatedEvent(value));
                         },
@@ -91,52 +120,43 @@ class PageActions extends StatelessWidget {
                       );
                     },
                   ),
-                  Expanded(
-                    child: TextBox(
-                      placeholder: 'Search',
-                      onChanged: (value) {
-                        context.read<UserLogListBloc>().add(SearchQueryUpdatedEvent(value));
-                      },
-                    ),
-                  ),
-                  Column(
-                    children: [
-                      const CaptionText('From Date'),
-                      Selector(
-                        selector: (_, UserLogListBloc b) => b.state.queryData.startDate,
-                        builder: (context, startDate, _) {
-                          return BorderedDatePicker(
-                            selected: startDate,
-                            onChanged: (value) {
-                              context
-                                  .read<UserLogListBloc>()
-                                  .add(StartDateQueryUpdatedEvent(value));
-                            },
-                          );
-                        },
-                      ),
-                    ],
-                  ),
-                  Column(
-                    children: [
-                      const CaptionText('To Date'),
-                      Selector(
-                        selector: (_, UserLogListBloc bloc) => bloc.state.queryData.endDate,
-                        builder: (context, endDate, _) {
-                          return BorderedDatePicker(
-                            selected: endDate,
-                            onChanged: (value) {
-                              context.read<UserLogListBloc>().add(EndDateQueryUpdatedEvent(value));
-                            },
-                          );
-                        },
-                      ),
-                    ],
-                  ),
-                  const Spacer(flex: 2),
-                ].withSpacing(() => Spacing.h16),
+                ],
               ),
-            ],
+              Row(
+                children: [
+                  const SizedBox(width: 80, child: Text('From Date: ')),
+                  Spacing.h8,
+                  Selector(
+                    selector: (_, UserLogListBloc b) => b.state.queryData.startDate,
+                    builder: (context, startDate, _) {
+                      return BorderedDatePicker(
+                        selected: startDate,
+                        onChanged: (value) {
+                          context.read<UserLogListBloc>().add(StartDateQueryUpdatedEvent(value));
+                        },
+                      );
+                    },
+                  ),
+                ],
+              ),
+              Row(
+                children: [
+                  const SizedBox(width: 80, child: Text('To Date: ')),
+                  Spacing.h8,
+                  Selector(
+                    selector: (_, UserLogListBloc bloc) => bloc.state.queryData.endDate,
+                    builder: (context, endDate, _) {
+                      return BorderedDatePicker(
+                        selected: endDate,
+                        onChanged: (value) {
+                          context.read<UserLogListBloc>().add(EndDateQueryUpdatedEvent(value));
+                        },
+                      );
+                    },
+                  ),
+                ],
+              ),
+            ].withSpacing(() => Spacing.v4),
           ),
         ),
         TextButtonFilled(
@@ -180,35 +200,33 @@ class UserLogDataTable extends StatelessWidget {
     final state = context.watch<UserLogListBloc>().state;
     switch (state.status) {
       case DataStatus.loading:
-        return const Expanded(
+        return const SizedBox(
+          height: 400,
           child: Center(
             child: ProgressRing(),
           ),
         );
       default:
         final filteredLogs = state.filteredLogs;
+
         if (filteredLogs.isEmpty) {
           return const DataTablePlaceHolder(FluentIcons.activity_feed, 'Logs');
         }
-        return Expanded(
-          child: DecoratedBox(
-            decoration: const BoxDecoration(color: Colors.white),
-            child: AnimatedSingleChildScrollView(
-              child: DataTable(
-                columns: const [
-                  DataColumn(label: Text('ID')),
-                  DataColumn(label: Text('User')),
-                  DataColumn(label: Text('Date')),
-                  DataColumn(label: Text('Time')),
-                  DataColumn(label: Text('Action')),
-                ],
-                rows: [
-                  for (final log in filteredLogs.reversed)
-                    if (findUserById(log.userId) case final user?)
-                      DataRowMapper.mapUserLogToRow(log, user),
-                ],
-              ),
-            ),
+        return DecoratedBox(
+          decoration: const BoxDecoration(color: Colors.white),
+          child: DataTable(
+            columns: const [
+              DataColumn(label: Text('ID')),
+              DataColumn(label: Text('User')),
+              DataColumn(label: Text('Date')),
+              DataColumn(label: Text('Time')),
+              DataColumn(label: Text('Action')),
+            ],
+            rows: [
+              for (final log in filteredLogs)
+                if (findUserById(log.userId) case final user?)
+                  DataRowMapper.mapUserLogToRow(log, user),
+            ],
           ),
         );
     }
@@ -343,9 +361,11 @@ final class _UserLogsReportPdfGenerator implements PdfGenerator {
     );
   }
 
+  static const pw.EdgeInsetsGeometry _cellPadding = pw.EdgeInsets.all(2.0);
+
   pw.Widget _headerCell(String text) {
     return pw.Padding(
-      padding: const pw.EdgeInsets.all(8.0),
+      padding: _cellPadding,
       child: pw.Text(
         text,
         style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 9),
@@ -355,7 +375,7 @@ final class _UserLogsReportPdfGenerator implements PdfGenerator {
 
   pw.Widget _dataCell(String text) {
     return pw.Padding(
-      padding: const pw.EdgeInsets.all(8.0),
+      padding: _cellPadding,
       child: pw.Text(
         text,
         style: const pw.TextStyle(fontSize: 8),
@@ -364,26 +384,29 @@ final class _UserLogsReportPdfGenerator implements PdfGenerator {
   }
 
   String _getUserName(int userId) {
-    final user = users.firstWhere((u) => u.id == userId,
-        orElse: () => User(
-              uid: '',
-              firstName: 'Unknown',
-              lastName: 'User',
-              username: 'unknown',
-              accessLevel: AccessLevel.staff,
-              passwordHash: Uint8List(0),
-              salt: Uint8List(0),
-              loginStatus: 0,
-              creationDate: '',
-            ));
+    final user = users.firstWhere(
+      (u) => u.id == userId,
+      orElse: () => User(
+        uid: '',
+        firstName: 'Unknown',
+        lastName: 'User',
+        username: 'unknown',
+        accessLevel: AccessLevel.staff,
+        passwordHash: Uint8List(0),
+        salt: Uint8List(0),
+        loginStatus: 0,
+        creationDate: '',
+      ),
+    );
+
     return '${user.firstName} ${user.lastName}';
   }
 
   String _formatDate(DateTime date) {
-    return '${date.day}/${date.month}/${date.year}';
+    return DateFormat.yMMMMd().format(date);
   }
 
   String _formatTime(DateTime date) {
-    return '${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}';
+    return DateFormat('hh:mm a').format(date);
   }
 }

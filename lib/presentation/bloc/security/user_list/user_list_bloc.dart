@@ -44,7 +44,6 @@ class UserListBloc extends Bloc<UserListEvent, UserListState> {
     emit(state.copyWith(status: DataStatus.loading));
     try {
       final users = await _repository.getAllUsers();
-      print(users);
 
       emit(state.copyWith(
         status: DataStatus.success,

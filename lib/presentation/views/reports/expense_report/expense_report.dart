@@ -11,6 +11,7 @@ import 'package:easthardware_pms/presentation/views/reports/'
     'expense_report/expense_query_data.dart';
 import 'package:easthardware_pms/presentation/views/reports/pdf_helpers/pdf_generation.dart';
 import 'package:easthardware_pms/presentation/widgets/animated_single_child_scroll_view.dart';
+import 'package:easthardware_pms/presentation/widgets/bordered_date_picker.dart';
 import 'package:easthardware_pms/presentation/widgets/helper/currency_formatter.dart';
 import 'package:easthardware_pms/presentation/widgets/layout/spacing.dart';
 import 'package:easthardware_pms/presentation/widgets/text.dart';
@@ -183,6 +184,7 @@ class ExpenseReportOptions extends StatelessWidget {
                     _StartDateSelection(),
                     _EndDateSelection(),
                     _SortBySelection(),
+                    _TakeSelection(),
                   ].withSpacing(() => Spacing.v16),
                 ),
               ),
@@ -202,12 +204,13 @@ class _StartDateSelection extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        const Text('Start Date: '),
+        const SizedBox(width: 80, child: Text('Start Date: ')),
         Spacing.h8,
-        DatePicker(
+        BorderedDatePicker(
           selected: context.select((ExpenseReportBloc b) => b.state.queryData.startDate),
-          onChanged: (value) =>
-              context.read<ExpenseReportBloc>().add(ExpenseReportSetStartDateEvent(value)),
+          onChanged: (value) => context //
+              .read<ExpenseReportBloc>()
+              .add(ExpenseReportSetStartDateEvent(value)),
         ),
       ],
     );
@@ -221,12 +224,13 @@ class _EndDateSelection extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        const Text('End Date: '),
+        const SizedBox(width: 80, child: Text('End Date: ')),
         Spacing.h8,
-        DatePicker(
+        BorderedDatePicker(
           selected: context.select((ExpenseReportBloc b) => b.state.queryData.endDate),
-          onChanged: (value) =>
-              context.read<ExpenseReportBloc>().add(ExpenseReportSetEndDateEvent(value)),
+          onChanged: (value) => context //
+              .read<ExpenseReportBloc>()
+              .add(ExpenseReportSetEndDateEvent(value)),
         ),
       ],
     );
@@ -240,7 +244,7 @@ class _SortBySelection extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        const Text('Sort By: '),
+        const SizedBox(width: 80, child: Text('Sort By: ')),
         Spacing.h8,
         ComboBox(
           value: context.select((ExpenseReportBloc b) => b.state.queryData.sortBy),
@@ -264,6 +268,39 @@ class _SortBySelection extends StatelessWidget {
   }
 }
 
+class _TakeSelection extends StatelessWidget {
+  const _TakeSelection();
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        const SizedBox(width: 80, child: Text('Take: ')),
+        Spacing.h8,
+        ConstrainedBox(
+          constraints: const BoxConstraints(
+            minWidth: 120,
+            maxWidth: 180,
+          ),
+          child: NumberBox<int>(
+            value: context.select((ExpenseReportBloc b) => b.state.queryData.take),
+            min: 1,
+            mode: SpinButtonPlacementMode.none,
+            clearButton: false,
+            onChanged: (value) {
+              if (value != null) {
+                context
+                    .read<ExpenseReportBloc>() //
+                    .add(ExpenseReportSetTakeEvent(value));
+              }
+            },
+          ),
+        ),
+      ],
+    );
+  }
+}
+
 class _GenerateButtons extends StatelessWidget {
   const _GenerateButtons();
 
@@ -271,7 +308,7 @@ class _GenerateButtons extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocBuilder<ExpenseReportBloc, ExpenseReportState>(
       builder: (context, reportState) {
-        final expenseData = reportState.queryData.expenseData ?? [];
+        final expenseData = reportState.queryData.expenseDataWithTake ?? [];
 
         return Row(
           children: [
@@ -311,7 +348,7 @@ class _ExpenseTablePreview extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocSelector<ExpenseReportBloc, ExpenseReportState, List<(Order, ExpenseType)>?>(
-      selector: (state) => state.queryData.expenseData,
+      selector: (state) => state.queryData.expenseDataWithTake,
       builder: (context, expenseData) {
         final data = expenseData ?? [];
 

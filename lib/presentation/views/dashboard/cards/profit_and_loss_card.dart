@@ -1,8 +1,10 @@
 import 'package:easthardware_pms/presentation/bloc/billing/invoicelist/invoice_list_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/order/orderlist/order_list_bloc.dart';
+import 'package:easthardware_pms/presentation/views/dashboard/cards/sales_overview.dart';
 import 'package:easthardware_pms/presentation/widgets/helper/currency_formatter.dart';
 import 'package:easthardware_pms/presentation/widgets/layout/spacing.dart';
 import 'package:easthardware_pms/presentation/widgets/text.dart';
+import 'package:easthardware_pms/utils/duration.dart';
 import 'package:fluent_ui/fluent_ui.dart';
 import 'package:provider/provider.dart';
 
@@ -117,26 +119,19 @@ class _ProfitAndLossContent extends StatelessWidget {
 
     // Calculate income from invoices for the selected period
     final incomeInvoices = invoiceState.invoices.where((invoice) {
-      return invoice.invoiceDate.isAfter(startDate) &&
+      return invoice.invoiceDate.isAfter(startDate.subtract(1.days).zeroedTime()) &&
           invoice.invoiceDate.isBefore(endDate.add(const Duration(days: 1)));
     }).toList();
 
-    final totalIncome = incomeInvoices.fold<double>(
-      0.0,
-      (sum, invoice) => sum + (invoice.amountPaid ?? invoice.amountDue),
-    );
+    final totalIncome = incomeInvoices.fold(0.0, (s, i) => s + (i.amountPaid ?? 0.0));
 
     // Calculate expenses from orders for the selected period
     final expenseOrders = orderState.allOrders.where((order) {
-      return order.orderDate.isAfter(startDate) &&
+      return order.orderDate.isAfter(startDate.subtract(1.days).zeroedTime()) &&
           order.orderDate.isBefore(endDate.add(const Duration(days: 1)));
     }).toList();
 
-    final totalExpenses = expenseOrders.fold<double>(
-      0.0,
-      (sum, order) => sum + order.amountDue,
-    );
-
+    final totalExpenses = expenseOrders.fold(0.0, (s, o) => s + o.amountDue);
     final netProfit = totalIncome - totalExpenses;
     final profitPercentage = totalIncome > 0 ? ((netProfit / totalIncome) * 100).round() : 0;
 

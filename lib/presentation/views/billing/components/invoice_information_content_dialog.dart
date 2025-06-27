@@ -7,6 +7,7 @@ import 'package:easthardware_pms/presentation/bloc/inventory/product_list/produc
 import 'package:easthardware_pms/presentation/bloc/payment/payment_list/payment_list_bloc.dart';
 import 'package:easthardware_pms/presentation/router/app_routes.dart';
 import 'package:easthardware_pms/presentation/views/billing/components/print_invoice.dart';
+import 'package:easthardware_pms/presentation/widgets/helper/currency_formatter.dart';
 import 'package:easthardware_pms/presentation/widgets/layout/spacing.dart';
 import 'package:easthardware_pms/presentation/widgets/ui/styles.dart';
 import 'package:easthardware_pms/utils/typed_routes.dart';
@@ -467,6 +468,7 @@ class InvoicePaymentsTable extends StatelessWidget {
           ),
         ),
         for (var i = 0; i < payments.length; i++) ...[
+          if (i > 0) Spacing.v8,
           Container(
             decoration: BoxDecoration(
               color: i % 2 == 0 ? const Color(0xFFFAFAFA) : null,
@@ -502,7 +504,6 @@ class InvoicePaymentsTable extends StatelessWidget {
               ],
             ),
           ),
-          if (i < payments.length - 1) Spacing.v8,
         ],
       ],
     );
@@ -525,6 +526,7 @@ class InvoiceSummary extends StatelessWidget {
         final discount = invoice.discountType == DiscountType.percentage
             ? (total * (invoice.discount ?? 0) / 100)
             : invoice.discount;
+
         final subtotal = total - (discount ?? 0);
 
         return Row(
@@ -544,7 +546,7 @@ class InvoiceSummary extends StatelessWidget {
                         textAlign: TextAlign.end,
                       ),
                       Text(
-                        subtotal.toStringAsFixed(2),
+                        CurrencyFormatter.full(subtotal),
                         style: TextStyles.body,
                       ),
                     ],
@@ -559,7 +561,7 @@ class InvoiceSummary extends StatelessWidget {
                         textAlign: TextAlign.end,
                       ),
                       Text(
-                        discount != null ? discount.toStringAsFixed(2) : '0.00',
+                        CurrencyFormatter.full(discount ?? 0.0),
                         style: TextStyles.body,
                       ),
                     ],
@@ -574,7 +576,7 @@ class InvoiceSummary extends StatelessWidget {
                         textAlign: TextAlign.end,
                       ),
                       Text(
-                        (invoice.amountPaid ?? 0).toStringAsFixed(2),
+                        CurrencyFormatter.full(invoice.amountPaid ?? 0),
                         style: TextStyles.body,
                       ),
                     ],
@@ -589,7 +591,7 @@ class InvoiceSummary extends StatelessWidget {
                         textAlign: TextAlign.end,
                       ),
                       Text(
-                        (total - (invoice.amountPaid ?? 0)).toStringAsFixed(2),
+                        CurrencyFormatter.full(total - (invoice.amountPaid ?? 0)),
                         style: TextStyles.title,
                       ),
                     ],
