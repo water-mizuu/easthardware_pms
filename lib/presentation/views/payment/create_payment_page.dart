@@ -181,6 +181,7 @@ class PageHeader extends StatelessWidget {
           onPressed: () {
             final paymentFormState = context.read<PaymentFormBloc>().state;
             final paymentMethods = context.read<PaymentMethodListBloc>().state.paymentMethods;
+            final invoiceListState = context.read<InvoiceListBloc>().state;
 
             // Validate form data before printing
             if (paymentFormState.invoice == null) {
@@ -223,6 +224,7 @@ class PageHeader extends StatelessWidget {
               tempPayment,
               paymentFormState.invoice!,
               selectedPaymentMethod,
+              invoiceListState.invoiceProducts,
             );
           },
         ),

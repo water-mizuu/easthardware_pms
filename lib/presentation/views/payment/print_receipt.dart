@@ -1,8 +1,10 @@
 import 'dart:async';
 
 import 'package:easthardware_pms/domain/models/invoice.dart';
+import 'package:easthardware_pms/domain/models/invoice_product.dart';
 import 'package:easthardware_pms/domain/models/payment.dart';
 import 'package:easthardware_pms/domain/models/payment_method.dart';
+import 'package:easthardware_pms/presentation/views/reports/pdf_helpers/pdf_commons.dart';
 import 'package:easthardware_pms/presentation/views/reports/pdf_helpers/pdf_generation.dart';
 import 'package:easthardware_pms/presentation/widgets/helper/currency_formatter.dart';
 import 'package:flutter/services.dart';
@@ -13,6 +15,7 @@ void generateReceiptPdf(
   Payment payment,
   Invoice invoice,
   PaymentMethod paymentMethod,
+  List<InvoiceProduct> invoiceProducts,
 ) {
   showPdfOverlay(builder: (_, overlayEntry) {
     return PdfOverlay(
@@ -21,6 +24,7 @@ void generateReceiptPdf(
         payment: payment,
         invoice: invoice,
         paymentMethod: paymentMethod,
+        invoiceProducts: invoiceProducts,
       ),
     );
   });
@@ -30,24 +34,25 @@ void generateReceiptPdf(
 ///
 /// Generates a professional receipt PDF document containing:
 /// - Company header with logo and receipt number
-/// - Customer information
-/// - Payment details including amount received
-/// - Payment method and reference number
-/// - Invoice information that was paid
-/// - Receipt date and transaction details
+/// - Customer information (bill to)
+/// - Payment method information
+/// - Products/services table
+/// - Payment summary with subtotal, discount, and total
 ///
-/// The layout follows standard receipt formatting with clear sections
+/// The layout follows standard receipt formatting similar to invoice
 /// and professional typography appropriate for business use.
-final class _ReceiptPdfGenerator implements PdfGenerator {
+final class _ReceiptPdfGenerator with PdfCommons implements PdfGenerator {
   const _ReceiptPdfGenerator({
     required this.payment,
     required this.invoice,
     required this.paymentMethod,
+    required this.invoiceProducts,
   });
 
   final Payment payment;
   final Invoice invoice;
   final PaymentMethod paymentMethod;
+  final List<InvoiceProduct> invoiceProducts;
 
   @override
   String get fileName => 'Receipt_${payment.id}_${invoice.customerName.replaceAll(' ', '_')}.pdf';
@@ -61,18 +66,16 @@ final class _ReceiptPdfGenerator implements PdfGenerator {
       pw.MultiPage(
         pageFormat: format,
         margin: const pw.EdgeInsets.all(20),
-        header: (context) => _buildPdfHeader(context, logo),
+        header: (context) => _buildReceiptHeader(context, logo),
         build: (context) {
           return [
             _buildReceiptDetails(),
             pw.SizedBox(height: 20),
-            _buildPaymentInformation(),
+            _buildPaymentMethod(),
             pw.SizedBox(height: 20),
-            _buildInvoiceInformation(),
-            pw.SizedBox(height: 30),
+            _buildProductsTable(),
+            pw.SizedBox(height: 20),
             _buildReceiptSummary(),
-            pw.SizedBox(height: 20),
-            _buildFooter(),
           ];
         },
       ),
@@ -81,7 +84,7 @@ final class _ReceiptPdfGenerator implements PdfGenerator {
     return pdf.save();
   }
 
-  pw.Widget _buildPdfHeader(pw.Context context, ByteData logo) {
+  pw.Widget _buildReceiptHeader(pw.Context context, ByteData logo) {
     return pw.Column(
       mainAxisSize: pw.MainAxisSize.min,
       children: [
@@ -107,7 +110,7 @@ final class _ReceiptPdfGenerator implements PdfGenerator {
                 ),
                 pw.SizedBox(height: 16),
                 pw.Text(
-                  'PAYMENT RECEIPT',
+                  'SALES RECEIPT',
                   style: pw.TextStyle(fontSize: 24, fontWeight: pw.FontWeight.bold),
                 ),
               ],
@@ -116,7 +119,12 @@ final class _ReceiptPdfGenerator implements PdfGenerator {
               crossAxisAlignment: pw.CrossAxisAlignment.end,
               children: [
                 pw.Text(
-                  'Receipt #${payment.id}',
+                  'SALES # ${payment.id}',
+                  style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold),
+                ),
+                pw.SizedBox(height: 4),
+                pw.Text(
+                  'DATE ${_formatDate(payment.paymentDate)}',
                   style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold),
                 ),
                 pw.SizedBox(height: 16),
@@ -146,7 +154,7 @@ final class _ReceiptPdfGenerator implements PdfGenerator {
             crossAxisAlignment: pw.CrossAxisAlignment.start,
             children: [
               pw.Text(
-                'Received From:',
+                'BILL TO',
                 style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 12),
               ),
               pw.SizedBox(height: 5),
@@ -157,269 +165,174 @@ final class _ReceiptPdfGenerator implements PdfGenerator {
             ],
           ),
         ),
-        pw.Expanded(
-          child: pw.Column(
-            crossAxisAlignment: pw.CrossAxisAlignment.end,
-            children: [
-              _buildDetailRow('Payment Date:', _formatDate(payment.paymentDate)),
-              _buildDetailRow('Receipt Date:', _formatDate(DateTime.now())),
-              _buildDetailRow('Reference:', payment.referenceNumber),
-            ],
-          ),
+        pw.Spacer(),
+      ],
+    );
+  }
+
+  pw.Widget _buildPaymentMethod() {
+    return pw.Row(
+      children: [
+        pw.Text(
+          'PMT METHOD',
+          style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 12),
+        ),
+        pw.SizedBox(width: 20),
+        pw.Text(
+          paymentMethod.name,
+          style: const pw.TextStyle(fontSize: 12),
         ),
       ],
     );
   }
 
-  pw.Widget _buildDetailRow(String label, String value) {
+  pw.Widget _buildProductsTable() {
+    return pw.Table(
+      columnWidths: const {
+        0: pw.FlexColumnWidth(2), // Service
+        1: pw.FlexColumnWidth(2), // Activity
+        2: pw.FixedColumnWidth(60), // Qty
+        3: pw.FixedColumnWidth(80), // Rate
+        4: pw.FixedColumnWidth(80), // Amount
+      },
+      children: [
+        // Header row with blue background
+        pw.TableRow(
+          decoration: const pw.BoxDecoration(color: PdfColors.blue100),
+          children: [
+            _buildTableHeader('SERVICE', pw.TextAlign.left),
+            _buildTableHeader('ACTIVITY', pw.TextAlign.left),
+            _buildTableHeader('QTY', pw.TextAlign.right),
+            _buildTableHeader('RATE', pw.TextAlign.right),
+            _buildTableHeader('AMOUNT', pw.TextAlign.right),
+          ],
+        ),
+        // Product rows
+        for (int i = 0; i < invoiceProducts.length; i++) _buildProductRow(invoiceProducts[i]),
+      ],
+    );
+  }
+
+  static const pw.EdgeInsets _tablePadding = pw.EdgeInsets.symmetric(
+    vertical: 2.0,
+    horizontal: 4.0,
+  );
+
+  pw.Widget _buildTableHeader(String text, pw.TextAlign align) {
     return pw.Padding(
-      padding: const pw.EdgeInsets.only(bottom: 3),
-      child: pw.Row(
-        mainAxisAlignment: pw.MainAxisAlignment.end,
-        children: [
-          pw.Text(
-            label,
-            style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10),
-          ),
-          pw.SizedBox(width: 10),
-          pw.Text(
-            value,
+      padding: _tablePadding,
+      child: pw.Text(
+        text,
+        style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10),
+        textAlign: align,
+      ),
+    );
+  }
+
+  pw.TableRow _buildProductRow(InvoiceProduct invoiceProduct) {
+    return pw.TableRow(
+      children: [
+        pw.Padding(
+          padding: _tablePadding,
+          child: pw.Text(
+            invoiceProduct.productName,
             style: const pw.TextStyle(fontSize: 10),
           ),
-        ],
-      ),
-    );
-  }
-
-  pw.Widget _buildPaymentInformation() {
-    return pw.Container(
-      width: double.infinity,
-      padding: const pw.EdgeInsets.all(15),
-      decoration: pw.BoxDecoration(
-        border: pw.Border.all(color: PdfColors.grey400, width: 1),
-        color: PdfColors.grey50,
-      ),
-      child: pw.Column(
-        crossAxisAlignment: pw.CrossAxisAlignment.start,
-        children: [
-          pw.Text(
-            'Payment Information',
-            style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 14),
+        ),
+        pw.Padding(
+          padding: _tablePadding,
+          child: pw.Text(
+            invoiceProduct.description ?? invoiceProduct.productName,
+            style: const pw.TextStyle(fontSize: 10),
           ),
-          pw.SizedBox(height: 10),
-          pw.Row(
-            mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
-            children: [
-              pw.Text(
-                'Amount Received:',
-                style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 12),
-              ),
-              pw.Text(
-                CurrencyFormatter.full(payment.amount, 'Php '),
-                style: pw.TextStyle(fontSize: 12, fontWeight: pw.FontWeight.bold),
-              ),
-            ],
+        ),
+        pw.Padding(
+          padding: _tablePadding,
+          child: pw.Text(
+            _formatQuantity(invoiceProduct.quantity),
+            style: const pw.TextStyle(fontSize: 10),
+            textAlign: pw.TextAlign.right,
           ),
-          pw.SizedBox(height: 5),
-          pw.Row(
-            mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
-            children: [
-              pw.Text(
-                'Payment Method:',
-                style: const pw.TextStyle(fontSize: 11),
-              ),
-              pw.Text(
-                paymentMethod.name,
-                style: const pw.TextStyle(fontSize: 11),
-              ),
-            ],
+        ),
+        pw.Padding(
+          padding: _tablePadding,
+          child: pw.Text(
+            _formatCurrency(invoiceProduct.rate),
+            style: const pw.TextStyle(fontSize: 10),
+            textAlign: pw.TextAlign.right,
           ),
-          pw.SizedBox(height: 5),
-          pw.Row(
-            mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
-            children: [
-              pw.Text(
-                'Reference Number:',
-                style: const pw.TextStyle(fontSize: 11),
-              ),
-              pw.Text(
-                payment.referenceNumber,
-                style: const pw.TextStyle(fontSize: 11),
-              ),
-            ],
+        ),
+        pw.Padding(
+          padding: _tablePadding,
+          child: pw.Text(
+            _formatCurrency(invoiceProduct.amount),
+            style: const pw.TextStyle(fontSize: 10),
+            textAlign: pw.TextAlign.right,
           ),
-        ],
-      ),
-    );
-  }
-
-  pw.Widget _buildInvoiceInformation() {
-    return pw.Container(
-      width: double.infinity,
-      padding: const pw.EdgeInsets.all(15),
-      decoration: pw.BoxDecoration(
-        border: pw.Border.all(color: PdfColors.grey400, width: 1),
-      ),
-      child: pw.Column(
-        crossAxisAlignment: pw.CrossAxisAlignment.start,
-        children: [
-          pw.Text(
-            'Invoice Information',
-            style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 14),
-          ),
-          pw.SizedBox(height: 10),
-          pw.Row(
-            mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
-            children: [
-              pw.Text(
-                'Invoice Number:',
-                style: const pw.TextStyle(fontSize: 11),
-              ),
-              pw.Text(
-                '#${invoice.id}',
-                style: const pw.TextStyle(fontSize: 11),
-              ),
-            ],
-          ),
-          pw.SizedBox(height: 5),
-          pw.Row(
-            mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
-            children: [
-              pw.Text(
-                'Invoice Date:',
-                style: const pw.TextStyle(fontSize: 11),
-              ),
-              pw.Text(
-                _formatDate(invoice.invoiceDate),
-                style: const pw.TextStyle(fontSize: 11),
-              ),
-            ],
-          ),
-          pw.SizedBox(height: 5),
-          pw.Row(
-            mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
-            children: [
-              pw.Text(
-                'Due Date:',
-                style: const pw.TextStyle(fontSize: 11),
-              ),
-              pw.Text(
-                _formatDate(invoice.dueDate),
-                style: const pw.TextStyle(fontSize: 11),
-              ),
-            ],
-          ),
-          pw.SizedBox(height: 5),
-          pw.Row(
-            mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
-            children: [
-              pw.Text(
-                'Invoice Total:',
-                style: const pw.TextStyle(fontSize: 11),
-              ),
-              pw.Text(
-                CurrencyFormatter.full(invoice.amountDue, 'Php '),
-                style: const pw.TextStyle(fontSize: 11),
-              ),
-            ],
-          ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
   pw.Widget _buildReceiptSummary() {
-    final totalPaid = invoice.amountPaid ?? 0.0;
-    final balance = invoice.amountDue - totalPaid;
+    final subtotal = invoiceProducts.fold<double>(0, (sum, product) => sum + product.amount);
+    final discount = invoice.discount ?? 0.0;
+    final discountAmount = invoice.discountType?.index == 0 // percentage
+        ? subtotal * (discount / 100)
+        : discount;
+    final total = subtotal - discountAmount;
 
-    return pw.Row(
-      children: [
-        pw.Expanded(flex: 2, child: pw.Container()),
-        pw.Expanded(
-          child: pw.Container(
-            child: pw.Column(
-              children: [
-                _buildSummaryRow(
-                  'Total Invoice Amount:',
-                  CurrencyFormatter.full(invoice.amountDue, 'Php '),
-                ),
-                _buildSummaryRow(
-                  'Previous Payments:',
-                  CurrencyFormatter.full(totalPaid - payment.amount, 'Php '),
-                ),
-                _buildSummaryRow(
-                  'This Payment:',
-                  CurrencyFormatter.full(payment.amount, 'Php '),
-                  isTotal: true,
-                ),
-                _buildSummaryRow(
-                  'Total Paid:',
-                  CurrencyFormatter.full(totalPaid, 'Php '),
-                ),
-                _buildSummaryRow(
-                  'Balance Due:',
-                  CurrencyFormatter.full(balance, 'Php '),
-                  isTotal: balance > 0,
-                ),
-              ],
-            ),
+    return pw.Container(
+      padding: const pw.EdgeInsets.symmetric(vertical: 10),
+      child: pw.Column(
+        children: [
+          pw.Row(
+            children: [
+              pw.Text(
+                'Thank you for your business and have a great day!',
+                style: const pw.TextStyle(fontSize: 11),
+              ),
+              pw.Spacer(),
+              pw.Column(
+                crossAxisAlignment: pw.CrossAxisAlignment.end,
+                children: [
+                  _buildSummaryRow('SUBTOTAL', _formatCurrency(subtotal)),
+                  if (discountAmount > 0)
+                    _buildSummaryRow(
+                      'DISCOUNT ${invoice.discountType?.index == 0 ? '${discount.toStringAsFixed(0)}%' : ''}',
+                      _formatCurrency(discountAmount),
+                    ),
+                  _buildSummaryRow('TOTAL', _formatCurrency(total)),
+                  _buildSummaryRow('BALANCE DUE', _formatCurrency(0.00), isBalance: true),
+                ],
+              ),
+            ],
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
-  pw.Widget _buildSummaryRow(String label, String value, {bool isTotal = false}) {
-    return pw.Container(
-      padding: const pw.EdgeInsets.symmetric(horizontal: 4, vertical: 4),
-      decoration: isTotal
-          ? const pw.BoxDecoration(
-              border: pw.Border(top: pw.BorderSide(color: PdfColors.grey400, width: 1)),
-              color: PdfColors.grey100,
-            )
-          : null,
+  pw.Widget _buildSummaryRow(String label, String value, {bool isBalance = false}) {
+    return pw.Padding(
+      padding: const pw.EdgeInsets.symmetric(vertical: 2),
       child: pw.Row(
         mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
         children: [
           pw.Text(
             label,
             style: pw.TextStyle(
-              fontSize: isTotal ? 11 : 10,
-              fontWeight: isTotal ? pw.FontWeight.bold : pw.FontWeight.normal,
+              fontSize: isBalance ? 14 : 11,
+              fontWeight: isBalance ? pw.FontWeight.bold : pw.FontWeight.normal,
             ),
           ),
+          pw.SizedBox(width: 40),
           pw.Text(
             value,
             style: pw.TextStyle(
-              fontSize: isTotal ? 11 : 10,
-              fontWeight: isTotal ? pw.FontWeight.bold : pw.FontWeight.normal,
+              fontSize: isBalance ? 14 : 11,
+              fontWeight: isBalance ? pw.FontWeight.bold : pw.FontWeight.normal,
             ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  pw.Widget _buildFooter() {
-    return pw.Container(
-      width: double.infinity,
-      padding: const pw.EdgeInsets.all(10),
-      decoration: pw.BoxDecoration(
-        border: pw.Border.all(color: PdfColors.grey400, width: 0.5),
-        color: PdfColors.grey50,
-      ),
-      child: pw.Column(
-        children: [
-          pw.Text(
-            'Thank you for your payment!',
-            style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 12),
-            textAlign: pw.TextAlign.center,
-          ),
-          pw.SizedBox(height: 5),
-          pw.Text(
-            'This receipt serves as proof of payment for the above referenced invoice.',
-            style: const pw.TextStyle(fontSize: 10),
-            textAlign: pw.TextAlign.center,
           ),
         ],
       ),
@@ -427,6 +340,14 @@ final class _ReceiptPdfGenerator implements PdfGenerator {
   }
 
   String _formatDate(DateTime date) {
-    return '${date.day}/${date.month}/${date.year}';
+    return '${date.month.toString().padLeft(2, '0')}/${date.day.toString().padLeft(2, '0')}/${date.year}';
+  }
+
+  String _formatQuantity(double quantity) {
+    return quantity % 1 == 0 ? quantity.toInt().toString() : quantity.toStringAsFixed(2);
+  }
+
+  String _formatCurrency(double amount) {
+    return CurrencyFormatter.full(amount, 'Php ');
   }
 }

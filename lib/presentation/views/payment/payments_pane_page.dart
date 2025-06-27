@@ -241,20 +241,20 @@ class PaymentsDataTable extends StatelessWidget {
                                     );
                               },
                             ),
-                            DataColumn(
+                            const DataColumn(
                               label: Expanded(
                                 child: Row(
                                   children: [
-                                    const Text('Payment Method', style: TextStyles.tableHeader),
+                                    Text('Payment Method', style: TextStyles.tableHeader),
                                   ],
                                 ),
                               ),
                             ),
-                            DataColumn(
+                            const DataColumn(
                               label: Expanded(
                                 child: Row(
                                   children: [
-                                    const Text('Actions', style: TextStyles.tableHeader),
+                                    Text('Actions', style: TextStyles.tableHeader),
                                   ],
                                 ),
                               ),
