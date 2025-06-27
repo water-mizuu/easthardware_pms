@@ -32,6 +32,11 @@ class PasswordFieldChangedEvent extends UserFormEvent {
   final String password;
 }
 
+class OldPasswordFieldChangedEvent extends UserFormEvent {
+  const OldPasswordFieldChangedEvent(this.oldPassword);
+  final String oldPassword;
+}
+
 class ConfirmPasswordFieldChangedEvent extends UserFormEvent {
   const ConfirmPasswordFieldChangedEvent(this.confirmPassword);
   final String confirmPassword;
@@ -54,6 +59,30 @@ class AnswerFieldChangedEvent extends UserFormEvent {
   final String answer;
 }
 
+class UIDChangedEvent extends UserFormEvent {
+  const UIDChangedEvent(this.uid);
+  final String uid;
+}
+
 class FormButtonPressedEvent extends UserFormEvent {}
 
 class FormResetEvent extends UserFormEvent {}
+
+class UpdateUserRequestEvent extends UserFormEvent {}
+
+class LoadSaltAndHashEvent extends UserFormEvent {
+  const LoadSaltAndHashEvent({required this.salt, required this.passwordHash});
+  final Uint8List salt;
+  final Uint8List passwordHash;
+
+  @override
+  List<Object> get props => [salt, passwordHash];
+}
+
+class SecurityQuestionsUpdatedEvent extends UserFormEvent {
+  const SecurityQuestionsUpdatedEvent(this.questions);
+  final List<FormQuestion> questions;
+
+  @override
+  List<Object> get props => [questions];
+}

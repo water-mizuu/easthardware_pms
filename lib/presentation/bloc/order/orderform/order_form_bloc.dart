@@ -127,7 +127,7 @@ class OrderFormBloc extends Bloc<OrderFormEvent, OrderFormState> {
         expenseType: event.expenseType,
         expenseTypeErrorMessage: event.expenseType == null ? 'Expense type is required.' : null,
       ));
-    } catch (e, stackTrace) {
+    } catch (e) {
       // printBoxed('Error changing expense type: $e \n $stackTrace', 'OrderFormBloc');
       emit(state.copyWith(
         status: FormStatus.error,
@@ -715,7 +715,7 @@ class OrderFormBloc extends Bloc<OrderFormEvent, OrderFormState> {
           .toList();
 
       return existingRefNumbers;
-    } catch (e, stackTrace) {
+    } catch (e) {
       // printBoxed('Error fetching reference numbers: $e \n $stackTrace', 'OrderFormBloc');
       return [];
     }

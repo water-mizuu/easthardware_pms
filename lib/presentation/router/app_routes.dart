@@ -1,6 +1,7 @@
 import 'package:easthardware_pms/domain/models/invoice.dart';
 import 'package:easthardware_pms/domain/models/order.dart';
 import 'package:easthardware_pms/domain/models/product.dart';
+import 'package:easthardware_pms/domain/models/user.dart';
 import 'package:easthardware_pms/utils/typed_routes.dart';
 
 class AppRoutes {
@@ -75,6 +76,7 @@ class AppRoutes {
     // Security Sub Pages
     users: AppRoute<Null>('/admin/users'),
     createUser: AppRoute<Null>('/admin/create/user'),
+    editUser: AppRoute<User>('/admin/edit/user'),
     userLogs: AppRoute<Null>('/admin/logs'),
     backup: AppRoute<Null>('/admin/backup'),
 

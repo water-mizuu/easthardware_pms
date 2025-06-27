@@ -258,31 +258,34 @@ class DataRowMapper {
 
   static DataRow mapUserToRow(
     User user,
-    bool isLoggedIn,
-  ) {
+    bool isLoggedIn, {
+    required void Function()? editAction,
+    required void Function()? archiveFunction,
+  }) {
+    final actionsCell = editAction == null
+        ? null
+        : DataCell(
+            DropDownButton(
+              title: const Text('Actions', style: TextStyles.body),
+              items: [
+                MenuFlyoutItem(
+                  text: const Text('Make Inactive', style: TextStyles.body),
+                  onPressed: archiveFunction,
+                ),
+              ],
+            ),
+          );
+
     return DataRow(
       cells: [
-        DataCell(Text('${user.firstName} ${user.lastName}')),
-        DataCell(Text(user.accessLevel.name.toTitleCase())),
-        DataCell(Text(DateFormat.yMMMMd().format(DateTime.parse(user.creationDate)))),
-        if (isLoggedIn)
-          DataCell(
-            Container(
-              padding: const EdgeInsets.all(8.0),
-              decoration: BoxDecoration(
-                border: Border.all(color: Colors.green.lightest),
-                borderRadius: BorderRadius.circular(4.0),
-              ),
-              child: Text(
-                'Logged In',
-                style: TextStyle(
-                  color: Colors.green.lightest,
-                ),
-              ),
-            ),
-          )
-        else
-          const DataCell(SizedBox.shrink())
+        DataCell(Text('${user.firstName} ${user.lastName}', style: TextStyles.body)),
+        DataCell(Text(user.accessLevel.name.toTitleCase(), style: TextStyles.body)),
+        DataCell(Text(
+          DateFormat.yMMMMd().format(DateTime.parse(user.creationDate.toString())),
+          style: TextStyles.body,
+        )),
+        DataCell(isLoggedIn ? Badges.good('Online') : Badges.dull('Offline')),
+        if (actionsCell case final actionsCell?) actionsCell,
       ],
     );
   }

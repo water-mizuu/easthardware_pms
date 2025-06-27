@@ -1,7 +1,9 @@
 import 'package:easthardware_pms/presentation/bloc/authentication/'
     'authentication/authentication_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/server/server_bloc.dart';
+import 'package:easthardware_pms/presentation/views/order/order_pane_page.dart';
 import 'package:easthardware_pms/presentation/widgets/dialog/log_out_dialog.dart';
+import 'package:easthardware_pms/presentation/widgets/text.dart';
 import 'package:easthardware_pms/utils/typed_routes.dart';
 import 'package:fluent_ui/fluent_ui.dart';
 import 'package:flutter/foundation.dart';
@@ -66,6 +68,7 @@ mixin CommonSidePanelMixin on NavigationPanelMixin {
   }
 
   List<NavigationPaneItem> footerItems(BuildContext context) {
+    final user = context.watch<AuthenticationBloc>().state.user;
     return [
       if (kDebugMode) ...[
         navItem(
@@ -85,10 +88,14 @@ mixin CommonSidePanelMixin on NavigationPanelMixin {
           },
         ),
       ],
-      navItem(
-        icon: FluentIcons.leave,
-        title: 'Log Out',
-        color: Colors.red,
+      PaneItem(
+        body: const NullWidget(),
+        icon: const Icon(FluentIcons.contact),
+        trailing: const Padding(
+          padding: EdgeInsets.only(right: 6.0),
+          child: Icon(FluentIcons.leave, size: 10.0),
+        ),
+        title: Text('${user!.firstName.toTitleCase()} ${user.lastName.toTitleCase()}'),
         onTap: () async {
           final userConfirmedLogout = await LogOutDialog.show();
           if (!context.mounted) return;

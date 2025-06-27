@@ -1,12 +1,13 @@
 part of 'user_form_bloc.dart';
 
-class UserFormState extends Equatable {
+class UserFormState {
   const UserFormState({
     this.userId,
     this.firstName = '',
     this.lastName = '',
     this.username = '',
     this.accessLevel = '',
+    this.oldPassword = '',
     this.password = '',
     this.confirmPassword = '',
     this.questions = const [
@@ -21,6 +22,9 @@ class UserFormState extends Equatable {
     this.salt,
     this.passwordHash,
     this.accessLevelErrorMessage,
+    this.oldPasswordErrorMessage,
+    this.passwordErrorMessage,
+    this.confirmPasswordErrorMessage,
   });
 
   factory UserFormState.fromUser(User user) {
@@ -41,6 +45,7 @@ class UserFormState extends Equatable {
   final String lastName;
   final String username;
   final String accessLevel;
+  final String oldPassword;
   final String password;
   final String confirmPassword;
   final List<FormQuestion> questions;
@@ -56,30 +61,16 @@ class UserFormState extends Equatable {
 
   // Hidden attributes for the UI
   final String? accessLevelErrorMessage;
-
-  @override
-  List<Object> get props => [
-        firstName,
-        lastName,
-        username,
-        accessLevel,
-        password,
-        questions,
-        status,
-        creationDate ?? '',
-        archivedStatus ?? 0,
-        uid ?? '',
-        salt ?? Uint8List(0),
-        passwordHash ?? Uint8List(0),
-        accessLevelErrorMessage ?? '',
-        userId ?? 0,
-      ];
+  final String? oldPasswordErrorMessage;
+  final String? passwordErrorMessage;
+  final String? confirmPasswordErrorMessage;
 
   UserFormState Function({
     String firstName,
     String lastName,
     String username,
     String accessLevel,
+    String oldPassword,
     String password,
     String confirmPassword,
     List<FormQuestion> questions,
@@ -91,6 +82,9 @@ class UserFormState extends Equatable {
     Uint8List? passwordHash,
     int? archivedStatus,
     String? accessLevelErrorMessage,
+    String? oldPasswordErrorMessage,
+    String? passwordErrorMessage,
+    String? confirmPasswordErrorMessage,
   }) get copyWith {
     return ({
       Object? userId = undefined,
@@ -98,6 +92,7 @@ class UserFormState extends Equatable {
       Object? lastName = undefined,
       Object? username = undefined,
       Object? accessLevel = undefined,
+      Object? oldPassword = undefined,
       Object? password = undefined,
       Object? confirmPassword = undefined,
       Object? questions = undefined,
@@ -108,6 +103,9 @@ class UserFormState extends Equatable {
       Object? salt = undefined,
       Object? passwordHash = undefined,
       Object? accessLevelErrorMessage = undefined,
+      Object? oldPasswordErrorMessage = undefined,
+      Object? passwordErrorMessage = undefined,
+      Object? confirmPasswordErrorMessage = undefined,
     }) {
       return UserFormState(
         userId: userId.or(this.userId),
@@ -115,6 +113,7 @@ class UserFormState extends Equatable {
         lastName: lastName.or(this.lastName),
         username: username.or(this.username),
         accessLevel: accessLevel.or(this.accessLevel),
+        oldPassword: oldPassword.or(this.oldPassword),
         password: password.or(this.password),
         confirmPassword: confirmPassword.or(this.confirmPassword),
         questions: questions.or(this.questions),
@@ -125,6 +124,10 @@ class UserFormState extends Equatable {
         salt: salt.or(this.salt),
         passwordHash: passwordHash.or(this.passwordHash),
         accessLevelErrorMessage: accessLevelErrorMessage.or(this.accessLevelErrorMessage),
+        oldPasswordErrorMessage: oldPasswordErrorMessage.or(this.oldPasswordErrorMessage),
+        passwordErrorMessage: passwordErrorMessage.or(this.passwordErrorMessage),
+        confirmPasswordErrorMessage:
+            confirmPasswordErrorMessage.or(this.confirmPasswordErrorMessage),
       );
     };
   }

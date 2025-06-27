@@ -6,6 +6,7 @@ import 'package:easthardware_pms/presentation/bloc/inventory/product_list/produc
 import 'package:easthardware_pms/presentation/bloc/order/'
     'expense_type_list/expense_type_list_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/order/orderlist/order_list_bloc.dart';
+import 'package:easthardware_pms/presentation/cubit/security/user_display/user_display_cubit.dart';
 import 'package:easthardware_pms/presentation/router/app_routes.dart';
 import 'package:easthardware_pms/presentation/views/archive/archive_pane_page.dart';
 import 'package:easthardware_pms/presentation/views/authentication/login_page.dart';
@@ -46,6 +47,7 @@ import 'package:easthardware_pms/presentation/views/reports/'
 import 'package:easthardware_pms/presentation/views/search/search_page.dart';
 import 'package:easthardware_pms/presentation/views/search/search_top_bar.dart';
 import 'package:easthardware_pms/presentation/views/security/create_user_page.dart';
+import 'package:easthardware_pms/presentation/views/security/edit_user_page.dart';
 import 'package:easthardware_pms/presentation/views/security/user_logs_page.dart';
 import 'package:easthardware_pms/presentation/views/security/users_pane_page.dart';
 import 'package:easthardware_pms/presentation/views/settings/about_page.dart';
@@ -305,11 +307,18 @@ final router = GoRouter(
               routes: [
                 TypedGoRoute(
                   route: AppRoutes.admin.users,
-                  builder: (context, state) => const UsersPanePage(),
+                  builder: (context, state) => BlocProvider(
+                    create: (context) => UserDisplayCubit(),
+                    child: const UsersPanePage(),
+                  ),
                 ),
                 TypedGoRoute(
                   route: AppRoutes.admin.createUser,
                   builder: (context, state) => const CreateUserPage(),
+                ),
+                TypedGoRoute(
+                  route: AppRoutes.admin.editUser,
+                  builder: (context, state) => EditUserPage(user: state.extra),
                 ),
                 TypedGoRoute(
                   route: AppRoutes.admin.userLogs,
