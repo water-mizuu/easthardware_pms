@@ -103,7 +103,7 @@ class CategoriesDataTable extends StatelessWidget {
           builder: (context, state) {
             final categories = state.allCategories;
 
-            return Expanded(
+            return Flexible(
               child: DecoratedBox(
                 decoration: BoxDecoration(borderRadius: BorderRadius.circular(4)),
                 child: categories == null || categories.isEmpty

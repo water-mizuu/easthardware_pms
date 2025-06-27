@@ -59,7 +59,6 @@ class Header extends StatelessWidget {
     }
 
     // Check for empty items before submitting
-    final state = formBloc.state;
     if (isRestock) {
       // For restock order
       final restockExpenseType = (context.read<ExpenseTypeListBloc>().state.expenseTypes)

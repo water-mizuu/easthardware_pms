@@ -186,47 +186,17 @@ class OrdersDataTable extends StatelessWidget {
                     columns: [
                       DataColumn(
                         label: Expanded(
-                          child: ConstrainedBox(
-                            constraints: const BoxConstraints(minWidth: 50),
-                            child: Row(
-                              children: [
-                                const Text('ID', style: TextStyles.tableHeader),
-                                if (_getSortColumnIndex(displayState.sortBy) != 0) ...[
-                                  const Spacer(),
-                                  const Icon(
-                                    FluentIcons.scroll_up_down,
-                                    size: 12,
-                                  ),
-                                ],
+                          child: Row(
+                            children: [
+                              const Text('Order Date', style: TextStyles.tableHeader),
+                              if (_getSortColumnIndex(displayState.sortBy) != 1) ...[
+                                const Spacer(),
+                                const Icon(
+                                  FluentIcons.scroll_up_down,
+                                  size: 12,
+                                ),
                               ],
-                            ),
-                          ),
-                        ),
-                        onSort: (_, __) {
-                          if (displayState.sortBy == OrderDisplaySortBy.idAscending ||
-                              displayState.sortBy == OrderDisplaySortBy.idDescending) {
-                            displayCubit.sort(displayState.sortBy);
-                          } else {
-                            displayCubit.sort(OrderDisplaySortBy.idAscending);
-                          }
-                        },
-                      ),
-                      DataColumn(
-                        label: Expanded(
-                          child: ConstrainedBox(
-                            constraints: const BoxConstraints(minWidth: 75),
-                            child: Row(
-                              children: [
-                                const Text('Order Date', style: TextStyles.tableHeader),
-                                if (_getSortColumnIndex(displayState.sortBy) != 1) ...[
-                                  const Spacer(),
-                                  const Icon(
-                                    FluentIcons.scroll_up_down,
-                                    size: 12,
-                                  ),
-                                ],
-                              ],
-                            ),
+                            ],
                           ),
                         ),
                         onSort: (_, __) {
@@ -240,20 +210,41 @@ class OrdersDataTable extends StatelessWidget {
                       ),
                       DataColumn(
                         label: Expanded(
-                          child: ConstrainedBox(
-                            constraints: const BoxConstraints(minWidth: 100),
-                            child: Row(
-                              children: [
-                                const Text('Payee', style: TextStyles.tableHeader),
-                                if (_getSortColumnIndex(displayState.sortBy) != 2) ...[
-                                  const Spacer(),
-                                  const Icon(
-                                    FluentIcons.scroll_up_down,
-                                    size: 12,
-                                  ),
-                                ],
+                          child: Row(
+                            children: [
+                              const Text('ID', style: TextStyles.tableHeader),
+                              if (_getSortColumnIndex(displayState.sortBy) != 0) ...[
+                                const Spacer(),
+                                const Icon(
+                                  FluentIcons.scroll_up_down,
+                                  size: 12,
+                                ),
                               ],
-                            ),
+                            ],
+                          ),
+                        ),
+                        onSort: (_, __) {
+                          if (displayState.sortBy == OrderDisplaySortBy.idAscending ||
+                              displayState.sortBy == OrderDisplaySortBy.idDescending) {
+                            displayCubit.sort(displayState.sortBy);
+                          } else {
+                            displayCubit.sort(OrderDisplaySortBy.idAscending);
+                          }
+                        },
+                      ),
+                      DataColumn(
+                        label: Expanded(
+                          child: Row(
+                            children: [
+                              const Text('Payee', style: TextStyles.tableHeader),
+                              if (_getSortColumnIndex(displayState.sortBy) != 2) ...[
+                                const Spacer(),
+                                const Icon(
+                                  FluentIcons.scroll_up_down,
+                                  size: 12,
+                                ),
+                              ],
+                            ],
                           ),
                         ),
                         onSort: (_, __) {
@@ -267,20 +258,17 @@ class OrdersDataTable extends StatelessWidget {
                       ),
                       DataColumn(
                         label: Expanded(
-                          child: ConstrainedBox(
-                            constraints: const BoxConstraints(minWidth: 100),
-                            child: Row(
-                              children: [
-                                const Text('Expense Type', style: TextStyles.tableHeader),
-                                if (_getSortColumnIndex(displayState.sortBy) != 3) ...[
-                                  const Spacer(),
-                                  const Icon(
-                                    FluentIcons.scroll_up_down,
-                                    size: 12,
-                                  ),
-                                ],
+                          child: Row(
+                            children: [
+                              const Text('Expense Type', style: TextStyles.tableHeader),
+                              if (_getSortColumnIndex(displayState.sortBy) != 3) ...[
+                                const Spacer(),
+                                const Icon(
+                                  FluentIcons.scroll_up_down,
+                                  size: 12,
+                                ),
                               ],
-                            ),
+                            ],
                           ),
                         ),
                         onSort: (_, __) {
@@ -294,20 +282,17 @@ class OrdersDataTable extends StatelessWidget {
                       ),
                       DataColumn(
                         label: Expanded(
-                          child: ConstrainedBox(
-                            constraints: const BoxConstraints(minWidth: 75),
-                            child: Row(
-                              children: [
-                                const Text('Amount', style: TextStyles.tableHeader),
-                                if (_getSortColumnIndex(displayState.sortBy) != 4) ...[
-                                  const Spacer(),
-                                  const Icon(
-                                    FluentIcons.scroll_up_down,
-                                    size: 12,
-                                  ),
-                                ],
+                          child: Row(
+                            children: [
+                              const Text('Amount', style: TextStyles.tableHeader),
+                              if (_getSortColumnIndex(displayState.sortBy) != 4) ...[
+                                const Spacer(),
+                                const Icon(
+                                  FluentIcons.scroll_up_down,
+                                  size: 12,
+                                ),
                               ],
-                            ),
+                            ],
                           ),
                         ),
                         onSort: (_, __) {

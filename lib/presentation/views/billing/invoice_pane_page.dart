@@ -160,7 +160,7 @@ class InvoiceDataTable extends StatelessWidget {
               );
             }
 
-            return Expanded(
+            return Flexible(
               child: DecoratedBox(
                 decoration: BoxDecoration(
                   color: FluentTheme.of(context).acrylicBackgroundColor,

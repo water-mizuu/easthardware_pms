@@ -96,7 +96,6 @@ class EditInvoicePage extends StatelessWidget {
                 final latest = state.latest!;
                 final authState = context.read<AuthenticationBloc>().state;
                 final formState = context.read<InvoiceFormBloc>().state;
-                print("Nandito kaba?");
 
                 switch (formState.action) {
                   case InvoicePostAction.create:
@@ -128,7 +127,6 @@ class EditInvoicePage extends StatelessWidget {
                     final route = authState.user!.accessLevel == AccessLevel.administrator
                         ? AppRoutes.admin.billing
                         : AppRoutes.staff.billing;
-                    print("Nandito kaba part 2?");
                     context.navigate(route);
                     break;
                 }
@@ -148,8 +146,6 @@ class EditInvoicePage extends StatelessWidget {
                   ],
                 ),
               ),
-
-              /// FIXME: Create a reusable overlay thing.
               if (context.select((InvoiceFormBloc b) => b.state.status) == FormStatus.submitting)
                 Positioned.fill(
                   child: Container(
@@ -969,6 +965,18 @@ class _InvoiceSummaryState extends State<InvoiceSummary> {
     super.initState();
     _memoController = TextEditingController();
     _discountController = TextEditingController();
+
+    _memoController.addListener(() {
+      final newMemo = _memoController.text;
+      context.read<InvoiceFormBloc>().add(MemoChangedEvent(newMemo));
+    });
+
+    _discountController.addListener(() {
+      final discount = double.tryParse(_discountController.text) ?? 0.0;
+      final newDiscount = discount % 1 == 0 ? discount.toInt().toString() : discount.toString();
+      context.read<InvoiceFormBloc>().add(DiscountChangedEvent(discount));
+      _discountController.value = _discountController.value.copyWith(text: newDiscount);
+    });
   }
 
   @override
@@ -976,19 +984,6 @@ class _InvoiceSummaryState extends State<InvoiceSummary> {
     _memoController.dispose();
     _discountController.dispose();
     super.dispose();
-  }
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    final state = context.watch<InvoiceFormBloc>().state;
-
-    if (_memoController.text != state.memo) {
-      _memoController.text = state.memo ?? '';
-    }
-    if (_discountController.text != state.discount.toString()) {
-      _discountController.text = state.discount?.toString() ?? '';
-    }
   }
 
   @override
@@ -1052,9 +1047,6 @@ class _InvoiceSummaryState extends State<InvoiceSummary> {
                                   inputFormatters: [
                                     FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}')),
                                   ],
-                                  onChanged: (value) => context.read<InvoiceFormBloc>().add(
-                                        DiscountChangedEvent(double.tryParse(value) ?? 0.0),
-                                      ),
                                 ),
                               ),
                               Spacing.h4,

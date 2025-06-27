@@ -482,13 +482,13 @@ class DataRowMapper {
         DataCell(
           Align(
             alignment: Alignment.centerLeft,
-            child: Text(orderId, style: TextStyles.body),
+            child: Text(orderDate, style: TextStyles.body),
           ),
         ),
         DataCell(
           Align(
             alignment: Alignment.centerLeft,
-            child: Text(orderDate, style: TextStyles.body),
+            child: Text(orderId, style: TextStyles.body),
           ),
         ),
         DataCell(

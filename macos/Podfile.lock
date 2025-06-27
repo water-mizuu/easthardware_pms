@@ -55,6 +55,6 @@ SPEC CHECKSUMS:
   shared_preferences_foundation: fcdcbc04712aee1108ac7fda236f363274528f78
   window_manager_plus: 18e39c7256dbb1e9bbc810417a5506de91f7129b
 
-PODFILE CHECKSUM: 236401fc2c932af29a9fcf0e97baeeb2d750d367
+PODFILE CHECKSUM: d1b4e931df947ddd943fb90f8dabd659a58796d9
 
 COCOAPODS: 1.16.2

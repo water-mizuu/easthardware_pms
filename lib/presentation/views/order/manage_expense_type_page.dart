@@ -86,7 +86,7 @@ class _ManageExpenseTypePageState extends State<ManageExpenseTypePage> {
           children: [
             const PageHeader(),
             Spacing.v16,
-            Expanded(
+            Flexible(
               child: SingleChildScrollView(
                 controller: _scrollController,
                 child: const Column(

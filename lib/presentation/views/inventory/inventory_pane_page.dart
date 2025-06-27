@@ -65,7 +65,7 @@ class _InventoryPanePageState extends State<InventoryPanePage> {
             child: PageHeader(),
           ),
           Spacing.v4,
-          Expanded(
+          Flexible(
             child: AnimatedSingleChildScrollView(
               child: Padding(
                 padding: EdgeInsets.symmetric(
