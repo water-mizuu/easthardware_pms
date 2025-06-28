@@ -928,6 +928,24 @@ class _FormTableRowState extends State<FormTableRow> {
           ),
       ],
       buttonBuilder: (context, onOpen) {
+        // Determine the correct unit name to display
+        String displayUnitName = currentFormProduct.unit;
+
+        // If the unit is a numeric value (or looks like an ID), try to find the real unit name
+        if (displayUnitName == '0' || int.tryParse(displayUnitName) != null) {
+          // First try to find the unit in the product's units
+          final matchingUnit =
+              currentProductUnits.where((unit) => unit.id == currentFormProduct.unitId).firstOrNull;
+
+          if (matchingUnit != null) {
+            // If we find a matching unit, use its name
+            displayUnitName = matchingUnit.name;
+          } else {
+            // If no matching unit found, fall back to product's main unit
+            displayUnitName = currentProduct.mainUnit;
+          }
+        }
+
         return Button(
           style: ButtonStyles.ghost,
           onPressed: onOpen,
@@ -936,7 +954,7 @@ class _FormTableRowState extends State<FormTableRow> {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               Text(
-                currentFormProduct.unit,
+                displayUnitName,
                 overflow: TextOverflow.ellipsis,
               ),
               Spacing.h12,

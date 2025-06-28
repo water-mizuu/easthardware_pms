@@ -2,8 +2,10 @@ import 'package:easthardware_pms/domain/enums/enums.dart';
 import 'package:easthardware_pms/domain/models/invoice_product.dart';
 import 'package:easthardware_pms/domain/models/order_product.dart';
 import 'package:easthardware_pms/domain/models/product.dart';
+import 'package:easthardware_pms/presentation/bloc/inventory/product_list/product_list_bloc.dart';
 import 'package:easthardware_pms/utils/undefined.dart';
 import 'package:equatable/equatable.dart';
+import 'package:path/path.dart';
 
 class FormProduct with EquatableMixin {
   factory FormProduct.fromProduct(Product product) {
@@ -20,12 +22,15 @@ class FormProduct with EquatableMixin {
     );
   }
   factory FormProduct.fromInvoiceProduct(InvoiceProduct invoiceProduct) {
+    // We store the unit ID and rely on the UI to map this to an actual unit name
+    // The unit field will be properly displayed in the UI by looking up the name
+    // based on the unitId or falling back to the product's main unit
     return FormProduct(
       productId: invoiceProduct.productId,
       productName: invoiceProduct.productName,
       description: invoiceProduct.description,
       quantity: invoiceProduct.quantity,
-      unit: '',
+      unit: invoiceProduct.secondaryUnit?.toString() ?? '0', // Will be resolved in UI
       unitId: invoiceProduct.secondaryUnit,
       conversionFactor: invoiceProduct.conversionFactor,
       rate: invoiceProduct.rate,
