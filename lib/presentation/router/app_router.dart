@@ -391,15 +391,6 @@ final router = GoRouter(
                         ),
                       ],
                     ),
-                    StatefulShellBranch(
-                      initialLocation: AppRoutes.staff.search.orders.path,
-                      routes: [
-                        TypedGoRoute(
-                          route: AppRoutes.staff.search.orders,
-                          builder: (context, state) => OrdersBody(),
-                        ),
-                      ],
-                    ),
                   ],
                 ),
               ],
@@ -429,8 +420,8 @@ final router = GoRouter(
                   builder: (context, state) => const CreateInvoicePage(),
                 ),
                 TypedGoRoute(
-                  route: AppRoutes.staff.payInvoice,
-                  builder: (context, state) => const InvoicePanePage(),
+                  route: AppRoutes.staff.createPayment.route,
+                  builder: (context, state) => CreatePaymentPage(invoice: state.extra),
                 ),
               ],
             ),
@@ -448,21 +439,18 @@ final router = GoRouter(
               ],
             ),
             StatefulShellBranch(
-              // initialLocation: AppRoutes.staff.createInvoice.path,
+              routes: [
+                TypedGoRoute(
+                  route: AppRoutes.staff.inventoryReport,
+                  builder: (context, state) => const InventoryReportPage(),
+                ),
+              ],
+            ),
+            StatefulShellBranch(
               routes: [
                 TypedGoRoute(
                   route: AppRoutes.staff.help,
                   builder: (context, state) => const HelpPage(),
-                ),
-              ],
-            ),
-
-            StatefulShellBranch(
-              // initialLocation: AppRoutes.staff.createInvoice.path,
-              routes: [
-                TypedGoRoute(
-                  route: AppRoutes.staff.payInvoice,
-                  builder: (context, state) => const InvoicePanePage(),
                 ),
               ],
             ),

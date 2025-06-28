@@ -193,7 +193,7 @@ class _StaffNavigationViewState extends State<StaffNavigationView>
           navItem(
             icon: FluentIcons.text_document_edit,
             title: "Pay Invoice",
-            route: AppRoutes.staff.payInvoice,
+            route: AppRoutes.staff.createPayment.withoutInvoice,
           ),
         ],
       ),

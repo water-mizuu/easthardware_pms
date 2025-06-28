@@ -1,19 +1,23 @@
+import 'package:easthardware_pms/domain/enums/enums.dart';
 import 'package:easthardware_pms/domain/models/product.dart';
 import 'package:easthardware_pms/presentation/bloc/inventory/unit_list/unit_list_bloc.dart';
 import 'package:easthardware_pms/presentation/router/app_routes.dart';
 import 'package:easthardware_pms/presentation/widgets/layout/spacing.dart';
 import 'package:easthardware_pms/presentation/widgets/ui/styles.dart';
 import 'package:easthardware_pms/utils/typed_routes.dart';
+import 'package:easthardware_pms/utils/user.dart';
 import 'package:fluent_ui/fluent_ui.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class ProductInformationContentDialog extends StatelessWidget {
   const ProductInformationContentDialog({
     super.key,
+    required this.accessLevel,
     required this.dialogContext,
     required this.product,
   });
 
+  final AccessLevel accessLevel;
   final BuildContext dialogContext;
   final Product product;
 
@@ -21,7 +25,7 @@ class ProductInformationContentDialog extends StatelessWidget {
   Widget build(BuildContext context) {
     return ContentDialog(
       constraints: const BoxConstraints(maxHeight: 700, maxWidth: 1000),
-      title: DialogTitle(dialogContext: dialogContext, product: product),
+      title: DialogTitle(accessLevel: accessLevel, dialogContext: dialogContext, product: product),
       content: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -100,10 +104,12 @@ class SaleInformationDetails extends StatelessWidget {
 class DialogTitle extends StatelessWidget {
   const DialogTitle({
     super.key,
+    required this.accessLevel,
     required this.dialogContext,
     required this.product,
   });
 
+  final AccessLevel accessLevel;
   final BuildContext dialogContext;
   final Product product;
 
@@ -115,23 +121,25 @@ class DialogTitle extends StatelessWidget {
         const Spacer(),
         Row(
           children: [
-            Button(
-              child: const Padding(
-                padding: EdgeInsets.symmetric(vertical: 8.0, horizontal: 12.0),
-                child: Row(
-                  children: [
-                    Icon(FluentIcons.edit),
-                    Spacing.h12,
-                    Text('Edit Product', style: TextStyles.body),
-                  ],
+            if (accessLevel.isAdministrator) ...[
+              Button(
+                child: const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 8.0, horizontal: 12.0),
+                  child: Row(
+                    children: [
+                      Icon(FluentIcons.edit),
+                      Spacing.h12,
+                      Text('Edit Product', style: TextStyles.body),
+                    ],
+                  ),
                 ),
+                onPressed: () {
+                  context.navigateWithExtra(AppRoutes.admin.editProduct, product);
+                  Navigator.of(dialogContext).pop();
+                },
               ),
-              onPressed: () {
-                context.navigateWithExtra(AppRoutes.admin.editProduct, product);
-                Navigator.of(dialogContext).pop();
-              },
-            ),
-            Spacing.h8,
+              Spacing.h8,
+            ],
             Button(
               child: const Padding(
                 padding: EdgeInsets.symmetric(vertical: 8.0, horizontal: 4.0),
@@ -270,9 +278,10 @@ class BasicInformationDetails extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final units = context.select((UnitListBloc b) => b.state.units).where(
-          (unit) => unit.productId == product.id,
-        );
+    final units = context
+        .select((UnitListBloc b) => b.state.units)
+        .where((unit) => unit.productId == product.id);
+
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.stretch,

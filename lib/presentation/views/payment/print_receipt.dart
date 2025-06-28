@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math';
 
 import 'package:easthardware_pms/domain/models/invoice.dart';
 import 'package:easthardware_pms/domain/models/invoice_product.dart';
@@ -118,10 +119,17 @@ final class _ReceiptPdfGenerator with PdfCommons implements PdfGenerator {
             pw.Column(
               crossAxisAlignment: pw.CrossAxisAlignment.end,
               children: [
-                pw.Text(
-                  'SALES # ${payment.id}',
-                  style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold),
-                ),
+                if (payment.id != null)
+                  pw.Text(
+                    'SALES # ${payment.id}',
+                    style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold),
+                  )
+                else
+                  pw.Text(
+                    ' ',
+                    style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold),
+                  ),
+                //
                 pw.SizedBox(height: 4),
                 pw.Text(
                   'DATE ${_formatDate(payment.paymentDate)}',
@@ -174,7 +182,7 @@ final class _ReceiptPdfGenerator with PdfCommons implements PdfGenerator {
     return pw.Row(
       children: [
         pw.Text(
-          'PMT METHOD',
+          'Payment Method',
           style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 12),
         ),
         pw.SizedBox(width: 20),
@@ -190,21 +198,19 @@ final class _ReceiptPdfGenerator with PdfCommons implements PdfGenerator {
     return pw.Table(
       columnWidths: const {
         0: pw.FlexColumnWidth(2), // Service
-        1: pw.FlexColumnWidth(2), // Activity
-        2: pw.FixedColumnWidth(60), // Qty
-        3: pw.FixedColumnWidth(80), // Rate
-        4: pw.FixedColumnWidth(80), // Amount
+        1: pw.FixedColumnWidth(60), // Qty
+        2: pw.FixedColumnWidth(120), // Rate
+        3: pw.FixedColumnWidth(120), // Amount
       },
       children: [
         // Header row with blue background
         pw.TableRow(
           decoration: const pw.BoxDecoration(color: PdfColors.blue100),
           children: [
-            _buildTableHeader('SERVICE', pw.TextAlign.left),
-            _buildTableHeader('ACTIVITY', pw.TextAlign.left),
-            _buildTableHeader('QTY', pw.TextAlign.right),
-            _buildTableHeader('RATE', pw.TextAlign.right),
-            _buildTableHeader('AMOUNT', pw.TextAlign.right),
+            _buildTableHeader('Product', pw.TextAlign.left),
+            _buildTableHeader('Quantity', pw.TextAlign.right),
+            _buildTableHeader('Rate', pw.TextAlign.right),
+            _buildTableHeader('Amount', pw.TextAlign.right),
           ],
         ),
         // Product rows
@@ -242,13 +248,6 @@ final class _ReceiptPdfGenerator with PdfCommons implements PdfGenerator {
         pw.Padding(
           padding: _tablePadding,
           child: pw.Text(
-            invoiceProduct.description ?? invoiceProduct.productName,
-            style: const pw.TextStyle(fontSize: 10),
-          ),
-        ),
-        pw.Padding(
-          padding: _tablePadding,
-          child: pw.Text(
             _formatQuantity(invoiceProduct.quantity),
             style: const pw.TextStyle(fontSize: 10),
             textAlign: pw.TextAlign.right,
@@ -274,6 +273,55 @@ final class _ReceiptPdfGenerator with PdfCommons implements PdfGenerator {
     );
   }
 
+  // pw.Widget _buildInvoiceSummary() {
+  //   final subtotal = invoiceProducts.fold<double>(0, (sum, product) => sum + product.amount);
+  //   final discount = invoice.discount ?? 0.0;
+  //   final total = invoice.amountDue;
+  //   final amountPaid = invoice.amountPaid ?? 0.0;
+  //   final balance = total - amountPaid;
+
+  //   return pw.Row(
+  //     children: [
+  //       pw.Expanded(flex: 2, child: pw.Container()),
+  //       pw.Expanded(
+  //         child: pw.Container(
+  //           child: pw.Column(
+  //             children: [
+  //               _buildSummaryRow(
+  //                 'Subtotal:',
+  //                 CurrencyFormatter.full(subtotal, 'Php '),
+  //               ),
+  //               if (discount > 0)
+  //                 _buildSummaryRow(
+  //                   'Discount:',
+  //                   invoice.discountType == DiscountType.percentage
+  //                       ? '${discount.toStringAsFixed(2)}%'
+  //                       : CurrencyFormatter.full(discount, 'Php '),
+  //                 ),
+  //               _buildSummaryRow(
+  //                 'Total:',
+  //                 CurrencyFormatter.full(total, 'Php '),
+  //                 isTotal: true,
+  //               ),
+  //               if (amountPaid > 0) ...[
+  //                 _buildSummaryRow(
+  //                   'Amount Paid:',
+  //                   CurrencyFormatter.full(amountPaid, 'Php '),
+  //                 ),
+  //                 _buildSummaryRow(
+  //                   'Balance:',
+  //                   CurrencyFormatter.full(balance, 'Php '),
+  //                   isTotal: true,
+  //                 ),
+  //               ],
+  //             ],
+  //           ),
+  //         ),
+  //       ),
+  //     ],
+  //   );
+  // }
+
   pw.Widget _buildReceiptSummary() {
     final subtotal = invoiceProducts.fold<double>(0, (sum, product) => sum + product.amount);
     final discount = invoice.discount ?? 0.0;
@@ -281,12 +329,15 @@ final class _ReceiptPdfGenerator with PdfCommons implements PdfGenerator {
         ? subtotal * (discount / 100)
         : discount;
     final total = subtotal - discountAmount;
+    final remainingBalance = max(0.0, total - payment.amount);
+    final change = max(0.0, payment.amount - total);
 
     return pw.Container(
       padding: const pw.EdgeInsets.symmetric(vertical: 10),
       child: pw.Column(
         children: [
           pw.Row(
+            crossAxisAlignment: pw.CrossAxisAlignment.start,
             children: [
               pw.Text(
                 'Thank you for your business and have a great day!',
@@ -303,12 +354,34 @@ final class _ReceiptPdfGenerator with PdfCommons implements PdfGenerator {
                       _formatCurrency(discountAmount),
                     ),
                   _buildSummaryRow('TOTAL', _formatCurrency(total)),
-                  _buildSummaryRow('BALANCE DUE', _formatCurrency(0.00), isBalance: true),
+                  _buildSummarySeparator(),
+                  _buildSummaryRow('AMOUNT PAID', _formatCurrency(payment.amount)),
+                  _buildSummaryRow(
+                    'BALANCE DUE',
+                    _formatCurrency(remainingBalance),
+                    isBalance: true,
+                  ),
+                  if (change > 0.0)
+                    _buildSummaryRow(
+                      'CHANGE',
+                      _formatCurrency(change),
+                      isBalance: true,
+                    ),
                 ],
               ),
             ],
           ),
         ],
+      ),
+    );
+  }
+
+  pw.Widget _buildSummarySeparator() {
+    return pw.SizedBox(
+      width: 240,
+      child: pw.Divider(
+        thickness: 1,
+        color: PdfColors.black,
       ),
     );
   }
@@ -319,19 +392,25 @@ final class _ReceiptPdfGenerator with PdfCommons implements PdfGenerator {
       child: pw.Row(
         mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
         children: [
-          pw.Text(
-            label,
-            style: pw.TextStyle(
-              fontSize: isBalance ? 14 : 11,
-              fontWeight: isBalance ? pw.FontWeight.bold : pw.FontWeight.normal,
+          pw.SizedBox(
+            width: 120,
+            child: pw.Text(
+              label,
+              style: pw.TextStyle(
+                fontSize: isBalance ? 14 : 11,
+                fontWeight: isBalance ? pw.FontWeight.bold : pw.FontWeight.normal,
+              ),
             ),
           ),
-          pw.SizedBox(width: 40),
-          pw.Text(
-            value,
-            style: pw.TextStyle(
-              fontSize: isBalance ? 14 : 11,
-              fontWeight: isBalance ? pw.FontWeight.bold : pw.FontWeight.normal,
+          pw.SizedBox(
+            width: 100,
+            child: pw.Text(
+              value,
+              textAlign: pw.TextAlign.right,
+              style: pw.TextStyle(
+                fontSize: isBalance ? 14 : 11,
+                fontWeight: isBalance ? pw.FontWeight.bold : pw.FontWeight.normal,
+              ),
             ),
           ),
         ],

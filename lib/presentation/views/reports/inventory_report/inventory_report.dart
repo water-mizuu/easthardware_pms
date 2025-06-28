@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:easthardware_pms/domain/enums/enums.dart';
 import 'package:easthardware_pms/domain/models/product.dart';
 import 'package:easthardware_pms/presentation/bloc/billing/invoicelist/invoice_list_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/inventory/inventory_display/'
@@ -23,6 +24,7 @@ import 'package:easthardware_pms/utils/boxed.dart';
 import 'package:easthardware_pms/utils/notification.dart';
 import 'package:easthardware_pms/utils/number_string.dart';
 import 'package:easthardware_pms/utils/typed_routes.dart';
+import 'package:easthardware_pms/utils/user.dart';
 import 'package:fluent_ui/fluent_ui.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -181,11 +183,16 @@ class InventoryReportHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        IconButton(
-          icon: const Icon(FluentIcons.back),
-          onPressed: () => context.navigate(AppRoutes.admin.reports),
-        ),
-        Spacing.h16,
+        if (context.watchAccessLevel == AccessLevel.administrator) ...[
+          IconButton(
+            icon: const Icon(FluentIcons.home_solid),
+            onPressed: () {
+              /// From context.navigate(AppRoutes.admin.reports)
+              context.navigate(AppRoutes.admin.reports);
+            },
+          ),
+          Spacing.h16,
+        ],
         const DisplayText('Inventory Report'),
       ],
     );

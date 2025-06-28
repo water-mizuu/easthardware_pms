@@ -7,12 +7,11 @@ import 'package:easthardware_pms/presentation/bloc/billing/invoicelist/invoice_l
 import 'package:easthardware_pms/presentation/bloc/inventory/product_list/product_list_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/order/orderlist/order_list_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/search/search_bloc.dart';
-import 'package:easthardware_pms/presentation/router/app_routes.dart';
 import 'package:easthardware_pms/presentation/views/navigation/common_side_panel_mixin.dart';
 import 'package:easthardware_pms/presentation/widgets/layout/spacing.dart';
 import 'package:easthardware_pms/presentation/widgets/text.dart';
-import 'package:easthardware_pms/utils/boxed.dart';
 import 'package:easthardware_pms/utils/notification.dart';
+import 'package:easthardware_pms/utils/user.dart';
 import 'package:fluent_ui/fluent_ui.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -137,7 +136,7 @@ class _SearchMenu extends StatelessWidget with NavigationPanelMixin {
               return NavigationView(
                 clipBehavior: Clip.hardEdge,
                 contentShape: const RoundedRectangleBorder(),
-                paneBodyBuilder: (_, __) => SingleChildScrollView(child: shell),
+                paneBodyBuilder: (_, __) => shell,
                 pane: NavigationPane(
                   displayMode: PaneDisplayMode.top,
                   selected: shell.currentIndex,
@@ -145,18 +144,10 @@ class _SearchMenu extends StatelessWidget with NavigationPanelMixin {
                     shell.goBranch(index);
                   },
                   items: [
-                    navItem(
-                      title: addResults('Products', results.products.length),
-                      route: AppRoutes.admin.search.products,
-                    ),
-                    navItem(
-                      title: addResults('Invoices', results.invoices.length),
-                      route: AppRoutes.admin.search.invoices,
-                    ),
-                    navItem(
-                      title: addResults('Orders', results.orders.length),
-                      route: AppRoutes.admin.search.orders,
-                    ),
+                    navItem(title: addResults('Products', results.products.length)),
+                    navItem(title: addResults('Invoices', results.invoices.length)),
+                    if (context.watchAccessLevel().isAdministrator)
+                      navItem(title: addResults('Orders', results.orders.length)),
                   ],
                 ),
               );
@@ -182,35 +173,8 @@ class _PageHeader extends StatelessWidget {
   }
 }
 
-class _SearchElement extends StatefulWidget {
+class _SearchElement extends StatelessWidget {
   const _SearchElement();
-
-  @override
-  State<_SearchElement> createState() => _SearchElementState();
-}
-
-class _SearchElementState extends State<_SearchElement> {
-  late final FocusNode _focusNode = FocusNode();
-  bool _hasFocus = false;
-
-  @override
-  void initState() {
-    super.initState();
-
-    _focusNode.addListener(() {
-      if (_hasFocus && !_focusNode.hasFocus) {
-        printBoxed("The user has lost focus on the search box.");
-
-        context.read<SearchBloc>().add(const SearchQuerySaved());
-      }
-
-      if (_focusNode.hasFocus) {
-        _hasFocus = true;
-      } else {
-        _hasFocus = false;
-      }
-    });
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -219,14 +183,9 @@ class _SearchElementState extends State<_SearchElement> {
         const Text("Search keyword:"),
         Spacing.h8,
         Expanded(
-          child: AutoSuggestBox(
-            items: [
-              for (final item in context.select((SearchBloc b) => b.state.searchHistory))
-                AutoSuggestBoxItem(value: item, label: item),
-            ],
-            focusNode: _focusNode,
+          child: TextFormBox(
             placeholder: 'Enter search keyword; e.g. product name, invoice number, etc.',
-            onChanged: (value, reason) {
+            onChanged: (value) {
               context.read<SearchBloc>().add(SearchQueryUpdated(value));
             },
           ),

@@ -92,7 +92,6 @@ class AppRoutes {
     search: (
       products: AppRoute<Null>('/staff/search/products'),
       invoices: AppRoute<Null>('/staff/search/invoices'),
-      orders: AppRoute<Null>('/staff/search/orders'),
     ),
     billing: AppRoute<Null>('/staff/billing'),
     createPayment: (
@@ -102,8 +101,7 @@ class AppRoutes {
     ),
     createInvoice: AppRoute<Null>('/staff/create/invoice'),
     editInvoice: AppRoute<Invoice>('/staff/edit/invoice'),
-    payInvoice: AppRoute<Null>('/staff/pay/invoice'),
-    inventoryReport: AppRoute<Null>('/admin/reports/inventory'),
+    inventoryReport: AppRoute<Null>('/staff/reports/inventory'),
     help: AppRoute<Null>('/staff/help'),
     about: AppRoute<Null>('/staff/about'),
   );

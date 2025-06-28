@@ -24,6 +24,7 @@ import 'package:easthardware_pms/presentation/widgets/ui/styles.dart';
 import 'package:easthardware_pms/presentation/widgets/ui/table_theme_data.dart';
 import 'package:easthardware_pms/presentation/widgets/ui/text_button.dart';
 import 'package:easthardware_pms/utils/typed_routes.dart';
+import 'package:easthardware_pms/utils/user.dart';
 import 'package:fluent_ui/fluent_ui.dart';
 import 'package:flutter/material.dart'
     show DataColumn, DataRow, DataTableSource, PaginatedDataTable;
@@ -378,172 +379,179 @@ class ProductsDataTable extends StatelessWidget {
       builder: (context, inventoryState) {
         final productListState = context.watch<ProductListBloc>().state;
         final inventoryDisplayBloc = context.select((InventoryDisplayBloc b) => b);
-        final notArchived =
-            productListState.allProducts.where((p) => p.archiveStatus == 0).toList();
+        final notArchived = productListState.allProducts //
+            .where((p) => p.archiveStatus == 0)
+            .toList();
         final filtered = inventoryState.filteredProducts;
+        final accessLevel = context.watchAccessLevel();
 
         return TableThemeData(
-            child: PaginatedDataTable(
-          showFirstLastButtons: true,
-          showCheckboxColumn: false,
-          horizontalMargin: 20,
-          columnSpacing: 16,
-          sortColumnIndex: _getSortColumnIndex(inventoryState.sortBy),
-          sortAscending: inventoryState.sortAscending,
-          checkboxHorizontalMargin: 0,
-          columns: [
-            DataColumn(
-              label: Expanded(
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(minWidth: 120),
-                  child: Row(
-                    children: [
-                      const Text('Name', style: TextStyles.strong),
-                      if (_getSortColumnIndex(inventoryState.sortBy) != 0) ...[
-                        const Spacer(),
-                        const Icon(
-                          FluentIcons.scroll_up_down,
-                          size: 12,
-                        ),
+          child: PaginatedDataTable(
+            showFirstLastButtons: true,
+            showCheckboxColumn: false,
+            horizontalMargin: 20,
+            columnSpacing: 16,
+            sortColumnIndex: _getSortColumnIndex(inventoryState.sortBy),
+            sortAscending: inventoryState.sortAscending,
+            checkboxHorizontalMargin: 0,
+            columns: [
+              DataColumn(
+                label: Expanded(
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(minWidth: 120),
+                    child: Row(
+                      children: [
+                        const Text('Name', style: TextStyles.strong),
+                        if (_getSortColumnIndex(inventoryState.sortBy) != 0) ...[
+                          const Spacer(),
+                          const Icon(
+                            FluentIcons.scroll_up_down,
+                            size: 12,
+                          ),
+                        ],
                       ],
-                    ],
+                    ),
                   ),
                 ),
+                onSort: (_, __) {
+                  // Simply toggle between ascending and descending based on current sort type
+                  if (inventoryState.sortBy == InventoryDisplaySortBy.nameAscending ||
+                      inventoryState.sortBy == InventoryDisplaySortBy.nameDescending) {
+                    // If already sorting by name, just dispatch the same sort type to toggle direction
+                    inventoryDisplayBloc.add(InventoryDisplaySortEvent(inventoryState.sortBy));
+                  } else {
+                    // If not already sorting by name, start with ascending
+                    inventoryDisplayBloc
+                        .add(const InventoryDisplaySortEvent(InventoryDisplaySortBy.nameAscending));
+                  }
+                },
               ),
-              onSort: (_, __) {
-                // Simply toggle between ascending and descending based on current sort type
-                if (inventoryState.sortBy == InventoryDisplaySortBy.nameAscending ||
-                    inventoryState.sortBy == InventoryDisplaySortBy.nameDescending) {
-                  // If already sorting by name, just dispatch the same sort type to toggle direction
-                  inventoryDisplayBloc.add(InventoryDisplaySortEvent(inventoryState.sortBy));
-                } else {
-                  // If not already sorting by name, start with ascending
-                  inventoryDisplayBloc
-                      .add(const InventoryDisplaySortEvent(InventoryDisplaySortBy.nameAscending));
-                }
-              },
-            ),
-            DataColumn(
-              label: Expanded(
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(minWidth: 120),
-                  child: Row(
-                    children: [
-                      const Text('Category', style: TextStyles.strong),
-                      if (_getSortColumnIndex(inventoryState.sortBy) != 1) ...[
-                        const Spacer(),
-                        const Icon(
-                          FluentIcons.scroll_up_down,
-                          size: 12,
-                        ),
+              DataColumn(
+                label: Expanded(
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(minWidth: 120),
+                    child: Row(
+                      children: [
+                        const Text('Category', style: TextStyles.strong),
+                        if (_getSortColumnIndex(inventoryState.sortBy) != 1) ...[
+                          const Spacer(),
+                          const Icon(
+                            FluentIcons.scroll_up_down,
+                            size: 12,
+                          ),
+                        ],
                       ],
-                    ],
+                    ),
                   ),
                 ),
+                onSort: (_, __) {
+                  if (inventoryState.sortBy == InventoryDisplaySortBy.categoryAscending ||
+                      inventoryState.sortBy == InventoryDisplaySortBy.categoryDescending) {
+                    inventoryDisplayBloc.add(InventoryDisplaySortEvent(inventoryState.sortBy));
+                  } else {
+                    inventoryDisplayBloc.add(
+                        const InventoryDisplaySortEvent(InventoryDisplaySortBy.categoryAscending));
+                  }
+                },
               ),
-              onSort: (_, __) {
-                if (inventoryState.sortBy == InventoryDisplaySortBy.categoryAscending ||
-                    inventoryState.sortBy == InventoryDisplaySortBy.categoryDescending) {
-                  inventoryDisplayBloc.add(InventoryDisplaySortEvent(inventoryState.sortBy));
-                } else {
-                  inventoryDisplayBloc.add(
-                      const InventoryDisplaySortEvent(InventoryDisplaySortBy.categoryAscending));
-                }
-              },
-            ),
-            DataColumn(
-              label: Expanded(
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(minWidth: 60),
-                  child: Row(
-                    children: [
-                      const Text('Sale Price', style: TextStyles.strong),
-                      if (_getSortColumnIndex(inventoryState.sortBy) != 2) ...[
-                        const Spacer(),
-                        const Icon(
-                          FluentIcons.scroll_up_down,
-                          size: 12,
-                        ),
-                      ],
-                    ],
-                  ),
-                ),
-              ),
-              onSort: (_, __) {
-                if (inventoryState.sortBy == InventoryDisplaySortBy.priceAscending ||
-                    inventoryState.sortBy == InventoryDisplaySortBy.priceDescending) {
-                  inventoryDisplayBloc.add(InventoryDisplaySortEvent(inventoryState.sortBy));
-                } else {
-                  inventoryDisplayBloc
-                      .add(const InventoryDisplaySortEvent(InventoryDisplaySortBy.priceAscending));
-                }
-              },
-            ),
-            DataColumn(
-              label: Expanded(
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(minWidth: 60),
-                  child: Row(
-                    children: [
-                      const Text('Quantity', style: TextStyles.strong),
-                      if (_getSortColumnIndex(inventoryState.sortBy) != 3) ...[
-                        const Spacer(),
-                        const Icon(
-                          FluentIcons.scroll_up_down,
-                          size: 12,
-                        ),
-                      ],
-                    ],
-                  ),
-                ),
-              ),
-              onSort: (_, __) {
-                if (inventoryState.sortBy == InventoryDisplaySortBy.stockAscending ||
-                    inventoryState.sortBy == InventoryDisplaySortBy.stockDescending) {
-                  inventoryDisplayBloc.add(InventoryDisplaySortEvent(inventoryState.sortBy));
-                } else {
-                  inventoryDisplayBloc
-                      .add(const InventoryDisplaySortEvent(InventoryDisplaySortBy.stockAscending));
-                }
-              },
-            ),
-            DataColumn(
-              label: Expanded(
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(minWidth: 60),
-                  child: Row(
-                    children: [
-                      const Text('Status', style: TextStyles.strong),
-                      if (_getSortColumnIndex(inventoryState.sortBy) != 4) ...[
-                        const Spacer(),
-                        const Icon(
-                          FluentIcons.scroll_up_down,
-                          size: 12,
-                        ),
-                      ],
-                    ],
-                  ),
-                ),
-              ),
-              onSort: (_, __) {
-                inventoryDisplayBloc.add(
-                  const InventoryDisplaySortEvent(InventoryDisplaySortBy.urgencyAscending),
-                );
-              },
-            ),
-            if (context.select((AuthenticationBloc b) => b.state.user?.accessLevel) ==
-                AccessLevel.administrator)
               DataColumn(
                 label: Expanded(
                   child: ConstrainedBox(
                     constraints: const BoxConstraints(minWidth: 60),
-                    child: const Text('', style: TextStyles.strong),
+                    child: Row(
+                      children: [
+                        const Text('Sale Price', style: TextStyles.strong),
+                        if (_getSortColumnIndex(inventoryState.sortBy) != 2) ...[
+                          const Spacer(),
+                          const Icon(
+                            FluentIcons.scroll_up_down,
+                            size: 12,
+                          ),
+                        ],
+                      ],
+                    ),
                   ),
                 ),
+                onSort: (_, __) {
+                  if (inventoryState.sortBy == InventoryDisplaySortBy.priceAscending ||
+                      inventoryState.sortBy == InventoryDisplaySortBy.priceDescending) {
+                    inventoryDisplayBloc.add(InventoryDisplaySortEvent(inventoryState.sortBy));
+                  } else {
+                    inventoryDisplayBloc.add(
+                        const InventoryDisplaySortEvent(InventoryDisplaySortBy.priceAscending));
+                  }
+                },
               ),
-          ],
-          source: ProductDataSource(context: context, products: filtered ?? notArchived),
-        ));
+              DataColumn(
+                label: Expanded(
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(minWidth: 60),
+                    child: Row(
+                      children: [
+                        const Text('Quantity', style: TextStyles.strong),
+                        if (_getSortColumnIndex(inventoryState.sortBy) != 3) ...[
+                          const Spacer(),
+                          const Icon(
+                            FluentIcons.scroll_up_down,
+                            size: 12,
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+                ),
+                onSort: (_, __) {
+                  if (inventoryState.sortBy == InventoryDisplaySortBy.stockAscending ||
+                      inventoryState.sortBy == InventoryDisplaySortBy.stockDescending) {
+                    inventoryDisplayBloc.add(InventoryDisplaySortEvent(inventoryState.sortBy));
+                  } else {
+                    inventoryDisplayBloc.add(
+                        const InventoryDisplaySortEvent(InventoryDisplaySortBy.stockAscending));
+                  }
+                },
+              ),
+              DataColumn(
+                label: Expanded(
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(minWidth: 60),
+                    child: Row(
+                      children: [
+                        const Text('Status', style: TextStyles.strong),
+                        if (_getSortColumnIndex(inventoryState.sortBy) != 4) ...[
+                          const Spacer(),
+                          const Icon(
+                            FluentIcons.scroll_up_down,
+                            size: 12,
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+                ),
+                onSort: (_, __) {
+                  inventoryDisplayBloc.add(
+                    const InventoryDisplaySortEvent(InventoryDisplaySortBy.urgencyAscending),
+                  );
+                },
+              ),
+              if (context.select((AuthenticationBloc b) => b.state.user?.accessLevel) ==
+                  AccessLevel.administrator)
+                DataColumn(
+                  label: Expanded(
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(minWidth: 60),
+                      child: const Text('', style: TextStyles.strong),
+                    ),
+                  ),
+                ),
+            ],
+            source: ProductDataSource(
+              accessLevel: accessLevel ?? AccessLevel.staff,
+              context: context,
+              products: filtered ?? notArchived,
+            ),
+          ),
+        );
       },
     );
   }
@@ -551,32 +559,34 @@ class ProductsDataTable extends StatelessWidget {
 
 class ProductDataSource extends DataTableSource {
   ProductDataSource({
+    required this.accessLevel,
     required this.context,
     required this.products,
   });
 
-  final List<Product> products;
+  final AccessLevel accessLevel;
   final BuildContext context;
+  final List<Product> products;
+
   @override
   DataRow? getRow(int index) {
-    final accessLevel = context.read<AuthenticationBloc>().state.user?.accessLevel;
     final product = products[index];
+
     return DataRowMapper.mapProductToRow(
       product,
-      viewAction: () {
-        unawaited(
-          showDialog(
-            barrierDismissible: true,
-            context: context,
-            builder: (dialogContext) {
-              return ProductInformationContentDialog(
-                dialogContext: dialogContext,
-                product: product,
-              );
-            },
-          ),
-        );
-      },
+      viewAction: () => unawaited(
+        showDialog(
+          barrierDismissible: true,
+          context: context,
+          builder: (dialogContext) {
+            return ProductInformationContentDialog(
+              accessLevel: accessLevel,
+              dialogContext: dialogContext,
+              product: product,
+            );
+          },
+        ),
+      ),
       editAction: accessLevel == AccessLevel.administrator
           ? () => context.navigateWithExtra(AppRoutes.admin.editProduct, product)
           : null,
