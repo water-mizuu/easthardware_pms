@@ -124,10 +124,10 @@ class OrdersDataTable extends StatelessWidget {
     switch (sortBy) {
       case OrderDisplaySortBy.orderDateAscending:
       case OrderDisplaySortBy.orderDateDescending:
-        return 1;
+        return 0;
       case OrderDisplaySortBy.idAscending:
       case OrderDisplaySortBy.idDescending:
-        return 0;
+        return 1;
       case OrderDisplaySortBy.payeeNameAscending:
       case OrderDisplaySortBy.payeeNameDescending:
         return 2;
@@ -189,7 +189,7 @@ class OrdersDataTable extends StatelessWidget {
                           child: Row(
                             children: [
                               const Text('Order Date', style: TextStyles.tableHeader),
-                              if (_getSortColumnIndex(displayState.sortBy) != 1) ...[
+                              if (_getSortColumnIndex(displayState.sortBy) != 0) ...[
                                 const Spacer(),
                                 const Icon(
                                   FluentIcons.scroll_up_down,
@@ -213,7 +213,7 @@ class OrdersDataTable extends StatelessWidget {
                           child: Row(
                             children: [
                               const Text('ID', style: TextStyles.tableHeader),
-                              if (_getSortColumnIndex(displayState.sortBy) != 0) ...[
+                              if (_getSortColumnIndex(displayState.sortBy) != 1) ...[
                                 const Spacer(),
                                 const Icon(
                                   FluentIcons.scroll_up_down,

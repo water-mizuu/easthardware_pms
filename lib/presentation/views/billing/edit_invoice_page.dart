@@ -554,9 +554,7 @@ class _FormTableRowState extends State<FormTableRow> {
                   .read<ProductListBloc>()
                   .state
                   .allProducts
-                  .firstWhere(
-                    (p) => p.id == currentProduct.productId,
-                  )
+                  .firstWhere((p) => p.id == currentProduct.productId)
                   .copyWith(quantity: reference.quantity + initialProduct.quantity),
         ));
       }
@@ -573,6 +571,7 @@ class _FormTableRowState extends State<FormTableRow> {
             .state
             .allProducts
             .firstWhere((p) => p.id == initialProduct.productId);
+
         bloc.add(ProductUpdatedEvent(
           index: widget.index,
           product: currentProduct.copyWith(rate: newValue),

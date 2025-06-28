@@ -166,7 +166,10 @@ class InvoiceFormBloc extends Bloc<InvoiceFormEvent, InvoiceFormState> {
   void _onProductUpdated(ProductUpdatedEvent event, Emitter<InvoiceFormState> emit) {
     // printBoxed('Conversion Factor: ${event.product.conversionFactor}');
 
-    final adjustedRate = event.product.rate * (event.product.conversionFactor ?? 1);
+    final adjustedRate =
+        event.product.conversionFactor == state.products[event.index].conversionFactor
+            ? event.product.rate
+            : event.product.rate * (event.product.conversionFactor ?? 1);
 
     final adjustedProduct = event.product.copyWith(
       rate: adjustedRate,

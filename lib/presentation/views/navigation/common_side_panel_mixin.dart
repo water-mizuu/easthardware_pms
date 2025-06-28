@@ -79,15 +79,15 @@ mixin CommonSidePanelMixin on NavigationPanelMixin {
             context.read<ServerBloc>().add(const ServerDatabaseCleared());
           },
         ),
-        navItem(
-          icon: FluentIcons.insert_rows_below,
-          title: 'Add mock items',
-          color: Colors.green,
-          onTap: () {
-            context.read<ServerBloc>().add(const ServerMockDataAdded());
-          },
-        ),
       ],
+      navItem(
+        icon: FluentIcons.insert_rows_below,
+        title: 'Add mock items',
+        color: Colors.green,
+        onTap: () {
+          context.read<ServerBloc>().add(const ServerMockDataAdded());
+        },
+      ),
       PaneItem(
         body: const NullWidget(),
         icon: const Icon(FluentIcons.contact),
