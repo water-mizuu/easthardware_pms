@@ -69,7 +69,7 @@ class FormProduct with EquatableMixin {
   final int? productId;
   final String productName;
   final String? description;
-  final double quantity;
+  final int quantity;
   final int? unitId;
   final String unit;
   final double? conversionFactor;
@@ -83,7 +83,7 @@ class FormProduct with EquatableMixin {
     int? productId,
     String productName,
     String? description,
-    double quantity,
+    int quantity,
     int? unitId,
     String unit,
     double? conversionFactor,

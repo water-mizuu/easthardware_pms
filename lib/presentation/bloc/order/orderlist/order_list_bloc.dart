@@ -76,7 +76,10 @@ class OrderListBloc extends Bloc<OrderListEvent, OrderListState> {
       print(
           '[OrderListBloc] Inserted products: ${newlyAddedProducts.map((i) => i.toMap()).toList()}');
       final updateStockFutures = event.products.map((product) {
-        return _productRepository.updateProductStock(product.productId, product.quantity);
+        return _productRepository.updateProductStock(
+          product.productId,
+          product.quantity * (product.conversionFactor ?? 1.0),
+        );
       }).toList();
       await Future.wait(updateStockFutures);
 
@@ -182,7 +185,8 @@ class OrderListBloc extends Bloc<OrderListEvent, OrderListState> {
       // with negative values of the original quantities
       await og
           // We use negative quantity to subtract from current inventory
-          .map((p) => _productRepository.updateProductStock(p.productId, -p.quantity))
+          .map((p) => _productRepository.updateProductStock(
+              p.productId, -(p.quantity * (p.conversionFactor ?? 1.0))))
           .toList()
           .wait;
 
@@ -200,7 +204,8 @@ class OrderListBloc extends Bloc<OrderListEvent, OrderListState> {
 
       // Now add the new quantities to the inventory
       await event.products
-          .map((p) => _productRepository.updateProductStock(p.productId, p.quantity))
+          .map((p) => _productRepository.updateProductStock(
+              p.productId, (p.quantity * (p.conversionFactor ?? 1.0))))
           .toList()
           .wait;
 

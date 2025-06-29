@@ -491,7 +491,7 @@ class _FormTableRowState extends State<FormTableRow> {
       final bloc = context.read<InvoiceFormBloc>();
       final currentProduct = bloc.state.products[widget.index];
 
-      final newValue = double.tryParse(_quantityController.text) ?? 0;
+      final newValue = int.tryParse(_quantityController.text) ?? 0;
       if (currentProduct.quantity != newValue) {
         bloc.add(ProductUpdatedEvent(
           index: widget.index,
@@ -511,15 +511,17 @@ class _FormTableRowState extends State<FormTableRow> {
 
       final newValue = double.tryParse(_rateController.text) ?? 0;
       if (currentProduct.rate != newValue) {
-        bloc.add(ProductUpdatedEvent(
-          index: widget.index,
-          product: currentProduct.copyWith(rate: newValue),
-          reference: currentProduct.productId == null
-              ? null
-              : context.read<ProductListBloc>().state.allProducts.firstWhere(
-                    (p) => p.id == currentProduct.productId,
-                  ),
-        ));
+        bloc.add(
+          ProductUpdatedEvent(
+            index: widget.index,
+            product: currentProduct.copyWith(rate: newValue),
+            reference: currentProduct.productId == null
+                ? null
+                : context.read<ProductListBloc>().state.allProducts.firstWhere(
+                      (p) => p.id == currentProduct.productId,
+                    ),
+          ),
+        );
       }
     });
   }
@@ -718,7 +720,7 @@ class _FormTableRowState extends State<FormTableRow> {
                                 flex: 1,
                                 child: TextFormBoxes.ghost(
                                   inputFormatters: [
-                                    FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}')),
+                                    FilteringTextInputFormatter.allow(RegExp(r'^\d*')),
                                   ],
                                   style: TextStyles.onSurface,
                                   controller: _quantityController,

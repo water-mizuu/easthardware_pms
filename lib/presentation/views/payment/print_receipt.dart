@@ -248,7 +248,7 @@ final class _ReceiptPdfGenerator with PdfCommons implements PdfGenerator {
         pw.Padding(
           padding: _tablePadding,
           child: pw.Text(
-            _formatQuantity(invoiceProduct.quantity),
+            invoiceProduct.quantity.toString(),
             style: const pw.TextStyle(fontSize: 10),
             textAlign: pw.TextAlign.right,
           ),
@@ -422,7 +422,7 @@ final class _ReceiptPdfGenerator with PdfCommons implements PdfGenerator {
     return '${date.month.toString().padLeft(2, '0')}/${date.day.toString().padLeft(2, '0')}/${date.year}';
   }
 
-  String _formatQuantity(double quantity) {
+  String _formatQuantity(int quantity) {
     return quantity % 1 == 0 ? quantity.toInt().toString() : quantity.toStringAsFixed(2);
   }
 

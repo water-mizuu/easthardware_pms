@@ -80,7 +80,7 @@ class _RecentSalesTableState extends State<RecentSalesTable> {
         FixedSpanExtent(240.00),
         FractionalSpanExtent(0.33),
       ),
-      (i) => Text(i.customerName.isEmpty ? "Unnamed Customer" : i.customerName),
+      (i) => Text(i.customerName.isEmpty ? "Walk-in Customer" : i.customerName),
     ),
     "Total": (const FixedSpanExtent(120), (i) => Text(CurrencyFormatter.full(i.amountDue))),
     "Payment Method": (

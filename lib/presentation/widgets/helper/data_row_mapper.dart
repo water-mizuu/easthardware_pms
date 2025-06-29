@@ -313,7 +313,7 @@ class DataRowMapper {
     final invoiceId = invoice.id!.toString();
     final invoiceCustomer = invoice.customerName.isNotEmpty //
         ? invoice.customerName
-        : "Unnamed Customer";
+        : "Walk-in Customer";
     final invoiceTotal = CurrencyFormatter.full(invoice.amountDue);
     final actionsCell = editAction == null && printAction == null && receivePaymentAction == null
         ? null

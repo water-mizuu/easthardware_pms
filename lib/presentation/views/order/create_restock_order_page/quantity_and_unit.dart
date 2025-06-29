@@ -31,7 +31,7 @@ class _QuantityAndUnitState extends State<QuantityAndUnit> {
       // Always get the latest state to ensure we have the most up-to-date product data
       final currentFormProduct = (context.read<OrderFormBloc>().state.products!)
           .firstWhere((p) => p.productId == currentProductId);
-      final newQuantity = double.tryParse(_quantityController.text) ?? 0;
+      final newQuantity = int.tryParse(_quantityController.text) ?? 0;
 
       if (currentFormProduct.quantity != newQuantity) {
         // Use the current rate from the product to ensure we have the latest rate
@@ -102,13 +102,9 @@ class _QuantityAndUnitState extends State<QuantityAndUnit> {
     }
   }
 
-  void _updateQuantityControllerWithQuantity(double quantity) {
-    final quantityRepresentation = quantity % 1 == 0 //
-        ? quantity.toInt().toString()
-        : quantity.toString();
-
-    if (_quantityController.text != quantityRepresentation) {
-      _quantityController.text = quantityRepresentation;
+  void _updateQuantityControllerWithQuantity(int quantity) {
+    if (_quantityController.text != quantity.toString()) {
+      _quantityController.text = quantity.toString();
     }
   }
 

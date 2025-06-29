@@ -24,7 +24,7 @@ class InvoiceProduct {
         productId: map[InvoiceProductsTable.INVOICE_PRODUCTS_PRODUCT] as int,
         productName: map[InvoiceProductsTable.INVOICE_PRODUCTS_NAME] as String? ?? '',
         description: map[InvoiceProductsTable.INVOICE_PRODUCTS_DESCRIPTION] as String?,
-        quantity: (map[InvoiceProductsTable.INVOICE_PRODUCTS_QUANTITY] as num).toDouble(),
+        quantity: (map[InvoiceProductsTable.INVOICE_PRODUCTS_QUANTITY] as num).toInt(),
         secondaryUnit: map[InvoiceProductsTable.INVOICE_PRODUCTS_SECONDARY_UNIT] as int?,
         conversionFactor: map[InvoiceProductsTable.INVOICE_PRODUCTS_CONVERSION_FACTOR] != null
             ? (map[InvoiceProductsTable.INVOICE_PRODUCTS_CONVERSION_FACTOR] as num).toDouble()
@@ -42,7 +42,7 @@ class InvoiceProduct {
   final int productId;
   final String productName;
   final String? description;
-  final double quantity;
+  final int quantity;
   final int? secondaryUnit;
   final double? conversionFactor;
   final double rate;
@@ -54,7 +54,7 @@ class InvoiceProduct {
     int productId,
     String productName,
     String? description,
-    double quantity,
+    int quantity,
     int? secondaryUnit,
     double? conversionFactor,
     double rate,

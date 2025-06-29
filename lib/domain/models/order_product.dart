@@ -23,7 +23,7 @@ class OrderProduct {
         productId: map['product_id'] as int,
         productName: map['product_name'] as String? ?? '',
         description: map['description'] as String?,
-        quantity: (map['quantity'] as num).toDouble(),
+        quantity: (map['quantity'] as num).toInt(),
         secondaryUnit: map['secondary_unit'] as int?,
         conversionFactor:
             map['conversion_factor'] != null ? (map['conversion_factor'] as num).toDouble() : null,
@@ -40,7 +40,7 @@ class OrderProduct {
   final int productId;
   final String productName;
   final String? description;
-  final double quantity;
+  final int quantity;
   final int? secondaryUnit;
   final double? conversionFactor;
   final double rate;
@@ -52,7 +52,7 @@ class OrderProduct {
     int? productId,
     String? productName,
     String? description,
-    double? quantity,
+    int? quantity,
     int? secondaryUnit,
     double? conversionFactor,
     double? rate,

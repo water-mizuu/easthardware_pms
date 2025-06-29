@@ -816,11 +816,11 @@ Future<void> generateMockData(DatabaseHelper databaseHelper) async {
         // Determine quantity based on product type
         double quantity;
         if (product.mainUnit == "piece" || product.mainUnit == "set") {
-          quantity = 1.0 + (j % 3); // 1-3 for piece/set items
+          quantity = 1 + (j % 3); // 1-3 for piece/set items
         } else if (product.mainUnit == "bag" || product.mainUnit == "gallon") {
-          quantity = 1.0 + (j % 2); // 1-2 for heavy items
+          quantity = 1 + (j % 2); // 1-2 for heavy items
         } else {
-          quantity = 1.0 + (j % 5); // 1-5 for other items
+          quantity = 1 + (j % 5); // 1-5 for other items
         }
 
         // Calculate amount
@@ -834,7 +834,7 @@ Future<void> generateMockData(DatabaseHelper databaseHelper) async {
           productId: productIds[productIndex],
           productName: product.name,
           description: product.description,
-          quantity: quantity,
+          quantity: quantity.toInt(),
           rate: rate,
           amount: amount,
         );
@@ -997,7 +997,7 @@ Future<void> generateMockData(DatabaseHelper databaseHelper) async {
             productId: productIds[productIndex],
             productName: product.name,
             description: product.description,
-            quantity: quantity,
+            quantity: quantity.toInt(),
             rate: rate,
             amount: amount,
           );

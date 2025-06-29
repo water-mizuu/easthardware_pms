@@ -223,10 +223,8 @@ class _TopProductActivityState extends State<TopProductActivity> {
       ///   For example, if a product's main unit is 1 box, 10 pc per box and
       ///   we sold 15 pcs, we need to convert that to boxes.
       final conversion = product.conversionFactor;
-      var quantity = product.quantity;
-      if (conversion != null && conversion > 0) {
-        quantity *= conversion;
-      }
+      final quantity =
+          conversion != null && conversion > 0 ? product.quantity * conversion : product.quantity;
 
       final compositeKey = (productId, name);
 

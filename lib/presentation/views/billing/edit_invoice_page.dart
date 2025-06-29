@@ -539,7 +539,7 @@ class _FormTableRowState extends State<FormTableRow> {
       final bloc = context.read<InvoiceFormBloc>();
       final currentProduct = bloc.state.products[widget.index];
 
-      final newValue = double.tryParse(_quantityController.text) ?? 0;
+      final newValue = int.tryParse(_quantityController.text) ?? 0;
       if (currentProduct.quantity != newValue) {
         final reference = context
             .read<ProductListBloc>()

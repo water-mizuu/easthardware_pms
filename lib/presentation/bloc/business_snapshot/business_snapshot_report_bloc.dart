@@ -468,7 +468,7 @@ class BusinessSnapshotReportBloc
         } else {
           productSales[id] = TopSellingProduct(
             product: product,
-            quantitySold: ip.quantity,
+            quantitySold: ip.quantity * (ip.conversionFactor ?? 1.0),
             revenue: revenue,
             profit: profit,
           );
