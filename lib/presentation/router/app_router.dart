@@ -24,6 +24,7 @@ import 'package:easthardware_pms/presentation/views/inventory/inventory_pane_pag
 import 'package:easthardware_pms/presentation/views/inventory/manage_categories_page.dart';
 import 'package:easthardware_pms/presentation/views/navigation/admin_navigation_scaffold.dart';
 import 'package:easthardware_pms/presentation/views/navigation/staff_navigation_scaffold.dart';
+import 'package:easthardware_pms/presentation/views/notification/notifications_pane_page.dart';
 import 'package:easthardware_pms/presentation/views/order/create_expense_order_page.dart';
 import 'package:easthardware_pms/presentation/views/order/create_restock_order_page.dart';
 import 'package:easthardware_pms/presentation/views/order/edit_expense_order_page.dart';
@@ -346,6 +347,15 @@ final router = GoRouter(
                 TypedGoRoute(
                   route: AppRoutes.admin.about,
                   builder: (context, state) => const AboutPanePage(),
+                ),
+              ],
+            ),
+            // Notifications Shell
+            StatefulShellBranch(
+              routes: [
+                TypedGoRoute(
+                  route: AppRoutes.admin.notifications,
+                  builder: (context, state) => const NotificationsPanePage(),
                 ),
               ],
             ),

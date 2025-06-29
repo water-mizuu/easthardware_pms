@@ -12,6 +12,7 @@ import 'package:easthardware_pms/domain/backend/server_host/web_socket_isolate.d
 import 'package:easthardware_pms/domain/backend/utils/isolate_indicator.dart';
 import 'package:easthardware_pms/domain/models/user.dart';
 import 'package:easthardware_pms/presentation/bloc/server/server_bloc.dart';
+import 'package:easthardware_pms/presentation/cubit/notifications/cubit/notification_cubit.dart';
 import 'package:easthardware_pms/presentation/router/app_router.dart';
 import 'package:easthardware_pms/utils/boxed.dart';
 import 'package:easthardware_pms/utils/duration.dart';
@@ -92,6 +93,15 @@ Future<(ShelfServer, ShelfServer, Stream<ServerEvent>)> hostShelfServer(int port
           }
           yield ServerDatabaseUpdated(lastUpdated: dateTime);
           break;
+        case ["notification", final Map<String, dynamic> notification]:
+          // Notify the UI about a new notification.
+          if (kDebugMode) {
+            print("Received notification: $notification");
+          }
+
+          yield ServerNotificationsReceived(
+            notifications: [ServerNotification.fromJson(notification)],
+          );
         case [final String returnName, final Object request]:
           switch (request) {
             case ['requestConnection', [final int sessionKey]]:

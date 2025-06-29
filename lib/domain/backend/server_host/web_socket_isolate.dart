@@ -5,6 +5,7 @@ import 'dart:isolate';
 import 'package:async_queue/async_queue.dart';
 import 'package:easthardware_pms/data/database/dao/user_logs_dao.dart';
 import 'package:easthardware_pms/data/database/dao/users_dao.dart';
+import 'package:easthardware_pms/data/database/local/NotificationLocalStorage.dart';
 import 'package:easthardware_pms/domain/backend/classes/secure_connection.dart';
 import 'package:easthardware_pms/domain/backend/extension_types/log_command.dart';
 import 'package:easthardware_pms/domain/backend/extensions/to_message_channel.dart';
@@ -13,6 +14,7 @@ import 'package:easthardware_pms/domain/backend/utils/isolate_indicator.dart';
 import 'package:easthardware_pms/domain/models/user.dart';
 import 'package:easthardware_pms/domain/models/user_log.dart';
 import 'package:easthardware_pms/main.dart';
+import 'package:easthardware_pms/presentation/cubit/notifications/cubit/notification_cubit.dart';
 import 'package:easthardware_pms/utils/boxed.dart';
 import 'package:easthardware_pms/utils/duration.dart';
 import 'package:easthardware_pms/utils/message_channel.dart';
@@ -40,7 +42,6 @@ late AsyncQueue _handleConnectionQueue;
 ///   as needed.
 Future<void> spawnWebSocketIsolate((RootIsolateToken, NamedSendPort) payload) async {
   assertChildIsolate();
-
   // Unpack the arguments
   final (token, sendPort) = payload;
 
@@ -70,6 +71,8 @@ Future<void> spawnWebSocketIsolate((RootIsolateToken, NamedSendPort) payload) as
   } else if (server != null) {
     sendPort.send("setup", 0);
   }
+
+  await NotificationLocalStorage.instance.initialize();
 
   // Set up the heartbeat timer. This will be used to detect unexpected crashes of the isolate.
   await _sharedPreferencesAsync.setInt("heartbeat", DateTime.now().millisecondsSinceEpoch);
@@ -185,6 +188,44 @@ Future<void> spawnWebSocketIsolate((RootIsolateToken, NamedSendPort) payload) as
           final result = await readBackups();
 
           sendPort.send(name, result);
+          break;
+        case ["get_notifications", _]:
+          final notifs = await NotificationLocalStorage.instance.getNotifications();
+          sendPort.send(
+              name,
+              notifs
+                  .map((n) => {
+                        'id': n.id,
+                        'message': n.message,
+                        'path': n.path,
+                        'time': n.time.toIso8601String(),
+                        'isRead': n.isRead,
+                        'type': n.type.value,
+                      })
+                  .toList());
+          break;
+        case ["add_notification", [final String message, final String path, final String? type]]:
+          final notificationType = type != null
+              ? NotificationType.values
+                  .firstWhere((e) => e.value == type, orElse: () => NotificationType.info)
+              : NotificationType.info;
+
+          final notification = await NotificationLocalStorage.instance.addNotification(
+            message: message,
+            path: path,
+            type: notificationType,
+          );
+
+          _notifyEveryoneAboutNotification(notification: notification);
+
+          sendPort.send(name, {
+            'id': notification.id,
+            'message': notification.message,
+            'path': notification.path,
+            'time': notification.time.toIso8601String(),
+            'isRead': notification.isRead,
+            'type': notification.type.value,
+          });
           break;
         case _:
           printBoxed("Unknown message type: $args", "MAIN2WS:invocation");
@@ -441,6 +482,42 @@ void __notifyEveryoneAboutDatabaseChangeInstantly({
     if (client != from && channel.isOpen) {
       // Notify all other clients about the database change.
       channel.sendPort.send("client", ["didUpdate", DateTime.now().millisecondsSinceEpoch]);
+    }
+  }
+}
+
+void _notifyEveryoneAboutNotification({
+  required ServerNotification notification,
+  WebSocketChannel? from,
+}) {
+  assertChildIsolate();
+
+  mainChannel.sendPort.send("main", [
+    "notification",
+    {
+      'id': notification.id,
+      'message': notification.message,
+      'path': notification.path,
+      'time': notification.time.toIso8601String(),
+      'isRead': notification.isRead,
+      'type': notification.type.value,
+    }
+  ]);
+
+  for (final (client, channel, _) in _clientChannels) {
+    if (client != from && channel.isOpen) {
+      // Send a notification event to all other clients.
+      channel.sendPort.send("client", [
+        "notification",
+        {
+          'id': notification.id,
+          'message': notification.message,
+          'path': notification.path,
+          'time': notification.time.toIso8601String(),
+          'isRead': notification.isRead,
+          'type': notification.type.value,
+        }
+      ]);
     }
   }
 }

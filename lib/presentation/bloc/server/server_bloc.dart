@@ -14,6 +14,7 @@ import 'package:easthardware_pms/presentation/bloc/server/services/server_connec
     as connection_service;
 import 'package:easthardware_pms/presentation/bloc/server/services/server_preferences_service.dart'
     as server_preferences;
+import 'package:easthardware_pms/presentation/cubit/notifications/cubit/notification_cubit.dart';
 import 'package:easthardware_pms/presentation/router/app_router.dart';
 import 'package:easthardware_pms/presentation/widgets/dialog/client_connection_dialog.dart';
 import 'package:easthardware_pms/presentation/widgets/dialog/connection_lost_dialog.dart';
@@ -71,6 +72,8 @@ class ServerBloc extends Bloc<ServerEvent, ServerState> {
     on<ServerCancelReconnection>(_onCancelReconnection);
     on<_ServerReconnectionSucceeded>(_onReconnectionSucceeded);
     on<_ServerReconnectionFailed>(_onReconnectionFailed);
+
+    on<ServerNotificationsReceived>(_onServerNotificationsReceived);
 
     if (kDebugMode) {
       on<ServerDatabaseCleared>(_onServerDatabaseCleared);
@@ -901,6 +904,18 @@ class ServerBloc extends Bloc<ServerEvent, ServerState> {
         );
       },
     );
+  }
+
+  Future<void> _onServerNotificationsReceived(
+    ServerNotificationsReceived event,
+    Emitter<ServerState> emit,
+  ) async {
+    final notificationCubit = rootWidgetKey.currentContext?.read<NotificationCubit>();
+    if (notificationCubit == null) return;
+
+    for (final notification in event.notifications) {
+      notificationCubit.addNotificationFromServer(notification);
+    }
   }
 
   @override

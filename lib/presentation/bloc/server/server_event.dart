@@ -92,6 +92,12 @@ class ServerDatabaseUpdated implements ServerEvent {
   final DateTime lastUpdated;
 }
 
+class ServerNotificationsReceived implements ServerEvent {
+  const ServerNotificationsReceived({required this.notifications});
+
+  final List<ServerNotification> notifications;
+}
+
 class _ServerResetBottomText implements ServerEvent {
   const _ServerResetBottomText();
 }

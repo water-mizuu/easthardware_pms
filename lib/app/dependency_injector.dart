@@ -50,6 +50,7 @@ import 'package:easthardware_pms/presentation/cubit/database_information/'
 import 'package:easthardware_pms/presentation/cubit/inventory/'
     'category_display/category_display_cubit.dart';
 import 'package:easthardware_pms/presentation/cubit/navigation/navigation_cubit.dart';
+import 'package:easthardware_pms/presentation/cubit/notifications/cubit/notification_cubit.dart';
 import 'package:easthardware_pms/presentation/cubit/order/cubit/order_display_cubit.dart';
 import 'package:easthardware_pms/presentation/cubit/order/expense_type_display/expense_type_display_cubit.dart';
 import 'package:easthardware_pms/presentation/cubit/payment/'
@@ -105,6 +106,7 @@ class DependencyInjector extends ChangeNotifier {
   LoginFormBloc? _loginFormBloc;
 
   DatabaseInformationCubit? _databaseInformationCubit;
+  NotificationCubit? notificationCubit;
 
   late DatabaseHelper? _databaseHelper;
   late DateTime? _lastUpdated;
@@ -318,6 +320,17 @@ class DependencyInjector extends ChangeNotifier {
           return _databaseInformationCubit =
               DatabaseInformationCubit(serverBloc.state.customChannel, _metadataDao, state)
                 ..mapIf(_databaseHelper != null, (c) async => await c.loadMetadata());
+        },
+      ),
+      BlocProvider(
+        key: key(),
+        create: (context) {
+          final state = notificationCubit?.state ?? const NotificationState();
+
+          return notificationCubit = NotificationCubit(
+            serverBloc.state.customChannel,
+            state,
+          )..mapIf(_databaseHelper != null, (c) async => await c.loadNotifications());
         },
       ),
       BlocProvider(

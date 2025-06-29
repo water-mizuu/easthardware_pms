@@ -5,6 +5,7 @@ import 'package:easthardware_pms/domain/backend/extension_types/secure_keys.dart
 import 'package:easthardware_pms/domain/backend/extensions/to_message_channel.dart';
 import 'package:easthardware_pms/domain/backend/secure_http.dart';
 import 'package:easthardware_pms/presentation/bloc/server/server_bloc.dart';
+import 'package:easthardware_pms/presentation/cubit/notifications/cubit/notification_cubit.dart';
 import 'package:easthardware_pms/utils/boxed.dart';
 import 'package:easthardware_pms/utils/message_channel.dart';
 import 'package:easthardware_pms/utils/try_future.dart';
@@ -100,6 +101,16 @@ Future<(WebSocketChannel, MessageChannel, Stream<ServerEvent>)> connectToWebSock
         }
 
         yield ServerDatabaseUpdated(lastUpdated: dateTime);
+        break;
+      case ["notification", final Map<String, dynamic> notification]:
+        // Notify the UI about a new notification.
+        if (kDebugMode) {
+          print("Received notification: $notification");
+        }
+
+        yield ServerNotificationsReceived(
+          notifications: [ServerNotification.fromJson(notification)],
+        );
         break;
       case _:
         if (kDebugMode) {

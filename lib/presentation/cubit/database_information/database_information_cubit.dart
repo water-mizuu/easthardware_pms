@@ -1,6 +1,5 @@
 import 'package:easthardware_pms/data/database/dao/metadata_dao.dart';
 import 'package:easthardware_pms/data/database/database_server_proxy.dart';
-import 'package:easthardware_pms/utils/boxed.dart';
 import 'package:easthardware_pms/utils/notification.dart';
 import 'package:easthardware_pms/utils/undefined.dart';
 import 'package:flutter/foundation.dart';
@@ -21,13 +20,9 @@ class DatabaseInformationCubit extends Cubit<DatabaseInformationState> {
   final MetadataDao _metadataDao;
 
   Future<void> loadMetadata() async {
-    printBoxed("Z");
     final recordCount = await _metadataDao.getRecordCount();
-    printBoxed("A");
     final (latestBackupDateTime, backupPaths) = await _loadBackups();
-    printBoxed("B");
     final databaseSize = await getDatabaseSize();
-    printBoxed("C");
 
     emit(
       state.copyWith(

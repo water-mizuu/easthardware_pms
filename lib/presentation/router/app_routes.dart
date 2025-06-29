@@ -83,6 +83,9 @@ class AppRoutes {
     // Settings Sub Pages
     help: AppRoute<Null>('/admin/help'),
     about: AppRoute<Null>('/admin/about'),
+
+    // Notifications
+    notifications: AppRoute<Null>('/admin/notifications'),
   );
 
   static const staff = (
