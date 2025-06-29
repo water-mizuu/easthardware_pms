@@ -29,7 +29,6 @@ class ProductFormBloc extends Bloc<ProductFormEvent, ProductFormState> {
     on<CostFieldChangedEvent>(_onCostChanged);
     on<QuantityFieldChangedEvent>(_onQuantityChanged);
     on<MainUnitFieldChangedEvent>(_onMainUnitChanged);
-    on<CriticalLevelFieldChangedEvent>(_onCriticalLevelChanged);
     on<MinReorderDelayFieldChangedEvent>(_onMinReorderDelayChanged);
     on<MaxReorderDelayFieldChangedEvent>(_onMaxReorderDelayChanged);
     on<DeadstockFieldChangedEvent>(_onDeadStockChanged);
@@ -103,19 +102,7 @@ class ProductFormBloc extends Bloc<ProductFormEvent, ProductFormState> {
   }
 
   void _onQuantityChanged(QuantityFieldChangedEvent event, Emitter<ProductFormState> emit) {
-    final quantity = event.quantity;
-    // Implementing requested feature for default critical level
-
-    if (state.criticalLevel == 0) {
-      emit(state.copyWith(isCriticalLevelEdited: false));
-    }
-
-    if (!state.isCriticalLevelEdited) {
-      final criticalLevel = double.parse((quantity / 3.0).toStringAsFixed(2));
-      emit(state.copyWith(quantity: quantity, criticalLevel: criticalLevel));
-    } else {
-      emit(state.copyWith(quantity: quantity));
-    }
+    emit(state.copyWith(quantity: event.quantity));
   }
 
   void _onMainUnitChanged(MainUnitFieldChangedEvent event, Emitter<ProductFormState> emit) {
@@ -166,12 +153,6 @@ class ProductFormBloc extends Bloc<ProductFormEvent, ProductFormState> {
     final maxReorderDelay = event.maxReorderDelay;
     printBoxed(maxReorderDelay);
     return emit(state.copyWith(maxReorderDelay: maxReorderDelay));
-  }
-
-  void _onCriticalLevelChanged(
-      CriticalLevelFieldChangedEvent event, Emitter<ProductFormState> emit) {
-    final criticalLevel = event.criticalLevel;
-    return emit(state.copyWith(criticalLevel: criticalLevel, isCriticalLevelEdited: true));
   }
 
   void _onDeadStockChanged(DeadstockFieldChangedEvent event, Emitter<ProductFormState> emit) {
@@ -339,7 +320,6 @@ class ProductFormBloc extends Bloc<ProductFormEvent, ProductFormState> {
         secondaryUnits: event.secondaryUnits.isEmpty
             ? [const FormUnit.empty()]
             : event.secondaryUnits.map(FormUnit.fromUnit).toList(),
-        criticalLevel: event.product.criticalLevel,
         minReorderDelay: event.product.minReorderDelay,
         maxReorderDelay: event.product.maxReorderDelay,
         deadStockThreshold: event.product.deadStockThreshold,

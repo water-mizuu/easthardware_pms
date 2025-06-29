@@ -13,7 +13,6 @@ class Product {
     required this.orderCost,
     required this.quantity,
     required this.mainUnit,
-    required this.criticalLevel,
     this.reorderPoint,
     required this.minReorderDelay,
     required this.maxReorderDelay,
@@ -22,7 +21,7 @@ class Product {
     required this.creationDate,
     required this.creatorId,
     this.archiveStatus,
-    this.isBelowCriticalLevel,
+    this.isBelowReorderPoint,
     this.isFastMovingStock,
     this.isDeadStock,
   });
@@ -40,14 +39,13 @@ class Product {
       mainUnit: map['main_unit']?.toString() ?? '',
       minReorderDelay: map['min_reorder_delay'] as int,
       maxReorderDelay: map['max_reorder_delay'] as int,
-      criticalLevel: (map['critical_level'] as num).toDouble(),
       reorderPoint: map['reorder_point'] != null ? (map['reorder_point'] as num).toDouble() : null,
       deadStockThreshold: (map['dead_stock_threshold'] as num).toDouble(),
       fastMovingStockThreshold: (map['fast_moving_threshold'] as num).toDouble(),
       creationDate: map['creation_date']?.toString() ?? '',
       creatorId: map['creator_id'] as int,
       archiveStatus: map['archive_status'] as int,
-      isBelowCriticalLevel: map['is_below_critical_level'] == 1,
+      isBelowReorderPoint: map['is_below_reorder_point'] == 1,
       isFastMovingStock: map['is_fast_moving'] == 1,
       isDeadStock: map['is_dead_stock'] == 1,
     );
@@ -64,14 +62,13 @@ class Product {
   final String mainUnit;
   final int minReorderDelay;
   final int maxReorderDelay;
-  final double criticalLevel;
   final double? reorderPoint;
   final double deadStockThreshold;
   final double fastMovingStockThreshold;
   final String creationDate;
   final int creatorId;
   final int? archiveStatus;
-  final bool? isBelowCriticalLevel;
+  final bool? isBelowReorderPoint;
   final bool? isFastMovingStock;
   final bool? isDeadStock;
 
@@ -88,14 +85,13 @@ class Product {
     String mainUnit,
     int minReorderDelay,
     int maxReorderDelay,
-    double criticalLevel,
     double? reorderPoint,
     double deadStockThreshold,
     double fastMovingStockThreshold,
     String creationDate,
     int creatorId,
     int archiveStatus,
-    bool? isBelowCriticalLevel,
+    bool? isBelowReorderPoint,
     bool? isFastMovingStock,
     bool? isDeadStock,
   }) get copyWith {
@@ -119,7 +115,7 @@ class Product {
       Object? creationDate = undefined,
       Object? creatorId = undefined,
       Object? archiveStatus = undefined,
-      Object? isBelowCriticalLevel = undefined,
+      Object? isBelowReorderPoint = undefined,
       Object? isFastMovingStock = undefined,
       Object? isDeadStock = undefined,
     }) {
@@ -136,14 +132,13 @@ class Product {
         mainUnit: mainUnit.or(this.mainUnit),
         minReorderDelay: minReorderDelay.or(this.minReorderDelay),
         maxReorderDelay: maxReorderDelay.or(this.maxReorderDelay),
-        criticalLevel: criticalLevel.or(this.criticalLevel),
         reorderPoint: reorderPoint.or(this.reorderPoint),
         deadStockThreshold: deadStockThreshold.or(this.deadStockThreshold),
         fastMovingStockThreshold: fastMovingStockThreshold.or(this.fastMovingStockThreshold),
         creationDate: creationDate.or(this.creationDate),
         creatorId: creatorId.or(this.creatorId),
         archiveStatus: archiveStatus.or(this.archiveStatus),
-        isBelowCriticalLevel: isBelowCriticalLevel.or(this.isBelowCriticalLevel),
+        isBelowReorderPoint: isBelowReorderPoint.or(this.isBelowReorderPoint),
         isFastMovingStock: isFastMovingStock.or(this.isFastMovingStock),
         isDeadStock: isDeadStock.or(this.isDeadStock),
       );
@@ -162,7 +157,6 @@ class Product {
       'description': description,
       'min_reorder_delay': minReorderDelay,
       'max_reorder_delay': maxReorderDelay,
-      'critical_level': criticalLevel,
       'dead_stock_threshold': deadStockThreshold,
       'fast_moving_threshold': fastMovingStockThreshold,
       'creation_date': creationDate,

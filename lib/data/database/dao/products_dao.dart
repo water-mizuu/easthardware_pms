@@ -12,9 +12,6 @@ abstract interface class ProductsDao {
   }
 
   Future<List<Product>> getAllProducts();
-  Future<List<Product>> getLowStockProducts();
-  Future<List<Product>> getFastMovingProducts();
-  Future<List<Product>> getDeadStockProducts();
   Future<Product?> getProductById(int id);
   Future<Product> insertProduct(Product product);
   Future<Product> updateProduct(Product product);
@@ -92,54 +89,6 @@ final class ProductsDaoImpl extends DaoBase implements ProductsDao {
     assert(affected == 1, "This should only update one row.");
 
     return product;
-  }
-
-  @override
-  Future<List<Product>> getDeadStockProducts() async {
-    final database = databaseHelper.database;
-    final List<Map<String, dynamic>> maps = await database.rawQuery("SELECT p.* FROM products p "
-        "WHERE p.id NOT IN ("
-        "  SELECT p2.id FROM products p2 "
-        "  JOIN invoice_products ip ON p2.id = ip.product_id "
-        "  JOIN invoices i ON ip.invoice_id = i.id "
-        "  WHERE date(i.invoice_date) >= date('now', '-' || p2.dead_stock_threshold || ' days')"
-        ")"
-        "  AND date(p.creation_date) <= date('now', '-' || p.dead_stock_threshold || ' days')"
-        "  AND archive_status = 0");
-
-    return List.generate(maps.length, (i) {
-      return Product.fromMap(maps[i]);
-    });
-  }
-
-  @override
-  Future<List<Product>> getFastMovingProducts() async {
-    final database = databaseHelper.database;
-    final List<Map<String, dynamic>> maps = await database.rawQuery(
-      "SELECT products.* FROM products "
-      "JOIN invoice_products ON products.id = invoice_products.product_id "
-      "JOIN invoices ON invoice_products.invoice_id = invoices.id "
-      "WHERE date(invoices.invoice_date) BETWEEN date('now', '-30 days') AND date('now', '0 days')"
-      "AND products.archive_status = 0 "
-      "GROUP BY products.id "
-      "HAVING count(invoices.id) >= products.fast_moving_threshold "
-      "ORDER BY count(invoices.id) DESC",
-    );
-    return List.generate(maps.length, (i) {
-      return Product.fromMap(maps[i]);
-    });
-  }
-
-  // Refactor all special case queries, as archived products won't be interacted from them
-  @override
-  Future<List<Product>> getLowStockProducts() async {
-    final database = databaseHelper.database;
-    final res = await database.query(
-      ProductsTable.PRODUCTS_TABLE_NAME,
-      where:
-          '${ProductsTable.PRODUCTS_QUANTITY} <= ${ProductsTable.PRODUCTS_CRITICAL_LEVEL} AND ${ProductsTable.PRODUCTS_ARCHIVE_STATUS} = 0',
-    );
-    return res.map(Product.fromMap).toList();
   }
 
   @override

@@ -246,7 +246,6 @@ class StockKeepingFields extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: const [
-        CriticalLevelField(),
         ReorderDelayFields(),
         DeadFastStockFields(),
       ].withSpacing(() => Spacing.v8),
@@ -398,71 +397,6 @@ class DescriptionField extends StatelessWidget {
 /// Custom Field Implemented as to meet the requirements
 /// This field shall automatically generate a critical level value
 /// based on the quantity of the product
-class CriticalLevelField extends StatefulWidget {
-  const CriticalLevelField({super.key});
-
-  @override
-  State<CriticalLevelField> createState() => _CriticalLevelFieldState();
-}
-
-class _CriticalLevelFieldState extends State<CriticalLevelField> {
-  late final TextEditingController _controller;
-
-  @override
-  void initState() {
-    super.initState();
-
-    final bloc = context.read<ProductFormBloc>();
-    _controller = TextEditingController(text: bloc.state.criticalLevel.toString());
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return BlocListener<ProductFormBloc, ProductFormState>(
-      listenWhen: (prev, curr) {
-        return prev.criticalLevel != curr.criticalLevel && !curr.isCriticalLevelEdited;
-      },
-      listener: (context, state) {
-        _controller.text = state.criticalLevel.toString();
-      },
-      //TODO: Decide upon the fate of critical level
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const BodyText('Initial Critical Level'),
-          TextFormBox(
-            inputFormatters: [
-              FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*')),
-            ],
-            controller: _controller,
-            validator: (value) {
-              if (value == null || value.trim().isEmpty) {
-                return "Critical level cannot be empty";
-              }
-              final criticalLevel = double.tryParse(value);
-              if (criticalLevel == null || criticalLevel < 0) {
-                return "Critical level must be a non-negative number";
-              }
-              return null;
-            },
-            onChanged: (value) {
-              context
-                  .read<ProductFormBloc>()
-                  .add(CriticalLevelFieldChangedEvent(double.tryParse(value) ?? 0));
-            },
-          ),
-        ].withSpacing(() => spacingBetweenNameAndForm),
-      ),
-    );
-  }
-}
 
 class ReorderDelayFields extends StatelessWidget with ProductFormValidator {
   const ReorderDelayFields({super.key});

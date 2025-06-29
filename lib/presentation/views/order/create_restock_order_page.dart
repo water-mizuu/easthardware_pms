@@ -107,7 +107,7 @@ class _CreateRestockOrderPageState extends State<CreateRestockOrderPage> {
                   p.allOrders.length != c.allOrders.length && //
                   c.status == DataStatus.success,
               listener: (context, state) {
-                context.read<ProductListBloc>().add(const ReloadAllProductsEvent());
+                context.read<ProductListBloc>().add(const LoadAllProductsEvent());
                 final userName = context.read<AuthenticationBloc>().state.user!;
                 final orderId = state.allOrders.last.id;
                 context.read<UserLogListBloc>().add(AddCreateEvent('Order #$orderId', userName));

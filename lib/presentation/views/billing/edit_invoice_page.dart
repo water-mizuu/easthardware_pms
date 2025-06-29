@@ -113,7 +113,7 @@ class EditInvoicePage extends StatelessWidget {
 
                   case InvoicePostAction.none:
                     // Update Product Stocks
-                    context.read<ProductListBloc>().add(const ReloadAllProductsEvent());
+                    context.read<ProductListBloc>().add(const LoadAllProductsEvent());
                     // Add UserLog
                     context
                         .read<UserLogListBloc>()
@@ -689,7 +689,7 @@ class _FormTableRowState extends State<FormTableRow> {
                                         child: Text(product.name, overflow: TextOverflow.ellipsis)),
                                     Text(
                                       '${product.quantity.toString()} ${product.mainUnit}',
-                                      style: product.quantity < product.criticalLevel
+                                      style: product.quantity < product.reorderPoint!
                                           ? TextStyles.error.merge(TextStyles.tooltip)
                                           : TextStyles.onSurface.merge(TextStyles.tooltip),
                                     ),

@@ -12,17 +12,6 @@ mixin ProductFormValidator {
     return null;
   }
 
-  String? validateProductCriticalLevel(String? value) {
-    if (value == null || value.trim().isEmpty) {
-      return "Critical level cannot be empty";
-    }
-    final criticalLevel = double.tryParse(value);
-    if (criticalLevel == null || criticalLevel < 0) {
-      return "Critical level must be a non-negative number";
-    }
-    return null;
-  }
-
   String? validateProductPrice(String? value) {
     if (value == null || value.trim().isEmpty) {
       return "Product price cannot be empty";

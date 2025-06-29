@@ -46,8 +46,8 @@ enum InventoryDisplaySortBy {
         late final isAStockGone = a.quantity <= 0;
         late final isBStockGone = b.quantity <= 0;
 
-        late final isAStockLow = a.isBelowCriticalLevel == true;
-        late final isBStockLow = b.isBelowCriticalLevel == true;
+        late final isAStockLow = a.isBelowReorderPoint == true;
+        late final isBStockLow = b.isBelowReorderPoint == true;
 
         switch ((isAStockGone, isBStockGone)) {
           case (true, false):

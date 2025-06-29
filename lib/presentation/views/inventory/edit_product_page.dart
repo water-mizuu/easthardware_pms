@@ -86,7 +86,6 @@ class EditProductPage extends StatelessWidget {
                           .map((u) => u.toUnit().toMap())
                           .toList(),
                       state.deadStockThreshold,
-                      state.criticalLevel,
                       state.fastMovingThreshold
                     ].map((e) => e.toString()).join('\n -');
                     if (kDebugMode) {

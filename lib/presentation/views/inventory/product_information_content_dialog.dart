@@ -174,26 +174,6 @@ class StockKeepingInformationDetails extends StatelessWidget {
           children: [
             Expanded(
               child: Text(
-                'Critical Level',
-                style: TextStyles.onSurfaceVariant,
-              ),
-            ),
-            const Spacer(),
-            Expanded(
-              child: Text(
-                product.criticalLevel.toString(),
-                style: TextStyles.onSurface,
-                textAlign: TextAlign.start,
-              ),
-            ),
-            const Spacer(flex: 2),
-          ],
-        ),
-        Spacing.v8,
-        Row(
-          children: [
-            Expanded(
-              child: Text(
                 'Reorder Level',
                 style: TextStyles.onSurfaceVariant,
               ),

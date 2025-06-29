@@ -13,7 +13,6 @@ class ProductsTable {
   static const String PRODUCTS_ORDER_COST = 'order_cost';
   static const String PRODUCTS_QUANTITY = 'quantity';
   static const String PRODUCTS_MAIN_UNIT = 'main_unit';
-  static const String PRODUCTS_CRITICAL_LEVEL = 'critical_level';
   static const String PRODUCTS_MIN_REORDER_DELAY = 'min_reorder_delay';
   static const String PRODUCTS_MAX_REORDER_DELAY = 'max_reorder_delay';
   static const String PRODUCTS_DEAD_STOCK_THRESHOLD = 'dead_stock_threshold';
@@ -34,7 +33,6 @@ class ProductsTable {
       $PRODUCTS_ORDER_COST REAL NOT NULL,
       $PRODUCTS_QUANTITY REAL NOT NULL,
       $PRODUCTS_MAIN_UNIT STRING NOT NULL,
-      $PRODUCTS_CRITICAL_LEVEL REAL NOT NULL,
       $PRODUCTS_MIN_REORDER_DELAY INTEGER NOT NULL,
       $PRODUCTS_MAX_REORDER_DELAY INTEGER NOT NULL,
       $PRODUCTS_DEAD_STOCK_THRESHOLD REAL NOT NULL,

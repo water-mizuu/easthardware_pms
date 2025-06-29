@@ -76,11 +76,6 @@ class SecondaryUnitFieldDeletedEvent extends ProductFormEvent {
   final int index;
 }
 
-class CriticalLevelFieldChangedEvent extends ProductFormEvent {
-  const CriticalLevelFieldChangedEvent(this.criticalLevel);
-  final double criticalLevel;
-}
-
 class MinReorderDelayFieldChangedEvent extends ProductFormEvent {
   const MinReorderDelayFieldChangedEvent(this.minReorderDelay);
   final int minReorderDelay;

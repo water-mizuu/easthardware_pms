@@ -371,7 +371,7 @@ class BusinessSnapshotReportBloc
         : 0.0;
 
     // Calculate inventory metrics
-    final lowStockProducts = products.where((p) => p.quantity <= p.criticalLevel).length;
+    final lowStockProducts = products.where((p) => p.isBelowReorderPoint == true).length;
     final previousLowStockCount = lowStockProducts; // Assume no historical data for now
 
     // Create key metrics list

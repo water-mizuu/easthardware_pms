@@ -195,7 +195,7 @@ class InventoryReportBloc extends Bloc<InventoryReportEvent, InventoryReportStat
         for (var i = 0; i < result.length; ++i) {
           /// We remove the statuses as they are not computable for this report.
           result[i] = result[i].copyWith(
-            isBelowCriticalLevel: false,
+            isBelowReorderPoint: false,
             isDeadStock: false,
             isFastMovingStock: false,
           );

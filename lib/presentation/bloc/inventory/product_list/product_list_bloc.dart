@@ -22,7 +22,6 @@ class ProductListBloc extends Bloc<ProductListEvent, ProductListState> {
     ProductListState initialState,
   ) : super(initialState) {
     on<LoadAllProductsEvent>(_onLoad);
-    on<ReloadAllProductsEvent>(_onReloadAllProducts);
     on<AddProductEvent>(_onAdd);
     on<UpdateProductEvent>(_onUpdate);
     on<DeleteProductEvent>(_onDelete);
@@ -42,27 +41,21 @@ class ProductListBloc extends Bloc<ProductListEvent, ProductListState> {
         );
         return product.copyWith(categoryName: category.name);
       }).toList();
-      final lowStockProducts = (await _productRepository.getLowStockProducts()).map((product) {
-        final category = categories.firstWhere(
-          (cat) => cat.id == product.categoryId,
-          orElse: () => Category(id: product.categoryId, name: 'Uncategorized'),
-        );
-        return product.copyWith(categoryName: category.name);
-      }).toList();
-      final fastMovingProducts = (await _productRepository.getFastMovingProducts()).map((product) {
-        final category = categories.firstWhere(
-          (cat) => cat.id == product.categoryId,
-          orElse: () => Category(id: product.categoryId, name: 'Uncategorized'),
-        );
-        return product.copyWith(categoryName: category.name);
-      }).toList();
-      final deadStockProducts = (await _productRepository.getDeadStockProducts()).map((product) {
-        final category = categories.firstWhere(
-          (cat) => cat.id == product.categoryId,
-          orElse: () => Category(id: product.categoryId, name: 'Uncategorized'),
-        );
-        return product.copyWith(categoryName: category.name);
-      }).toList();
+      final lowStockProducts = allProducts
+          .where(
+            (product) => (product.isBelowReorderPoint!),
+          )
+          .toList();
+      final fastMovingProducts = allProducts
+          .where(
+            (product) => (product.isFastMovingStock!),
+          )
+          .toList();
+      final deadStockProducts = allProducts
+          .where(
+            (product) => (product.isDeadStock!),
+          )
+          .toList();
 
       emit(
         state.copyWith(
@@ -75,53 +68,6 @@ class ProductListBloc extends Bloc<ProductListEvent, ProductListState> {
       );
     } catch (e, stackTrace) {
       printBoxed('Error loading products: $e\n$stackTrace', 'ProductListBloc');
-      emit(state.copyWith(status: DataStatus.error));
-    }
-  }
-
-  Future<void> _onReloadAllProducts(ReloadAllProductsEvent event, Emitter emit) async {
-    emit(state.copyWith(status: DataStatus.loading));
-    try {
-      final categories = await _categoryRepository.getAllCategories();
-      final allProducts = (await _productRepository.getAllProducts()).map((product) {
-        final category = categories.firstWhere(
-          (cat) => cat.id == product.categoryId,
-          orElse: () => Category(id: product.categoryId, name: 'Uncategorized'),
-        );
-        return product.copyWith(categoryName: category.name);
-      }).toList();
-      final lowStockProducts = (await _productRepository.getLowStockProducts()).map((product) {
-        final category = categories.firstWhere(
-          (cat) => cat.id == product.categoryId,
-          orElse: () => Category(id: product.categoryId, name: 'Uncategorized'),
-        );
-        return product.copyWith(categoryName: category.name);
-      }).toList();
-      final fastMovingProducts = (await _productRepository.getFastMovingProducts()).map((product) {
-        final category = categories.firstWhere(
-          (cat) => cat.id == product.categoryId,
-          orElse: () => Category(id: product.categoryId, name: 'Uncategorized'),
-        );
-        return product.copyWith(categoryName: category.name);
-      }).toList();
-      final deadStockProducts = (await _productRepository.getDeadStockProducts()).map((product) {
-        final category = categories.firstWhere(
-          (cat) => cat.id == product.categoryId,
-          orElse: () => Category(id: product.categoryId, name: 'Uncategorized'),
-        );
-        return product.copyWith(categoryName: category.name);
-      }).toList();
-
-      emit(
-        state.copyWith(
-          allProducts: allProducts,
-          lowStockProducts: lowStockProducts,
-          fastMovingProducts: fastMovingProducts,
-          deadStockProducts: deadStockProducts,
-          status: DataStatus.success,
-        ),
-      );
-    } catch (e) {
       emit(state.copyWith(status: DataStatus.error));
     }
   }
@@ -145,9 +91,10 @@ class ProductListBloc extends Bloc<ProductListEvent, ProductListState> {
       );
 
       final clearedProduct = insertedProduct.copyWith(
-        isBelowCriticalLevel: event.product.quantity <= event.product.criticalLevel,
+        reorderPoint: 0,
         isDeadStock: false,
         isFastMovingStock: false,
+        isBelowReorderPoint: false,
       );
 
       // 3. Insert Units on returned Product Id
@@ -160,16 +107,11 @@ class ProductListBloc extends Bloc<ProductListEvent, ProductListState> {
       }
 
       final products = [...state.allProducts, clearedProduct];
-      final lowStockProducts = [
-        ...state.lowStockProducts,
-        if (event.product.quantity <= event.product.criticalLevel) clearedProduct
-      ];
 
       emit(
         state.copyWith(
           allProducts: products,
           latest: clearedProduct,
-          lowStockProducts: lowStockProducts,
           status: DataStatus.success,
         ),
       );
@@ -188,17 +130,18 @@ class ProductListBloc extends Bloc<ProductListEvent, ProductListState> {
 
       // 2. Update Product
       final updatedProduct = await _productRepository.updateProduct(
-        event.product.copyWith(categoryId: category.id, categoryName: category.name),
-      );
-      final clearedProduct = updatedProduct.copyWith(
-        isBelowCriticalLevel: event.product.quantity <= event.product.criticalLevel,
+        event.product.copyWith(
+          categoryId: category.id,
+          categoryName: category.name,
+          isBelowReorderPoint: event.product.quantity <= event.product.reorderPoint!,
+        ),
       );
 
       // 3. Update Units
-      final existingUnits = await _unitRepository.getAllUnitsOfProductId(clearedProduct.id!);
+      final existingUnits = await _unitRepository.getAllUnitsOfProductId(updatedProduct.id!);
       final unitsToUpdate = event.units
           .where((unit) => unit.name.isNotEmpty)
-          .map((unit) => unit.copyWith(productId: clearedProduct.id))
+          .map((unit) => unit.copyWith(productId: updatedProduct.id))
           .toList();
 
       // Delete units that are not in the new list
@@ -218,22 +161,22 @@ class ProductListBloc extends Bloc<ProductListEvent, ProductListState> {
       }
       // 4. Update state
       final updatedProducts = List<Product>.from(state.allProducts);
-      final index = updatedProducts.indexWhere((p) => p.id == clearedProduct.id);
+      final index = updatedProducts.indexWhere((p) => p.id == updatedProduct.id);
       if (index != -1) {
-        updatedProducts[index] = clearedProduct;
+        updatedProducts[index] = updatedProduct;
       }
 
-      final lowstock = await _productRepository.getLowStockProducts();
-      final fastmoving = await _productRepository.getFastMovingProducts();
-      final deadstock = await _productRepository.getDeadStockProducts();
+      final lowStockProducts = List<Product>.from(state.lowStockProducts);
+      if (updatedProduct.isBelowReorderPoint!) {
+        if (!lowStockProducts.any((p) => p.id == updatedProduct.id)) {
+          lowStockProducts.add(updatedProduct);
+        }
+      }
 
       emit(
         state.copyWith(
           allProducts: updatedProducts,
-          lowStockProducts: lowstock,
-          fastMovingProducts: fastmoving,
-          deadStockProducts: deadstock,
-          latest: clearedProduct,
+          latest: updatedProduct,
           status: DataStatus.success,
         ),
       );
@@ -252,9 +195,6 @@ class ProductListBloc extends Bloc<ProductListEvent, ProductListState> {
       emit(
         state.copyWith(
           allProducts: await _productRepository.getAllProducts(),
-          lowStockProducts: await _productRepository.getLowStockProducts(),
-          fastMovingProducts: await _productRepository.getFastMovingProducts(),
-          deadStockProducts: await _productRepository.getDeadStockProducts(),
           status: DataStatus.success,
         ),
       );

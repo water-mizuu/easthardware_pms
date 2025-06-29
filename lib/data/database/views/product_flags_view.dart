@@ -36,42 +36,47 @@ class ProductFlagsView {
         GROUP BY product_id
       ),
 
-      -- Estimated average lead time per product
+      -- Fixed average lead time per product
       avg_lead_times AS (
         SELECT
         id as product_id,
-        ((max_reorder_delay - min_reorder_delay) / 2.0) AS avg_delay
+        (min_reorder_delay + max_reorder_delay) / 2.0 AS avg_delay
         FROM products
+        WHERE min_reorder_delay IS NOT NULL 
+        AND max_reorder_delay IS NOT NULL
       ),
 
       -- Lead time demand = avg_daily_sales * avg_delay
       lead_time_demand AS (
         SELECT
         ads.product_id,
-        ads.avg_daily_sales * alt.avg_delay AS lead_time_demand
+        COALESCE(ads.avg_daily_sales, 0) * COALESCE(alt.avg_delay, 0) AS lead_time_demand
         FROM average_daily_sales ads
-        JOIN avg_lead_times alt ON ads.product_id = alt.product_id
+        LEFT JOIN avg_lead_times alt ON ads.product_id = alt.product_id
       ),
 
-      -- Safety stock = max_daily_sales * max_reorder_delay - avg_daily_sales * avg_delay
+      -- Safety stock with bound checking
       safety_stock AS (
         SELECT
-        mds.product_id,
-        (mds.max_daily_sales * p.max_reorder_delay) -
-        (ads.avg_daily_sales * alt.avg_delay) AS safety_stock
-        FROM max_daily_sales mds
-        JOIN average_daily_sales ads ON mds.product_id = ads.product_id
-        JOIN avg_lead_times alt ON mds.product_id = alt.product_id
-        JOIN products p ON mds.product_id = p.id
+        p.id as product_id,
+        MAX(0, 
+          COALESCE(mds.max_daily_sales, 0) * COALESCE(p.max_reorder_delay, 0) -
+          COALESCE(ads.avg_daily_sales, 0) * COALESCE(alt.avg_delay, 0)
+        ) AS safety_stock
+        FROM products p
+        LEFT JOIN max_daily_sales mds ON p.id = mds.product_id
+        LEFT JOIN average_daily_sales ads ON p.id = ads.product_id
+        LEFT JOIN avg_lead_times alt ON p.id = alt.product_id
       ),
 
       -- Reorder point = safety stock + lead time demand
       reorder_point AS (
         SELECT
-        ss.product_id,
-        ss.safety_stock + ltd.lead_time_demand AS reorder_point
-        FROM safety_stock ss
-        JOIN lead_time_demand ltd ON ss.product_id = ltd.product_id
+        p.id as product_id,
+        COALESCE(ss.safety_stock, 0) + COALESCE(ltd.lead_time_demand, 0) AS reorder_point
+        FROM products p
+        LEFT JOIN safety_stock ss ON p.id = ss.product_id
+        LEFT JOIN lead_time_demand ltd ON p.id = ltd.product_id
       ),
 
       -- Last invoice date per product
@@ -101,34 +106,25 @@ class ProductFlagsView {
       COALESCE(rp.reorder_point, 0) AS reorder_point,
       COALESCE(rs.recent_sale_count, 0) AS recent_sales,
 
-      -- Fast-moving flag
+      -- Fast-moving flag (with null handling)
       CASE
-      WHEN rs.recent_sale_count >= p.fast_moving_threshold THEN 1
+      WHEN COALESCE(rs.recent_sale_count, 0) >= COALESCE(p.fast_moving_threshold, 999999) THEN 1
       ELSE 0
       END AS is_fast_moving,
 
-      -- Dead stock flag
+      -- Simplified dead stock flag
       CASE
-      WHEN lsd.last_sale_date IS NULL
-        AND DATE(p.creation_date) <= DATE('now', '-' || p.dead_stock_threshold || ' days')
-      OR (lsd.last_sale_date IS NOT NULL
-        AND lsd.last_sale_date < DATE('now', '-' || p.dead_stock_threshold || ' days')
-        AND DATE(p.creation_date) <= DATE('now', '-' || p.dead_stock_threshold || ' days'))
-      THEN 1 ELSE 0
+      WHEN (lsd.last_sale_date IS NULL AND DATE(p.creation_date) <= DATE('now', '-' || COALESCE(p.dead_stock_threshold, 90) || ' days'))
+        OR (lsd.last_sale_date IS NOT NULL AND lsd.last_sale_date < DATE('now', '-' || COALESCE(p.dead_stock_threshold, 90) || ' days'))
+      THEN 1 
+      ELSE 0
       END AS is_dead_stock,
 
       -- Below critical level flag
       CASE
-      WHEN DATE(p.creation_date) <= DATE('now', '-30 days')
-      THEN CASE
-        WHEN p.quantity <= COALESCE(rp.reorder_point, 999999) THEN 1
-        ELSE 0
-      END
-      ELSE CASE
-      WHEN p.quantity <= p.critical_level THEN 1
+      WHEN COALESCE(p.quantity, 0) <= COALESCE(rp.reorder_point, 0) THEN 1
       ELSE 0
-      END
-      END AS is_below_critical_level
+      END AS is_below_reorder_point
 
       FROM products p
       LEFT JOIN recent_sales rs ON p.id = rs.product_id

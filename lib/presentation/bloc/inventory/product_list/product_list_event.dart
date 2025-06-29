@@ -11,10 +11,6 @@ class LoadAllProductsEvent extends ProductListEvent {
   const LoadAllProductsEvent();
 }
 
-class ReloadAllProductsEvent extends ProductListEvent {
-  const ReloadAllProductsEvent();
-}
-
 class AddProductEvent extends ProductListEvent {
   const AddProductEvent({
     required this.product,

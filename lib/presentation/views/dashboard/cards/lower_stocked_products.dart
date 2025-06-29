@@ -73,7 +73,7 @@ class _LowerStockedProductsState extends State<LowerStockedProducts> {
   Widget build(BuildContext context) {
     final products = context
         .select((ProductListBloc b) => b.state.allProducts)
-        .where((p) => p.quantity < p.criticalLevel)
+        .where((p) => p.isBelowReorderPoint == true)
         .toList();
 
     final matrix = [

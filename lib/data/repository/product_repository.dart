@@ -58,33 +58,6 @@ class ProductRepositoryImpl implements ProductRepository {
   }
 
   @override
-  Future<List<Product>> getDeadStockProducts() {
-    try {
-      return _productsDao.getDeadStockProducts();
-    } catch (e) {
-      throw DatabaseException("Failed to fetch dead stock products: $e");
-    }
-  }
-
-  @override
-  Future<List<Product>> getFastMovingProducts() {
-    try {
-      return _productsDao.getFastMovingProducts();
-    } catch (e) {
-      throw DatabaseException("Failed to fetch fast moving products: $e");
-    }
-  }
-
-  @override
-  Future<List<Product>> getLowStockProducts() {
-    try {
-      return _productsDao.getLowStockProducts();
-    } catch (e) {
-      throw DatabaseException("Failed to fetch low stock products: $e");
-    }
-  }
-
-  @override
   Future<List<Product>> getProductsByCategoryId(int categoryId) async {
     try {
       return _productsDao.getProductsByCategoryId(categoryId);

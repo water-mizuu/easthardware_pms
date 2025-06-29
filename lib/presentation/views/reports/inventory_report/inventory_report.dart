@@ -87,9 +87,9 @@ final productColumns = <_ProductColumn>[
     value: (Product p) => CurrencyFormatter.full(p.orderCost, "Php "),
   ),
   _ProductColumn(
-    name: "Critical Level",
+    name: "Reorder Point Level",
     width: const pw.IntrinsicColumnWidth(),
-    value: (Product p) => "${p.criticalLevel.toNumberString()} ${p.mainUnit}",
+    value: (Product p) => "${p.reorderPoint!.toNumberString()} ${p.mainUnit}",
   ),
   _ProductColumn(
     name: "Qty on Hand",
@@ -373,7 +373,7 @@ class _SummarySection extends StatelessWidget {
   Widget build(BuildContext context) {
     final products = context.watch<ProductListBloc>().state.allProducts;
     final totalProducts = products.where((p) => p.archiveStatus != 1).length;
-    final lowStockCount = products.where((p) => p.isBelowCriticalLevel == true).length;
+    final lowStockCount = products.where((p) => p.isBelowReorderPoint == true).length;
     final fastMovingCount = products.where((p) => p.isFastMovingStock == true).length;
     final deadStockCount = products.where((p) => p.isDeadStock == true).length;
     final archivedProducts = products.where((p) => p.archiveStatus == 1).length;
@@ -648,7 +648,7 @@ final class _InventoryReportPdfGenerator with PdfCommons implements PdfGenerator
 
   pw.Widget _buildSummary(pw.Context context, List<Product> products) {
     final totalProducts = products.where((p) => p.archiveStatus != 1).length;
-    final lowStockCount = products.where((p) => p.isBelowCriticalLevel == true).length;
+    final lowStockCount = products.where((p) => p.isBelowReorderPoint == true).length;
     final fastMovingCount = products.where((p) => p.isFastMovingStock == true).length;
     final deadStockCount = products.where((p) => p.isDeadStock == true).length;
     final archivedProducts = products.where((p) => p.archiveStatus == 1).length;

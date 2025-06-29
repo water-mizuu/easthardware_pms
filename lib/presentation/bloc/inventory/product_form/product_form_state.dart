@@ -12,7 +12,6 @@ class ProductFormState extends Equatable {
     this.quantity = 0,
     this.mainUnit = '',
     this.secondaryUnits = const [FormUnit.empty()],
-    this.criticalLevel = 0,
     this.isCriticalLevelEdited = false,
     this.minReorderDelay = 0,
     this.maxReorderDelay = 0,
@@ -38,7 +37,6 @@ class ProductFormState extends Equatable {
       cost: product.orderCost,
       quantity: product.quantity,
       mainUnit: product.mainUnit,
-      criticalLevel: product.criticalLevel,
       minReorderDelay: product.minReorderDelay,
       maxReorderDelay: product.maxReorderDelay,
       deadStockThreshold: product.deadStockThreshold,
@@ -68,7 +66,6 @@ class ProductFormState extends Equatable {
   final double cost;
   final double quantity;
   final String mainUnit;
-  final double criticalLevel;
   // Reorder Delay in days
   final int minReorderDelay;
   final int maxReorderDelay;
@@ -104,7 +101,6 @@ class ProductFormState extends Equatable {
     double quantity,
     String mainUnit,
     List<FormUnit> secondaryUnits,
-    double criticalLevel,
     int minReorderDelay,
     int maxReorderDelay,
     bool isCriticalLevelEdited,
@@ -128,7 +124,6 @@ class ProductFormState extends Equatable {
       Object? quantity = undefined,
       Object? mainUnit = undefined,
       Object? secondaryUnits = undefined,
-      Object? criticalLevel = undefined,
       Object? minReorderDelay = undefined,
       Object? maxReorderDelay = undefined,
       Object? isCriticalLevelEdited = undefined,
@@ -152,7 +147,6 @@ class ProductFormState extends Equatable {
         quantity: quantity.or(this.quantity),
         mainUnit: mainUnit.or(this.mainUnit),
         secondaryUnits: secondaryUnits.or(this.secondaryUnits),
-        criticalLevel: criticalLevel.or(this.criticalLevel),
         minReorderDelay: minReorderDelay.or(this.minReorderDelay),
         maxReorderDelay: maxReorderDelay.or(this.maxReorderDelay),
         isCriticalLevelEdited: isCriticalLevelEdited.or(this.isCriticalLevelEdited),
@@ -180,7 +174,6 @@ class ProductFormState extends Equatable {
         quantity,
         mainUnit,
         secondaryUnits,
-        criticalLevel,
         minReorderDelay,
         maxReorderDelay,
         isCriticalLevelEdited,
@@ -204,7 +197,6 @@ class ProductFormState extends Equatable {
       orderCost: cost,
       quantity: quantity,
       mainUnit: mainUnit,
-      criticalLevel: criticalLevel,
       deadStockThreshold: deadStockThreshold,
       fastMovingStockThreshold: fastMovingThreshold,
       creationDate: creationDate!.toIso8601String(),

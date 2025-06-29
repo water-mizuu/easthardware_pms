@@ -46,7 +46,7 @@ class DataRowMapper {
             ),
           );
 
-    if (product.isBelowCriticalLevel == true) {
+    if (product.isBelowReorderPoint == true) {
       return DataRow(
         onSelectChanged: viewAction != null ? (_) => viewAction() : null,
         cells: [
