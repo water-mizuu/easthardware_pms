@@ -49,7 +49,7 @@ mixin CommonSidePanelMixin on NavigationPanelMixin {
         PaneDisplayMode.compact when !NavigationView.of(context).compactOverlayOpen => Padding(
             padding: const EdgeInsets.fromLTRB(16, 16, 16, 19),
             child: Image.asset(
-              'assets/icons/app.png',
+              'assets/icons/logo.png',
               height: 18,
               width: 18,
             ),

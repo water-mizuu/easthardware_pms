@@ -1,5 +1,5 @@
 import 'package:easthardware_pms/presentation/widgets/layout/spacing.dart';
-import 'package:easthardware_pms/presentation/widgets/text.dart';
+import 'package:easthardware_pms/presentation/widgets/ui/styles.dart';
 import 'package:fluent_ui/fluent_ui.dart';
 
 class LogoRow extends StatelessWidget {
@@ -7,15 +7,15 @@ class LogoRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const padding = EdgeInsets.fromLTRB(8, 14, 8, 12);
+    const padding = EdgeInsets.symmetric(horizontal: 0, vertical: 8);
     return Padding(
       padding: padding,
       child: LayoutBuilder(builder: (context, constraints) {
         final maxWidth = constraints.maxWidth;
         final logo = Image.asset(
-          'assets/icons/app.png',
-          height: 18,
-          width: 18,
+          'assets/icons/logo.png',
+          height: 64,
+          width: 64,
           fit: BoxFit.contain,
         );
 
@@ -27,7 +27,13 @@ class LogoRow extends StatelessWidget {
         return Row(
           children: <Widget>[
             logo,
-            const Expanded(child: SubheadingText("East Hardware", overflow: TextOverflow.clip))
+            const Expanded(
+              child: Text(
+                "Prodcut Management System",
+                style: TextStyles.strong,
+                overflow: TextOverflow.clip,
+              ),
+            )
           ].withSpacing(() => Spacing.h16),
         );
       }),

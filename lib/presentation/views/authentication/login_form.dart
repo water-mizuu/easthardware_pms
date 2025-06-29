@@ -9,6 +9,7 @@ import 'package:easthardware_pms/presentation/bloc/authentication/'
     'login_form/login_form_validator.dart';
 import 'package:easthardware_pms/presentation/widgets/layout/spacing.dart';
 import 'package:easthardware_pms/presentation/widgets/text.dart';
+import 'package:easthardware_pms/presentation/widgets/ui/styles.dart';
 import 'package:fluent_ui/fluent_ui.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
@@ -41,9 +42,9 @@ class LoginForm extends StatelessWidget {
           child: Form(
             key: context.select((LoginFormBloc b) => b.formKey),
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                Image.asset("assets/icons/app.png", height: 24.0),
+                Image.asset("assets/icons/logo.png", height: 64.0),
                 const _FormHeader(),
                 const _FormUsernameField(),
                 const _FormPasswordField(),
@@ -72,15 +73,19 @@ class _FormHeader extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        const HeadingText(
+        const Text(
           "Login",
+          style: TextStyles.title,
           textAlign: TextAlign.start,
         ),
-        const GrayText(
+        Spacing.v8,
+        Text(
           "Fill in the form below to log in",
+          style: TextStyles.onSurfaceVariant.merge(TextStyles.subtitle),
           textAlign: TextAlign.start,
-        )
-      ].withSpacing(() => Spacing.v8),
+        ),
+        Spacing.v16
+      ],
     );
   }
 }
@@ -93,7 +98,7 @@ class _FormUsernameField extends StatelessWidget with LoginFormValidator {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        const BodyText("Username"),
+        const Text("Username", style: TextStyles.body),
         BlocBuilder<LoginFormBloc, LoginFormState>(
           buildWhen: (p, c) => p.usernameError != c.usernameError,
           builder: (context, state) => TextFormBox(
@@ -120,7 +125,7 @@ class _FormPasswordField extends StatelessWidget with LoginFormValidator {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        const BodyText('Password'),
+        const Text('Password', style: TextStyles.body),
         BlocBuilder<LoginFormBloc, LoginFormState>(
           buildWhen: (p, c) => p.passwordError != c.passwordError,
           builder: (context, state) => TextFormBox(

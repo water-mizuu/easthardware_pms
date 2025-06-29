@@ -64,9 +64,9 @@ class _NewPasswordForm extends StatelessWidget {
       child: Padding(
         padding: AppPadding.a32,
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            Image.asset("assets/icons/app.png", height: 24.0),
+            Image.asset("assets/icons/logo.png", height: 64.0),
             const _FormHeader(),
             const NewPasswordInputSection(),
             const ConfirmPasswordInputSection(),

@@ -609,7 +609,7 @@ final class _InventoryReportPdfGenerator with PdfCommons implements PdfGenerator
   @override
   Future<Uint8List> generatePdf(PdfPageFormat? format) async {
     final pdf = pw.Document();
-    final logo = await rootBundle.load('assets/icons/app.png');
+    final logo = await rootBundle.load('assets/icons/logo.png');
 
     pdf.addPage(
       pw.MultiPage(

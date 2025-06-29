@@ -74,9 +74,9 @@ class _ResetPasswordFormState extends State<_ResetPasswordForm> {
           padding: AppPadding.a32,
           child: Column(
             mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              Image.asset("assets/icons/app.png", height: 24.0),
+              Image.asset("assets/icons/logo.png", height: 64.0),
               _FormHeader(),
               const _UsernameInputSection(),
               const _SecurityQuestionSection(),
