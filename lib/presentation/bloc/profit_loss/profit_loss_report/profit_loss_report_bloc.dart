@@ -5,6 +5,7 @@ import 'package:easthardware_pms/domain/models/order.dart';
 import 'package:easthardware_pms/domain/models/order_product.dart';
 import 'package:easthardware_pms/domain/models/product.dart';
 import 'package:easthardware_pms/presentation/views/reports/profit_loss_report/profit_loss_query_data.dart';
+import 'package:easthardware_pms/utils/date_filter.dart';
 import 'package:easthardware_pms/utils/num_iterable_extension.dart';
 import 'package:equatable/equatable.dart';
 import 'package:fluent_ui/fluent_ui.dart';
@@ -179,11 +180,11 @@ class ProfitLossReportBloc extends Bloc<ProfitLossReportEvent, ProfitLossReportS
 
     // Filter invoices and orders by date range
     final filteredInvoices = invoices.where((invoice) {
-      return invoice.creationDate.isAfter(startDate) && invoice.creationDate.isBefore(endDate);
+      return invoice.creationDate.isWithinTheDays(startDate, endDate);
     }).toList();
 
     final filteredOrders = orders.where((order) {
-      return order.orderDate.isAfter(startDate) && order.orderDate.isBefore(endDate);
+      return order.orderDate.isWithinTheDays(startDate, endDate);
     }).toList();
 
     // Group the data by the selected grouping

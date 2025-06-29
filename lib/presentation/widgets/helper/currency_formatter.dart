@@ -13,7 +13,7 @@ final class CurrencyFormatter {
       symbol: symbol,
     );
 
-    return formatter.format(value);
+    return formatter.format(value == 0.0 ? value.abs() : value);
   }
 
   static String full(double value, [String symbol = '₱']) {
@@ -26,6 +26,6 @@ final class CurrencyFormatter {
       symbol: symbol,
     );
 
-    return formatter.format(value);
+    return formatter.format(value == 0.0 ? value.abs() : value);
   }
 }

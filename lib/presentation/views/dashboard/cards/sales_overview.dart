@@ -7,6 +7,7 @@ import 'package:easthardware_pms/presentation/widgets/helper/currency_formatter.
 import 'package:easthardware_pms/presentation/widgets/layout/spacing.dart';
 import 'package:easthardware_pms/presentation/widgets/text.dart';
 import 'package:easthardware_pms/utils/boxed.dart';
+import 'package:easthardware_pms/utils/date_filter.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:fluent_ui/fluent_ui.dart';
 import 'package:provider/provider.dart';
@@ -289,8 +290,9 @@ class _ChartUtils {
     DateTime endDate,
   ) {
     return allInvoices.where((inv) {
-      final invDate = inv.invoiceDate.zeroedTime();
-      return !invDate.isBefore(startDate) && !invDate.isAfter(endDate);
+      final invDate = inv.invoiceDate;
+
+      return invDate.isWithinTheDays(startDate, endDate);
     }).toList();
   }
 

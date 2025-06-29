@@ -8,7 +8,7 @@ import 'package:easthardware_pms/domain/models/user_log.dart';
 import 'package:easthardware_pms/domain/repository/user_log_repository.dart';
 import 'package:easthardware_pms/domain/repository/user_repository.dart';
 import 'package:easthardware_pms/presentation/views/dashboard/cards/sales_overview.dart';
-import 'package:easthardware_pms/utils/boxed.dart';
+import 'package:easthardware_pms/utils/date_filter.dart';
 import 'package:easthardware_pms/utils/duration.dart';
 import 'package:easthardware_pms/utils/levenshtein.dart';
 import 'package:easthardware_pms/utils/notification.dart';
@@ -181,12 +181,12 @@ class UserLogListBloc extends Bloc<UserLogListEvent, UserLogListState> {
   ) async {
     emit(state.copyWith(status: DataStatus.loading));
     try {
+      final queryData = state.queryData;
+
       /// We only get the logs that are within the date range specified in the query data.
       ///   This is to avoid processing logs that are not relevant to the current query.
       final logsWithinTheDate = state.userLogs
-          .where((log) => log.eventTime.isAfter(state.queryData.startDate.zeroedTime()))
-          .where(
-              (log) => log.eventTime.isBefore((state.queryData.endDate.add(1.days)).zeroedTime()))
+          .where((l) => l.eventTime.isWithinTheDays(queryData.startDate, queryData.endDate))
           .toList();
 
       /// We get the users assigned to each of the logs within the date range.
@@ -195,12 +195,6 @@ class UserLogListBloc extends Bloc<UserLogListEvent, UserLogListState> {
           .map((log) => _userRepository.getUserById(log.userId))
           .toList()
           .wait;
-
-      printBoxed((state.userLogs
-          .map((u) =>
-              u.eventTime.isAfter(state.queryData.startDate) &&
-              u.eventTime.isBefore(state.queryData.endDate))
-          .toList()));
 
       /// We create a map of user IDs to their corresponding User objects for quick access.
       ///   This is used to filter logs by access level and to display user information in the
@@ -221,7 +215,6 @@ class UserLogListBloc extends Bloc<UserLogListEvent, UserLogListState> {
 
       /// If no search query is specified, we simply return the logs filtered by access level.
       final query = state.queryData.query?.trim() ?? '';
-      printBoxed("$query\n${query.isEmpty}", "Search Query");
       if (query.isEmpty) {
         selectedUserLogs.sort(
           (a, b) => -switch ((a.eventTime.zeroedTime()).compareTo(b.eventTime.zeroedTime())) {
@@ -229,8 +222,6 @@ class UserLogListBloc extends Bloc<UserLogListEvent, UserLogListState> {
             final res => res,
           },
         );
-
-        printBoxed(selectedUserLogs.join("\n"), "Filtered Logs");
 
         emit(state.copyWith(
           filteredLogs: selectedUserLogs,

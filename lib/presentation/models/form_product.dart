@@ -2,10 +2,8 @@ import 'package:easthardware_pms/domain/enums/enums.dart';
 import 'package:easthardware_pms/domain/models/invoice_product.dart';
 import 'package:easthardware_pms/domain/models/order_product.dart';
 import 'package:easthardware_pms/domain/models/product.dart';
-import 'package:easthardware_pms/presentation/bloc/inventory/product_list/product_list_bloc.dart';
 import 'package:easthardware_pms/utils/undefined.dart';
 import 'package:equatable/equatable.dart';
-import 'package:path/path.dart';
 
 class FormProduct with EquatableMixin {
   factory FormProduct.fromProduct(Product product) {

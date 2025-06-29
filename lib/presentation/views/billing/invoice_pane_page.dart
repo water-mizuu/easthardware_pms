@@ -1,9 +1,6 @@
-import 'dart:async';
-
 import 'package:easthardware_pms/domain/enums/enums.dart';
 import 'package:easthardware_pms/presentation/bloc/authentication/authentication/authentication_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/billing/invoicelist/invoice_list_bloc.dart';
-import 'package:easthardware_pms/presentation/bloc/server/server_bloc.dart';
 import 'package:easthardware_pms/presentation/cubit/billing/invoice_display/invoice_display_cubit.dart';
 import 'package:easthardware_pms/presentation/router/app_routes.dart';
 import 'package:easthardware_pms/presentation/views/billing/components/invoice_data_source.dart';
@@ -12,10 +9,8 @@ import 'package:easthardware_pms/presentation/widgets/text.dart';
 import 'package:easthardware_pms/presentation/widgets/ui/styles.dart';
 import 'package:easthardware_pms/presentation/widgets/ui/table_theme_data.dart';
 import 'package:easthardware_pms/presentation/widgets/ui/text_button.dart';
-import 'package:easthardware_pms/utils/boxed.dart';
 import 'package:easthardware_pms/utils/typed_routes.dart';
 import 'package:fluent_ui/fluent_ui.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart' show DataColumn, PaginatedDataTable;
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -101,7 +96,7 @@ class PageActions extends StatelessWidget {
             Expanded(
               child: TextBox(
                 placeholder: 'Search',
-                onChanged: (value) => context.read<InvoiceDisplayCubit>().search(value),
+                onChanged: (e) => context.read<InvoiceDisplayCubit>().search(e),
               ),
             ),
             const SizedBox(width: 48),
@@ -150,18 +145,6 @@ class InvoiceDataTable extends StatelessWidget {
 
             final displayCubit = context.read<InvoiceDisplayCubit>();
             final invoices = displayCubit.state.filteredInvoices ?? displayCubit.state.allInvoices;
-            unawaited(() async {
-              final result = await context.read<ServerBloc>().state.customChannel!.invoke("db", [
-                "rawQuery",
-                ["SELECT * FROM invoices", []]
-              ]);
-
-              if (kDebugMode) {
-                printBoxed(result);
-              }
-
-              printBoxed((displayCubit.state.filteredInvoices, displayCubit.state.allInvoices));
-            }());
 
             if (invoices == null || invoices.isEmpty) {
               return Expanded(

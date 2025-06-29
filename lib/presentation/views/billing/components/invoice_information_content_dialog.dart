@@ -373,14 +373,14 @@ class _InvoiceProductTableState extends State<InvoiceProductTable> {
                 Spacing.h16,
                 Expanded(
                   child: Text(
-                    state.invoiceProducts[i].rate.toStringAsFixed(2),
+                    CurrencyFormatter.full(state.invoiceProducts[i].rate),
                     style: TextStyles.body,
                   ),
                 ),
                 Spacing.h16,
                 Expanded(
                   child: Text(
-                    state.invoiceProducts[i].amount.toStringAsFixed(2),
+                    CurrencyFormatter.full(state.invoiceProducts[i].amount),
                     style: TextStyles.body,
                   ),
                 ),

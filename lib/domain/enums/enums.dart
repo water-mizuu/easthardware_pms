@@ -45,10 +45,10 @@ enum OrderType {
 }
 
 enum CategoryDisplaySortBy {
-  nameAscending('Name Ascending'),
-  nameDescending('Name Descending'),
-  productCountAscending('Product Count Ascending'),
-  productCountDescending('Product Count Descending');
+  nameAscending('Name (A-Z)'),
+  nameDescending('Name (Z-A)'),
+  productCountAscending('Product Count (Low to High)'),
+  productCountDescending('Product Count (High to Low)');
 
   const CategoryDisplaySortBy(this.name);
   final String name;
@@ -58,12 +58,12 @@ enum CategoryDisplaySortBy {
 }
 
 enum PaymentDisplaySortBy {
-  dateAscending('Date Ascending'),
-  dateDescending('Date Descending'),
-  amountAscending('Amount Ascending'),
-  amountDescending('Amount Descending'),
-  referenceAscending('Reference Ascending'),
-  referenceDescending('Reference Descending');
+  dateAscending('Date (Newest First)'),
+  dateDescending('Date (Oldest First)'),
+  amountAscending('Amount (Low to High)'),
+  amountDescending('Amount (High to Low)'),
+  referenceAscending('Reference (A-Z)'),
+  referenceDescending('Reference (Z-A)');
 
   const PaymentDisplaySortBy(this.name);
   final String name;
@@ -73,16 +73,16 @@ enum PaymentDisplaySortBy {
 }
 
 enum InvoiceDisplaySortBy {
-  invoiceDateAscending('Date Ascending'),
-  invoiceDateDescending('Date Descending'),
-  numberAscending('Invoice Number Ascending'),
-  numberDescending('Invoice Number Descending'),
-  customerAscending('Customer Ascending'),
-  customerDescending('Customer Descending'),
-  totalAscending('Total Ascending'),
-  totalDescending('Total Descending'),
-  statusAscending('Status Ascending'),
-  statusDescending('Status Descending');
+  invoiceDateAscending('Date (Newest First)'),
+  invoiceDateDescending('Date (Oldest First)'),
+  numberAscending('Invoice Number (Low to High)'),
+  numberDescending('Invoice Number (High to Low)'),
+  customerAscending('Customer (A-Z)'),
+  customerDescending('Customer (Z-A)'),
+  totalAscending('Total (Low to High)'),
+  totalDescending('Total (High to Low)'),
+  statusAscending('Status (A-Z)'),
+  statusDescending('Status (Z-A)');
 
   const InvoiceDisplaySortBy(this.name);
   final String name;

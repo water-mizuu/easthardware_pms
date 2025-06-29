@@ -190,10 +190,7 @@ class _TopProductActivityState extends State<TopProductActivity> {
     final invoiceProductRepository = context.read<InvoiceProductRepository>();
 
     final chosenLimit = _productActivityChoice.value;
-    printBoxed((invoices
-        .where((i) => _productActivityChoice.value.check(i.creationDate))
-        .map((i) => i.creationDate)
-        .join("\n")));
+
     final (products, error) = await invoices
         // Take only the invoices that match the chosen time frame.
         .where((i) => _productActivityChoice.value.check(i.creationDate))

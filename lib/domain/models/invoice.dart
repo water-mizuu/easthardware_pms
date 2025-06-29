@@ -24,8 +24,6 @@ class Invoice {
 
   factory Invoice.fromMap(Map<String, dynamic> map) {
     try {
-      printBoxed(map);
-
       // Handle discount_type with proper null checking
       DiscountType? discountType;
       if (map['discount'] != null && map['discount_type'] != null) {

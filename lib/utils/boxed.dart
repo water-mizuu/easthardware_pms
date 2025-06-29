@@ -17,7 +17,9 @@ void printBoxed(Object? value, [String? label, Color? color]) {
 }
 
 void _printBoxed(Object? value, [String? label, Color? color]) {
-  const maxLength = 80;
+  label ??= _computeWhereItWasCalled();
+
+  const maxLength = 120;
   const minContentWidth = 10; // Minimum content width inside the box
 
   // Calculate the maximum content width (accounting for borders: | content |)
@@ -25,7 +27,7 @@ void _printBoxed(Object? value, [String? label, Color? color]) {
 
   final lines = value.toString().split('\n');
   final longestLineLength = lines.map((e) => e.length).fold(0, max);
-  final labelLength = label?.length ?? 0; // Determine the actual content width we'll use
+  final labelLength = label.length; // Determine the actual content width we'll use
   final contentWidth = min(
     max(max(longestLineLength, labelLength), minContentWidth),
     maxContentWidth,
@@ -35,7 +37,7 @@ void _printBoxed(Object? value, [String? label, Color? color]) {
   final boxWidth = contentWidth + 4;
 
   // Prepare the label for the top border
-  final truncatedLabel = label != null && label.isNotEmpty
+  final truncatedLabel = label.isNotEmpty
       ? label.length > contentWidth
           ? ' ${label.substring(0, contentWidth - 4)}... '
           : ' $label '
@@ -69,4 +71,24 @@ void _printBoxed(Object? value, [String? label, Color? color]) {
   buffer.writeln('+${'-' * (boxWidth - 2)}+');
 
   stdout.write(buffer);
+}
+
+String _computeWhereItWasCalled() {
+  final stack = StackTrace.current;
+  final frames = stack.toString().split('\n');
+  // Find the first frame that is not from this file or the printBoxed function itself
+  for (final frame in frames) {
+    if (frame.contains('printBoxed') || frame.contains('boxed.dart')) {
+      continue; // Skip frames from this function or the boxed.dart file
+    }
+
+    // Extract the file name and line number
+    final match = RegExp(r'(\w+\.dart):(\d+)').firstMatch(frame);
+    if (match != null) {
+      final fileName = match.group(1);
+      final lineNumber = match.group(2);
+      return '$fileName:$lineNumber';
+    }
+  }
+  return 'Unknown location';
 }

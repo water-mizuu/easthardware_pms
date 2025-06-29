@@ -16,8 +16,8 @@ extension SalesExtrasPair on (Product, SalesExtras) {
   double get unitsSold => extras.unitsSold;
   double get unitsOrdered => extras.unitsOrdered;
   double get totalRevenue => unitsSold * product.salePrice;
-  double get totalCost => unitsOrdered * product.orderCost;
-  double get grossProfit => totalRevenue - totalCost;
+  double get totalOrderCost => unitsOrdered * product.orderCost;
+  double get grossProfit => totalRevenue - totalOrderCost;
 }
 
 class SalesExtras with EquatableMixin {
@@ -69,7 +69,7 @@ class SalesQueryData with EquatableMixin {
     this.salesByCategoryData,
     this.productSortBy = SalesByProductReportSortBy.skuAscending,
     this.categorySortBy = SalesByCategoryReportSortBy.categoryNameAscending,
-    this.take,
+    this.rowLimit,
   });
 
   final DateTime startDate;
@@ -78,7 +78,7 @@ class SalesQueryData with EquatableMixin {
   final List<SalesByCategoryDatum>? salesByCategoryData;
   final SalesByProductReportSortBy productSortBy;
   final SalesByCategoryReportSortBy categorySortBy;
-  final int? take;
+  final int? rowLimit;
 
   SalesQueryData Function({
     DateTime startDate,
@@ -87,7 +87,7 @@ class SalesQueryData with EquatableMixin {
     List<SalesByCategoryDatum>? salesByCategoryData,
     SalesByProductReportSortBy productSortBy,
     SalesByCategoryReportSortBy categorySortBy,
-    int? take,
+    int? rowLimit,
   }) get copyWith {
     return ({
       Object? startDate = undefined,
@@ -96,7 +96,7 @@ class SalesQueryData with EquatableMixin {
       Object? salesByCategoryData = undefined,
       Object? productSortBy = undefined,
       Object? categorySortBy = undefined,
-      Object? take = undefined,
+      Object? rowLimit = undefined,
     }) {
       return SalesQueryData(
         startDate: startDate.or(this.startDate),
@@ -105,7 +105,7 @@ class SalesQueryData with EquatableMixin {
         salesByCategoryData: salesByCategoryData.or(this.salesByCategoryData),
         productSortBy: productSortBy.or(this.productSortBy),
         categorySortBy: categorySortBy.or(this.categorySortBy),
-        take: take.or(this.take),
+        rowLimit: rowLimit.or(this.rowLimit),
       );
     };
   }
@@ -118,19 +118,19 @@ class SalesQueryData with EquatableMixin {
         salesByCategoryData,
         productSortBy,
         categorySortBy,
-        take,
+        rowLimit,
       ];
 
   List<(Product, SalesExtras)>? get salesByProductDataWithTake {
-    if (take != null && salesByProductData != null) {
-      return salesByProductData?.take(take!).toList();
+    if (rowLimit != null && salesByProductData != null) {
+      return salesByProductData?.take(rowLimit!).toList();
     }
     return salesByProductData;
   }
 
   List<SalesByCategoryDatum>? get salesByCategoryDataWithTake {
-    if (take != null && salesByCategoryData != null) {
-      return salesByCategoryData?.take(take!).toList();
+    if (rowLimit != null && salesByCategoryData != null) {
+      return salesByCategoryData?.take(rowLimit!).toList();
     }
     return salesByCategoryData;
   }

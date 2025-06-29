@@ -4,23 +4,24 @@ sealed class PaymentFormEvent extends Equatable {
   const PaymentFormEvent();
 
   @override
-  List<Object> get props => [];
+  List<Object?> get props => [];
 }
 
 class InvoiceCleared extends PaymentFormEvent {
   const InvoiceCleared();
 
   @override
-  List<Object> get props => [];
+  List<Object?> get props => [];
 }
 
 class InvoiceChanged extends PaymentFormEvent {
-  const InvoiceChanged(this.invoice);
+  const InvoiceChanged(this.invoice, {required this.isUserInput});
 
   final Invoice invoice;
+  final bool isUserInput;
 
   @override
-  List<Object> get props => [invoice];
+  List<Object?> get props => [invoice, isUserInput];
 }
 
 class PaymentMethodChanged extends PaymentFormEvent {
@@ -29,7 +30,7 @@ class PaymentMethodChanged extends PaymentFormEvent {
   final PaymentMethod paymentMethod;
 
   @override
-  List<Object> get props => [paymentMethod];
+  List<Object?> get props => [paymentMethod];
 }
 
 class PaymentReferenceChanged extends PaymentFormEvent {
@@ -38,7 +39,7 @@ class PaymentReferenceChanged extends PaymentFormEvent {
   final String paymentReference;
 
   @override
-  List<Object> get props => [paymentReference];
+  List<Object?> get props => [paymentReference];
 }
 
 class AmountChanged extends PaymentFormEvent {
@@ -47,7 +48,7 @@ class AmountChanged extends PaymentFormEvent {
   final double amount;
 
   @override
-  List<Object> get props => [amount];
+  List<Object?> get props => [amount];
 }
 
 class PaymentDateChanged extends PaymentFormEvent {
@@ -56,21 +57,21 @@ class PaymentDateChanged extends PaymentFormEvent {
   final DateTime paymentDate;
 
   @override
-  List<Object> get props => [paymentDate];
+  List<Object?> get props => [paymentDate];
 }
 
 class PrintPaymentRequestEvent extends PaymentFormEvent {
   const PrintPaymentRequestEvent();
 
   @override
-  List<Object> get props => [];
+  List<Object?> get props => [];
 }
 
 class SavePaymentRequestEvent extends PaymentFormEvent {
   const SavePaymentRequestEvent();
 
   @override
-  List<Object> get props => [];
+  List<Object?> get props => [];
 }
 
 class FormSubmittedEvent extends PaymentFormEvent {}

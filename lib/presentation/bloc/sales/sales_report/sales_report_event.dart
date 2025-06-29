@@ -114,11 +114,11 @@ class SalesReportUpdateOrderProductsEvent extends SalesReportEvent {
   List<Object?> get props => [orderProducts];
 }
 
-class SalesReportSetTakeEvent extends SalesReportEvent {
-  const SalesReportSetTakeEvent(this.take);
+class SalesReportSetRowLimitEvent extends SalesReportEvent {
+  const SalesReportSetRowLimitEvent(this.limit);
 
-  final int take;
+  final int limit;
 
   @override
-  List<Object?> get props => [take];
+  List<Object?> get props => [limit];
 }

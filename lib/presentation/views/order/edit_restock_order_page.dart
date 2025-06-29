@@ -23,13 +23,14 @@ import 'package:easthardware_pms/presentation/views/order/order_widgets/index.da
 import 'package:easthardware_pms/presentation/views/order/order_widgets/rate.dart';
 import 'package:easthardware_pms/presentation/views/order/order_widgets/remove_button.dart';
 import 'package:easthardware_pms/presentation/widgets/animated_single_child_scroll_view.dart';
+import 'package:easthardware_pms/presentation/widgets/bordered_date_picker.dart';
 import 'package:easthardware_pms/presentation/widgets/expense_type_combo_box.dart';
 import 'package:easthardware_pms/presentation/widgets/helper/currency_formatter.dart';
 import 'package:easthardware_pms/presentation/widgets/layout/spacing.dart';
 import 'package:easthardware_pms/presentation/widgets/payment_method_combo_box.dart';
 import 'package:easthardware_pms/presentation/widgets/text.dart';
-import 'package:easthardware_pms/presentation/widgets/ui/styles.dart';
 import 'package:easthardware_pms/presentation/widgets/ui/form_table_column.dart';
+import 'package:easthardware_pms/presentation/widgets/ui/styles.dart';
 import 'package:easthardware_pms/presentation/widgets/ui/text_button.dart';
 import 'package:easthardware_pms/utils/boxed.dart';
 import 'package:easthardware_pms/utils/notification.dart';
@@ -176,9 +177,9 @@ class _EditRestockOrderPageState extends State<EditRestockOrderPage> {
                 printBoxed('Preparing to submit order update', 'EditRestockOrder');
 
                 // Create a new list with corrected descriptions
-                final List<OrderProduct> correctedProducts = [];
+                final correctedProducts = <OrderProduct>[];
 
-                for (int i = 0; i < products!.length; i++) {
+                for (var i = 0; i < products!.length; i++) {
                   final product = products[i];
                   final originalProduct = state.products![i];
 
@@ -432,7 +433,7 @@ class _OrderPageFormState extends State<_OrderPageForm> {
                   children: [
                     const BodyText('Order Date'),
                     Spacing.v8,
-                    DatePicker(
+                    BorderedDatePicker(
                       selected: context.watch<OrderFormBloc>().state.orderDate,
                       onChanged: (date) =>
                           context.read<OrderFormBloc>().add(OrderDateChangedEvent(date)),

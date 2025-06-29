@@ -89,7 +89,7 @@ class User {
   }
 
   Map<String, dynamic> toMap() {
-    final map = <String, dynamic>{
+    return {
       'id': id,
       'uid': uid,
       'first_name': firstName,
@@ -102,8 +102,5 @@ class User {
       'login_status': loginStatus,
       'creation_date': creationDate,
     };
-
-    print('User.toMap: $map');
-    return map;
   }
 }

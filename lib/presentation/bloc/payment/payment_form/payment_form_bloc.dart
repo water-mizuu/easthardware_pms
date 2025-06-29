@@ -26,7 +26,12 @@ class PaymentFormBloc extends Bloc<PaymentFormEvent, PaymentFormState> {
   }
 
   void _onInvoiceChanged(InvoiceChanged event, Emitter<PaymentFormState> emit) {
-    emit(state.copyWith(invoice: event.invoice));
+    printBoxed((event.isUserInput));
+    if (event.isUserInput) {
+      emit(state.copyWith(invoice: event.invoice));
+    } else {
+      emit(state.copyWith(invoice: event.invoice, lastAutomatedUpdate: DateTime.now()));
+    }
   }
 
   void _onInvoiceCleared(InvoiceCleared event, Emitter<PaymentFormState> emit) {

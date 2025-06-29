@@ -11,6 +11,7 @@ import 'package:easthardware_pms/presentation/bloc/security/user_log_list/user_l
 import 'package:easthardware_pms/presentation/models/form_product.dart';
 import 'package:easthardware_pms/presentation/router/app_routes.dart';
 import 'package:easthardware_pms/presentation/widgets/auto_auto_suggest_box.dart';
+import 'package:easthardware_pms/presentation/widgets/bordered_date_picker.dart';
 import 'package:easthardware_pms/presentation/widgets/helper/currency_formatter.dart';
 import 'package:easthardware_pms/presentation/widgets/layout/spacing.dart';
 import 'package:easthardware_pms/presentation/widgets/text.dart';
@@ -121,6 +122,14 @@ class CreateInvoicePage extends StatelessWidget {
                 }
               },
             ),
+            BlocListener<InvoiceFormBloc, InvoiceFormState>(
+              listenWhen: (p, c) =>
+                  p.status == FormStatus.submitting && c.status != FormStatus.submitting ||
+                  p.status != FormStatus.submitting && c.status == FormStatus.submitting,
+              listener: (context, state) {
+                //
+              },
+            ),
           ],
           child: Stack(
             children: [
@@ -214,7 +223,7 @@ class PageForm extends StatelessWidget {
                     children: [
                       const BodyText('Invoice Date'),
                       Spacing.v8,
-                      DatePicker(
+                      BorderedDatePicker(
                         selected: context.select((InvoiceFormBloc bloc) => bloc.state.invoiceDate),
                         onChanged: (value) =>
                             context.read<InvoiceFormBloc>().add(InvoiceDateChangedEvent(value)),
@@ -235,7 +244,7 @@ class PageForm extends StatelessWidget {
                     children: [
                       const BodyText('Due Date'),
                       Spacing.v8,
-                      DatePicker(
+                      BorderedDatePicker(
                         selected: context.select((InvoiceFormBloc bloc) => bloc.state.dueDate),
                         onChanged: (value) =>
                             context.read<InvoiceFormBloc>().add(DueDateChangedEvent(value)),
@@ -766,7 +775,7 @@ class _FormTableRowState extends State<FormTableRow> {
                     child: FormTableCell(
                       child: TextFormBoxes.ghost(
                         enabled: false,
-                        placeholder: currentFormProduct.amount.toStringAsFixed(2),
+                        placeholder: CurrencyFormatter.full(currentFormProduct.amount),
                         placeholderStyle: currentFormProduct.productId == null
                             ? TextStyles.onSurfaceVariant
                             : TextStyles.onSurface,

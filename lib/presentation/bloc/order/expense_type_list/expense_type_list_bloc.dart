@@ -2,7 +2,6 @@ import 'package:bloc/bloc.dart';
 import 'package:easthardware_pms/domain/enums/enums.dart';
 import 'package:easthardware_pms/domain/models/expense_type.dart';
 import 'package:easthardware_pms/domain/repository/expense_type_repository.dart';
-import 'package:easthardware_pms/utils/boxed.dart';
 import 'package:easthardware_pms/utils/undefined.dart';
 import 'package:equatable/equatable.dart';
 
@@ -21,7 +20,6 @@ class ExpenseTypeListBloc extends Bloc<ExpenseTypeListEvent, ExpenseTypeListStat
     FetchAllExpenseTypesEvent event,
     Emitter<ExpenseTypeListState> emit,
   ) async {
-    printBoxed("Fetching all expense types");
     emit(state.copyWith(status: DataStatus.loading));
     try {
       final expenseTypes = await _repository.getAllExpenseTypes();

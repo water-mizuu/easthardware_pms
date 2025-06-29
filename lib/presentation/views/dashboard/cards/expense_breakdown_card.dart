@@ -73,6 +73,7 @@ class ExpenseBreakdownCard extends StatelessWidget {
         color: FluentTheme.of(context).cardColor,
         padding: AppPadding.cardPadding,
         child: Column(
+          mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             BlocBuilder<ExpenseBreakdownCubit, ExpenseBreakdownState>(
@@ -95,9 +96,9 @@ class ExpenseBreakdownCard extends StatelessWidget {
               },
             ),
             Spacing.v16,
-            ConstrainedBox(
-              constraints: const BoxConstraints(maxHeight: 200),
-              child: const _ExpensesBreakdownCardGraph(),
+            const SizedBox(
+              height: 192,
+              child: _ExpensesBreakdownCardGraph(),
             ),
           ],
         ),
@@ -171,7 +172,8 @@ class _ExpensesBreakdownCardGraphState extends State<_ExpensesBreakdownCardGraph
     }
 
     return Row(
-      crossAxisAlignment: CrossAxisAlignment.end,
+      mainAxisSize: MainAxisSize.max,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Expanded(child: PieChart(_pieChartData!, key: chartKey)),
         AnimatedSingleChildScrollView(

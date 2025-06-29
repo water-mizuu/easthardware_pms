@@ -427,6 +427,9 @@ class _BackupRow extends StatelessWidget {
     final (isEncrypted, dateCreated, _) = _readFileName(backup);
 
     if (!isEncrypted) {
+      final didUserConfirm = await _confirmBackup();
+      if (!didUserConfirm || !context.mounted) return;
+
       final didSucceed = await context //
           .read<DatabaseInformationCubit>()
           .restoreBackup(path: backup, key: '');
@@ -495,6 +498,8 @@ class _BackupRow extends StatelessWidget {
               child: const Text('Ok'),
               onPressed: () async {
                 final key = textController.text.trim();
+                final didUserConfirm = await _confirmBackup();
+                if (!didUserConfirm || !context.mounted) return;
                 final didSucceed = await context //
                     .read<DatabaseInformationCubit>()
                     .restoreBackup(path: backup, key: key);
@@ -576,4 +581,35 @@ extension on Duration {
       return 'Just now';
     }
   }
+}
+
+Future<bool> _confirmBackup() async {
+  final completer = Completer<bool>.sync();
+
+  unawaited(showSingleDialog(
+    (context) {
+      return ContentDialog(
+        title: const Text('Confirm Backup'),
+        content: const Text('Are you sure you want to create a backup?'),
+        actions: [
+          TextButton(
+            'Cancel',
+            onPressed: () {
+              Navigator.of(context).pop();
+              completer.complete(false);
+            },
+          ),
+          TextButton(
+            'Confirm',
+            onPressed: () {
+              Navigator.of(context).pop();
+              completer.complete(true);
+            },
+          ),
+        ],
+      );
+    },
+  ));
+
+  return completer.future;
 }

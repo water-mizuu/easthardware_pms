@@ -90,13 +90,13 @@ final salesColumns = <_SalesColumn>[
     name: 'Units Sold',
     width: const pw.FlexColumnWidth(1),
     value: (datum) => datum.extras.unitsSold.toNumberString(),
-    total: (data) => data.map((e) => e.$2.unitsSold).sum().toNumberString(),
+    total: (data) => data.map((e) => e.unitsSold).sum().toNumberString(),
   ),
   _SalesColumn(
     name: 'Units Ordered',
     width: const pw.FlexColumnWidth(1),
     value: (datum) => datum.extras.unitsOrdered.toNumberString(),
-    total: (data) => data.map((e) => e.$2.unitsOrdered).sum().toNumberString(),
+    total: (data) => data.map((e) => e.unitsOrdered).sum().toNumberString(),
   ),
   _SalesColumn(
     name: 'Selling Price',
@@ -119,14 +119,14 @@ final salesColumns = <_SalesColumn>[
   _SalesColumn(
     name: 'Total Order Cost',
     width: const pw.FlexColumnWidth(1),
-    value: (datum) => CurrencyFormatter.full(datum.orderCost, "Php "),
-    total: (data) => CurrencyFormatter.full(data.map((e) => e.orderCost).sum(), "Php "),
+    value: (datum) => CurrencyFormatter.full(datum.totalOrderCost, "Php "),
+    total: (data) => CurrencyFormatter.full(data.map((e) => e.totalOrderCost).sum(), "Php "),
   ),
   _SalesColumn(
     name: 'Gross Profit',
     width: const pw.FlexColumnWidth(1),
     value: (datum) => CurrencyFormatter.full(datum.grossProfit, "Php "),
-    total: (data) => CurrencyFormatter.full(data.map((e) => e.totalRevenue).sum(), "Php "),
+    total: (data) => CurrencyFormatter.full(data.map((e) => e.grossProfit).sum(), "Php "),
   ),
 ];
 
@@ -263,7 +263,7 @@ class SalesReportOptions extends StatelessWidget {
                     _StartDateSelection(),
                     _EndDateSelection(),
                     _SortBySelection(),
-                    _TakeSelection(),
+                    _TakeSelection._RowSelection(),
                   ].withSpacing(() => Spacing.v16),
                 ),
               ),
@@ -283,7 +283,7 @@ class _StartDateSelection extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        const Text('Start Date: '),
+        const SizedBox(width: 80, child: Text('Start Date: ')),
         Spacing.h8,
         BorderedDatePicker(
           selected: context.select((SalesReportBloc b) => b.state.queryData.startDate),
@@ -302,7 +302,7 @@ class _EndDateSelection extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        const Text('End Date: '),
+        const SizedBox(width: 80, child: Text('End Date: ')),
         Spacing.h8,
         BorderedDatePicker(
           selected: context.select((SalesReportBloc b) => b.state.queryData.endDate),
@@ -324,7 +324,7 @@ class _SortBySelection extends StatelessWidget {
       builder: (context, queryData) {
         return Row(
           children: [
-            const Text('Sort By: '),
+            const SizedBox(width: 80, child: Text('Sort By: ')),
             Spacing.h8,
             ComboBox(
               value: context.select((SalesReportBloc bloc) => bloc.state.queryData.productSortBy),
@@ -351,13 +351,13 @@ class _SortBySelection extends StatelessWidget {
 }
 
 class _TakeSelection extends StatelessWidget {
-  const _TakeSelection();
+  const _TakeSelection._RowSelection();
 
   @override
   Widget build(BuildContext context) {
     return Row(
       children: [
-        const Text('Take: '),
+        const SizedBox(width: 80, child: Text('Rows: ')),
         Spacing.h8,
         ConstrainedBox(
           constraints: const BoxConstraints(
@@ -365,7 +365,7 @@ class _TakeSelection extends StatelessWidget {
             maxWidth: 180,
           ),
           child: NumberBox<int>(
-            value: context.select((SalesReportBloc b) => b.state.queryData.take),
+            value: context.select((SalesReportBloc b) => b.state.queryData.rowLimit),
             min: 1,
             mode: SpinButtonPlacementMode.none,
             clearButton: false,
@@ -373,7 +373,7 @@ class _TakeSelection extends StatelessWidget {
               if (value != null) {
                 context
                     .read<SalesReportBloc>() //
-                    .add(SalesReportSetTakeEvent(value));
+                    .add(SalesReportSetRowLimitEvent(value));
               }
             },
           ),

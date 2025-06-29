@@ -3,6 +3,7 @@ import 'package:easthardware_pms/domain/models/order.dart';
 import 'package:easthardware_pms/presentation/bloc/order/expense_type_list/expense_type_list_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/order/orderlist/order_list_bloc.dart';
 import 'package:easthardware_pms/presentation/router/app_routes.dart';
+import 'package:easthardware_pms/presentation/views/order/components/print_order.dart';
 import 'package:easthardware_pms/presentation/widgets/helper/currency_formatter.dart';
 import 'package:easthardware_pms/presentation/widgets/layout/spacing.dart';
 import 'package:easthardware_pms/presentation/widgets/ui/styles.dart';
@@ -95,8 +96,17 @@ class DialogTitle extends StatelessWidget {
                 ),
               ),
               onPressed: () {
-                // Print functionality would go here
+                final orderProducts = (context.read<OrderListBloc>().state.allOrderProducts)
+                    .where((p) => p.orderId == order.id)
+                    .toList();
+                final orderItems = (context.read<OrderListBloc>().state.allOrderItems)
+                    .where((i) => i.orderId == order.id)
+                    .toList();
+                final expenseType = (context.read<ExpenseTypeListBloc>().state.expenseTypes)
+                    .firstWhere((e) => e.id == order.expenseType);
+
                 Navigator.pop(dialogContext);
+                generateOrderPdf(order, expenseType, orderProducts, orderItems);
               },
             ),
             Spacing.h8,
@@ -138,8 +148,10 @@ class OrderInformationDetails extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Text(isRestockOrder ? 'Restock Order Information' : 'Expense Order Information',
-            style: TextStyles.title),
+        Text(
+          isRestockOrder ? 'Restock Order Information' : 'Expense Order Information',
+          style: TextStyles.title,
+        ),
         Spacing.v12,
         Row(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -306,8 +318,13 @@ class _OrderProductTableState extends State<OrderProductTable> {
     final isRestockOrder = widget.order.expenseType == 1;
 
     // Filter order products for this specific order
-    final orderProducts =
-        state.allOrderProducts.where((p) => p.orderId == widget.order.id).toList();
+    final orderProducts = state.allOrderProducts //
+        .where((p) => p.orderId == widget.order.id)
+        .toList();
+
+    final orderItems = state.allOrderItems //
+        .where((i) => i.orderId == widget.order.id)
+        .toList();
 
     if (isRestockOrder && orderProducts.isEmpty) {
       return Column(
@@ -385,6 +402,7 @@ class _OrderProductTableState extends State<OrderProductTable> {
             ),
           ),
           for (var i = 0; i < orderProducts.length; i++) ...[
+            if (i > 0) Spacing.v8,
             Container(
               padding: const EdgeInsets.symmetric(vertical: 16.0),
               decoration: BoxDecoration(
@@ -434,7 +452,6 @@ class _OrderProductTableState extends State<OrderProductTable> {
                 ],
               ),
             ),
-            if (i < orderProducts.length - 1) Spacing.v8,
           ],
         ],
       );
@@ -443,6 +460,95 @@ class _OrderProductTableState extends State<OrderProductTable> {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
+          const Text('Items', style: TextStyles.title),
+          Spacing.v12,
+          Container(
+            padding: const EdgeInsets.symmetric(vertical: 16.0),
+            decoration: BoxDecoration(
+              border: Border(
+                bottom: BorderSide(color: Colors.grey[40], width: 1),
+              ),
+            ),
+            child: Row(
+              children: [
+                const SizedBox(width: 32.0, child: Center(child: Text("#"))),
+                Spacing.h16,
+                Expanded(
+                  flex: 2,
+                  child: Text(
+                    'PRODUCT',
+                    style: TextStyles.body.merge(TextStyles.strong),
+                  ),
+                ),
+                Spacing.h16,
+                Expanded(
+                  child: Text(
+                    'QUANTITY',
+                    style: TextStyles.body.merge(TextStyles.strong),
+                  ),
+                ),
+                Spacing.h16,
+                Expanded(
+                  child: Text(
+                    'UNIT PRICE',
+                    style: TextStyles.body.merge(TextStyles.strong),
+                  ),
+                ),
+                Spacing.h16,
+                Expanded(
+                  child: Text(
+                    'AMOUNT',
+                    style: TextStyles.body.merge(TextStyles.strong),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          for (var i = 0; i < orderItems.length; i++) ...[
+            if (i > 0) Spacing.v8,
+            Container(
+              padding: const EdgeInsets.symmetric(vertical: 16.0),
+              decoration: BoxDecoration(
+                color: i % 2 == 0 ? const Color(0xFFFAFAFA) : null,
+                border: Border(bottom: BorderSide(color: Colors.grey[40], width: 1)),
+              ),
+              child: Row(
+                children: [
+                  SizedBox(width: 32.0, child: Center(child: Text('${i + 1}'))),
+                  Spacing.h16,
+                  Expanded(
+                    flex: 2,
+                    child: Text(
+                      orderItems[i].name,
+                      style: TextStyles.body,
+                    ),
+                  ),
+                  Spacing.h16,
+                  Expanded(
+                    child: Text(
+                      '${orderItems[i].quantity}',
+                      style: TextStyles.body,
+                    ),
+                  ),
+                  Spacing.h16,
+                  Expanded(
+                    child: Text(
+                      CurrencyFormatter.full(orderItems[i].rate),
+                      style: TextStyles.body,
+                    ),
+                  ),
+                  Spacing.h16,
+                  Expanded(
+                    child: Text(
+                      CurrencyFormatter.full(orderItems[i].amount),
+                      style: TextStyles.body,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+          Spacing.v16,
           const Text('Expense Details', style: TextStyles.title),
           Spacing.v12,
           Container(

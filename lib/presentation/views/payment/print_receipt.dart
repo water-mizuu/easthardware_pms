@@ -273,64 +273,16 @@ final class _ReceiptPdfGenerator with PdfCommons implements PdfGenerator {
     );
   }
 
-  // pw.Widget _buildInvoiceSummary() {
-  //   final subtotal = invoiceProducts.fold<double>(0, (sum, product) => sum + product.amount);
-  //   final discount = invoice.discount ?? 0.0;
-  //   final total = invoice.amountDue;
-  //   final amountPaid = invoice.amountPaid ?? 0.0;
-  //   final balance = total - amountPaid;
-
-  //   return pw.Row(
-  //     children: [
-  //       pw.Expanded(flex: 2, child: pw.Container()),
-  //       pw.Expanded(
-  //         child: pw.Container(
-  //           child: pw.Column(
-  //             children: [
-  //               _buildSummaryRow(
-  //                 'Subtotal:',
-  //                 CurrencyFormatter.full(subtotal, 'Php '),
-  //               ),
-  //               if (discount > 0)
-  //                 _buildSummaryRow(
-  //                   'Discount:',
-  //                   invoice.discountType == DiscountType.percentage
-  //                       ? '${discount.toStringAsFixed(2)}%'
-  //                       : CurrencyFormatter.full(discount, 'Php '),
-  //                 ),
-  //               _buildSummaryRow(
-  //                 'Total:',
-  //                 CurrencyFormatter.full(total, 'Php '),
-  //                 isTotal: true,
-  //               ),
-  //               if (amountPaid > 0) ...[
-  //                 _buildSummaryRow(
-  //                   'Amount Paid:',
-  //                   CurrencyFormatter.full(amountPaid, 'Php '),
-  //                 ),
-  //                 _buildSummaryRow(
-  //                   'Balance:',
-  //                   CurrencyFormatter.full(balance, 'Php '),
-  //                   isTotal: true,
-  //                 ),
-  //               ],
-  //             ],
-  //           ),
-  //         ),
-  //       ),
-  //     ],
-  //   );
-  // }
-
   pw.Widget _buildReceiptSummary() {
-    final subtotal = invoiceProducts.fold<double>(0, (sum, product) => sum + product.amount);
+    final subtotal = invoiceProducts.fold(0.0, (sum, product) => sum + product.amount);
     final discount = invoice.discount ?? 0.0;
     final discountAmount = invoice.discountType?.index == 0 // percentage
         ? subtotal * (discount / 100)
         : discount;
-    final total = subtotal - discountAmount;
+    final alreadyPaid = invoice.amountPaid ?? 0.0;
+    final total = subtotal - alreadyPaid - discountAmount;
     final remainingBalance = max(0.0, total - payment.amount);
-    final change = max(0.0, payment.amount - total);
+    final change = max(0.0, -(total - payment.amount));
 
     return pw.Container(
       padding: const pw.EdgeInsets.symmetric(vertical: 10),
@@ -348,14 +300,17 @@ final class _ReceiptPdfGenerator with PdfCommons implements PdfGenerator {
                 crossAxisAlignment: pw.CrossAxisAlignment.end,
                 children: [
                   _buildSummaryRow('SUBTOTAL', _formatCurrency(subtotal)),
-                  if (discountAmount > 0)
-                    _buildSummaryRow(
-                      'DISCOUNT ${invoice.discountType?.index == 0 ? '${discount.toStringAsFixed(0)}%' : ''}',
-                      _formatCurrency(discountAmount),
-                    ),
+                  _buildSummaryRow(
+                    'DISCOUNT ${invoice.discountType?.index == 0 ? '${discount.toInt()}%' : ''}',
+                    _formatCurrency(-discountAmount),
+                  ),
+                  _buildSummaryRow('PREVIOUS PAYMENTS', _formatCurrency(-alreadyPaid)),
                   _buildSummaryRow('TOTAL', _formatCurrency(total)),
                   _buildSummarySeparator(),
-                  _buildSummaryRow('AMOUNT PAID', _formatCurrency(payment.amount)),
+                  _buildSummaryRow(
+                    'AMOUNT PAID',
+                    _formatCurrency(payment.amount),
+                  ),
                   _buildSummaryRow(
                     'BALANCE DUE',
                     _formatCurrency(remainingBalance),
@@ -393,7 +348,7 @@ final class _ReceiptPdfGenerator with PdfCommons implements PdfGenerator {
         mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
         children: [
           pw.SizedBox(
-            width: 120,
+            width: 140,
             child: pw.Text(
               label,
               style: pw.TextStyle(
@@ -420,10 +375,6 @@ final class _ReceiptPdfGenerator with PdfCommons implements PdfGenerator {
 
   String _formatDate(DateTime date) {
     return '${date.month.toString().padLeft(2, '0')}/${date.day.toString().padLeft(2, '0')}/${date.year}';
-  }
-
-  String _formatQuantity(int quantity) {
-    return quantity % 1 == 0 ? quantity.toInt().toString() : quantity.toStringAsFixed(2);
   }
 
   String _formatCurrency(double amount) {

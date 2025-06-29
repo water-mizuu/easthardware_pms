@@ -9,6 +9,7 @@ import 'package:easthardware_pms/domain/models/order.dart';
 import 'package:easthardware_pms/domain/models/order_product.dart';
 import 'package:easthardware_pms/domain/models/product.dart';
 import 'package:easthardware_pms/presentation/views/reports/business_snapshot/business_snapshot_query_data.dart';
+import 'package:easthardware_pms/utils/date_filter.dart';
 import 'package:easthardware_pms/utils/num_iterable_extension.dart';
 import 'package:easthardware_pms/utils/undefined.dart';
 import 'package:equatable/equatable.dart';
@@ -318,23 +319,19 @@ class BusinessSnapshotReportBloc
 
     // Filter invoices and orders for current and previous periods
     final currentInvoices = invoices.where((invoice) {
-      return invoice.invoiceDate.isAfter(currentPeriodStart) &&
-          invoice.invoiceDate.isBefore(currentPeriodEnd);
+      return invoice.invoiceDate.isWithinTheDays(currentPeriodStart, currentPeriodEnd);
     }).toList();
 
     final previousInvoices = invoices.where((invoice) {
-      return invoice.invoiceDate.isAfter(previousPeriodStart) &&
-          invoice.invoiceDate.isBefore(previousPeriodEnd);
+      return invoice.invoiceDate.isWithinTheDays(previousPeriodStart, previousPeriodEnd);
     }).toList();
 
     final currentOrders = orders.where((order) {
-      return order.orderDate.isAfter(currentPeriodStart) &&
-          order.orderDate.isBefore(currentPeriodEnd);
+      return order.orderDate.isWithinTheDays(currentPeriodStart, currentPeriodEnd);
     }).toList();
 
     final previousOrders = orders.where((order) {
-      return order.orderDate.isAfter(previousPeriodStart) &&
-          order.orderDate.isBefore(previousPeriodEnd);
+      return order.orderDate.isWithinTheDays(previousPeriodStart, previousPeriodEnd);
     }).toList();
 
     // Calculate key metrics
@@ -540,7 +537,7 @@ class BusinessSnapshotReportBloc
       var periodExpenses = 0.0;
 
       for (final invoice in currentInvoices) {
-        if (invoice.invoiceDate.isAfter(date) && invoice.invoiceDate.isBefore(endDate)) {
+        if (invoice.invoiceDate.isWithinTheDays(date, endDate)) {
           final invoiceProducts =
               state.invoiceProducts.where((ip) => ip.invoiceId == invoice.id).toList();
           periodRevenue += invoiceProducts.map((ip) => ip.rate * ip.quantity).sum();
@@ -548,7 +545,7 @@ class BusinessSnapshotReportBloc
       }
 
       for (final order in currentOrders) {
-        if (order.orderDate.isAfter(date) && order.orderDate.isBefore(endDate)) {
+        if (order.orderDate.isWithinTheDays(date, endDate)) {
           periodExpenses += order.amountDue;
         }
       }
@@ -585,7 +582,7 @@ class BusinessSnapshotReportBloc
         var periodSales = 0.0;
         var periodQuantity = 0.0;
         for (final invoice in currentInvoices) {
-          if (invoice.invoiceDate.isAfter(date) && invoice.invoiceDate.isBefore(endDate)) {
+          if (invoice.invoiceDate.isWithinTheDays(date, endDate)) {
             final productInvoices = invoiceProducts
                 .where((ip) => ip.invoiceId == invoice.id && ip.productId == selectedProduct.id)
                 .toList();
@@ -624,7 +621,7 @@ class BusinessSnapshotReportBloc
         var periodSales = 0.0;
         var periodQuantity = 0.0;
         for (final invoice in currentInvoices) {
-          if (invoice.invoiceDate.isAfter(date) && invoice.invoiceDate.isBefore(endDate)) {
+          if (invoice.invoiceDate.isWithinTheDays(date, endDate)) {
             final categoryInvoices = invoiceProducts
                 .where((ip) =>
                     ip.invoiceId == invoice.id && categoryProducts.any((p) => p.id == ip.productId))

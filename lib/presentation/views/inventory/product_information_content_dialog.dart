@@ -2,6 +2,7 @@ import 'package:easthardware_pms/domain/enums/enums.dart';
 import 'package:easthardware_pms/domain/models/product.dart';
 import 'package:easthardware_pms/presentation/bloc/inventory/unit_list/unit_list_bloc.dart';
 import 'package:easthardware_pms/presentation/router/app_routes.dart';
+import 'package:easthardware_pms/presentation/widgets/helper/currency_formatter.dart';
 import 'package:easthardware_pms/presentation/widgets/layout/spacing.dart';
 import 'package:easthardware_pms/presentation/widgets/ui/styles.dart';
 import 'package:easthardware_pms/utils/typed_routes.dart';
@@ -68,7 +69,7 @@ class SaleInformationDetails extends StatelessWidget {
             const Spacer(),
             Expanded(
               child: Text(
-                product.salePrice.toStringAsFixed(2),
+                CurrencyFormatter.full(product.salePrice),
                 style: TextStyles.onSurface,
                 textAlign: TextAlign.start,
               ),
@@ -88,7 +89,7 @@ class SaleInformationDetails extends StatelessWidget {
             const Spacer(),
             Expanded(
               child: Text(
-                product.orderCost.toStringAsFixed(2),
+                CurrencyFormatter.full(product.orderCost),
                 style: TextStyles.onSurface,
                 textAlign: TextAlign.start,
               ),

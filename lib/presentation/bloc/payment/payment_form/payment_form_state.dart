@@ -14,6 +14,7 @@ class PaymentFormState {
     this.paymentMethodError,
     this.referenceNumberError,
     this.amountReceivedError,
+    this.lastAutomatedUpdate,
   }) : paymentDate = paymentDate ?? DateTime.now();
 
   final int? id;
@@ -28,6 +29,7 @@ class PaymentFormState {
   final String? paymentMethodError;
   final String? referenceNumberError;
   final String? amountReceivedError;
+  final DateTime? lastAutomatedUpdate;
 
   PaymentFormState Function({
     int? id,
@@ -42,6 +44,7 @@ class PaymentFormState {
     String? paymentMethodError,
     String? referenceNumberError,
     String? amountReceivedError,
+    DateTime? lastAutomatedUpdate,
   }) get copyWith {
     return ({
       Object? id = undefined,
@@ -56,28 +59,22 @@ class PaymentFormState {
       Object? paymentMethodError,
       Object? referenceNumberError,
       Object? amountReceivedError,
+      Object? lastAutomatedUpdate = undefined,
     }) {
       return PaymentFormState(
-        id: id == undefined ? this.id : id as int?,
-        invoice: invoice == undefined ? this.invoice : invoice as Invoice?,
-        paymentMethod:
-            paymentMethod == undefined ? this.paymentMethod : paymentMethod as PaymentMethod?,
-        paymentReference:
-            paymentReference == undefined ? this.paymentReference : paymentReference as String,
-        amount: amount == undefined ? this.amount : amount as double,
-        paymentDate: paymentDate == undefined ? this.paymentDate : paymentDate as DateTime?,
-        creatorId: creatorId == undefined ? this.creatorId : creatorId as int?,
-        creationDate: creationDate == undefined ? this.creationDate : creationDate as DateTime?,
-        status: status == undefined ? this.status : status as FormStatus,
-        paymentMethodError: paymentMethodError == undefined
-            ? this.paymentMethodError
-            : paymentMethodError as String?,
-        referenceNumberError: referenceNumberError == undefined
-            ? this.referenceNumberError
-            : referenceNumberError as String?,
-        amountReceivedError: amountReceivedError == undefined
-            ? this.amountReceivedError
-            : amountReceivedError as String?,
+        id: id.or(this.id),
+        invoice: invoice.or(this.invoice),
+        paymentMethod: paymentMethod.or(this.paymentMethod),
+        paymentReference: paymentReference.or(this.paymentReference),
+        amount: amount.or(this.amount),
+        paymentDate: paymentDate.or(this.paymentDate),
+        creatorId: creatorId.or(this.creatorId),
+        creationDate: creationDate.or(this.creationDate),
+        status: status.or(this.status),
+        paymentMethodError: paymentMethodError.or(this.paymentMethodError),
+        referenceNumberError: referenceNumberError.or(this.referenceNumberError),
+        amountReceivedError: amountReceivedError.or(this.amountReceivedError),
+        lastAutomatedUpdate: lastAutomatedUpdate.or(this.lastAutomatedUpdate),
       );
     };
   }

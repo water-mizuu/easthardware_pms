@@ -16,6 +16,7 @@ import 'package:easthardware_pms/presentation/widgets/ui/styles.dart';
 import 'package:easthardware_pms/presentation/widgets/ui/text_button.dart';
 import 'package:easthardware_pms/utils/boxed.dart';
 import 'package:easthardware_pms/utils/notification.dart';
+import 'package:easthardware_pms/utils/num_iterable_extension.dart';
 import 'package:easthardware_pms/utils/typed_routes.dart';
 import 'package:fluent_ui/fluent_ui.dart';
 import 'package:flutter/services.dart';
@@ -85,30 +86,27 @@ final profitLossColumns = <_ProfitLossColumn>[
     name: 'Revenue',
     width: const pw.FlexColumnWidth(1),
     value: (entry) => CurrencyFormatter.full(entry.revenue, "Php "),
-    total: (data) => CurrencyFormatter.full(
-        data.map((e) => e.revenue).fold<double>(0, (prev, curr) => prev + curr), "Php "),
+    total: (data) => CurrencyFormatter.full(data.map((e) => e.revenue).sum(), "Php "),
   ),
   _ProfitLossColumn(
     name: 'Expenses',
     width: const pw.FlexColumnWidth(1),
     value: (entry) => CurrencyFormatter.full(entry.expenses, "Php "),
-    total: (data) => CurrencyFormatter.full(
-        data.map((e) => e.expenses).fold<double>(0, (prev, curr) => prev + curr), "Php "),
+    total: (data) => CurrencyFormatter.full(data.map((e) => e.expenses).sum(), "Php "),
   ),
   _ProfitLossColumn(
     name: 'Profit',
     width: const pw.FlexColumnWidth(1),
     value: (entry) => CurrencyFormatter.full(entry.profit, "Php "),
-    total: (data) => CurrencyFormatter.full(
-        data.map((e) => e.profit).fold<double>(0, (prev, curr) => prev + curr), "Php "),
+    total: (data) => CurrencyFormatter.full(data.map((e) => e.profit).sum(), "Php "),
   ),
   _ProfitLossColumn(
     name: 'Profit Margin',
     width: const pw.FlexColumnWidth(1),
     value: (entry) => "${entry.profitMargin.toStringAsFixed(2)}%",
     total: (data) {
-      final totalRevenue = data.map((e) => e.revenue).fold<double>(0, (prev, curr) => prev + curr);
-      final totalProfit = data.map((e) => e.profit).fold<double>(0, (prev, curr) => prev + curr);
+      final totalRevenue = data.map((e) => e.revenue).sum();
+      final totalProfit = data.map((e) => e.profit).sum();
       final margin = totalRevenue > 0 ? (totalProfit / totalRevenue) * 100 : 0;
       return "${margin.toStringAsFixed(2)}%";
     },
@@ -366,7 +364,7 @@ class _StartDateSelection extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        const Text('Start Date: '),
+        const SizedBox(width: 80, child: Text('Start Date: ')),
         Spacing.h8,
         BorderedDatePicker(
           selected: context.select((ProfitLossReportBloc b) => b.state.queryData.startDate),
@@ -386,7 +384,7 @@ class _EndDateSelection extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        const Text('End Date: '),
+        const SizedBox(width: 80, child: Text('End Date: ')),
         Spacing.h8,
         BorderedDatePicker(
           selected: context.select((ProfitLossReportBloc b) => b.state.queryData.endDate),
@@ -406,7 +404,7 @@ class _GroupBySelection extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        const Text('Group By: '),
+        const SizedBox(width: 80, child: Text('Group By: ')),
         Spacing.h8,
         ComboBox(
           value: context.select((ProfitLossReportBloc b) => b.state.queryData.groupBy),
@@ -437,7 +435,7 @@ class _SortBySelection extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        const Text('Sort By: '),
+        const SizedBox(width: 80, child: Text('Sort By: ')),
         Spacing.h8,
         ComboBox(
           value: context.select((ProfitLossReportBloc b) => b.state.queryData.sortBy),
@@ -468,7 +466,7 @@ class _TakeSelection extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        const Text('Row Limit: '),
+        const SizedBox(width: 80, child: Text('Row Limit: ')),
         Spacing.h8,
         Expanded(
           child: NumberBox<int>(
@@ -674,7 +672,6 @@ Future<void> _previewReport(
 
 const _cellPadding = pw.EdgeInsets.symmetric(horizontal: 8.0, vertical: 2.0);
 
-// PDF generation methods
 final class _ProfitLossReportPdfGenerator implements PdfGenerator {
   const _ProfitLossReportPdfGenerator({
     required this.profitLossData,
@@ -689,8 +686,8 @@ final class _ProfitLossReportPdfGenerator implements PdfGenerator {
   final DateTime endDate;
 
   @override
-  String get fileName =>
-      'Profit_Loss_Report_${startDate.toIso8601String().split('T').first}_to_${endDate.toIso8601String().split('T').first}.pdf';
+  String get fileName => 'Profit_Loss_Report_${startDate.toIso8601String().split('T').first}'
+      '_to_${endDate.toIso8601String().split('T').first}.pdf';
 
   @override
   Future<Uint8List> generatePdf(PdfPageFormat? format) async {
@@ -811,7 +808,7 @@ final class _ProfitLossReportPdfGenerator implements PdfGenerator {
 
   pw.Widget _buildSummaryBox(String title, double value, {bool isPercentage = false}) {
     final formattedValue =
-        isPercentage ? '${value.toStringAsFixed(2)}%' : 'Php ${value.toStringAsFixed(2)}';
+        isPercentage ? '${value.toStringAsFixed(2)}%' : CurrencyFormatter.full(value);
 
     return pw.Expanded(
       child: pw.Padding(

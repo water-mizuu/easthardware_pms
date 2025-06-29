@@ -22,7 +22,6 @@ class InvoiceRepositoryImpl implements InvoiceRepository {
   Future<List<Invoice>> getAllInvoices() async {
     try {
       final invoices = await _invoicesDao.getAllInvoices();
-      print(invoices);
 
       return invoices;
     } catch (e) {

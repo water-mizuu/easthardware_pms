@@ -174,7 +174,6 @@ class InventoryReportBloc extends Bloc<InventoryReportEvent, InventoryReportStat
       }
 
       /// We remove the quantities of the products that were ordered after the query date.
-
       for (final order in state.allOrders) {
         if (!order.creationDate.isAfter(queryDate)) continue;
 

@@ -429,17 +429,30 @@ Future<bool?> _handleDbMessage(
 }
 
 /// This timer is used to debounce the notifications of consequent
-///   database changes to the clients.
+/// database changes to the clients. Multiple rapid changes are coalesced into a single notification.
 Timer? _notifyTimer;
+
+/// The channel that initiated the database change that is being debounced.
+/// - null means "notify everyone"
+/// - Non-null means "notify everyone except this channel"
 WebSocketChannel? _fromChannel;
+
+/// Whether the server (main isolate) should be notified of the database change.
+/// This is OR'ed with new requests during the debounce period.
 bool _isServerUpdated = false;
 
-/// This is the duration after which the notification timer will send out
-/// notifications to the clients about the database change.
+/// The duration for debouncing multiple database change notifications.
+/// After this duration with no new changes, notifications will be sent to all clients.
 const Duration notifyTimerDuration = Duration(seconds: 1);
 
 /// This sends out a notification to all connected clients about a database change.
 /// This also sends the notification to the server as necessary.
+///
+/// The notification logic follows set theory principles:
+/// - If no channel previously requested notifications, the current channel becomes the exclusion.
+/// - If a different channel requests after an existing request, we remove the exclusion entirely
+///   (notify everyone including previous requesters).
+/// - In all cases, we maintain the 'isServerUpdated' flag if it has ever been set to true.
 void _notifyEveryoneAboutDatabaseChange({
   required WebSocketChannel? from,
   required bool isServerUpdated,
@@ -448,13 +461,19 @@ void _notifyEveryoneAboutDatabaseChange({
 
   _notifyTimer?.cancel();
 
-  /// If someone requested to notify everyone about a database change,
-  ///   and someone else requests it too, and those two requests are from different
-  ///   clients, then we want to basically notify everyone (including the two clients).
-  _fromChannel = (_fromChannel != null && from != _fromChannel) ? null : _fromChannel;
+  /// Set theory approach:
+  /// - If _fromChannel is null, and from is not null, then set _fromChannel to from
+  /// - If _fromChannel is not null and from is different from _fromChannel, set _fromChannel to null
+  ///   (which means "notify everyone")
+  /// - Otherwise keep the existing _fromChannel
+  if (_fromChannel == null) {
+    _fromChannel = from; // First requester becomes the exclusion
+  } else if (from != null && from != _fromChannel) {
+    _fromChannel = null; // Different requester means "notify everyone" (no exclusions)
+  }
+  // Else, same requester again, keep existing _fromChannel
 
-  /// In the same way, if the server was not requested to be updated, and an existing
-  ///   request was made, we want to keep the server updated.
+  /// Always OR the isServerUpdated flags to ensure we maintain "true" status if ever set
   _isServerUpdated = _isServerUpdated || isServerUpdated;
 
   _notifyTimer = Timer(notifyTimerDuration, () {
@@ -468,20 +487,37 @@ void _notifyEveryoneAboutDatabaseChange({
   });
 }
 
+/// Immediately sends notifications to clients about database changes without delay
+///
+/// The notification logic:
+/// - If isServerUpdated is true, notify the main application
+/// - For client notifications:
+///   - If "from" is null, notify ALL connected clients (no exclusions)
+///   - If "from" has a value, notify all clients EXCEPT that specific client
+///
+/// @param from The WebSocketChannel to exclude from notification (or null to notify everyone)
+/// @param isServerUpdated Whether to notify the server (main isolate)
 void __notifyEveryoneAboutDatabaseChangeInstantly({
   required WebSocketChannel? from,
   required bool isServerUpdated,
 }) {
   assertChildIsolate();
 
+  // Current timestamp for the notification
+  final currentTimestamp = DateTime.now().millisecondsSinceEpoch;
+
+  // Notify the main isolate if requested and the channel is open
   if (isServerUpdated && mainChannel.isOpen) {
-    mainChannel.sendPort.send("main", ["didUpdate", DateTime.now().millisecondsSinceEpoch]);
+    mainChannel.sendPort.send("main", ["didUpdate", currentTimestamp]);
   }
 
+  // Notify clients based on exclusion rules
   for (final (client, channel, _) in _clientChannels) {
-    if (client != from && channel.isOpen) {
-      // Notify all other clients about the database change.
-      channel.sendPort.send("client", ["didUpdate", DateTime.now().millisecondsSinceEpoch]);
+    // Only send if the channel is open and either:
+    // 1. We're notifying everyone (from == null), or
+    // 2. This client isn't the one that initiated the change
+    if (channel.isOpen && client != from) {
+      channel.sendPort.send("client", ["didUpdate", currentTimestamp]);
     }
   }
 }
@@ -532,11 +568,7 @@ Future<void> _hookOntoUpdate(
 
   /// MANUAL LOGIN.
   if (arguments
-      case [
-        "users",
-        {"login_status": 1},
-        {"where": "id = ?", "whereArgs": [final int userId]},
-      ]) {
+      case ["users", {"login_status": 1}, {"where": "id = ?", "whereArgs": [final int userId]}]) {
     if (clientChannel case (final webSocketChannel, final messageChannel) when index >= 0) {
       _clientChannels[index] = (webSocketChannel, messageChannel, userId);
 

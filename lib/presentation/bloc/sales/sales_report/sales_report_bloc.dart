@@ -10,6 +10,7 @@ import 'package:easthardware_pms/domain/models/product.dart';
 import 'package:easthardware_pms/presentation/views/dashboard/cards/sales_overview.dart';
 import 'package:easthardware_pms/presentation/views/reports/sales_report/extensions/sales_by_category_datum.dart';
 import 'package:easthardware_pms/presentation/views/reports/sales_report/sales_query_data.dart';
+import 'package:easthardware_pms/utils/date_filter.dart';
 import 'package:easthardware_pms/utils/undefined.dart';
 import 'package:equatable/equatable.dart';
 import 'package:fluent_ui/fluent_ui.dart';
@@ -47,7 +48,7 @@ class SalesReportBloc extends Bloc<SalesReportEvent, SalesReportState> {
     on<SalesReportUpdateInvoiceProductsEvent>(_onUpdateInvoiceProducts);
     on<SalesReportUpdateOrdersEvent>(_onUpdateOrders);
     on<SalesReportUpdateOrderProductsEvent>(_onUpdateOrderProducts);
-    on<SalesReportSetTakeEvent>(_onSetTake);
+    on<SalesReportSetRowLimitEvent>(_onSetTake);
 
     // Initialize the query data
     add(const SalesReportInitializeEvent());
@@ -141,8 +142,8 @@ class SalesReportBloc extends Bloc<SalesReportEvent, SalesReportState> {
     _recalculateSalesData(emit);
   }
 
-  void _onSetTake(SalesReportSetTakeEvent event, Emitter<SalesReportState> emit) {
-    emit(state.copyWith(queryData: state.queryData.copyWith(take: event.take)));
+  void _onSetTake(SalesReportSetRowLimitEvent event, Emitter<SalesReportState> emit) {
+    emit(state.copyWith(queryData: state.queryData.copyWith(rowLimit: event.limit)));
     _recalculateSalesData(emit);
   }
 
@@ -184,10 +185,7 @@ class SalesReportBloc extends Bloc<SalesReportEvent, SalesReportState> {
           () => state.allInvoices.firstWhere((i) => i.id == invoiceProduct.invoiceId),
         );
 
-        if (invoice.creationDate.isAfter(endDate) || invoice.creationDate.isBefore(startDate)) {
-          continue;
-        }
-
+        if (!invoice.creationDate.isWithinTheDays(startDate, endDate)) continue;
         if (invoiceProduct.productId == product.id) {
           unitsSold += invoiceProduct.quantity;
         }
@@ -201,10 +199,7 @@ class SalesReportBloc extends Bloc<SalesReportEvent, SalesReportState> {
           () => state.allOrders.firstWhere((i) => i.id == orderProduct.orderId),
         );
 
-        if (order.creationDate.isAfter(endDate) || order.creationDate.isBefore(startDate)) {
-          continue;
-        }
-
+        if (!order.creationDate.isWithinTheDays(startDate, endDate)) continue;
         if (orderProduct.productId == product.id) {
           unitsOrdered += orderProduct.quantity;
         }

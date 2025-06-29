@@ -1,3 +1,5 @@
+// ignore_for_file: avoid_print
+
 import 'package:bloc/bloc.dart';
 import 'package:easthardware_pms/domain/enums/enums.dart';
 import 'package:easthardware_pms/domain/models/order.dart';
@@ -37,16 +39,11 @@ class OrderListBloc extends Bloc<OrderListEvent, OrderListState> {
   final ProductRepository _productRepository;
 
   Future<void> _onFetchOrders(FetchAllOrdersEvent event, Emitter emit) async {
-    print('[OrderListBloc] Fetching all orders...');
     emit(state.copyWith(status: DataStatus.loading));
     try {
       final orders = await _repository.getAllOrders();
       final orderProducts = await _orderProductRepository.getAllOrderProducts();
       final orderItems = await _orderItemRepository.getAllOrderItems();
-
-      print('[OrderListBloc] Orders fetched: count = \'${orders.length}\', orders = $orders');
-      print('[OrderListBloc] Order products fetched: count = \'${orderProducts.length}\'');
-      print('[OrderListBloc] Order items fetched: count = \'${orderItems.length}\'');
 
       emit(state.copyWith(
         allOrders: orders,
@@ -55,7 +52,6 @@ class OrderListBloc extends Bloc<OrderListEvent, OrderListState> {
         status: DataStatus.success,
       ));
     } catch (e) {
-      print('[OrderListBloc] Error fetching orders: $e');
       emit(state.copyWith(status: DataStatus.error));
     }
   }

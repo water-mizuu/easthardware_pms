@@ -20,6 +20,7 @@ import 'package:easthardware_pms/presentation/views/order/order_widgets/index.da
 import 'package:easthardware_pms/presentation/views/order/order_widgets/rate.dart';
 import 'package:easthardware_pms/presentation/views/order/order_widgets/remove_button.dart';
 import 'package:easthardware_pms/presentation/widgets/animated_single_child_scroll_view.dart';
+import 'package:easthardware_pms/presentation/widgets/bordered_date_picker.dart';
 import 'package:easthardware_pms/presentation/widgets/expense_type_combo_box.dart';
 import 'package:easthardware_pms/presentation/widgets/helper/currency_formatter.dart';
 import 'package:easthardware_pms/presentation/widgets/layout/spacing.dart';
@@ -280,7 +281,7 @@ class OrderPageForm extends StatelessWidget {
                   children: [
                     const BodyText('Order Date'),
                     Spacing.v8,
-                    DatePicker(
+                    BorderedDatePicker(
                       selected: context.watch<OrderFormBloc>().state.orderDate,
                       onChanged: (date) =>
                           context.read<OrderFormBloc>().add(OrderDateChangedEvent(date)),

@@ -7,7 +7,8 @@ import 'package:easthardware_pms/presentation/bloc/order/orderlist/order_list_bl
 import 'package:easthardware_pms/presentation/bloc/sales/sales_report/sales_report_bloc.dart';
 import 'package:easthardware_pms/presentation/router/app_routes.dart';
 import 'package:easthardware_pms/presentation/views/reports/pdf_helpers/pdf_generation.dart';
-import 'package:easthardware_pms/presentation/views/reports/sales_report/extensions/sales_by_category_datum.dart';
+import 'package:easthardware_pms/presentation/views/reports/sales_report/'
+    'extensions/sales_by_category_datum.dart';
 import 'package:easthardware_pms/presentation/views/reports/sales_report/sales_query_data.dart';
 import 'package:easthardware_pms/presentation/widgets/animated_single_child_scroll_view.dart';
 import 'package:easthardware_pms/presentation/widgets/bordered_date_picker.dart';
@@ -247,7 +248,7 @@ class _StartDateSelection extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        const Text('Start Date: '),
+        const SizedBox(width: 80, child: Text('Start Date: ')),
         Spacing.h8,
         BorderedDatePicker(
           selected: context.select((SalesReportBloc b) => b.state.queryData.startDate),
@@ -268,7 +269,7 @@ class _EndDateSelection extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        const Text('End Date: '),
+        const SizedBox(width: 80, child: Text('End Date: ')),
         Spacing.h8,
         BorderedDatePicker(
           selected: context.select((SalesReportBloc b) => b.state.queryData.endDate),
@@ -287,7 +288,7 @@ class _SortBySelection extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        const Text('Sort By: '),
+        const SizedBox(width: 80, child: Text('Sort By: ')),
         Spacing.h8,
         ComboBox(
           value: context.select((SalesReportBloc b) => b.state.queryData.categorySortBy),
@@ -318,7 +319,7 @@ class _TakeSelection extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        const Text('Take: '),
+        const SizedBox(width: 80, child: Text('Take: ')),
         Spacing.h8,
         ConstrainedBox(
           constraints: const BoxConstraints(
@@ -326,7 +327,7 @@ class _TakeSelection extends StatelessWidget {
             maxWidth: 180,
           ),
           child: NumberBox<int>(
-            value: context.select((SalesReportBloc b) => b.state.queryData.take),
+            value: context.select((SalesReportBloc b) => b.state.queryData.rowLimit),
             min: 1,
             mode: SpinButtonPlacementMode.none,
             clearButton: false,
@@ -334,7 +335,7 @@ class _TakeSelection extends StatelessWidget {
               if (value != null) {
                 context
                     .read<SalesReportBloc>() //
-                    .add(SalesReportSetTakeEvent(value));
+                    .add(SalesReportSetRowLimitEvent(value));
               }
             },
           ),

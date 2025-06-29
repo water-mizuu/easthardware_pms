@@ -22,6 +22,7 @@ import 'package:easthardware_pms/presentation/widgets/ui/styles.dart';
 import 'package:easthardware_pms/presentation/widgets/ui/text_button.dart';
 import 'package:easthardware_pms/utils/boxed.dart';
 import 'package:easthardware_pms/utils/notification.dart';
+import 'package:easthardware_pms/utils/num_iterable_extension.dart';
 import 'package:easthardware_pms/utils/number_string.dart';
 import 'package:easthardware_pms/utils/typed_routes.dart';
 import 'package:easthardware_pms/utils/user.dart';
@@ -38,6 +39,7 @@ typedef _ProductColumnRecord = (
   pw.TableColumnWidth width,
   String Function(Product) value,
   Color? Function(Product)? color,
+  String Function(List<Product>)? total,
 );
 
 extension type const _ProductColumn._(_ProductColumnRecord record) {
@@ -47,6 +49,7 @@ extension type const _ProductColumn._(_ProductColumnRecord record) {
     required pw.TableColumnWidth width,
     required String Function(Product) value,
     Color? Function(Product)? color,
+    String Function(List<Product>)? total,
   }) : this._(
           (
             name,
@@ -54,6 +57,7 @@ extension type const _ProductColumn._(_ProductColumnRecord record) {
             width,
             value,
             color,
+            total,
           ),
         );
 
@@ -62,6 +66,7 @@ extension type const _ProductColumn._(_ProductColumnRecord record) {
   pw.TableColumnWidth get width => record.$3;
   String Function(Product) get value => record.$4;
   Color? Function(Product)? get color => record.$5;
+  String Function(List<Product>)? get total => record.$6;
 }
 
 final productColumns = <_ProductColumn>[
@@ -69,32 +74,34 @@ final productColumns = <_ProductColumn>[
     name: "Product Name",
     flex: 2,
     width: const pw.IntrinsicColumnWidth(),
-    value: (Product p) => p.name,
+    value: (p) => p.name,
+    total: (products) => 'Total',
   ),
   _ProductColumn(
     name: "Category",
     width: const pw.IntrinsicColumnWidth(),
-    value: (Product p) => p.categoryName ?? '-',
+    value: (p) => p.categoryName ?? '-',
   ),
   _ProductColumn(
     name: "Sale Price",
     width: const pw.IntrinsicColumnWidth(),
-    value: (Product p) => CurrencyFormatter.full(p.salePrice, "Php "),
+    value: (p) => CurrencyFormatter.full(p.salePrice, "Php "),
   ),
   _ProductColumn(
     name: "Order Cost",
     width: const pw.IntrinsicColumnWidth(),
-    value: (Product p) => CurrencyFormatter.full(p.orderCost, "Php "),
+    value: (p) => CurrencyFormatter.full(p.orderCost, "Php "),
   ),
   _ProductColumn(
     name: "Reorder Point Level",
     width: const pw.IntrinsicColumnWidth(),
-    value: (Product p) => "${p.reorderPoint!.toNumberString()} ${p.mainUnit}",
+    value: (p) => "${p.reorderPoint?.toNumberString()} ${p.mainUnit}",
   ),
   _ProductColumn(
     name: "Qty on Hand",
     width: const pw.IntrinsicColumnWidth(),
-    value: (Product p) => "${p.quantity.toNumberString()} ${p.mainUnit}",
+    value: (p) => "${p.quantity.toNumberString()} ${p.mainUnit}",
+    total: (products) => '${products.map((p) => p.quantity).sum().toNumberString()} items',
   ),
 ];
 
@@ -183,9 +190,9 @@ class InventoryReportHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        if (context.watchAccessLevel == AccessLevel.administrator) ...[
+        if (context.watchAccessLevel() == AccessLevel.administrator) ...[
           IconButton(
-            icon: const Icon(FluentIcons.home_solid),
+            icon: const Icon(FluentIcons.back),
             onPressed: () {
               /// From context.navigate(AppRoutes.admin.reports)
               context.navigate(AppRoutes.admin.reports);
@@ -225,7 +232,7 @@ class InventoryReportOptions extends StatelessWidget {
                     Spacing.v8,
                     _SortBy(),
                     Spacing.v8,
-                    _TakeSelection(),
+                    _RowLimitSelection(),
                   ],
                 ),
               ),
@@ -245,7 +252,7 @@ class _SortBy extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        const Text('Sort By: '),
+        const SizedBox(width: 90, child: Text('Sort By: ')),
         Spacing.h8,
         ComboBox<InventoryDisplaySortBy>(
           value: context.select((InventoryReportBloc b) => b.state.queryData.sortBy),
@@ -269,14 +276,14 @@ class _SortBy extends StatelessWidget {
   }
 }
 
-class _TakeSelection extends StatelessWidget {
-  const _TakeSelection();
+class _RowLimitSelection extends StatelessWidget {
+  const _RowLimitSelection();
 
   @override
   Widget build(BuildContext context) {
     return Row(
       children: [
-        const Text('Take: '),
+        const SizedBox(width: 90, child: Text('Take: ')),
         Spacing.h8,
         ConstrainedBox(
           constraints: const BoxConstraints(
@@ -309,7 +316,7 @@ class _DateSelection extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        const Text('Report Date: '),
+        const SizedBox(width: 90, child: Text('Report Date: ')),
         Spacing.h8,
         BorderedDatePicker(
           selected: context.select((InventoryReportBloc b) => b.state.queryData.date),
@@ -731,8 +738,6 @@ final class _InventoryReportPdfGenerator with PdfCommons implements PdfGenerator
   }
 
   pw.TableRow _buildBottomRow(List<Product> products) {
-    final totalQuantity = products.fold(0.0, (sum, p) => sum + p.quantity);
-
     return pw.TableRow(
       decoration: const pw.BoxDecoration(
         border: pw.Border(
@@ -740,30 +745,16 @@ final class _InventoryReportPdfGenerator with PdfCommons implements PdfGenerator
         ),
       ),
       children: [
-        pw.Padding(
-          padding: _cellPadding,
-          child: pw.Text(
-            'Total',
-            style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 9),
-          ),
-        ),
-        for (final (_) in productColumns.skip(1).take(productColumns.length - 2))
+        for (final _ProductColumn(:total) in productColumns)
           pw.Padding(
             padding: _cellPadding,
             child: pw.Text(
-              '',
+              total?.call(products) ?? '',
               style: const pw.TextStyle(fontSize: 8),
               softWrap: false,
               overflow: pw.TextOverflow.span,
             ),
           ),
-        pw.Padding(
-          padding: _cellPadding,
-          child: pw.Text(
-            '${totalQuantity.toNumberString()} items',
-            style: const pw.TextStyle(fontSize: 8),
-          ),
-        ),
       ],
     );
   }

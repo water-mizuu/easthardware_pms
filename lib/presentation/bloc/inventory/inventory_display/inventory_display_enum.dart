@@ -1,16 +1,16 @@
 import 'package:easthardware_pms/domain/models/product.dart';
 
 enum InventoryDisplaySortBy {
-  nameAscending('Name Ascending'),
-  nameDescending('Name Descending'),
-  categoryAscending('Category Ascending'),
-  categoryDescending('Category Descending'),
-  stockAscending('Stock Ascending'),
-  stockDescending('Stock Descending'),
-  priceAscending('Price Ascending'),
-  priceDescending('Price Descending'),
-  urgencyAscending('Urgency Ascending'),
-  urgencyDescending('Urgency Descending');
+  nameAscending('Name (A-Z)'),
+  nameDescending('Name (Z-A)'),
+  categoryAscending('Category (A-Z)'),
+  categoryDescending('Category (Z-A)'),
+  stockAscending('Stock (Low to High)'),
+  stockDescending('Stock (High to Low)'),
+  priceAscending('Price (Low to High)'),
+  priceDescending('Price (High to Low)'),
+  urgencyAscending('Urgency (Low to High)'),
+  urgencyDescending('Urgency (High to Low)');
 
   const InventoryDisplaySortBy(this.name);
   final String name;
