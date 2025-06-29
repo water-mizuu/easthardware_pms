@@ -185,7 +185,8 @@ class UserLogListBloc extends Bloc<UserLogListEvent, UserLogListState> {
       ///   This is to avoid processing logs that are not relevant to the current query.
       final logsWithinTheDate = state.userLogs
           .where((log) => log.eventTime.isAfter(state.queryData.startDate.zeroedTime()))
-          .where((log) => log.eventTime.isBefore(state.queryData.endDate.zeroedTime()))
+          .where(
+              (log) => log.eventTime.isBefore((state.queryData.endDate.add(1.days)).zeroedTime()))
           .toList();
 
       /// We get the users assigned to each of the logs within the date range.
@@ -194,6 +195,12 @@ class UserLogListBloc extends Bloc<UserLogListEvent, UserLogListState> {
           .map((log) => _userRepository.getUserById(log.userId))
           .toList()
           .wait;
+
+      printBoxed((state.userLogs
+          .map((u) =>
+              u.eventTime.isAfter(state.queryData.startDate) &&
+              u.eventTime.isBefore(state.queryData.endDate))
+          .toList()));
 
       /// We create a map of user IDs to their corresponding User objects for quick access.
       ///   This is used to filter logs by access level and to display user information in the
@@ -222,6 +229,7 @@ class UserLogListBloc extends Bloc<UserLogListEvent, UserLogListState> {
             final res => res,
           },
         );
+
         printBoxed(selectedUserLogs.join("\n"), "Filtered Logs");
 
         emit(state.copyWith(

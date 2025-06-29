@@ -186,21 +186,25 @@ class PageHeader extends StatelessWidget {
             // Validate form data before printing
             if (paymentFormState.invoice == null) {
               // Show error - no invoice selected
+              print("INVOICE IS INVALID");
               return;
             }
 
             if (paymentFormState.paymentMethod == null) {
               // Show error - no payment method selected
+              print("PAYMENT METHOD IS INVALID");
               return;
             }
 
             if (paymentFormState.paymentReference.isEmpty) {
               // Show error - no reference number
+              print("REFERENCE NUMBER IS INVALID");
               return;
             }
 
             if (paymentFormState.amount <= 0) {
               // Show error - invalid amount
+              print("AMOUNT IS INVALID");
               return;
             }
 

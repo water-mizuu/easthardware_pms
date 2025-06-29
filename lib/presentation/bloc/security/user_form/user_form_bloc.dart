@@ -42,7 +42,6 @@ class UserFormBloc extends Bloc<UserFormEvent, UserFormState> {
 
   Future<void> _onUserIdChanged(UserIdChangedEvent event, Emitter emit) async {
     try {
-      printBoxed('UserIdChangedEvent: ${event.userId}', '------ User ID Changed ------');
       emit(state.copyWith(userId: event.userId));
     } catch (e) {
       emit(state.copyWith(status: FormStatus.error));
