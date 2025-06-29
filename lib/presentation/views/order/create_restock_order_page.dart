@@ -32,6 +32,7 @@ import 'package:easthardware_pms/utils/notification.dart';
 import 'package:easthardware_pms/utils/typed_routes.dart';
 import 'package:fluent_ui/fluent_ui.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:provider/provider.dart';
 
@@ -203,6 +204,10 @@ class OrderPageForm extends StatelessWidget {
                     const BodyText('Payee Name'),
                     Spacing.v8,
                     TextFormBox(
+                      inputFormatters: [
+                        LengthLimitingTextInputFormatter(60),
+                        FilteringTextInputFormatter.allow(RegExp(r'^[a-zA-Z0-9\s\-_]+$')),
+                      ],
                       initialValue: state.payeeName,
                       onChanged: (value) => context //
                           .read<OrderFormBloc>()
@@ -251,6 +256,10 @@ class OrderPageForm extends StatelessWidget {
                     const BodyText('Reference Number'),
                     Spacing.v8,
                     TextFormBox(
+                      inputFormatters: [
+                        LengthLimitingTextInputFormatter(60),
+                        FilteringTextInputFormatter.allow(RegExp(r'^[a-zA-Z0-9\s\-_]+$')),
+                      ],
                       initialValue: state.referenceNumber,
                       onChanged: (value) =>
                           context.read<OrderFormBloc>().add(ReferenceNumberChangedEvent(value)),

@@ -35,6 +35,7 @@ import 'package:easthardware_pms/utils/boxed.dart';
 import 'package:easthardware_pms/utils/notification.dart';
 import 'package:easthardware_pms/utils/typed_routes.dart';
 import 'package:fluent_ui/fluent_ui.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:provider/provider.dart';
 
@@ -355,6 +356,10 @@ class _OrderPageFormState extends State<_OrderPageForm> {
                     const BodyText('Payee Name'),
                     Spacing.v8,
                     TextFormBox(
+                      inputFormatters: [
+                        LengthLimitingTextInputFormatter(60),
+                        FilteringTextInputFormatter.allow(RegExp(r'^[a-zA-Z0-9\s\-_]+$')),
+                      ],
                       controller: _payeeNameController,
                       onChanged: (value) => context //
                           .read<OrderFormBloc>()
@@ -403,6 +408,10 @@ class _OrderPageFormState extends State<_OrderPageForm> {
                     const BodyText('Reference Number'),
                     Spacing.v8,
                     TextFormBox(
+                      inputFormatters: [
+                        LengthLimitingTextInputFormatter(60),
+                        FilteringTextInputFormatter.allow(RegExp(r'^[a-zA-Z0-9\s\-_]+$')),
+                      ],
                       controller: _referenceNumberController,
                       onChanged: (value) =>
                           context.read<OrderFormBloc>().add(ReferenceNumberChangedEvent(value)),

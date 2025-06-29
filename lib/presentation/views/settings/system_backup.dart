@@ -18,6 +18,7 @@ import 'package:easthardware_pms/utils/notification.dart';
 import 'package:easthardware_pms/utils/number_string.dart';
 import 'package:easthardware_pms/utils/show_single_dialog.dart';
 import 'package:fluent_ui/fluent_ui.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:path/path.dart' as path;
@@ -468,6 +469,10 @@ class _BackupRow extends StatelessWidget {
                   return TextFormBox(
                     controller: textController,
                     placeholder: 'Enter an encryption key',
+                    inputFormatters: [
+                      LengthLimitingTextInputFormatter(60),
+                      FilteringTextInputFormatter.allow(RegExp(r'^[a-zA-Z0-9_]*$')),
+                    ],
                     autofocus: true,
                     autovalidateMode: AutovalidateMode.always,
                     validator: (value) => errorNotifier.value,

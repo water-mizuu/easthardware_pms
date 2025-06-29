@@ -7,6 +7,7 @@ import 'package:easthardware_pms/utils/typed_routes.dart';
 import 'package:easthardware_pms/presentation/widgets/text.dart';
 import 'package:fluent_ui/fluent_ui.dart';
 import 'package:flutter/material.dart' show Icons;
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class NewPasswordPage extends StatefulWidget {
@@ -109,6 +110,7 @@ class _NewPasswordInputSectionState extends State<NewPasswordInputSection> {
       children: [
         const BodyText('New Password'),
         TextFormBox(
+          inputFormatters: [LengthLimitingTextInputFormatter(60)],
           placeholder: 'Enter new password',
           obscureText: obscureText,
           suffix: IconButton(
@@ -146,6 +148,7 @@ class _ConfirmPasswordInputSectionState extends State<ConfirmPasswordInputSectio
           children: [
             const BodyText('Confirm Password'),
             TextFormBox(
+              inputFormatters: [LengthLimitingTextInputFormatter(60)],
               placeholder: 'Confirm password',
               obscureText: obscureText,
               suffix: IconButton(

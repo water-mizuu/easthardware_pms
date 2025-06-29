@@ -154,6 +154,7 @@ class SaleInformationSection extends StatelessWidget with ProductFormValidator {
           ),
           inputFormatters: [
             FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*')),
+            LengthLimitingTextInputFormatter(12),
           ],
           initialValue: context.read<ProductFormBloc>().state.price == 0
               ? ''
@@ -190,6 +191,7 @@ class OrderInformationSection extends StatelessWidget with ProductFormValidator 
           ),
           inputFormatters: [
             FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*')),
+            LengthLimitingTextInputFormatter(12),
           ],
           initialValue: context.read<ProductFormBloc>().state.cost == 0
               ? ''
@@ -284,6 +286,10 @@ class ProductNameField extends StatelessWidget with ProductFormValidator {
         const BodyText('Product Name'),
         Spacing.v4,
         TextFormBox(
+          inputFormatters: [
+            FilteringTextInputFormatter.allow(RegExp(r'^[a-zA-Z0-9\s]+$')),
+            LengthLimitingTextInputFormatter(60),
+          ],
           autofocus: true,
           initialValue: context.read<ProductFormBloc>().state.name,
           validator: (value) => validateProductName(
@@ -313,6 +319,10 @@ class StockKeepingUnitField extends StatelessWidget with ProductFormValidator {
         const BodyText('Stock Keeping Unit (SKU)'),
         Spacing.v4,
         TextFormBox(
+          inputFormatters: [
+            FilteringTextInputFormatter.allow(RegExp(r'^[a-zA-Z0-9_-]+$')),
+            LengthLimitingTextInputFormatter(60),
+          ],
           initialValue: context.watch<ProductFormBloc>().state.sku,
           placeholder: context.read<ProductFormBloc>().state.sku,
           onChanged: (value) {
@@ -372,6 +382,7 @@ class DescriptionField extends StatelessWidget {
         const BodyText('Description'),
         Spacing.v4,
         TextFormBox(
+          inputFormatters: [LengthLimitingTextInputFormatter(120)],
           minLines: 2,
           maxLines: 2,
           initialValue: context.read<ProductFormBloc>().state.description,
@@ -420,6 +431,7 @@ class _CriticalLevelFieldState extends State<CriticalLevelField> {
       listener: (context, state) {
         _controller.text = state.criticalLevel.toString();
       },
+      //TODO: Decide upon the fate of critical level
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -476,6 +488,7 @@ class ReorderDelayFields extends StatelessWidget with ProductFormValidator {
                 ),
                 inputFormatters: [
                   FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*')),
+                  LengthLimitingTextInputFormatter(12),
                 ],
                 initialValue: context.read<ProductFormBloc>().state.minReorderDelay == 0
                     ? ''
@@ -505,6 +518,7 @@ class ReorderDelayFields extends StatelessWidget with ProductFormValidator {
               ),
               inputFormatters: [
                 FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*')),
+                LengthLimitingTextInputFormatter(12),
               ],
               initialValue: context.read<ProductFormBloc>().state.maxReorderDelay == 0
                   ? ''
@@ -684,6 +698,10 @@ class _SecondaryUnitFieldState extends State<SecondaryUnitField> with ProductFor
             children: [
               Expanded(
                 child: TextFormBox(
+                  inputFormatters: [
+                    FilteringTextInputFormatter.allow(RegExp(r'^[a-zA-Z0-9\s]+$')),
+                    LengthLimitingTextInputFormatter(60),
+                  ],
                   controller: _nameController,
                   validator: (rawName) {
                     final state = context.read<ProductFormBloc>().state;
@@ -729,6 +747,10 @@ class _SecondaryUnitFieldState extends State<SecondaryUnitField> with ProductFor
             children: [
               Expanded(
                 child: TextFormBox(
+                  inputFormatters: [
+                    FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*')),
+                    LengthLimitingTextInputFormatter(12),
+                  ],
                   controller: _unitQuantityController,
                   validator: (rawUnitQuantity) {
                     final state = context.read<ProductFormBloc>().state;
@@ -763,6 +785,10 @@ class _SecondaryUnitFieldState extends State<SecondaryUnitField> with ProductFor
               const Padding(padding: EdgeInsets.only(top: 8.0), child: Text("per")),
               Expanded(
                 child: TextFormBox(
+                  inputFormatters: [
+                    FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*')),
+                    LengthLimitingTextInputFormatter(12),
+                  ],
                   controller: _mainQuantityController,
                   validator: (mainQuantityRaw) {
                     final state = context.read<ProductFormBloc>().state;
@@ -836,6 +862,7 @@ class QuantityUnitFields extends StatelessWidget with ProductFormValidator {
               TextFormBox(
                 inputFormatters: [
                   FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*')),
+                  LengthLimitingTextInputFormatter(12),
                 ],
                 initialValue: context.read<ProductFormBloc>().state.quantity == 0
                     ? ''
@@ -856,6 +883,10 @@ class QuantityUnitFields extends StatelessWidget with ProductFormValidator {
             children: [
               const BodyText('Main Unit'),
               TextFormBox(
+                inputFormatters: [
+                  FilteringTextInputFormatter.allow(RegExp(r'^[a-zA-Z0-9\s]+$')),
+                  LengthLimitingTextInputFormatter(60),
+                ],
                 initialValue: context.read<ProductFormBloc>().state.mainUnit,
                 validator: validateProductUnitName,
                 onChanged: (value) {
@@ -886,6 +917,7 @@ class DeadFastStockFields extends StatelessWidget with ProductFormValidator {
               TextFormBox(
                 inputFormatters: [
                   FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*')),
+                  LengthLimitingTextInputFormatter(12),
                 ],
                 initialValue: context.read<ProductFormBloc>().state.deadStockThreshold == 0
                     ? ''
@@ -913,6 +945,7 @@ class DeadFastStockFields extends StatelessWidget with ProductFormValidator {
               TextFormBox(
                 inputFormatters: [
                   FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*')),
+                  LengthLimitingTextInputFormatter(12),
                 ],
                 initialValue: context.read<ProductFormBloc>().state.fastMovingThreshold == 0
                     ? ''

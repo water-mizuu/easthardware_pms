@@ -7,6 +7,7 @@ import 'package:easthardware_pms/presentation/widgets/layout/spacing.dart';
 import 'package:easthardware_pms/presentation/widgets/ui/styles.dart';
 import 'package:easthardware_pms/presentation/widgets/ui/text_button.dart';
 import 'package:fluent_ui/fluent_ui.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class ExpenseTypeComboBox extends StatefulWidget {
@@ -84,6 +85,10 @@ class _ExpenseTypeComboBoxState extends State<ExpenseTypeComboBox> {
                                 const Text('Add New Expense Type', style: TextStyles.subtitle),
                                 const SizedBox(height: 8.0),
                                 TextFormBox(
+                                  inputFormatters: [
+                                    LengthLimitingTextInputFormatter(60),
+                                    FilteringTextInputFormatter.allow(RegExp(r'^[a-zA-Z0-9\s]+$')),
+                                  ],
                                   placeholder: 'Expense Type Name',
                                   validator: (value) {
                                     if (value == null || value.isEmpty) {

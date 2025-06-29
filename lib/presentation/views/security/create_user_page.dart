@@ -23,6 +23,7 @@ import 'package:easthardware_pms/utils/typed_routes.dart';
 import 'package:fluent_ui/fluent_ui.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart' show Icons;
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:provider/provider.dart';
 import 'package:provider/single_child_widget.dart';
@@ -273,6 +274,10 @@ class FirstNameLastNameFields extends StatelessWidget with UserFormValidator {
             children: [
               const BodyText('First Name'),
               TextFormBox(
+                inputFormatters: [
+                  LengthLimitingTextInputFormatter(30),
+                  FilteringTextInputFormatter.allow(RegExp(r'^[a-zA-Z\s]*$')),
+                ],
                 validator: validateFirstName,
                 placeholder: 'First Name',
                 initialValue: context.read<UserFormBloc>().state.firstName,
@@ -290,6 +295,10 @@ class FirstNameLastNameFields extends StatelessWidget with UserFormValidator {
             children: [
               const BodyText('Last Name'),
               TextFormBox(
+                inputFormatters: [
+                  LengthLimitingTextInputFormatter(30),
+                  FilteringTextInputFormatter.allow(RegExp(r'^[a-zA-Z\s]*$')),
+                ],
                 validator: validateLastName,
                 placeholder: 'Last Name',
                 initialValue: context.read<UserFormBloc>().state.lastName,
@@ -323,6 +332,10 @@ class UsernameField extends StatelessWidget with UserFormValidator {
       children: [
         const BodyText('Username'),
         TextFormBox(
+          inputFormatters: [
+            LengthLimitingTextInputFormatter(30),
+            FilteringTextInputFormatter.allow(RegExp(r'^[a-zA-Z0-9_]*$')),
+          ],
           validator: (value) => validateUsername(value, existingUsernames),
           placeholder: 'Username',
           initialValue: context.read<UserFormBloc>().state.username,
@@ -369,6 +382,10 @@ class _PasswordFieldState extends State<PasswordField> with UserFormValidator {
         ValueListenableBuilder(
           valueListenable: _isObscuredNotifier,
           builder: (context, isObscured, _) => TextFormBox(
+            inputFormatters: [
+              LengthLimitingTextInputFormatter(60),
+              FilteringTextInputFormatter.deny(RegExp(r'[\n\r]')),
+            ],
             validator: validatePassword,
             placeholder: 'Password',
             obscureText: isObscured,
@@ -550,6 +567,10 @@ class _SecurityQuestionFieldsState extends State<SecurityQuestionFields> with Us
                     },
                   ),
                   TextFormBox(
+                    inputFormatters: [
+                      LengthLimitingTextInputFormatter(120),
+                      FilteringTextInputFormatter.deny(RegExp(r'[\n\r]')),
+                    ],
                     placeholder: "Answer for question ${index + 1}",
                     controller: _answerControllers[index],
                     validator: (value) => validateSecurityAnswer(value, index),

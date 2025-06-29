@@ -11,6 +11,7 @@ import 'package:easthardware_pms/presentation/widgets/layout/spacing.dart';
 import 'package:easthardware_pms/presentation/widgets/text.dart';
 import 'package:fluent_ui/fluent_ui.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -100,6 +101,10 @@ class _FormUsernameField extends StatelessWidget with LoginFormValidator {
             onChanged: (value) => context //
                 .read<LoginFormBloc>()
                 .add(LoginFormUsernameChanged(value)),
+            inputFormatters: [
+              FilteringTextInputFormatter.allow(RegExp(r'^[a-zA-Z0-9_]*$')),
+              LengthLimitingTextInputFormatter(30),
+            ],
           ),
         ),
       ].withSpacing(() => Spacing.v8),
@@ -119,12 +124,12 @@ class _FormPasswordField extends StatelessWidget with LoginFormValidator {
         BlocBuilder<LoginFormBloc, LoginFormState>(
           buildWhen: (p, c) => p.passwordError != c.passwordError,
           builder: (context, state) => TextFormBox(
-            obscureText: true,
-            validator: (v) => state.passwordError ?? validatePassword(v),
-            onChanged: (value) => context //
-                .read<LoginFormBloc>()
-                .add(LoginFormPasswordChanged(value)),
-          ),
+              obscureText: true,
+              validator: (v) => state.passwordError ?? validatePassword(v),
+              onChanged: (value) => context //
+                  .read<LoginFormBloc>()
+                  .add(LoginFormPasswordChanged(value)),
+              inputFormatters: [LengthLimitingTextInputFormatter(60)]),
         ),
       ].withSpacing(() => Spacing.v8),
     );

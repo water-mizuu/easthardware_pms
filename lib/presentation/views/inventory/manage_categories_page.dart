@@ -18,6 +18,7 @@ import 'package:easthardware_pms/utils/show_single_dialog.dart';
 import 'package:easthardware_pms/utils/typed_routes.dart';
 import 'package:fluent_ui/fluent_ui.dart';
 import 'package:flutter/material.dart' show DataColumn, PaginatedDataTable;
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
@@ -335,6 +336,9 @@ Future<void> showContentDialog(BuildContext context, [Category? category]) async
                   children: [
                     const Text('Name', style: TextStyles.body),
                     TextFormBox(
+                      inputFormatters: [
+                        LengthLimitingTextInputFormatter(60),
+                      ],
                       validator: (value) {
                         if (value == null || value.trim().isEmpty) {
                           return 'Name cannot be empty';

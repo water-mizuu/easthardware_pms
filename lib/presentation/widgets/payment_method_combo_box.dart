@@ -100,7 +100,8 @@ class _PaymentMethodComboBoxState extends State<PaymentMethodComboBox> {
                                     return null;
                                   },
                                   inputFormatters: [
-                                    FilteringTextInputFormatter.allow(RegExp(r'^[a-zA-Z0-9\s]+$'))
+                                    FilteringTextInputFormatter.allow(RegExp(r'^[a-zA-Z0-9\s]+$')),
+                                    LengthLimitingTextInputFormatter(60),
                                   ],
                                   onChanged: (value) {
                                     context.read<PaymentMethodFormCubit>().onFormNameChanged(value);

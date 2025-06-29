@@ -5,6 +5,7 @@ import 'package:easthardware_pms/presentation/widgets/text.dart';
 import 'package:easthardware_pms/presentation/widgets/ui/styles.dart';
 import 'package:easthardware_pms/utils/typed_routes.dart';
 import 'package:fluent_ui/fluent_ui.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:scroll_animator/scroll_animator.dart';
 
@@ -113,6 +114,9 @@ class _UsernameInputSection extends StatelessWidget {
       children: [
         const BodyText('Username'),
         TextFormBox(
+          inputFormatters: [
+            LengthLimitingTextInputFormatter(30),
+          ],
           controller: TextEditingController(text: state.username),
           enabled: false,
         ),
@@ -176,6 +180,7 @@ class _AnswerInputSection extends StatelessWidget {
       children: [
         const BodyText('Answer'),
         TextFormBox(
+          inputFormatters: [LengthLimitingTextInputFormatter(120)],
           placeholder: 'Enter your answer',
           onChanged: (value) =>
               context.read<ResetFormBloc>().add(ResetFormAnswerChanged(value.trim())),

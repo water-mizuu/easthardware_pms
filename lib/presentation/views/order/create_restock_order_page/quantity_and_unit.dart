@@ -131,6 +131,7 @@ class _QuantityAndUnitState extends State<QuantityAndUnit> {
                 placeholder: '0',
                 inputFormatters: [
                   FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}')),
+                  LengthLimitingTextInputFormatter(12),
                 ],
               ),
             ),

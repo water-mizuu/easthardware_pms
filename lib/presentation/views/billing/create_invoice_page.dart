@@ -190,6 +190,7 @@ class PageForm extends StatelessWidget {
                       const BodyText('Customer Name'),
                       Spacing.v8,
                       TextFormBox(
+                        inputFormatters: [LengthLimitingTextInputFormatter(60)],
                         onChanged: (value) => context //
                             .read<InvoiceFormBloc>()
                             .add(CustomerNameChangedEvent(value)),
@@ -695,6 +696,7 @@ class _FormTableRowState extends State<FormTableRow> {
                     flex: 2,
                     child: FormTableCell(
                       child: TextFormBoxes.ghost(
+                        inputFormatters: [LengthLimitingTextInputFormatter(120)],
                         controller: _descriptionController,
                         placeholder: 'Product Description',
                       ),
@@ -721,6 +723,7 @@ class _FormTableRowState extends State<FormTableRow> {
                                 child: TextFormBoxes.ghost(
                                   inputFormatters: [
                                     FilteringTextInputFormatter.allow(RegExp(r'^\d*')),
+                                    LengthLimitingTextInputFormatter(12),
                                   ],
                                   style: TextStyles.onSurface,
                                   controller: _quantityController,
@@ -747,6 +750,7 @@ class _FormTableRowState extends State<FormTableRow> {
                       child: TextFormBoxes.ghost(
                         inputFormatters: [
                           FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}')),
+                          LengthLimitingTextInputFormatter(12),
                         ],
                         style: TextStyles.onSurface,
                         controller: _rateController,
@@ -901,6 +905,7 @@ class InvoiceSummary extends StatelessWidget {
                 const BodyText('Memo'),
                 Spacing.v8,
                 TextBox(
+                  inputFormatters: [LengthLimitingTextInputFormatter(180)],
                   minLines: 3,
                   maxLines: 3,
                   onChanged: (value) =>
@@ -942,6 +947,7 @@ class InvoiceSummary extends StatelessWidget {
                                 child: TextFormBox(
                                   inputFormatters: [
                                     FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}')),
+                                    LengthLimitingTextInputFormatter(10),
                                   ],
                                   onChanged: (value) => context.read<InvoiceFormBloc>().add(
                                         DiscountChangedEvent(double.tryParse(value) ?? 0.0),

@@ -69,7 +69,7 @@ class QuantityState extends State<Quantity> {
         placeholder: '0',
         inputFormatters: [
           FilteringTextInputFormatter.digitsOnly,
-          LengthLimitingTextInputFormatter(10),
+          LengthLimitingTextInputFormatter(12),
         ],
       ),
     );

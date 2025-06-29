@@ -339,7 +339,10 @@ class _PaymentFormState extends State<PaymentForm> {
                         Spacing.v8,
                         TextFormBox(
                           key: ValueKey(state.invoice?.id),
-                          inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'^\d+$'))],
+                          inputFormatters: [
+                            FilteringTextInputFormatter.allow(RegExp(r'^\d+$')),
+                            LengthLimitingTextInputFormatter(12)
+                          ],
                           initialValue: state.invoice?.id.toString() ?? '',
                           onChanged: (value) {
                             if (invoices.map((e) => e.id.toString()).contains(value)) {
@@ -499,7 +502,8 @@ class _PaymentFormState extends State<PaymentForm> {
                         TextFormBox(
                           readOnly: invoice == null,
                           inputFormatters: [
-                            FilteringTextInputFormatter.allow(RegExp(r'^[a-zA-Z0-9\s]+$'))
+                            FilteringTextInputFormatter.allow(RegExp(r'^[a-zA-Z0-9\s]+$')),
+                            LengthLimitingTextInputFormatter(60)
                           ],
                           onChanged: (value) {
                             context.read<PaymentFormBloc>().add(PaymentReferenceChanged(value));
@@ -529,7 +533,8 @@ class _PaymentFormState extends State<PaymentForm> {
                           initialValue: ((invoice?.amountDue ?? 0.0) - (invoice?.amountPaid ?? 0.0))
                               .toStringAsFixed(2),
                           inputFormatters: [
-                            FilteringTextInputFormatter.allow(RegExp(r'^\d+(\.\d{0,2})?$'))
+                            FilteringTextInputFormatter.allow(RegExp(r'^\d+(\.\d{0,2})?$')),
+                            LengthLimitingTextInputFormatter(12)
                           ],
                           onChanged: (value) {
                             context //

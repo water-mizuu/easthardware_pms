@@ -13,6 +13,7 @@ import 'package:easthardware_pms/presentation/widgets/text.dart';
 import 'package:easthardware_pms/utils/notification.dart';
 import 'package:easthardware_pms/utils/user.dart';
 import 'package:fluent_ui/fluent_ui.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
@@ -184,6 +185,10 @@ class _SearchElement extends StatelessWidget {
         Spacing.h8,
         Expanded(
           child: TextFormBox(
+            inputFormatters: [
+              LengthLimitingTextInputFormatter(60),
+              FilteringTextInputFormatter.allow(RegExp(r'^[a-zA-Z0-9\s\-_]+$')),
+            ],
             placeholder: 'Enter search keyword; e.g. product name, invoice number, etc.',
             onChanged: (value) {
               context.read<SearchBloc>().add(SearchQueryUpdated(value));

@@ -24,6 +24,7 @@ import 'package:easthardware_pms/utils/notification.dart';
 import 'package:easthardware_pms/utils/typed_routes.dart';
 import 'package:fluent_ui/fluent_ui.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:provider/provider.dart';
 import 'package:provider/single_child_widget.dart';
@@ -453,6 +454,10 @@ class FirstNameLastNameFields extends StatelessWidget with UserFormValidator {
                 children: [
                   const BodyText('First Name'),
                   TextFormBox(
+                    inputFormatters: [
+                      LengthLimitingTextInputFormatter(30),
+                      FilteringTextInputFormatter.allow(RegExp(r'^[a-zA-Z\s]*$')),
+                    ],
                     validator: validateFirstName,
                     placeholder: 'First Name',
                     controller: firstNameController,
@@ -472,6 +477,10 @@ class FirstNameLastNameFields extends StatelessWidget with UserFormValidator {
                 children: [
                   const BodyText('Last Name'),
                   TextFormBox(
+                    inputFormatters: [
+                      LengthLimitingTextInputFormatter(30),
+                      FilteringTextInputFormatter.allow(RegExp(r'^[a-zA-Z\s]*$')),
+                    ],
                     validator: validateLastName,
                     placeholder: 'Last Name',
                     controller: lastNameController,
@@ -521,6 +530,10 @@ class UsernameField extends StatelessWidget with UserFormValidator {
               children: [
                 const BodyText('Username'),
                 TextFormBox(
+                  inputFormatters: [
+                    LengthLimitingTextInputFormatter(30),
+                    FilteringTextInputFormatter.allow(RegExp(r'^[a-zA-Z0-9_]*$')),
+                  ],
                   placeholder: 'Enter username',
                   controller: controller,
                   validator: (value) => validateUsername(value, otherUsernames),
@@ -572,6 +585,10 @@ class _PasswordFieldState extends State<PasswordField> with UserFormValidator {
             buildWhen: (p, c) => p.password != c.password,
             builder: (context, state) {
               return TextFormBox(
+                inputFormatters: [
+                  LengthLimitingTextInputFormatter(60),
+                  FilteringTextInputFormatter.deny(RegExp(r'[\n\r]'))
+                ],
                 placeholder: 'Password',
                 obscureText: isObscured,
                 onChanged: (value) =>
@@ -639,6 +656,10 @@ class _ConfirmPasswordFieldState extends State<ConfirmPasswordField> with UserFo
             buildWhen: (p, c) => p.password != c.password || p.confirmPassword != c.confirmPassword,
             builder: (context, state) {
               return TextFormBox(
+                inputFormatters: [
+                  LengthLimitingTextInputFormatter(60),
+                  FilteringTextInputFormatter.deny(RegExp(r'[\n\r]')),
+                ],
                 validator: (value) {
                   final password = state.password;
                   // Only validate if both old password and new password are provided
@@ -715,6 +736,10 @@ class _OldPasswordFieldState extends State<OldPasswordField> with UserFormValida
             buildWhen: (p, c) => p.oldPassword != c.oldPassword,
             builder: (context, state) {
               return TextFormBox(
+                inputFormatters: [
+                  LengthLimitingTextInputFormatter(60),
+                  FilteringTextInputFormatter.deny(RegExp(r'[\n\r]')),
+                ],
                 validator: (value) => value != null && value.isNotEmpty && state.password.isNotEmpty
                     ? validatePassword(value)
                     : null,
@@ -952,6 +977,10 @@ class _SecurityQuestionFieldsState extends State<SecurityQuestionFields> with Us
                     valueListenable: _obscureAnswerNotifiers[index],
                     builder: (context, isObscured, _) {
                       return TextFormBox(
+                        inputFormatters: [
+                          LengthLimitingTextInputFormatter(120),
+                          FilteringTextInputFormatter.deny(RegExp(r'[\n\r]')),
+                        ],
                         controller: _answerControllers[index],
                         placeholder: 'Answer',
                         validator: (value) => validateSecurityAnswer(value, index),

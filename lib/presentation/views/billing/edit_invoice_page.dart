@@ -240,6 +240,7 @@ class _PageFormState extends State<PageForm> {
                       const BodyText('Customer Name'),
                       Spacing.v8,
                       TextFormBox(
+                        inputFormatters: [LengthLimitingTextInputFormatter(60)],
                         controller: _customerNameController,
                         onChanged: (value) => context //
                             .read<InvoiceFormBloc>()
@@ -762,6 +763,7 @@ class _FormTableRowState extends State<FormTableRow> {
                     flex: 2,
                     child: FormTableCell(
                       child: TextFormBoxes.ghost(
+                        inputFormatters: [LengthLimitingTextInputFormatter(120)],
                         controller: _descriptionController,
                         placeholder: 'Product Description',
                       ),
@@ -788,6 +790,7 @@ class _FormTableRowState extends State<FormTableRow> {
                                 child: TextFormBoxes.ghost(
                                   inputFormatters: [
                                     FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}')),
+                                    LengthLimitingTextInputFormatter(12),
                                   ],
                                   style: TextStyles.onSurface,
                                   controller: _quantityController,
@@ -814,6 +817,7 @@ class _FormTableRowState extends State<FormTableRow> {
                       child: TextFormBoxes.ghost(
                         inputFormatters: [
                           FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}')),
+                          LengthLimitingTextInputFormatter(12),
                         ],
                         style: TextStyles.onSurface,
                         controller: _rateController,
@@ -1064,6 +1068,7 @@ class _InvoiceSummaryState extends State<InvoiceSummary> {
                                   controller: _discountController,
                                   inputFormatters: [
                                     FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}')),
+                                    LengthLimitingTextInputFormatter(12),
                                   ],
                                 ),
                               ),

@@ -5,6 +5,7 @@ import 'package:easthardware_pms/presentation/models/form_order_item.dart';
 import 'package:easthardware_pms/presentation/widgets/ui/form_table_cell.dart';
 import 'package:easthardware_pms/presentation/widgets/ui/text_form_boxes.dart';
 import 'package:fluent_ui/fluent_ui.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
 // Define type aliases directly to avoid import cycles
@@ -182,6 +183,10 @@ class _DescriptionState extends State<Description> {
 
     return FormTableCell(
       child: TextFormBoxes.ghost(
+        inputFormatters: [
+          LengthLimitingTextInputFormatter(120),
+          FilteringTextInputFormatter.deny(RegExp(r'[\n\r]')),
+        ],
         controller: _controller,
         enabled: enabled,
         placeholder: placeholder,

@@ -17,6 +17,7 @@ import 'package:easthardware_pms/presentation/widgets/ui/text_button.dart';
 import 'package:easthardware_pms/utils/show_single_dialog.dart';
 import 'package:fluent_ui/fluent_ui.dart';
 import 'package:flutter/material.dart' show DataColumn, PaginatedDataTable;
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:scroll_animator/scroll_animator.dart';
@@ -348,6 +349,10 @@ Future<void> showContentDialog(BuildContext context, [ExpenseType? expenseType])
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             TextFormBox(
+                              inputFormatters: [
+                                LengthLimitingTextInputFormatter(30),
+                                FilteringTextInputFormatter.allow(RegExp(r'^[a-zA-Z0-9\s\-_]+$')),
+                              ],
                               initialValue: isAdding ? '' : expenseType.name,
                               onChanged: context.read<ExpenseTypeFormCubit>().onNameChanged,
                             ),
