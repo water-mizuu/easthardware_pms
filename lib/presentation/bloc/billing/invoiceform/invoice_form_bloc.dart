@@ -29,7 +29,7 @@ class InvoiceFormBloc extends Bloc<InvoiceFormEvent, InvoiceFormState> {
     on<ProductRemovedEvent>(_onProductRemoved);
     on<ProductsClearedEvent>(_onProductsCleared);
     on<ProductUpdatedEvent>(_onProductUpdated);
-    on<SaveInvoiceRequestEvent>(_onFormButtonPressed);
+    on<SaveInvoiceRequestEvent>(_onSaveInvoiceRequest);
     on<FormSubmittedEvent>(_onFormSubmitted);
     on<DialogBoxClosedEvent>(_onDialogBoxClosed);
   }
@@ -204,7 +204,7 @@ class InvoiceFormBloc extends Bloc<InvoiceFormEvent, InvoiceFormState> {
     );
   }
 
-  Future<void> _onFormButtonPressed(
+  Future<void> _onSaveInvoiceRequest(
     SaveInvoiceRequestEvent event,
     Emitter<InvoiceFormState> emit,
   ) async {
@@ -250,11 +250,18 @@ class InvoiceFormBloc extends Bloc<InvoiceFormEvent, InvoiceFormState> {
         if (product.productId == null) {
           return product.copyWith(errorMessage: 'Item cannot be blank');
         }
+        if (product.quantity <= 0) {
+          return product.copyWith(errorMessage: 'Quantity cannot be zero');
+        }
         return product;
       },
     ).toList();
 
-    if (taggedProducts.any((product) => product.errorMessage == 'Item cannot be blank')) {
+    if (taggedProducts.any(
+      (product) =>
+          product.errorMessage == 'Item cannot be blank' ||
+          product.errorMessage == 'Quantity cannot be zero',
+    )) {
       return emit(
         state.copyWith(
           status: FormStatus.error,

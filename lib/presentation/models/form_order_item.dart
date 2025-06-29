@@ -13,7 +13,7 @@ class FormOrderItem {
 
   final String? name;
   final String? description;
-  final double quantity;
+  final int quantity;
   final double rate;
   final double amount;
   final String? errorMessage;
@@ -21,7 +21,7 @@ class FormOrderItem {
   FormOrderItem Function({
     String? name,
     String? description,
-    double? quantity,
+    int? quantity,
     double? rate,
     double? amount,
     String? errorMessage,

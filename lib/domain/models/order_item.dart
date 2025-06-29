@@ -27,7 +27,7 @@ class OrderItem {
   final int orderId;
   final String name;
   final String? description;
-  final double quantity;
+  final int quantity;
   final double rate;
   final double amount;
 

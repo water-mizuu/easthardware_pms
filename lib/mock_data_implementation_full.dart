@@ -1161,7 +1161,7 @@ Future<void> generateMockData(DatabaseHelper databaseHelper) async {
             orderId: orderId,
             name: item.name,
             description: item.description,
-            quantity: 1.0, // Non-inventory items typically have quantity=1
+            quantity: 1, // Non-inventory items typically have quantity=1
             rate: item.amount,
             amount: item.amount,
           );

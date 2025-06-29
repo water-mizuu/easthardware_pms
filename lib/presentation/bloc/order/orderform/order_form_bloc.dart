@@ -311,22 +311,6 @@ class OrderFormBloc extends Bloc<OrderFormEvent, OrderFormState> {
     final referenceNumberErrorMessage = state.referenceNumberErrorMessage;
     final expenseTypeErrorMessage = state.expenseTypeErrorMessage;
 
-    // final info = [
-    //   'Order Type: ${state.orderType.name}',
-    //   'Payee Name: ${state.payeeName}',
-    //   'Order Date: ${state.orderDate}',
-    //   'Expense Type: ${state.expenseType?.name ?? 'N/A'}',
-    //   'Payment Method: ${state.paymentMethod?.name ?? 'N/A'}',
-    //   'Reference Number: ${state.referenceNumber}',
-    //   'Memo: ${state.memo ?? 'N/A'}',
-    //   'Order Items: ${state.orderItems}',
-    //   'Amount Due: ${state.amountDue}',
-    //   'Creation Date: ${state.creationDate}',
-    //   'Creator ID: ${state.creatorId ?? 'N/A'}',
-    // ].map((e) => e.toString()).join('\n -');
-
-    // printBoxed('Submitting Expense Order Form: ${info.toString().wrap}', 'CreateExpenseOrderPage');
-
     // Start validation
     emit(state.copyWith(status: FormStatus.validating));
 
@@ -349,16 +333,9 @@ class OrderFormBloc extends Bloc<OrderFormEvent, OrderFormState> {
     // Tag incomplete order items
     final taggedOrderItems = orderItems.map(
       (item) {
-        // Only validate if any field has been touched
-        if (item.description == null || item.description!.isEmpty) {
-          // If description is empty, mark as error
-          return item.copyWith(errorMessage: 'Item cannot be blank');
-        } else if (item.quantity <= 0) {
+        if (item.quantity <= 0) {
           // If quantity is zero or negative, mark as error
-          return item.copyWith(errorMessage: 'Item cannot be blank');
-        } else if (item.rate <= 0) {
-          // If rate is zero or negative, mark as error
-          return item.copyWith(errorMessage: 'Item cannot be blank');
+          return item.copyWith(errorMessage: 'Quantity cannot be zero');
         } else if (item.name == null || item.name!.isEmpty) {
           // If name is empty, mark as error
           return item.copyWith(errorMessage: 'Item cannot be blank');
@@ -376,12 +353,15 @@ class OrderFormBloc extends Bloc<OrderFormEvent, OrderFormState> {
         ),
       );
     }
-
+    final errorMessages = [
+      payeeNameErrorMessage,
+      paymentMethodErrorMessage,
+      referenceNumberErrorMessage,
+      expenseTypeErrorMessage,
+      orderDateErrorMessage
+    ];
     // Check required fields
-    if (payeeNameErrorMessage != null ||
-        paymentMethodErrorMessage != null ||
-        referenceNumberErrorMessage != null ||
-        expenseTypeErrorMessage != null) {
+    if (errorMessages.any((msg) => msg != null)) {
       return emit(
         state.copyWith(
             status: FormStatus.error,
@@ -404,7 +384,6 @@ class OrderFormBloc extends Bloc<OrderFormEvent, OrderFormState> {
     }
 
     // If all validation passes, proceed with submission
-    print("Expense Order Emitting...");
     emit(state.copyWith(
       dialogErrorMessage: null,
       creationDate: event.creationDate,
@@ -427,13 +406,6 @@ class OrderFormBloc extends Bloc<OrderFormEvent, OrderFormState> {
     final existingReferenceNumbers =
         await _getExistingReferenceNumbers(excludeOrderId: state.orderId);
 
-    /// Checks
-    /// - Payee Name must not be empty
-    /// - Products must not be empty
-    /// - Payment Method must be selected
-    /// - Reference Number must not be empty
-    /// - Order Date must not be in the future
-    /// - All products must have valid details
     final products = state.products;
 
     emit(state.copyWith(
@@ -504,20 +476,12 @@ class OrderFormBloc extends Bloc<OrderFormEvent, OrderFormState> {
     final taggedProducts = products.map(
       (product) {
         if (product.productId == null) {
-          // Only mark as error if some fields are filled but not all
-          if (product.quantity > 0 || product.description != null || product.rate > 0) {
-            return product.copyWith(errorMessage: 'Item cannot be blank');
-          }
+          return product.copyWith(errorMessage: 'Item cannot be blank');
         } else if (product.quantity <= 0) {
-          return product.copyWith(errorMessage: 'Item cannot be blank');
-        } else if (product.rate <= 0) {
-          return product.copyWith(errorMessage: 'Item cannot be blank');
-        } else if (product.description != null && product.description!.isEmpty) {
-          return product.copyWith(errorMessage: 'Item cannot be blank');
+          return product.copyWith(errorMessage: 'Quantity cannot be zero');
         } else {
-          return product.copyWith(errorMessage: null); // Clear any existing errors
+          return product.copyWith(errorMessage: null);
         }
-        return product;
       },
     ).toList();
 
@@ -526,7 +490,7 @@ class OrderFormBloc extends Bloc<OrderFormEvent, OrderFormState> {
         state.copyWith(
           status: FormStatus.error,
           products: taggedProducts,
-          dialogErrorMessage: 'Please fill in all product\'s required details.',
+          dialogErrorMessage: 'Please fill in all products\' required details.',
         ),
       );
     }

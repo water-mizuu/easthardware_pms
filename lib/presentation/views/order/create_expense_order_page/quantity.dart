@@ -23,18 +23,12 @@ class QuantityState extends State<Quantity> {
     super.initState();
     final (index, orderItem) = Provider.of<IndexedOrderItem>(context, listen: false);
     // Initialize the controller with the current quantity or default to empty string
-    _controller = TextEditingController(
-      text: orderItem.quantity > 0
-          ? (orderItem.quantity % 1 == 0
-              ? orderItem.quantity.toInt().toString()
-              : orderItem.quantity.toString())
-          : '',
-    );
+    _controller = TextEditingController(text: orderItem.quantity.toInt().toString());
 
     _controller.addListener(() {
       final bloc = context.read<OrderFormBloc>();
       final (currentIndex, currentItem) = Provider.of<IndexedOrderItem>(context, listen: false);
-      final newValue = double.tryParse(_controller.text) ?? 0;
+      final newValue = int.tryParse(_controller.text) ?? 0;
 
       if (currentItem.quantity != newValue) {
         bloc.add(OrderItemUpdatedEvent(
@@ -61,9 +55,7 @@ class QuantityState extends State<Quantity> {
     // Update controller if the value changed externally
     var newQuantity = '';
     if (orderItem.quantity > 0) {
-      newQuantity = orderItem.quantity % 1 == 0
-          ? orderItem.quantity.toInt().toString()
-          : orderItem.quantity.toString();
+      newQuantity = orderItem.quantity.toInt().toString();
     }
 
     // Only update if the controller text is different to avoid cursor issues
@@ -76,7 +68,8 @@ class QuantityState extends State<Quantity> {
         controller: _controller,
         placeholder: '0',
         inputFormatters: [
-          FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}')),
+          FilteringTextInputFormatter.digitsOnly,
+          LengthLimitingTextInputFormatter(10),
         ],
       ),
     );
