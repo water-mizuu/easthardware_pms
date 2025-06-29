@@ -1,4 +1,5 @@
 import 'package:easthardware_pms/data/database/tables/invoice_products_table.dart';
+import 'package:easthardware_pms/utils/boxed.dart';
 import 'package:easthardware_pms/utils/undefined.dart';
 
 class InvoiceProduct {
@@ -16,18 +17,25 @@ class InvoiceProduct {
   });
 
   factory InvoiceProduct.fromMap(Map<String, dynamic> map) {
-    return InvoiceProduct(
-      id: map[InvoiceProductsTable.INVOICE_PRODUCTS_ID],
-      invoiceId: map[InvoiceProductsTable.INVOICE_PRODUCTS_INVOICE],
-      productId: map[InvoiceProductsTable.INVOICE_PRODUCTS_PRODUCT],
-      productName: map[InvoiceProductsTable.INVOICE_PRODUCTS_NAME],
-      description: map[InvoiceProductsTable.INVOICE_PRODUCTS_DESCRIPTION],
-      quantity: map[InvoiceProductsTable.INVOICE_PRODUCTS_QUANTITY],
-      secondaryUnit: map[InvoiceProductsTable.INVOICE_PRODUCTS_SECONDARY_UNIT],
-      conversionFactor: map[InvoiceProductsTable.INVOICE_PRODUCTS_CONVERSION_FACTOR],
-      rate: map[InvoiceProductsTable.INVOICE_PRODUCTS_RATE],
-      amount: map[InvoiceProductsTable.INVOICE_PRODUCTS_AMOUNT],
-    );
+    try {
+      return InvoiceProduct(
+        id: map[InvoiceProductsTable.INVOICE_PRODUCTS_ID] as int?,
+        invoiceId: map[InvoiceProductsTable.INVOICE_PRODUCTS_INVOICE] as int?,
+        productId: map[InvoiceProductsTable.INVOICE_PRODUCTS_PRODUCT] as int,
+        productName: map[InvoiceProductsTable.INVOICE_PRODUCTS_NAME] as String? ?? '',
+        description: map[InvoiceProductsTable.INVOICE_PRODUCTS_DESCRIPTION] as String?,
+        quantity: (map[InvoiceProductsTable.INVOICE_PRODUCTS_QUANTITY] as num).toDouble(),
+        secondaryUnit: map[InvoiceProductsTable.INVOICE_PRODUCTS_SECONDARY_UNIT] as int?,
+        conversionFactor: map[InvoiceProductsTable.INVOICE_PRODUCTS_CONVERSION_FACTOR] != null
+            ? (map[InvoiceProductsTable.INVOICE_PRODUCTS_CONVERSION_FACTOR] as num).toDouble()
+            : null,
+        rate: (map[InvoiceProductsTable.INVOICE_PRODUCTS_RATE] as num).toDouble(),
+        amount: (map[InvoiceProductsTable.INVOICE_PRODUCTS_AMOUNT] as num).toDouble(),
+      );
+    } catch (e) {
+      printBoxed("Error parsing InvoiceProduct from map: $e", 'InvoiceProduct');
+      throw FormatException('Invalid invoice product data: $e');
+    }
   }
   final int? id;
   final int? invoiceId;
@@ -81,15 +89,16 @@ class InvoiceProduct {
 
   Map<String, dynamic> toMap() {
     return {
-      InvoiceProductsTable.INVOICE_PRODUCTS_INVOICE: invoiceId,
       InvoiceProductsTable.INVOICE_PRODUCTS_PRODUCT: productId,
       InvoiceProductsTable.INVOICE_PRODUCTS_NAME: productName,
-      InvoiceProductsTable.INVOICE_PRODUCTS_DESCRIPTION: description,
       InvoiceProductsTable.INVOICE_PRODUCTS_QUANTITY: quantity,
-      InvoiceProductsTable.INVOICE_PRODUCTS_SECONDARY_UNIT: secondaryUnit,
-      InvoiceProductsTable.INVOICE_PRODUCTS_CONVERSION_FACTOR: conversionFactor,
       InvoiceProductsTable.INVOICE_PRODUCTS_RATE: rate,
       InvoiceProductsTable.INVOICE_PRODUCTS_AMOUNT: amount,
+      InvoiceProductsTable.INVOICE_PRODUCTS_INVOICE: invoiceId,
+      InvoiceProductsTable.INVOICE_PRODUCTS_DESCRIPTION: description,
+      InvoiceProductsTable.INVOICE_PRODUCTS_SECONDARY_UNIT: secondaryUnit,
+      InvoiceProductsTable.INVOICE_PRODUCTS_CONVERSION_FACTOR: conversionFactor,
+      InvoiceProductsTable.INVOICE_PRODUCTS_ID: id,
     };
   }
 }

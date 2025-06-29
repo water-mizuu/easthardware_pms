@@ -39,7 +39,9 @@ final class InvoicesDaoImpl extends DaoBase implements InvoicesDao {
   @override
   Future<List<Invoice>> getAllInvoices() async {
     final db = databaseHelper.database;
+    print(#B);
     final maps = await db.query('invoices');
+    print(#C);
     return List.generate(maps.length, (i) {
       return Invoice.fromMap(maps[i]);
     });

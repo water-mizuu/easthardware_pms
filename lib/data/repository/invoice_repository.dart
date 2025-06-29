@@ -21,7 +21,10 @@ class InvoiceRepositoryImpl implements InvoiceRepository {
   @override
   Future<List<Invoice>> getAllInvoices() async {
     try {
-      return await _invoicesDao.getAllInvoices();
+      final invoices = await _invoicesDao.getAllInvoices();
+      print(invoices);
+
+      return invoices;
     } catch (e) {
       throw Exception('Failed to fetch all invoices: $e');
     }

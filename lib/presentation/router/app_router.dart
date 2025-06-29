@@ -420,8 +420,8 @@ final router = GoRouter(
                   builder: (context, state) => const CreateInvoicePage(),
                 ),
                 TypedGoRoute(
-                  route: AppRoutes.staff.createPayment.route,
-                  builder: (context, state) => CreatePaymentPage(invoice: state.extra),
+                  route: AppRoutes.staff.editInvoice,
+                  builder: (context, state) => EditInvoicePage(invoice: state.extra),
                 ),
               ],
             ),

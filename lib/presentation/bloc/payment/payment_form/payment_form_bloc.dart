@@ -20,6 +20,7 @@ class PaymentFormBloc extends Bloc<PaymentFormEvent, PaymentFormState> {
     on<PaymentReferenceChanged>(_onPaymentReferenceChanged);
     on<AmountChanged>(_onAmountChanged);
     on<PaymentDateChanged>(_onPaymentDateChanged);
+    on<PrintPaymentRequestEvent>(_onPrintPaymentRequestEvent);
     on<SavePaymentRequestEvent>(_onSavePaymentRequestEvent);
     on<FormSubmittedEvent>(_onFormSubmitted);
   }
@@ -48,41 +49,75 @@ class PaymentFormBloc extends Bloc<PaymentFormEvent, PaymentFormState> {
     emit(state.copyWith(paymentDate: event.paymentDate));
   }
 
-  void _onSavePaymentRequestEvent(SavePaymentRequestEvent event, Emitter<PaymentFormState> emit) {
+  Future<void> _onSavePaymentRequestEvent(
+    SavePaymentRequestEvent event,
+    Emitter<PaymentFormState> emit,
+  ) async {
     emit(state.copyWith(status: FormStatus.validating));
 
     try {
-      final alreadyClosed = state.invoice!.paymentDate != null;
-      final paymentMethodError =
-          state.paymentMethod == null ? 'A payment method must be selected' : null;
-      final refrenceMethodError =
-          state.paymentReference.isEmpty ? 'A reference number must be provided' : null;
-      final amountReceivedError = state.amount == 0 ? 'Amount received cannot be empty' : null;
+      final isValid = await _validateForms(emit);
+      if (!isValid) return;
 
-      final errorPersists = alreadyClosed ||
-          paymentMethodError != null ||
-          refrenceMethodError != null ||
-          amountReceivedError != null;
-
-      if (errorPersists) {
-        emit(
-          state.copyWith(
-            paymentMethodError: paymentMethodError,
-            referenceNumberError: refrenceMethodError,
-            amountReceivedError: amountReceivedError,
-            status: FormStatus.error,
-          ),
-        );
-      } else {
-        emit(state.copyWith(status: FormStatus.submitting));
-      }
+      emit(state.copyWith(status: FormStatus.submitting));
     } catch (e, stackTrace) {
       printBoxed('$e\n$stackTrace', 'PaymentFormBloc');
       emit(state.copyWith(status: FormStatus.error));
     }
   }
 
-  FutureOr<void> _onFormSubmitted(FormSubmittedEvent event, Emitter<PaymentFormState> emit) {
+  Future<void> _onPrintPaymentRequestEvent(
+    PrintPaymentRequestEvent event,
+    Emitter<PaymentFormState> emit,
+  ) async {
+    emit(state.copyWith(status: FormStatus.validating));
+
+    try {
+      final isValid = await _validateForms(emit);
+      if (!isValid) return;
+
+      emit(state.copyWith(status: FormStatus.printing));
+    } catch (e, stackTrace) {
+      printBoxed('$e\n$stackTrace', 'PaymentFormBloc');
+
+      emit(state.copyWith(status: FormStatus.error));
+    }
+  }
+
+  Future<void> _onFormSubmitted(FormSubmittedEvent event, Emitter<PaymentFormState> emit) async {
     emit(state.copyWith(status: FormStatus.initial));
+  }
+
+  Future<bool> _validateForms(Emitter<PaymentFormState> emit) async {
+    final alreadyClosed = state.invoice!.paymentDate != null;
+    final paymentMethodError = state.paymentMethod == null //
+        ? 'A payment method must be selected'
+        : null;
+    final referenceMethodError = state.paymentReference.isEmpty //
+        ? 'A reference number must be provided'
+        : null;
+    final amountReceivedError = state.amount == 0 //
+        ? 'Amount received cannot be empty'
+        : null;
+
+    final errorPersists = alreadyClosed ||
+        paymentMethodError != null ||
+        referenceMethodError != null ||
+        amountReceivedError != null;
+
+    if (errorPersists) {
+      emit(
+        state.copyWith(
+          paymentMethodError: paymentMethodError,
+          referenceNumberError: referenceMethodError,
+          amountReceivedError: amountReceivedError,
+          status: FormStatus.error,
+        ),
+      );
+
+      return false;
+    } else {
+      return true;
+    }
   }
 }

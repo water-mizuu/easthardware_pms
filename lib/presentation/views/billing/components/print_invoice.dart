@@ -152,15 +152,17 @@ final class _InvoicePdfGenerator implements PdfGenerator {
           child: pw.Column(
             crossAxisAlignment: pw.CrossAxisAlignment.start,
             children: [
-              pw.Text(
-                'Bill To:',
-                style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 12),
-              ),
-              pw.SizedBox(height: 5),
-              pw.Text(
-                invoice.customerName,
-                style: const pw.TextStyle(fontSize: 14),
-              ),
+              if (invoice.customerName.isNotEmpty) ...[
+                pw.Text(
+                  'Bill To:',
+                  style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 12),
+                ),
+                pw.SizedBox(height: 5),
+                pw.Text(
+                  invoice.customerName,
+                  style: const pw.TextStyle(fontSize: 14),
+                ),
+              ]
             ],
           ),
         ),

@@ -23,12 +23,12 @@ import 'package:easthardware_pms/presentation/widgets/dialog/server_success_dial
 import 'package:easthardware_pms/utils/boxed.dart';
 import 'package:easthardware_pms/utils/message_channel.dart';
 import 'package:easthardware_pms/utils/notification.dart';
+import 'package:easthardware_pms/utils/try_future.dart';
 import 'package:easthardware_pms/utils/undefined.dart';
 import 'package:equatable/equatable.dart';
 import 'package:fluent_ui/fluent_ui.dart';
 import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:network_info_plus/network_info_plus.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 
 part 'server_event.dart';
@@ -263,8 +263,25 @@ class ServerBloc extends Bloc<ServerEvent, ServerState> {
     } catch (e) {
       if (isClosed) return;
       if (kDebugMode) {
-        print(e);
+        print("Client connection failed: $e");
       }
+
+      // Check if it's a network connectivity issue
+      if (e.toString().contains('Could not determine local IP address') ||
+          e.toString().contains('local IP') ||
+          e.toString().contains('Network is unreachable') ||
+          e.toString().contains('No route to host') ||
+          e.toString().contains('Connection refused')) {
+        emit(state.copyWith(
+          bottomText: "Network connection issue. Please check your network connection.",
+        ));
+
+        if (event.popupToUser) {
+          await _showNetworkConnectivityError();
+          if (isClosed) return;
+        }
+      }
+
       add(const _ServerPromptingClientInformation());
     }
   }
@@ -280,8 +297,27 @@ class ServerBloc extends Bloc<ServerEvent, ServerState> {
     ));
 
     try {
-      final localIp = await connection_service.getLocalIpAddress();
+      // Check if we're connected to a local network first
+      final (localIp, error) = await connection_service.getLocalIpAddress().tryCatch();
       if (isClosed) return;
+
+      if (error != null) {
+        if (kDebugMode) {
+          print('Error getting local IP: $error');
+        }
+
+        // Set informative bottom text before showing dialog
+        emit(state.copyWith(
+          bottomText: "Network connection required. Please connect to WiFi or local network.",
+        ));
+
+        // Show user-friendly error message about network connectivity
+        await _showNetworkConnectivityError();
+        if (isClosed) return;
+
+        add(const _ServerPromptingUserFromNull());
+        return;
+      }
 
       await ServerConfigurationDialog.show(
         onStartServer: (port) => connection_service.startServers(port),
@@ -291,7 +327,7 @@ class ServerBloc extends Bloc<ServerEvent, ServerState> {
             saveToPreferences: true,
             popupToUser: true,
             args: ServerDatabaseArgs(
-              ip: localIp,
+              ip: localIp!,
               port: landing.port,
               landingServer: landing,
               webSocketServer: webSocket,
@@ -319,9 +355,12 @@ class ServerBloc extends Bloc<ServerEvent, ServerState> {
     ));
 
     final port = event.port;
-    final localIp = await NetworkInfo().getWifiIP().then((p) => p!);
-    if (isClosed) return;
+
     try {
+      // Check network connectivity first
+      final localIp = await connection_service.getLocalIpAddress();
+      if (isClosed) return;
+
       final (landing, webSocket, stream) = await connection_service.startServers(port);
       if (isClosed) return;
 
@@ -336,19 +375,33 @@ class ServerBloc extends Bloc<ServerEvent, ServerState> {
           stream: stream,
         ),
       ));
-    } on SocketException catch (e) {
-      if (e.osError case OSError(errorCode: 48)) {
+    } catch (e) {
+      if (e is SocketException && e.osError?.errorCode == 48) {
         /// If the port is already in use, we can either:
         ///   Connect to the existing server already running on that port.
         if (kDebugMode) {
           print("Port is already in use. Trying to connect to it.");
         }
 
-        add(_ServerLoadingClientFromPreferences(
-          address: '$localIp:$port',
-          saveToPreferences: false,
-          popupToUser: false,
-        ));
+        try {
+          final localIp = await connection_service.getLocalIpAddress();
+          add(_ServerLoadingClientFromPreferences(
+            address: '$localIp:$port',
+            saveToPreferences: false,
+            popupToUser: false,
+          ));
+        } catch (networkError) {
+          // Network connectivity issue while trying to connect to existing server
+          await _showNetworkConnectivityError();
+          if (isClosed) return;
+          add(const _ServerPromptingUserFromNull());
+        }
+      } else if (e.toString().contains('Could not determine local IP address') ||
+          e.toString().contains('local IP')) {
+        // Network connectivity issue
+        await _showNetworkConnectivityError();
+        if (isClosed) return;
+        add(const _ServerPromptingUserFromNull());
       } else {
         add(const _ServerPromptingServerInformation());
       }
@@ -657,6 +710,26 @@ class ServerBloc extends Bloc<ServerEvent, ServerState> {
       if (kDebugMode) {
         print("Client reconnection attempt $currentAttempts failed: $e");
       }
+
+      // Check if it's a network connectivity issue
+      if (e.toString().contains('Could not determine local IP address') ||
+          e.toString().contains('local IP') ||
+          e.toString().contains('Network is unreachable') ||
+          e.toString().contains('No route to host')) {
+        emit(state.copyWith(
+          status: ServerStatus.disconnected,
+          bottomText: "Network connection lost. Please check your network connection.",
+        ));
+
+        // If we've tried multiple times and it's still a network issue, show the error
+        if (currentAttempts >= 3) {
+          await _showNetworkConnectivityError();
+          if (isClosed) return;
+          add(const ServerCancelReconnection());
+          return;
+        }
+      }
+
       add(const _ServerReconnectionFailed());
     }
   }
@@ -673,6 +746,8 @@ class ServerBloc extends Bloc<ServerEvent, ServerState> {
       await lastKnownArgs.webSocketServer.close();
 
       final port = lastKnownArgs.port;
+
+      // Check network connectivity first
       final localIp = await connection_service.getLocalIpAddress();
 
       // Restart the servers
@@ -702,6 +777,24 @@ class ServerBloc extends Bloc<ServerEvent, ServerState> {
       if (kDebugMode) {
         print("Server reconnection attempt $currentAttempts failed: $e");
       }
+
+      // Check if it's a network connectivity issue
+      if (e.toString().contains('Could not determine local IP address') ||
+          e.toString().contains('local IP')) {
+        emit(state.copyWith(
+          status: ServerStatus.disconnected,
+          bottomText: "Network connection lost. Please check your network connection.",
+        ));
+
+        // If we've tried multiple times and it's still a network issue, show the error
+        if (currentAttempts >= 3) {
+          await _showNetworkConnectivityError();
+          if (isClosed) return;
+          add(const ServerCancelReconnection());
+          return;
+        }
+      }
+
       add(const _ServerReconnectionFailed());
     }
   }
@@ -762,6 +855,52 @@ class ServerBloc extends Bloc<ServerEvent, ServerState> {
         add(const _ServerAttemptReconnection());
       }
     });
+  }
+
+  /// Shows a user-friendly error dialog when the device is not connected to a network
+  Future<void> _showNetworkConnectivityError() async {
+    final context = rootWidgetKey.currentContext;
+    if (context == null || !context.mounted) return;
+
+    await showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return ContentDialog(
+          title: const Text('Network Connection Required'),
+          content: const Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'To host or connect to a server, you need to be connected to a local network (WiFi or Ethernet).',
+                style: TextStyle(fontSize: 14),
+              ),
+              SizedBox(height: 16),
+              Text(
+                'Please check:',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+              SizedBox(height: 8),
+              Text('• WiFi connection is enabled and connected'),
+              Text('• Ethernet cable is properly connected'),
+              Text('• Network adapter is functioning correctly'),
+              SizedBox(height: 16),
+              Text(
+                'Once connected to a network, try again.',
+                style: TextStyle(fontSize: 14),
+              ),
+            ],
+          ),
+          actions: [
+            FilledButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('OK'),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   @override

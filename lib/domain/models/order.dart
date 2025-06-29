@@ -1,3 +1,4 @@
+import 'package:easthardware_pms/utils/boxed.dart';
 import 'package:easthardware_pms/utils/undefined.dart';
 import 'package:uuid/uuid.dart';
 
@@ -19,21 +20,38 @@ class Order {
   }) : uid = uid ?? const Uuid().v4();
 
   factory Order.fromMap(Map<String, dynamic> map) {
-    return Order(
-      id: map['id'],
-      uid: map['uid'],
-      payeeName: map['payee_name'],
-      expenseType: map['expense_type'],
-      orderDate: DateTime.parse(map['order_date']),
-      paymentMethod: map['payment_method'],
-      referenceNumber: map['reference_number'],
-      memo: map['memo'],
-      amountDue: map['amount_due'],
-      amountPaid: map['amount_paid'],
-      paymentDate: map['payment_date'] != null ? DateTime.parse(map['payment_date']) : null,
-      creationDate: DateTime.parse(map['creation_date']),
-      creatorId: map['creator_id'],
-    );
+    try {
+      // Handle date parsing with proper error handling
+      DateTime? paymentDate;
+      if (map['payment_date'] != null &&
+          map['payment_date'] is String &&
+          map['payment_date'].toString().isNotEmpty) {
+        try {
+          paymentDate = DateTime.parse(map['payment_date']);
+        } catch (e) {
+          printBoxed("Error parsing payment_date: ${map['payment_date']}, $e", 'Order');
+        }
+      }
+
+      return Order(
+        id: map['id'] as int?,
+        uid: map['uid'] as String? ?? const Uuid().v4(),
+        payeeName: map['payee_name'] as String? ?? '',
+        expenseType: map['expense_type'] as int,
+        orderDate: DateTime.parse(map['order_date'] as String),
+        paymentMethod: map['payment_method'] as int,
+        referenceNumber: map['reference_number'] as String?,
+        memo: map['memo'] as String?,
+        amountDue: (map['amount_due'] as num).toDouble(),
+        amountPaid: map['amount_paid'] != null ? (map['amount_paid'] as num).toDouble() : null,
+        paymentDate: paymentDate,
+        creationDate: DateTime.parse(map['creation_date'] as String),
+        creatorId: map['creator_id'] as int,
+      );
+    } catch (e) {
+      printBoxed("Error parsing Order from map: $e", 'Order');
+      throw FormatException('Invalid order data: $e');
+    }
   }
   final int? id;
   final String uid;
@@ -98,7 +116,8 @@ class Order {
   }
 
   Map<String, dynamic> toMap() {
-    return {
+    return <String, dynamic>{
+      'id': id,
       'uid': uid,
       'payee_name': payeeName,
       'expense_type': expenseType,
@@ -107,10 +126,10 @@ class Order {
       'reference_number': referenceNumber,
       'memo': memo,
       'amount_due': amountDue,
-      'amount_paid': amountPaid,
-      'payment_date': paymentDate?.toIso8601String(),
       'creation_date': creationDate.toIso8601String(),
       'creator_id': creatorId,
+      'amount_paid': amountPaid,
+      'payment_date': paymentDate?.toIso8601String(),
     };
   }
 }

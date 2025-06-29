@@ -51,6 +51,7 @@ class EditInvoicePage extends StatelessWidget {
         final products = invoiceListBloc.invoiceProducts //
             .where((p) => p.invoiceId == invoice.id)
             .toList();
+
         return InvoiceFormBloc.fromExistingInvoice(invoice, products);
       },
       child: Builder(builder: (context) {
@@ -928,7 +929,7 @@ class _FormTableRowState extends State<FormTableRow> {
       ],
       buttonBuilder: (context, onOpen) {
         // Determine the correct unit name to display
-        String displayUnitName = currentFormProduct.unit;
+        var displayUnitName = currentFormProduct.unit;
 
         // If the unit is a numeric value (or looks like an ID), try to find the real unit name
         if (displayUnitName == '0' || int.tryParse(displayUnitName) != null) {

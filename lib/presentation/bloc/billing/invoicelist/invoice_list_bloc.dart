@@ -31,9 +31,11 @@ class InvoiceListBloc extends Bloc<InvoiceListEvent, InvoiceListState> {
   final ProductRepository _productRepository;
 
   Future<void> _onFetchInvoices(FetchAllInvoicesEvent event, Emitter emit) async {
+    printBoxed("FETCHING ALL INVOICES", 'InvoiceListBloc');
     emit(state.copyWith(status: DataStatus.loading));
     try {
       final invoices = await _repository.getAllInvoices();
+      printBoxed("FETCHED ${invoices.length} invoices", 'InvoiceListBloc');
       final invoiceProducts = await _itemRepository.fetchAllInvoiceProducts();
       emit(
         state.copyWith(

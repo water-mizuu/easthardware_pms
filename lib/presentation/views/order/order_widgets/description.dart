@@ -66,18 +66,19 @@ class _DescriptionState extends State<Description> {
         // Get the form product from the OrderFormBloc state instead of the default product data
         // This ensures we get the saved description, not the default product description
         final formProduct = context.read<OrderFormBloc>().state.products?[index];
-        
+
         // If we have a form product and it has a description, use that
         if (formProduct != null) {
           // Log to help debug description loading
-          print('[Description] Loading description for ${formProduct.productName}: "${formProduct.description}"');
-          
+          print(
+              '[Description] Loading description for ${formProduct.productName}: "${formProduct.description}"');
+
           // Only if there's no saved description, fall back to the default product description
           if (formProduct.description == null || formProduct.description!.isEmpty) {
             final defaultProduct = (context.read<ProductListBloc>().state.allProducts)
                 .where((p) => currentProductId != null && p.id == currentProductId)
                 .firstOrNull;
-                
+
             _controller.text = defaultProduct?.description ?? '';
             print('[Description] Using default product description: "${_controller.text}"');
           } else {
@@ -85,7 +86,7 @@ class _DescriptionState extends State<Description> {
             _controller.text = formProduct.description ?? '';
           }
         }
-        
+
         _currentProductId = currentProductId;
       }
     }
@@ -103,6 +104,7 @@ class _DescriptionState extends State<Description> {
       }
     }
   }
+
   void _onTextChanged() {
     final value = _controller.text.trim();
 
@@ -115,7 +117,7 @@ class _DescriptionState extends State<Description> {
         print('[Description] Updating description for ${currentFormProduct.productName}:');
         print('[Description] - Old: "${currentFormProduct.description}"');
         print('[Description] - New: "$value"');
-        
+
         // Create a copy with the updated description to ensure we don't lose other fields
         final updatedProduct = currentFormProduct.copyWith(
           description: value,
@@ -129,9 +131,9 @@ class _DescriptionState extends State<Description> {
           conversionFactor: currentFormProduct.conversionFactor,
           amount: currentFormProduct.amount,
         );
-        
+
         // Update the product with our updated version
-        context
+        context //
             .read<OrderFormBloc>()
             .add(ProductUpdatedEvent(updatedProduct, index));
       }

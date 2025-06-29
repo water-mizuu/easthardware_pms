@@ -7,6 +7,7 @@ import 'package:easthardware_pms/domain/models/invoice_product.dart';
 import 'package:easthardware_pms/domain/models/order.dart';
 import 'package:easthardware_pms/domain/models/order_product.dart';
 import 'package:easthardware_pms/domain/models/product.dart';
+import 'package:easthardware_pms/presentation/views/dashboard/cards/sales_overview.dart';
 import 'package:easthardware_pms/presentation/views/reports/sales_report/extensions/sales_by_category_datum.dart';
 import 'package:easthardware_pms/presentation/views/reports/sales_report/sales_query_data.dart';
 import 'package:easthardware_pms/utils/undefined.dart';
@@ -167,8 +168,8 @@ class SalesReportBloc extends Bloc<SalesReportEvent, SalesReportState> {
     List<OrderProduct> orderProducts,
   ) {
     final salesData = <(Product, SalesExtras)>[];
-    final startDate = state.queryData.startDate;
-    final endDate = state.queryData.endDate;
+    final startDate = state.queryData.startDate.zeroedTime();
+    final endDate = state.queryData.endDate.zeroedTime().add(const Duration(days: 1));
 
     final invoiceMap = <int, Invoice>{};
     final orderMap = <int, Order>{};

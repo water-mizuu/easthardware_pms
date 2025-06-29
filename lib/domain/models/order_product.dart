@@ -1,7 +1,7 @@
+import 'package:easthardware_pms/utils/boxed.dart';
 import 'package:easthardware_pms/utils/undefined.dart';
 
 class OrderProduct {
-
   OrderProduct({
     this.id,
     required this.orderId,
@@ -16,18 +16,24 @@ class OrderProduct {
   });
 
   factory OrderProduct.fromMap(Map<String, dynamic> map) {
-    return OrderProduct(
-      id: map['id'],
-      orderId: map['order_id'],
-      productId: map['product_id'],
-      productName: map['product_name'],
-      description: map['description'],
-      quantity: map['quantity'],
-      secondaryUnit: map['secondary_unit'],
-      conversionFactor: map['conversion_factor'],
-      rate: map['rate'],
-      amount: map['amount'],
-    );
+    try {
+      return OrderProduct(
+        id: map['id'] as int?,
+        orderId: map['order_id'] as int,
+        productId: map['product_id'] as int,
+        productName: map['product_name'] as String? ?? '',
+        description: map['description'] as String?,
+        quantity: (map['quantity'] as num).toDouble(),
+        secondaryUnit: map['secondary_unit'] as int?,
+        conversionFactor:
+            map['conversion_factor'] != null ? (map['conversion_factor'] as num).toDouble() : null,
+        rate: (map['rate'] as num).toDouble(),
+        amount: (map['amount'] as num).toDouble(),
+      );
+    } catch (e) {
+      printBoxed("Error parsing OrderProduct from map: $e", 'OrderProduct');
+      throw FormatException('Invalid order product data: $e');
+    }
   }
   final int? id;
   final int orderId;
@@ -84,12 +90,13 @@ class OrderProduct {
       'order_id': orderId,
       'product_id': productId,
       'product_name': productName,
-      'description': description,
       'quantity': quantity,
-      'secondary_unit': secondaryUnit,
-      'conversion_factor': conversionFactor,
       'rate': rate,
       'amount': amount,
+      'description': description,
+      'secondary_unit': secondaryUnit,
+      'conversion_factor': conversionFactor,
+      'id': id,
     };
   }
 }

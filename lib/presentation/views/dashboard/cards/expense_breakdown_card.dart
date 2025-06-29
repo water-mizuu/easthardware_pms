@@ -5,6 +5,7 @@ import 'package:easthardware_pms/domain/models/expense_type.dart';
 import 'package:easthardware_pms/domain/models/order.dart';
 import 'package:easthardware_pms/presentation/bloc/order/expense_type_list/expense_type_list_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/order/orderlist/order_list_bloc.dart';
+import 'package:easthardware_pms/presentation/cubit/expense_breakdown/expense_breakdown_cubit.dart';
 import 'package:easthardware_pms/presentation/router/app_router.dart';
 import 'package:easthardware_pms/presentation/widgets/animated_single_child_scroll_view.dart';
 import 'package:easthardware_pms/presentation/widgets/helper/currency_formatter.dart';
@@ -23,24 +24,83 @@ enum ExpenseBreakdownChoice {
   lastMonth,
 }
 
+extension ExpenseBreakdownChoiceName on ExpenseBreakdownChoice {
+  String get name {
+    return switch (this) {
+      ExpenseBreakdownChoice.last7Days => 'Last 7 Days',
+      ExpenseBreakdownChoice.thisWeek => 'This Week',
+      ExpenseBreakdownChoice.thisMonth => 'This Month',
+      ExpenseBreakdownChoice.last30Days => 'Last 30 Days',
+      ExpenseBreakdownChoice.lastMonth => 'Last Month',
+    };
+  }
+}
+
+class _ExpenseBreakdownSpanSelector extends StatelessWidget {
+  const _ExpenseBreakdownSpanSelector();
+
+  @override
+  Widget build(BuildContext context) {
+    final bloc = context.watch<ExpenseBreakdownCubit>();
+
+    return ComboBox<ExpenseBreakdownChoice>(
+      placeholder: const Text('Select Time Span'),
+      value: bloc.state.choice,
+      items: [
+        for (final choice in ExpenseBreakdownChoice.values)
+          ComboBoxItem(
+            value: choice,
+            child: Text(choice.name),
+          ),
+      ],
+      onChanged: (choice) {
+        if (choice != null) {
+          bloc.setChoice(choice);
+        }
+      },
+    );
+  }
+}
+
 class ExpenseBreakdownCard extends StatelessWidget {
   const ExpenseBreakdownCard({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      color: FluentTheme.of(context).cardColor,
-      padding: AppPadding.cardPadding,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          const DisplayText('Expense Breakdown'),
-          Spacing.v16,
-          ConstrainedBox(
-            constraints: const BoxConstraints(maxHeight: 200),
-            child: const _ExpensesBreakdownCardGraph(),
-          ),
-        ],
+    return BlocProvider(
+      create: (_) => ExpenseBreakdownCubit(),
+      child: Container(
+        color: FluentTheme.of(context).cardColor,
+        padding: AppPadding.cardPadding,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            BlocBuilder<ExpenseBreakdownCubit, ExpenseBreakdownState>(
+              builder: (context, state) {
+                return Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const DisplayText('Expense Breakdown'),
+                        Text('Based on ${state.choice.name}',
+                            style: FluentTheme.of(context).typography.caption),
+                      ],
+                    ),
+                    const _ExpenseBreakdownSpanSelector(),
+                  ],
+                );
+              },
+            ),
+            Spacing.v16,
+            ConstrainedBox(
+              constraints: const BoxConstraints(maxHeight: 200),
+              child: const _ExpensesBreakdownCardGraph(),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -62,6 +122,7 @@ class _ExpensesBreakdownCardGraphState extends State<_ExpensesBreakdownCardGraph
   late List<ExpenseType>? _expenseTypes;
   late PieChartData? _pieChartData;
   late void Function()? _requestCanceller;
+  late ExpenseBreakdownChoice _currentSpan;
 
   @override
   void initState() {
@@ -71,6 +132,7 @@ class _ExpensesBreakdownCardGraphState extends State<_ExpensesBreakdownCardGraph
     _expenseTypes = null;
     _pieChartData = null;
     _requestCanceller = null;
+    _currentSpan = ExpenseBreakdownChoice.thisMonth;
   }
 
   @override
@@ -87,6 +149,13 @@ class _ExpensesBreakdownCardGraphState extends State<_ExpensesBreakdownCardGraph
     final expenseTypes = context.watch<ExpenseTypeListBloc>().state.expenseTypes;
     if (_expenseTypes != expenseTypes) {
       _expenseTypes = expenseTypes;
+      isPieChartDataDirty |= true;
+    }
+
+    final selectedSpan = context.watch<ExpenseBreakdownCubit>().state.choice;
+    // We will update the chart when the span selection changes
+    if (_currentSpan != selectedSpan) {
+      _currentSpan = selectedSpan;
       isPieChartDataDirty |= true;
     }
 
@@ -245,7 +314,10 @@ class _ExpensesBreakdownCardGraphState extends State<_ExpensesBreakdownCardGraph
   Future<List<PieChartSectionData>> _createPieChartSections() async {
     final categoryTotals = <int, double>{};
 
-    for (final order in _orders ?? <Order>[]) {
+    // Get filtered orders based on the selected time span
+    final filteredOrders = _filterOrdersByTimeSpan(_orders ?? <Order>[], _currentSpan);
+
+    for (final order in filteredOrders) {
       final category = order.expenseType;
       categoryTotals[category] = (categoryTotals[category] ??= 0) + order.amountDue;
     }
@@ -284,6 +356,27 @@ class _ExpensesBreakdownCardGraphState extends State<_ExpensesBreakdownCardGraph
     }
 
     return sections;
+  }
+
+  // Helper method to filter orders by the selected time span
+  List<Order> _filterOrdersByTimeSpan(List<Order> orders, ExpenseBreakdownChoice span) {
+    final now = DateTime.now();
+    final startDate = _getStartDateForSpan(span, now);
+
+    return orders.where((order) {
+      final orderDate = order.orderDate;
+      return orderDate.isAfter(startDate) || orderDate.isAtSameMomentAs(startDate);
+    }).toList();
+  }
+
+  DateTime _getStartDateForSpan(ExpenseBreakdownChoice span, DateTime now) {
+    return switch (span) {
+      ExpenseBreakdownChoice.last7Days => now.subtract(const Duration(days: 7)),
+      ExpenseBreakdownChoice.thisWeek => DateTime(now.year, now.month, now.day - now.weekday + 1),
+      ExpenseBreakdownChoice.thisMonth => DateTime(now.year, now.month, 1),
+      ExpenseBreakdownChoice.last30Days => now.subtract(const Duration(days: 30)),
+      ExpenseBreakdownChoice.lastMonth => DateTime(now.year, now.month - 1, 1),
+    };
   }
 }
 

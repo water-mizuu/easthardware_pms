@@ -251,8 +251,10 @@ class _StartDateSelection extends StatelessWidget {
         Spacing.h8,
         BorderedDatePicker(
           selected: context.select((SalesReportBloc b) => b.state.queryData.startDate),
-          onChanged: (value) =>
-              context.read<SalesReportBloc>().add(SalesReportSetStartDateEvent(value)),
+          onChanged: (value) => context //
+              /// For the start date, we want it to be inclusive.
+              .read<SalesReportBloc>()
+              .add(SalesReportSetStartDateEvent(value)),
         ),
       ],
     );

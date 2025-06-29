@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:easthardware_pms/domain/enums/enums.dart';
 import 'package:easthardware_pms/domain/models/invoice.dart';
-import 'package:easthardware_pms/presentation/bloc/authentication/authentication/authentication_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/billing/invoicelist/invoice_list_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/inventory/category_list/category_list_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/inventory/product_list/product_list_bloc.dart';
@@ -11,6 +10,7 @@ import 'package:easthardware_pms/presentation/views/billing/components/invoice_i
 import 'package:easthardware_pms/presentation/views/billing/components/print_invoice.dart';
 import 'package:easthardware_pms/presentation/widgets/helper/data_row_mapper.dart';
 import 'package:easthardware_pms/utils/typed_routes.dart';
+import 'package:easthardware_pms/utils/user.dart';
 import 'package:fluent_ui/fluent_ui.dart';
 import 'package:flutter/material.dart' show DataRow, DataTableSource;
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -39,6 +39,7 @@ class InvoiceDataSource extends DataTableSource {
   DataRow? getRow(int index) {
     if (index >= invoices.length) return null;
     final invoice = invoices[index];
+    final accessLevel = context.watchAccessLevel();
 
     return DataRowMapper.mapInvoiceToRow(
       invoice,
@@ -47,21 +48,17 @@ class InvoiceDataSource extends DataTableSource {
           showDialog(
             barrierDismissible: true,
             context: context,
-            builder: (context) => InvoiceInformationContentDialog(
-              context: context,
-              invoice: invoice,
-            ),
+            builder: (context) => InvoiceInformationContentDialog(invoice: invoice),
           ),
         );
       },
-      editAction:
-          context.read<AuthenticationBloc>().state.user?.accessLevel == AccessLevel.administrator
-              ? () {
-                  context.navigateWithExtra(AppRoutes.admin.editInvoice, invoice);
-                }
-              : () {
-                  context.navigateWithExtra(AppRoutes.staff.editInvoice, invoice);
-                },
+      editAction: () {
+        if (accessLevel == AccessLevel.administrator) {
+          return () => context.navigateWithExtra(AppRoutes.admin.editInvoice, invoice);
+        } else {
+          return () => context.navigateWithExtra(AppRoutes.staff.editInvoice, invoice);
+        }
+      }(),
       printAction: () {
         final allCategories = context.read<CategoryListBloc>().state.categories;
         final allProducts = context.read<ProductListBloc>().state.allProducts;
@@ -71,14 +68,15 @@ class InvoiceDataSource extends DataTableSource {
 
         generateInvoicePdf(invoice, invoiceProducts, allProducts, allCategories);
       },
-      receivePaymentAction:
-          context.read<AuthenticationBloc>().state.user?.accessLevel == AccessLevel.administrator
-              ? () {
-                  context.navigateWithExtra(AppRoutes.admin.createPayment.withInvoice, invoice);
-                }
-              : () {
-                  context.navigateWithExtra(AppRoutes.staff.createPayment.withInvoice, invoice);
-                },
+      receivePaymentAction: () {
+        if (accessLevel == AccessLevel.administrator) {
+          return () =>
+              context.navigateWithExtra(AppRoutes.admin.createPayment.withInvoice, invoice);
+        } else {
+          return () =>
+              context.navigateWithExtra(AppRoutes.staff.createPayment.withInvoice, invoice);
+        }
+      }(),
     );
   }
 

@@ -10,10 +10,13 @@ import 'package:easthardware_pms/presentation/bloc/billing/invoicelist/invoice_l
 import 'package:easthardware_pms/presentation/bloc/payment/payment_form/payment_form_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/payment/payment_list/payment_list_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/payment/payment_method_list/payment_method_list_bloc.dart';
-import 'package:easthardware_pms/presentation/bloc/security/user_log_list/user_log_list_bloc.dart';
-import 'package:easthardware_pms/presentation/cubit/payment/payment_method_form/payment_method_form_cubit.dart';
+import 'package:easthardware_pms/presentation/bloc/security/user_log_list/'
+    'user_log_list_bloc.dart';
+import 'package:easthardware_pms/presentation/cubit/payment/payment_method_form/'
+    'payment_method_form_cubit.dart';
 import 'package:easthardware_pms/presentation/router/app_routes.dart';
 import 'package:easthardware_pms/presentation/views/payment/print_receipt.dart';
+import 'package:easthardware_pms/presentation/widgets/animated_single_child_scroll_view.dart';
 import 'package:easthardware_pms/presentation/widgets/layout/spacing.dart';
 import 'package:easthardware_pms/presentation/widgets/payment_method_combo_box.dart';
 import 'package:easthardware_pms/presentation/widgets/ui/loading_page.dart';
@@ -73,28 +76,80 @@ class _CreatePaymentPageState extends State<CreatePaymentPage> {
         return MultiBlocListener(
           listeners: [
             BlocListener<PaymentFormBloc, PaymentFormState>(
+              listenWhen: (p, c) => p.status != c.status && c.status == FormStatus.submitting,
               listener: (context, state) {
-                if (state.status == FormStatus.submitting) {
-                  final creator = context.read<AuthenticationBloc>().state.user!;
-                  final creationDate = DateTime.now();
-                  final payment = state
-                      .copyWith(creatorId: creator.id, creationDate: creationDate) //
-                      .toPayment();
-                  final invoice = state.invoice!.copyWith(
-                    amountPaid: state.amount,
-                    paymentMethod: state.paymentMethod!.id!,
-                    paymentDate:
-                        (state.invoice!.amountDue - state.amount) <= 0 ? creationDate : null,
-                  );
-                  context.read<InvoiceListBloc>().add(UpdateInvoiceEvent(invoice));
-                  context.read<PaymentListBloc>().add(AddPaymentEvent(payment));
-                  context.read<UserLogListBloc>().add(
-                        AddCreateEvent(
-                          'Payment ${payment.id}',
-                          creator,
-                        ),
-                      );
+                final creator = context.read<AuthenticationBloc>().state.user!;
+                final creationDate = DateTime.now();
+                final payment = state
+                    .copyWith(creatorId: creator.id, creationDate: creationDate) //
+                    .toPayment();
+                final invoice = state.invoice!.copyWith(
+                  amountPaid: state.amount,
+                  paymentMethod: state.paymentMethod!.id!,
+                  paymentDate: (state.invoice!.amountDue - state.amount) <= 0 //
+                      ? creationDate
+                      : null,
+                );
+                context.read<InvoiceListBloc>().add(UpdateInvoiceEvent(invoice));
+                context.read<PaymentListBloc>().add(AddPaymentEvent(payment));
+                context.read<UserLogListBloc>().add(
+                      AddCreateEvent(
+                        'Payment ${payment.id}',
+                        creator,
+                      ),
+                    );
+              },
+            ),
+            BlocListener<PaymentFormBloc, PaymentFormState>(
+              listenWhen: (p, c) => p.status != c.status && c.status == FormStatus.printing,
+              listener: (context, state) {
+                final paymentFormState = context.read<PaymentFormBloc>().state;
+                final paymentMethods = context.read<PaymentMethodListBloc>().state.paymentMethods;
+                final invoiceListState = context.read<InvoiceListBloc>().state;
+
+                // Validate form data before printing
+                if (paymentFormState.invoice == null) {
+                  // Show error - no invoice selected
+                  return;
                 }
+
+                if (paymentFormState.paymentMethod == null) {
+                  // Show error - no payment method selected
+                  return;
+                }
+
+                if (paymentFormState.paymentReference.isEmpty) {
+                  // Show error - no reference number
+                  return;
+                }
+
+                if (paymentFormState.amount <= 0) {
+                  // Show error - invalid amount
+                  return;
+                }
+
+                // Find the selected payment method details
+                final selectedPaymentMethod = paymentMethods.firstWhere(
+                  (method) => method.id == paymentFormState.paymentMethod!.id,
+                  orElse: () => paymentFormState.paymentMethod!,
+                );
+
+                // Create a temporary payment object for the receipt
+                final tempPayment = paymentFormState
+                    .copyWith(
+                      id: 999999, // Temporary ID for preview
+                      creatorId: context.read<AuthenticationBloc>().state.user!.id,
+                      creationDate: DateTime.now(),
+                    )
+                    .toPayment();
+
+                // Generate the receipt PDF
+                generateReceiptPdf(
+                  tempPayment,
+                  paymentFormState.invoice!,
+                  selectedPaymentMethod,
+                  invoiceListState.invoiceProducts,
+                );
               },
             ),
             BlocListener<PaymentListBloc, PaymentListState>(
@@ -121,7 +176,7 @@ class _CreatePaymentPageState extends State<CreatePaymentPage> {
                   children: [
                     PageHeader(),
                     Expanded(
-                      child: SingleChildScrollView(
+                      child: AnimatedSingleChildScrollView(
                         child: Column(
                           mainAxisSize: MainAxisSize.min,
                           children: [
@@ -178,59 +233,7 @@ class PageHeader extends StatelessWidget {
         const Spacer(),
         TextButton(
           'Print Receipt',
-          onPressed: () {
-            final paymentFormState = context.read<PaymentFormBloc>().state;
-            final paymentMethods = context.read<PaymentMethodListBloc>().state.paymentMethods;
-            final invoiceListState = context.read<InvoiceListBloc>().state;
-
-            // Validate form data before printing
-            if (paymentFormState.invoice == null) {
-              // Show error - no invoice selected
-              print("INVOICE IS INVALID");
-              return;
-            }
-
-            if (paymentFormState.paymentMethod == null) {
-              // Show error - no payment method selected
-              print("PAYMENT METHOD IS INVALID");
-              return;
-            }
-
-            if (paymentFormState.paymentReference.isEmpty) {
-              // Show error - no reference number
-              print("REFERENCE NUMBER IS INVALID");
-              return;
-            }
-
-            if (paymentFormState.amount <= 0) {
-              // Show error - invalid amount
-              print("AMOUNT IS INVALID");
-              return;
-            }
-
-            // Find the selected payment method details
-            final selectedPaymentMethod = paymentMethods.firstWhere(
-              (method) => method.id == paymentFormState.paymentMethod!.id,
-              orElse: () => paymentFormState.paymentMethod!,
-            );
-
-            // Create a temporary payment object for the receipt
-            final tempPayment = paymentFormState
-                .copyWith(
-                  id: 999999, // Temporary ID for preview
-                  creatorId: context.read<AuthenticationBloc>().state.user!.id,
-                  creationDate: DateTime.now(),
-                )
-                .toPayment();
-
-            // Generate the receipt PDF
-            generateReceiptPdf(
-              tempPayment,
-              paymentFormState.invoice!,
-              selectedPaymentMethod,
-              invoiceListState.invoiceProducts,
-            );
-          },
+          onPressed: () => context.read<PaymentFormBloc>().add(const PrintPaymentRequestEvent()),
         ),
         Spacing.h12,
         TextButtonFilled(
@@ -332,10 +335,12 @@ class _PaymentFormState extends State<PaymentForm> {
                       mainAxisSize: MainAxisSize.min,
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text('Invoice No.', style: TextStyles.body),
+                        const Text('Invoice No:', style: TextStyles.body),
                         Spacing.v8,
                         TextFormBox(
+                          key: ValueKey(state.invoice?.id),
                           inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'^\d+$'))],
+                          initialValue: state.invoice?.id.toString() ?? '',
                           onChanged: (value) {
                             if (invoices.map((e) => e.id.toString()).contains(value)) {
                               final invoice = invoices

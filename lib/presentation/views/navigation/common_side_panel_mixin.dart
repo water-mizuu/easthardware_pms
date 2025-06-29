@@ -1,7 +1,6 @@
 import 'package:easthardware_pms/presentation/bloc/authentication/'
     'authentication/authentication_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/server/server_bloc.dart';
-import 'package:easthardware_pms/presentation/views/order/order_pane_page.dart';
 import 'package:easthardware_pms/presentation/widgets/dialog/log_out_dialog.dart';
 import 'package:easthardware_pms/presentation/widgets/text.dart';
 import 'package:easthardware_pms/utils/typed_routes.dart';
@@ -79,15 +78,15 @@ mixin CommonSidePanelMixin on NavigationPanelMixin {
             context.read<ServerBloc>().add(const ServerDatabaseCleared());
           },
         ),
+        navItem(
+          icon: FluentIcons.insert_rows_below,
+          title: 'Add mock items',
+          color: Colors.green,
+          onTap: () {
+            context.read<ServerBloc>().add(const ServerMockDataAdded());
+          },
+        ),
       ],
-      navItem(
-        icon: FluentIcons.insert_rows_below,
-        title: 'Add mock items',
-        color: Colors.green,
-        onTap: () {
-          context.read<ServerBloc>().add(const ServerMockDataAdded());
-        },
-      ),
       PaneItem(
         body: const NullWidget(),
         icon: const Icon(FluentIcons.contact),
@@ -98,6 +97,7 @@ mixin CommonSidePanelMixin on NavigationPanelMixin {
         title: Text('${user!.firstName.toTitleCase()} ${user.lastName.toTitleCase()}'),
         onTap: () async {
           final userConfirmedLogout = await LogOutDialog.show();
+
           if (!context.mounted) return;
           if (userConfirmedLogout) {
             context.read<AuthenticationBloc>().add(const AuthenticationLogoutEvent());

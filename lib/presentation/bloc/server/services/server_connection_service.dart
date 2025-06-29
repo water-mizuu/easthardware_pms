@@ -16,11 +16,15 @@ Future<(ShelfServer, ShelfServer, Stream<ServerEvent>)> startServers(int port) a
   return await hostShelfServer(port);
 }
 
-/// Gets the local WiFi IP address
+/// Gets the local WiFi IP address. If the device is not connected to WiFi,
+/// it throws an exception with a descriptive message.
+/// This is useful for displaying the server's address to the user.
+/// The IP address is used to connect to the server from other devices on the same network.
 Future<String> getLocalIpAddress() async {
   final localIp = await NetworkInfo().getWifiIP();
   if (localIp == null) {
-    throw Exception('Could not determine local IP address');
+    throw Exception(
+        'Could not determine local IP address. Please ensure you are connected to a WiFi network or local network (Ethernet). Network connectivity is required to host or connect to a server.');
   }
   return localIp;
 }

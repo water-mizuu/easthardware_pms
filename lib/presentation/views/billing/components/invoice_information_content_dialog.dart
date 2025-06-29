@@ -18,11 +18,9 @@ import 'package:intl/intl.dart';
 class InvoiceInformationContentDialog extends StatelessWidget {
   const InvoiceInformationContentDialog({
     super.key,
-    required this.context,
     required this.invoice,
   });
 
-  final BuildContext context;
   final Invoice invoice;
 
   @override

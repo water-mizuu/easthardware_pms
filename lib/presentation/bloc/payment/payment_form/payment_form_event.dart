@@ -59,6 +59,13 @@ class PaymentDateChanged extends PaymentFormEvent {
   List<Object> get props => [paymentDate];
 }
 
+class PrintPaymentRequestEvent extends PaymentFormEvent {
+  const PrintPaymentRequestEvent();
+
+  @override
+  List<Object> get props => [];
+}
+
 class SavePaymentRequestEvent extends PaymentFormEvent {
   const SavePaymentRequestEvent();
 

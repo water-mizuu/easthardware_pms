@@ -53,6 +53,7 @@ class CreateInvoicePage extends StatelessWidget {
                   final products = state.products //
                       .map((product) => product.toInvoiceProduct())
                       .toList();
+
                   context.read<InvoiceListBloc>().add(AddInvoiceEvent(invoice, products));
                 } else if (state.status == FormStatus.error) {
                   unawaited(showSingleDialog(
@@ -88,13 +89,15 @@ class CreateInvoicePage extends StatelessWidget {
                 final formState = context.read<InvoiceFormBloc>().state;
 
                 // Update Product Stocks
-                context.read<ProductListBloc>().add(const ReloadAllProductsEvent());
+                context
+                  ..read<ProductListBloc>() //
+                      .add(const ReloadAllProductsEvent())
 
-                // Add UserLog
-                context.read<UserLogListBloc>().add(
-                      AddCreateEvent('Invoice #${latest.id}', authState.user!),
-                    );
-                context.read<UserLogListBloc>().add(const LoadUserLogsEvent());
+                  // Add UserLog
+                  ..read<UserLogListBloc>()
+                      .add(AddCreateEvent('Invoice #${latest.id}', authState.user!))
+                  ..read<UserLogListBloc>() //
+                      .add(const LoadUserLogsEvent());
 
                 switch (formState.action) {
                   case InvoicePostAction.create:
@@ -105,7 +108,7 @@ class CreateInvoicePage extends StatelessWidget {
                     if (authState.user!.accessLevel == AccessLevel.administrator) {
                       context.navigateWithExtra(AppRoutes.admin.createPayment.withInvoice, latest);
                     } else {
-                      // context.navigateWithExtra(AppRoutes.staff.receivePayment, latest);
+                      context.navigateWithExtra(AppRoutes.staff.createPayment.withInvoice, latest);
                     }
                     break;
 
@@ -268,11 +271,12 @@ class PageHeader extends StatelessWidget {
     return Row(
       children: [
         IconButton(
-            icon: const Icon(FluentIcons.back),
-            onPressed: () => context.read<AuthenticationBloc>().state.user!.accessLevel ==
-                    AccessLevel.administrator
-                ? context.navigate(AppRoutes.admin.billing)
-                : context.navigate(AppRoutes.staff.billing)),
+          icon: const Icon(FluentIcons.back),
+          onPressed: () => context.read<AuthenticationBloc>().state.user!.accessLevel ==
+                  AccessLevel.administrator
+              ? context.navigate(AppRoutes.admin.billing)
+              : context.navigate(AppRoutes.staff.billing),
+        ),
         const DisplayText("Create Invoice"),
         const Spacer(flex: 1),
         TextButton(
@@ -280,7 +284,10 @@ class PageHeader extends StatelessWidget {
           onPressed: () {
             final creationDate = DateTime.now();
             final creatorId = context.read<AuthenticationBloc>().state.user?.id;
-            context.read<InvoiceFormBloc>().add(
+
+            context //
+                .read<InvoiceFormBloc>()
+                .add(
                   SaveInvoiceRequestEvent(
                     creationDate: creationDate,
                     creatorId: creatorId!,
@@ -533,7 +540,9 @@ class _FormTableRowState extends State<FormTableRow> {
             previous.products[widget.index] != current.products[widget.index];
       },
       builder: (context, state) {
-        final products = context.read<ProductListBloc>().state.allProducts;
+        final products = (context.read<ProductListBloc>().state.allProducts)
+          ..sort((a, b) => (a.name.toLowerCase()).compareTo(b.name.toLowerCase()));
+
         final bloc = context.read<InvoiceFormBloc>();
         final currentFormProduct = state.products[widget.index];
 

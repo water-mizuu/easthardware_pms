@@ -24,6 +24,7 @@ enum DataStatus {
 enum FormStatus {
   initial,
   validating,
+  printing,
   submitting,
   submitted,
   invalid,
