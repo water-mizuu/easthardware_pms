@@ -91,6 +91,8 @@ class _NotificationsPanePageState extends State<NotificationsPanePage> {
                     onPressed: () {
                       if (_messageController.text.isNotEmpty && _pathController.text.isNotEmpty) {
                         context.read<NotificationCubit>().addNotification(
+                              title: 'New Notification',
+                              type: _selectedType,
                               message: _messageController.text,
                               path: _pathController.text,
                             );

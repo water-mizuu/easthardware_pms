@@ -18,13 +18,14 @@ class NotificationServerProxy with ServerRedirect {
 
   /// Add a new notification
   Future<ServerNotification> addNotification({
+    required String title,
     required String message,
     required String path,
-    NotificationType type = NotificationType.info,
+    required NotificationType type,
   }) async {
     final notification = await server.invokeMethod(
       "add_notification",
-      [message, path, type.value],
+      [title, message, path, type.value],
     );
     return ServerNotification.fromJson(notification as Map<String, dynamic>);
   }

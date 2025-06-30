@@ -129,7 +129,7 @@ Future<void> spawnLandingIsolate((RootIsolateToken, NamedSendPort, int port) pay
       }
     } else {
       if (kDebugMode) {
-        print("Received unexpected message: $message");
+        printBoxed("Received unexpected message: $message");
       }
     }
   });

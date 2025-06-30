@@ -142,7 +142,7 @@ Future<void> _spawnKeyMicroserviceIsolate((RootIsolateToken, NamedSendPort) payl
     }
 
     if (kDebugMode) {
-      print("Received unexpected message: $message");
+      printBoxed("Received unexpected message: $message");
     }
   });
 }

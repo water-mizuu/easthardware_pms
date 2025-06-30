@@ -19,6 +19,7 @@ class NotificationLocalStorage {
   /// Loads notifications from SharedPreferences
   Future<void> _loadFromStorage() async {
     final prefs = await SharedPreferences.getInstance();
+    await prefs.clear();
     final jsonString = prefs.getString(_storageKey);
 
     if (jsonString != null) {
@@ -35,6 +36,7 @@ class NotificationLocalStorage {
     final jsonString = jsonEncode(_notifications
         .map((n) => {
               'id': n.id,
+              'title': n.title,
               'message': n.message,
               'path': n.path,
               'time': n.time.toIso8601String(),
@@ -51,6 +53,7 @@ class NotificationLocalStorage {
   }
 
   Future<ServerNotification> addNotification({
+    required String title,
     required String message,
     required String path,
     NotificationType type = NotificationType.info,
@@ -58,6 +61,7 @@ class NotificationLocalStorage {
     // Create a new notification with a unique ID
     final notification = ServerNotification(
       id: DateTime.now().millisecondsSinceEpoch,
+      title: title,
       time: DateTime.now(),
       message: message,
       path: path,

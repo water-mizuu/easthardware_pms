@@ -196,6 +196,7 @@ Future<void> spawnWebSocketIsolate((RootIsolateToken, NamedSendPort) payload) as
               notifs
                   .map((n) => {
                         'id': n.id,
+                        'title': n.title,
                         'message': n.message,
                         'path': n.path,
                         'time': n.time.toIso8601String(),
@@ -204,13 +205,17 @@ Future<void> spawnWebSocketIsolate((RootIsolateToken, NamedSendPort) payload) as
                       })
                   .toList());
           break;
-        case ["add_notification", [final String message, final String path, final String? type]]:
+        case [
+            "add_notification",
+            [final String title, final String message, final String path, final String? type]
+          ]:
           final notificationType = type != null
               ? NotificationType.values
                   .firstWhere((e) => e.value == type, orElse: () => NotificationType.info)
               : NotificationType.info;
 
           final notification = await NotificationLocalStorage.instance.addNotification(
+            title: title,
             message: message,
             path: path,
             type: notificationType,
@@ -220,6 +225,7 @@ Future<void> spawnWebSocketIsolate((RootIsolateToken, NamedSendPort) payload) as
 
           sendPort.send(name, {
             'id': notification.id,
+            'title': notification.title,
             'message': notification.message,
             'path': notification.path,
             'time': notification.time.toIso8601String(),
@@ -237,7 +243,7 @@ Future<void> spawnWebSocketIsolate((RootIsolateToken, NamedSendPort) payload) as
       }
     } else {
       if (kDebugMode) {
-        print("Received unexpected message: $message");
+        printBoxed("Received unexpected message: $message");
       }
     }
   });
@@ -381,9 +387,38 @@ Future<void> _handleConnection(
 
         sendPort.send(name, result);
         break;
+
+      case [
+          "add_notification",
+          [final String title, final String message, final String path, final String? type]
+        ]:
+        final notificationType = type != null
+            ? NotificationType.values
+                .firstWhere((e) => e.value == type, orElse: () => NotificationType.info)
+            : NotificationType.info;
+
+        final notification = await NotificationLocalStorage.instance.addNotification(
+          title: title,
+          message: message,
+          path: path,
+          type: notificationType,
+        );
+
+        _notifyEveryoneAboutNotification(notification: notification);
+
+        sendPort.send(name, {
+          'id': notification.id,
+          'title': notification.title,
+          'message': notification.message,
+          'path': notification.path,
+          'time': notification.time.toIso8601String(),
+          'isRead': notification.isRead,
+          'type': notification.type.value,
+        });
+        break;
       case _:
         if (kDebugMode) {
-          print("Received unexpected message: $message");
+          printBoxed("Received unexpected message: $message");
         }
         break;
     }
@@ -532,6 +567,7 @@ void _notifyEveryoneAboutNotification({
     "notification",
     {
       'id': notification.id,
+      'title': notification.title,
       'message': notification.message,
       'path': notification.path,
       'time': notification.time.toIso8601String(),
@@ -547,6 +583,7 @@ void _notifyEveryoneAboutNotification({
         "notification",
         {
           'id': notification.id,
+          'title': notification.title,
           'message': notification.message,
           'path': notification.path,
           'time': notification.time.toIso8601String(),

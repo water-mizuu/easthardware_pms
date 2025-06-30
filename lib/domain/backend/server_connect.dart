@@ -105,7 +105,7 @@ Future<(WebSocketChannel, MessageChannel, Stream<ServerEvent>)> connectToWebSock
       case ["notification", final Map<String, dynamic> notification]:
         // Notify the UI about a new notification.
         if (kDebugMode) {
-          print("Received notification: $notification");
+          printBoxed("Received notification: $notification");
         }
 
         yield ServerNotificationsReceived(
@@ -114,7 +114,7 @@ Future<(WebSocketChannel, MessageChannel, Stream<ServerEvent>)> connectToWebSock
         break;
       case _:
         if (kDebugMode) {
-          print("Received unexpected message: $message");
+          printBoxed("Received unexpected message: $message");
         }
         break;
     }

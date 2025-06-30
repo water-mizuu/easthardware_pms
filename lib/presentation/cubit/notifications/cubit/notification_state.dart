@@ -14,6 +14,7 @@ class ServerNotification {
   factory ServerNotification.fromJson(Map<String, dynamic> json) {
     return ServerNotification(
       time: DateTime.parse(json['time'] as String),
+      title: json['title'] as String,
       message: json['message'] as String,
       path: json['path'] as String,
       id: json['id'] as int,
@@ -25,8 +26,17 @@ class ServerNotification {
     );
   }
 
+  /// Represents a notification from the server.
+  /// Contains information such as time, message, path, id, read status, and type.
+  /// [time] is the time when the notification was created.
+  /// [message] is the content of the notification.
+  /// [path] is the URL or path associated with the notification.
+  /// [id] is a unique identifier for the notification.
+  /// [isRead] indicates whether the notification has been read.
+  /// [type] indicates the type of notification, which can be info, warning, error, or success.
   const ServerNotification({
     required this.time,
+    required this.title,
     required this.message,
     required this.path,
     required this.id,
@@ -35,6 +45,7 @@ class ServerNotification {
   });
 
   final DateTime time;
+  final String title;
   final String message;
   final String path;
   final int id;
@@ -48,6 +59,7 @@ class ServerNotification {
 
   ServerNotification Function({
     DateTime? time,
+    String? title,
     String? message,
     String? path,
     int? id,
@@ -56,6 +68,7 @@ class ServerNotification {
   }) get copyWith {
     return ({
       DateTime? time,
+      String? title,
       String? message,
       String? path,
       int? id,
@@ -64,6 +77,7 @@ class ServerNotification {
     }) {
       return ServerNotification(
         time: time ?? this.time,
+        title: title ?? this.title,
         message: message ?? this.message,
         path: path ?? this.path,
         id: id ?? this.id,
