@@ -16,9 +16,7 @@ part 'user_form_event.dart';
 part 'user_form_state.dart';
 
 class UserFormBloc extends Bloc<UserFormEvent, UserFormState> {
-  UserFormBloc()
-      : formKey = GlobalKey<FormState>(),
-        super(const UserFormState()) {
+  UserFormBloc(super.state) : formKey = GlobalKey<FormState>() {
     on<UserIdChangedEvent>(_onUserIdChanged);
     on<FirstNameFieldChangedEvent>(_onFirstNameChanged);
     on<LastNameFieldChangedEvent>(_onLastNameChanged);
@@ -289,10 +287,9 @@ class UserFormBloc extends Bloc<UserFormEvent, UserFormState> {
       emit(
         state.copyWith(
           archivedStatus: 0,
-          salt: newSalt,
-          passwordHash: hasNewPassword
-              ? newPasswordHash
-              : CryptographyService.generateHash(state.oldPassword, state.salt!),
+          // Only update salt & hashPassword if we're changing the password
+          salt: hasNewPassword ? newSalt : state.salt,
+          passwordHash: hasNewPassword ? newPasswordHash : state.passwordHash,
           accessLevelErrorMessage: null,
           oldPasswordErrorMessage: null,
           passwordErrorMessage: null,

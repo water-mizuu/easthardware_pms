@@ -47,88 +47,12 @@ class _EditUserPageState extends State<EditUserPage> {
 
   List<SingleChildWidget> get providers {
     return [
-      BlocProvider<UserFormBloc>(
-        create: (context) => userFormBloc,
-      ),
+      BlocProvider<UserFormBloc>.value(value: userFormBloc),
     ];
   }
 
-  @override
-  void initState() {
-    super.initState();
-
-    // Initialize form bloc
-    userFormBloc = UserFormBloc();
-
-    // Initialize controllers
-    firstNameController = TextEditingController();
-    lastNameController = TextEditingController();
-    usernameController = TextEditingController();
-
-    // Initialize with existing user data
-    _initializeFormWithUserData();
-
-    // Add listeners to controllers
-    _setupControllerListeners();
-  }
-
-  void _setupControllerListeners() {
-    firstNameController.addListener(() {
-      userFormBloc.add(FirstNameFieldChangedEvent(firstNameController.text));
-    });
-
-    lastNameController.addListener(() {
-      userFormBloc.add(LastNameFieldChangedEvent(lastNameController.text));
-    });
-
-    usernameController.addListener(() {
-      userFormBloc.add(UsernameFieldChangedEvent(usernameController.text));
-    });
-  }
-
-  void _initializeFormWithUserData() {
-    final user = widget.user;
-
-    // Set controller values
-    firstNameController.text = user.firstName;
-    lastNameController.text = user.lastName;
-    usernameController.text = user.username;
-
-    // Update the bloc state
-    userFormBloc
-      ..add(UserIdChangedEvent(user.id!))
-      ..add(FirstNameFieldChangedEvent(user.firstName))
-      ..add(LastNameFieldChangedEvent(user.lastName))
-      ..add(UsernameFieldChangedEvent(user.username))
-      ..add(AccessLevelFieldChangedEvent(user.accessLevel.name))
-      ..add(UIDChangedEvent(user.uid));
-
-    // Create a custom event to update the salt and passwordHash
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) {
-        // Load the user's password hash and salt for validation
-        userFormBloc.add(
-          LoadSaltAndHashEvent(salt: user.salt, passwordHash: user.passwordHash),
-        );
-      }
-    });
-  }
-
-  @override
-  void dispose() {
-    // Dispose controllers
-    firstNameController.dispose();
-    lastNameController.dispose();
-    usernameController.dispose();
-
-    unawaited(userFormBloc.close());
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    // Combine all listeners into a single list
-    final allListeners = [
+  List<SingleChildWidget> get listeners {
+    return [
       // Status change listeners
       BlocListener<UserFormBloc, UserFormState>(
         listenWhen: (p, c) => p.status != c.status,
@@ -194,38 +118,87 @@ class _EditUserPageState extends State<EditUserPage> {
           }
         },
       ),
-
-      // Field sync listeners - to sync controllers with the bloc state
-      BlocListener<UserFormBloc, UserFormState>(
-        listenWhen: (previous, current) => previous.firstName != current.firstName,
-        listener: (context, state) {
-          if (firstNameController.text != state.firstName) {
-            firstNameController.text = state.firstName;
-          }
-        },
-      ),
-      BlocListener<UserFormBloc, UserFormState>(
-        listenWhen: (previous, current) => previous.lastName != current.lastName,
-        listener: (context, state) {
-          if (lastNameController.text != state.lastName) {
-            lastNameController.text = state.lastName;
-          }
-        },
-      ),
-      BlocListener<UserFormBloc, UserFormState>(
-        listenWhen: (previous, current) => previous.username != current.username,
-        listener: (context, state) {
-          if (usernameController.text != state.username) {
-            usernameController.text = state.username;
-          }
-        },
-      ),
     ];
+  }
 
+  @override
+  void initState() {
+    super.initState();
+
+    // Initialize form bloc
+    userFormBloc = UserFormBloc(UserFormState.fromUser(widget.user));
+
+    // Initialize controllers
+    firstNameController = TextEditingController(text: userFormBloc.state.firstName);
+    lastNameController = TextEditingController(text: userFormBloc.state.lastName);
+    usernameController = TextEditingController(text: userFormBloc.state.username);
+
+    // Initialize with existing user data
+    _initializeFormWithUserData();
+
+    // Add listeners to controllers
+    _setupControllerListeners();
+  }
+
+  void _setupControllerListeners() {
+    firstNameController.addListener(() {
+      userFormBloc.add(FirstNameFieldChangedEvent(firstNameController.text));
+    });
+
+    lastNameController.addListener(() {
+      userFormBloc.add(LastNameFieldChangedEvent(lastNameController.text));
+    });
+
+    usernameController.addListener(() {
+      userFormBloc.add(UsernameFieldChangedEvent(usernameController.text));
+    });
+  }
+
+  void _initializeFormWithUserData() {
+    final user = widget.user;
+
+    // Set controller values
+    firstNameController.text = user.firstName;
+    lastNameController.text = user.lastName;
+    usernameController.text = user.username;
+
+    // Update the bloc state
+    userFormBloc
+      ..add(UserIdChangedEvent(user.id!))
+      ..add(FirstNameFieldChangedEvent(user.firstName))
+      ..add(LastNameFieldChangedEvent(user.lastName))
+      ..add(UsernameFieldChangedEvent(user.username))
+      ..add(AccessLevelFieldChangedEvent(user.accessLevel.name))
+      ..add(UIDChangedEvent(user.uid));
+
+    // Create a custom event to update the salt and passwordHash
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        // Load the user's password hash and salt for validation
+        userFormBloc.add(
+          LoadSaltAndHashEvent(salt: user.salt, passwordHash: user.passwordHash),
+        );
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    // Dispose controllers
+    firstNameController.dispose();
+    lastNameController.dispose();
+    usernameController.dispose();
+
+    unawaited(userFormBloc.close());
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return MultiProvider(
       providers: providers,
       child: MultiBlocListener(
-        listeners: allListeners,
+        listeners: listeners,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
@@ -252,12 +225,13 @@ class _EditUserPageState extends State<EditUserPage> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Expanded(
-                                    child: UserCredentialsSection(
-                                  key: keys['userCredentials'],
-                                  firstNameController: firstNameController,
-                                  lastNameController: lastNameController,
-                                  usernameController: usernameController,
-                                )),
+                                  child: UserCredentialsSection(
+                                    key: keys['userCredentials'],
+                                    firstNameController: firstNameController,
+                                    lastNameController: lastNameController,
+                                    usernameController: usernameController,
+                                  ),
+                                ),
                                 Spacing.h16,
                                 Expanded(child: SecuritySection(key: keys['securitySection'])),
                               ],

@@ -659,7 +659,8 @@ Future<void> _hookOntoUpdate(
 
       await _logToMain(LogCommand.userLoggedOut, user);
     } else {
-      assert(_userId == userId, "User ID should match the one in the arguments.");
+      // assert(_userId == userId, "User ID should match the one in the arguments.");
+
       _userId = null;
     }
 

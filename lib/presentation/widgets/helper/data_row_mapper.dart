@@ -269,6 +269,10 @@ class DataRowMapper {
               title: const Text('Actions', style: TextStyles.body),
               items: [
                 MenuFlyoutItem(
+                  text: const Text('Edit', style: TextStyles.body),
+                  onPressed: editAction,
+                ),
+                MenuFlyoutItem(
                   text: const Text('Make Inactive', style: TextStyles.body),
                   onPressed: archiveFunction,
                 ),

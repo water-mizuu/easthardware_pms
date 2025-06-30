@@ -134,6 +134,7 @@ class UserFormState {
 
   User mapStateToUser() {
     return User(
+      id: userId,
       uid: uid!,
       firstName: firstName,
       lastName: lastName,

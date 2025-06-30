@@ -118,7 +118,7 @@ class _CreateUserPageState extends State<CreateUserPage> {
   void initState() {
     super.initState();
 
-    userFormBloc = UserFormBloc();
+    userFormBloc = UserFormBloc(const UserFormState());
   }
 
   @override
