@@ -1,7 +1,9 @@
 import 'package:easthardware_pms/domain/enums/enums.dart';
-import 'package:easthardware_pms/presentation/bloc/authentication/authentication/authentication_bloc.dart';
+import 'package:easthardware_pms/presentation/bloc/authentication/'
+    'authentication/authentication_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/billing/invoicelist/invoice_list_bloc.dart';
-import 'package:easthardware_pms/presentation/cubit/billing/invoice_display/invoice_display_cubit.dart';
+import 'package:easthardware_pms/presentation/cubit/billing/'
+    'invoice_display/invoice_display_cubit.dart';
 import 'package:easthardware_pms/presentation/router/app_routes.dart';
 import 'package:easthardware_pms/presentation/views/billing/components/invoice_data_source.dart';
 import 'package:easthardware_pms/presentation/widgets/layout/spacing.dart';
@@ -204,31 +206,32 @@ class InvoiceDataTable extends StatelessWidget {
                         },
                       ),
                       DataColumn(
-                          label: Expanded(
-                            child: ConstrainedBox(
-                              constraints: const BoxConstraints(maxWidth: 75),
-                              child: Row(
-                                children: [
-                                  const Text('Invoice No.', style: TextStyles.tableHeader),
-                                  if (_getSortColumnIndex(displayState.sortBy) != 1) ...[
-                                    const Spacer(),
-                                    const Icon(
-                                      FluentIcons.scroll_up_down,
-                                      size: 12,
-                                    ),
-                                  ],
+                        label: Expanded(
+                          child: ConstrainedBox(
+                            constraints: const BoxConstraints(maxWidth: 75),
+                            child: Row(
+                              children: [
+                                const Text('Invoice No.', style: TextStyles.tableHeader),
+                                if (_getSortColumnIndex(displayState.sortBy) != 1) ...[
+                                  const Spacer(),
+                                  const Icon(
+                                    FluentIcons.scroll_up_down,
+                                    size: 12,
+                                  ),
                                 ],
-                              ),
+                              ],
                             ),
                           ),
-                          onSort: (_, __) {
-                            if (displayState.sortBy == InvoiceDisplaySortBy.numberAscending ||
-                                displayState.sortBy == InvoiceDisplaySortBy.numberDescending) {
-                              displayCubit.sort(displayState.sortBy);
-                            } else {
-                              displayCubit.sort(InvoiceDisplaySortBy.numberAscending);
-                            }
-                          }),
+                        ),
+                        onSort: (_, __) {
+                          if (displayState.sortBy == InvoiceDisplaySortBy.numberAscending ||
+                              displayState.sortBy == InvoiceDisplaySortBy.numberDescending) {
+                            displayCubit.sort(displayState.sortBy);
+                          } else {
+                            displayCubit.sort(InvoiceDisplaySortBy.numberAscending);
+                          }
+                        },
+                      ),
                       DataColumn(
                         label: Expanded(
                           child: ConstrainedBox(

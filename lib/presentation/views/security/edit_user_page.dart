@@ -2,10 +2,12 @@ import 'dart:async';
 
 import 'package:easthardware_pms/domain/constants/constants.dart';
 import 'package:easthardware_pms/domain/enums/enums.dart';
+import 'package:easthardware_pms/domain/models/security_question.dart';
 import 'package:easthardware_pms/domain/models/user.dart';
 import 'package:easthardware_pms/presentation/bloc/authentication/authentication/'
     'authentication_bloc.dart';
-import 'package:easthardware_pms/presentation/bloc/security/security_questions/security_question_list_bloc.dart';
+import 'package:easthardware_pms/presentation/bloc/security/security_questions/'
+    'security_question_list_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/security/user_form/user_form_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/security/user_form/user_form_validator.dart';
 import 'package:easthardware_pms/presentation/bloc/security/user_list/user_list_bloc.dart';
@@ -38,7 +40,8 @@ class EditUserPage extends StatefulWidget {
 }
 
 class _EditUserPageState extends State<EditUserPage> {
-  late final UserFormBloc userFormBloc;
+  List<SecurityQuestion>? _securityQuestions;
+  UserFormBloc? userFormBloc;
 
   // Form field controllers
   late final TextEditingController firstNameController;
@@ -47,7 +50,7 @@ class _EditUserPageState extends State<EditUserPage> {
 
   List<SingleChildWidget> get providers {
     return [
-      BlocProvider<UserFormBloc>.value(value: userFormBloc),
+      BlocProvider<UserFormBloc>.value(value: userFormBloc!),
     ];
   }
 
@@ -125,60 +128,48 @@ class _EditUserPageState extends State<EditUserPage> {
   void initState() {
     super.initState();
 
-    // Initialize form bloc
-    userFormBloc = UserFormBloc(UserFormState.fromUser(widget.user));
-
-    // Initialize controllers
-    firstNameController = TextEditingController(text: userFormBloc.state.firstName);
-    lastNameController = TextEditingController(text: userFormBloc.state.lastName);
-    usernameController = TextEditingController(text: userFormBloc.state.username);
-
-    // Initialize with existing user data
-    _initializeFormWithUserData();
+    firstNameController = TextEditingController();
+    lastNameController = TextEditingController();
+    usernameController = TextEditingController();
 
     // Add listeners to controllers
     _setupControllerListeners();
   }
 
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
+    // Initialize form bloc
+    final currentQuestions = context.watch<SecurityQuestionListBloc>().state.securityQuestions;
+    if (currentQuestions != _securityQuestions) {
+      final questions = currentQuestions
+          .where((q) => q.userId == widget.user.id) // Filter out archived questions
+          .map((q) => FormQuestion.fromSecurityQuestion(q))
+          .toList();
+
+      unawaited(userFormBloc?.close());
+      userFormBloc = UserFormBloc(UserFormState.fromUser(widget.user, questions));
+
+      // Initialize controllers
+
+      firstNameController.text = userFormBloc!.state.firstName;
+      lastNameController.text = userFormBloc!.state.lastName;
+      usernameController.text = userFormBloc!.state.username;
+    }
+  }
+
   void _setupControllerListeners() {
     firstNameController.addListener(() {
-      userFormBloc.add(FirstNameFieldChangedEvent(firstNameController.text));
+      userFormBloc?.add(FirstNameFieldChangedEvent(firstNameController.text));
     });
 
     lastNameController.addListener(() {
-      userFormBloc.add(LastNameFieldChangedEvent(lastNameController.text));
+      userFormBloc?.add(LastNameFieldChangedEvent(lastNameController.text));
     });
 
     usernameController.addListener(() {
-      userFormBloc.add(UsernameFieldChangedEvent(usernameController.text));
-    });
-  }
-
-  void _initializeFormWithUserData() {
-    final user = widget.user;
-
-    // Set controller values
-    firstNameController.text = user.firstName;
-    lastNameController.text = user.lastName;
-    usernameController.text = user.username;
-
-    // Update the bloc state
-    userFormBloc
-      ..add(UserIdChangedEvent(user.id!))
-      ..add(FirstNameFieldChangedEvent(user.firstName))
-      ..add(LastNameFieldChangedEvent(user.lastName))
-      ..add(UsernameFieldChangedEvent(user.username))
-      ..add(AccessLevelFieldChangedEvent(user.accessLevel.name))
-      ..add(UIDChangedEvent(user.uid));
-
-    // Create a custom event to update the salt and passwordHash
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) {
-        // Load the user's password hash and salt for validation
-        userFormBloc.add(
-          LoadSaltAndHashEvent(salt: user.salt, passwordHash: user.passwordHash),
-        );
-      }
+      userFormBloc?.add(UsernameFieldChangedEvent(usernameController.text));
     });
   }
 
@@ -189,7 +180,7 @@ class _EditUserPageState extends State<EditUserPage> {
     lastNameController.dispose();
     usernameController.dispose();
 
-    unawaited(userFormBloc.close());
+    unawaited(userFormBloc!.close());
     super.dispose();
   }
 
@@ -217,7 +208,7 @@ class _EditUserPageState extends State<EditUserPage> {
                       borderRadius: BorderRadius.circular(4.0),
                     ),
                     child: Form(
-                      key: userFormBloc.formKey,
+                      key: userFormBloc!.formKey,
                       child: LayoutMode.builder((context, mode, keys) {
                         switch (mode) {
                           case LayoutMode.wide:
@@ -263,14 +254,6 @@ class _EditUserPageState extends State<EditUserPage> {
         ),
       ),
     );
-  }
-
-  void _handleSecurityQuestionsLoaded(
-    BuildContext context,
-    SecurityQuestionListState state,
-  ) {
-    // This method is no longer needed as we're filtering questions directly in the build method
-    // We're keeping it to maintain compatibility with the BlocListener
   }
 }
 
@@ -765,7 +748,7 @@ class AccessLevelField extends StatelessWidget with UserFormValidator {
               items: AccessLevel.values.map((level) {
                 return ComboBoxItem(
                   value: level.name,
-                  child: BodyText(level.name),
+                  child: BodyText(level.name.capitalize()),
                 );
               }).toList(),
             ),
@@ -799,6 +782,11 @@ class _SecurityQuestionFieldsState extends State<SecurityQuestionFields> with Us
     super.initState();
 
     final userFormBloc = context.read<UserFormBloc>();
+
+    if (kDebugMode) {
+      print(userFormBloc.state.questions.map((q) => (q.question, q.answer)));
+    }
+
     _questionControllers = List.generate(
       userFormBloc.state.questions.length,
       (i) => TextEditingController(text: userFormBloc.state.questions[i].question),
@@ -831,73 +819,6 @@ class _SecurityQuestionFieldsState extends State<SecurityQuestionFields> with Us
 
   @override
   Widget build(BuildContext context) {
-    // Get the current user ID from the UserFormBloc
-    final userId = context.select((UserFormBloc b) => b.state.userId);
-
-    // Get all available security questions from the SecurityQuestionListBloc
-    final allSecurityQuestions = context.select(
-      (SecurityQuestionListBloc b) => b.state.securityQuestions,
-    );
-
-    // Manually filter security questions for the current user
-    final userSecurityQuestions =
-        allSecurityQuestions.where((question) => question.userId == userId).toList();
-
-    // Convert to form questions and ensure we have exactly 3
-    var formQuestions = <FormQuestion>[];
-
-    if (userSecurityQuestions.isNotEmpty) {
-      // Convert to form questions
-      formQuestions = userSecurityQuestions.map(FormQuestion.fromSecurityQuestion).toList();
-    }
-
-    // Ensure we have 3 security questions (padding with empty ones if needed)
-    while (formQuestions.length < 3) {
-      formQuestions.add(const FormQuestion(question: "", answer: ""));
-    }
-
-    // Take only the first 3 questions if there are more
-    final finalQuestions = formQuestions.take(3).toList();
-
-    // Update controllers if needed
-    if (_questionControllers.length != finalQuestions.length) {
-      // Dispose old controllers
-      for (final controller in _questionControllers.followedBy(_answerControllers)) {
-        controller.dispose();
-      }
-      for (final notifier in _obscureAnswerNotifiers) {
-        notifier.dispose();
-      }
-
-      // Create new controllers
-      _questionControllers.clear();
-      _answerControllers.clear();
-      _obscureAnswerNotifiers.clear();
-
-      for (final question in finalQuestions) {
-        _questionControllers.add(TextEditingController(text: question.question));
-        _answerControllers.add(TextEditingController(text: question.answer));
-        _obscureAnswerNotifiers.add(ValueNotifier<bool>(true));
-      }
-    } else {
-      // Update existing controllers
-      for (var i = 0; i < finalQuestions.length; i++) {
-        if (_questionControllers[i].text != finalQuestions[i].question) {
-          _questionControllers[i].text = finalQuestions[i].question;
-        }
-        if (_answerControllers[i].text != finalQuestions[i].answer) {
-          _answerControllers[i].text = finalQuestions[i].answer;
-        }
-      }
-    }
-
-    // Update the form bloc with the questions
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (context.mounted) {
-        context.read<UserFormBloc>().add(SecurityQuestionsUpdatedEvent(finalQuestions));
-      }
-    });
-
     // Get the current questions from the form bloc for UI rendering
     final formQuestionsForUI = context.select((UserFormBloc b) => b.state.questions);
     final remainingStaticQuestions = SECURITY_QUESTIONS //
@@ -922,18 +843,12 @@ class _SecurityQuestionFieldsState extends State<SecurityQuestionFields> with Us
                     placeholder: _questionControllers[index].text,
                     controller: _questionControllers[index],
                     items: remainingStaticQuestions
-                        .map((question) => AutoSuggestBoxItem<String>(
-                              value: question,
-                              label: question,
-                            ))
+                        .map((q) => AutoSuggestBoxItem<String>(value: q, label: q))
                         .toList(),
                     onSelected: (value) {
-                      context.read<UserFormBloc>().add(
-                            QuestionFieldChangedEvent(
-                              value.value ?? '',
-                              index,
-                            ),
-                          );
+                      context //
+                          .read<UserFormBloc>()
+                          .add(QuestionFieldChangedEvent(value.value ?? '', index));
                     },
                     onChanged: (value, reason) {
                       context.read<UserFormBloc>().add(

@@ -27,7 +27,7 @@ class UserFormState {
     this.confirmPasswordErrorMessage,
   });
 
-  factory UserFormState.fromUser(User user) {
+  factory UserFormState.fromUser(User user, List<FormQuestion> questions) {
     return UserFormState(
       userId: user.id,
       creationDate: user.creationDate,
@@ -39,6 +39,13 @@ class UserFormState {
       salt: user.salt,
       archivedStatus: user.archiveStatus,
       uid: user.uid,
+      questions: questions.isEmpty
+          ? [
+              const FormQuestion(question: "", answer: ""),
+              const FormQuestion(question: "", answer: ""),
+              const FormQuestion(question: "", answer: ""),
+            ]
+          : questions,
     );
   }
   final String firstName;

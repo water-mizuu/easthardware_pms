@@ -141,10 +141,16 @@ Future<void> restoreBackup(String backupPath, String key) async {
   assertChildIsolate();
 
   final completer = Completer<void>.sync();
-
   _dbMethodQueue.addJob((_) async {
     try {
       final database = await _getDatabase(null);
+
+      final activeUsers = await database.query(
+        UsersTable.USERS_TABLE_NAME,
+        columns: [UsersTable.USERS_ID],
+        where: '${UsersTable.USERS_LOGIN_STATUS} = 1',
+      );
+
       final backupFile = File(backupPath);
 
       if (!backupFile.existsSync()) {
@@ -195,6 +201,15 @@ Future<void> restoreBackup(String backupPath, String key) async {
       }
 
       _databaseInstance = await _getDatabase(null);
+      for (final {UsersTable.USERS_ID: userId as int} in activeUsers) {
+        await _databaseInstance!.update(
+          UsersTable.USERS_TABLE_NAME,
+          {UsersTable.USERS_LOGIN_STATUS: 1}, // Set login status to active
+          where: '${UsersTable.USERS_ID} = ?',
+          whereArgs: [userId],
+        );
+      }
+
       completer.complete();
     } catch (e, st) {
       completer.completeError(e, st);

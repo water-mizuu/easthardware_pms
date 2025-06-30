@@ -10,9 +10,9 @@ import 'package:fluent_ui/fluent_ui.dart';
 import 'package:flutter/foundation.dart';
 import 'package:window_manager_plus/window_manager_plus.dart';
 
-const printInvocationMessages = true;
-const printWebSocketMessages = true;
-const printDatabaseMessages = true;
+const printInvocationMessages = false;
+const printWebSocketMessages = false;
+const printDatabaseMessages = false;
 
 void main(List<String> args) async {
   WidgetsFlutterBinding.ensureInitialized();

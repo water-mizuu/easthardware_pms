@@ -11,7 +11,6 @@ import 'package:easthardware_pms/presentation/router/app_router.dart';
 import 'package:easthardware_pms/presentation/router/app_routes.dart';
 import 'package:easthardware_pms/presentation/widgets/is_full_screen_provider.dart';
 import 'package:easthardware_pms/presentation/widgets/title_bar.dart';
-import 'package:easthardware_pms/utils/boxed.dart';
 import 'package:easthardware_pms/utils/typed_routes.dart';
 import 'package:fluent_ui/fluent_ui.dart';
 import 'package:flutter/foundation.dart';
@@ -98,17 +97,10 @@ class _AppState extends State<App> {
         listener: (context, state) {
           final didUserLogIn = state.user != null;
           if (didUserLogIn) {
-            if (kDebugMode) {
-              printBoxed("User logged in.", "AuthenticationBloc");
-            }
             // If the user logged in, we need to update the user log list.
             final user = state.user!;
             context.read<UserLogListBloc>().add(AddLoginEvent(user));
           } else {
-            if (kDebugMode) {
-              printBoxed("User logged out.", "AuthenticationBloc");
-            }
-
             // If the user logged out, we need to update the user log list.
             final user = context.read<AuthenticationBloc>().state.previousUser;
             assert(user != null, "Log out event must have saved a previousUser.");

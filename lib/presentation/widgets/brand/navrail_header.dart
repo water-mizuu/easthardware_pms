@@ -14,8 +14,7 @@ class LogoRow extends StatelessWidget {
         final maxWidth = constraints.maxWidth;
         final logo = Image.asset(
           'assets/icons/logo.png',
-          height: 64,
-          width: 64,
+          height: 96,
           fit: BoxFit.contain,
         );
 
@@ -24,15 +23,15 @@ class LogoRow extends StatelessWidget {
         if (isOverflowing) {
           return Padding(padding: const EdgeInsets.only(top: 2), child: logo);
         }
-        return Row(
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: <Widget>[
             logo,
-            const Expanded(
-              child: Text(
-                "Prodcut Management System",
-                style: TextStyles.strong,
-                overflow: TextOverflow.clip,
-              ),
+            const Text(
+              "Product Management System",
+              style: TextStyles.strong,
+              overflow: TextOverflow.clip,
+              textAlign: TextAlign.center,
             )
           ].withSpacing(() => Spacing.h16),
         );

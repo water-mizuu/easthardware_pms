@@ -127,119 +127,14 @@ Future<void> spawnWebSocketIsolate((RootIsolateToken, NamedSendPort) payload) as
     }
 
     if (message case [final String name, final Object args]) {
+      final context = MainInvocationContext(sendPort: sendPort);
+
       switch (args) {
         case ["stop", _]:
           await closeIsolate(name);
           break;
-        case ["resetDb", _]:
-          // // Restart the database connection.
-          await resetDatabase();
-          sendPort.send(name, 0);
-          break;
-        case ["db", [final String method, final List<Object?> arguments]]:
-          // Handle each db method call.
-          final hasChanged = await _handleDbMessage(method, arguments, sendPort, name);
-
-          /// If the method was not successfully handled, ignore the rest of this body.
-          if (hasChanged == null) break;
-          if (hasChanged) {
-            _notifyEveryoneAboutDatabaseChange(from: null, isServerUpdated: false);
-          }
-
-          /// Hook onto the database update that signifies that the user has logged in.
-          if (method == "update") {
-            await _hookOntoUpdate(arguments);
-          }
-          break;
-        case ["create_backup", [final String key]]:
-          // Handle backup requests.
-          final result = await createBackup(key);
-          __notifyEveryoneAboutDatabaseChangeInstantly(from: null, isServerUpdated: true);
-
-          sendPort.send(name, result);
-          break;
-        case ["restore_backup", [final String path, final String key]]:
-          // Handle restore requests.
-          try {
-            final (_) = await restoreBackup(path, key);
-            __notifyEveryoneAboutDatabaseChangeInstantly(from: null, isServerUpdated: true);
-
-            sendPort.send(name, true);
-          } catch (e) {
-            sendPort.send(name, ["error", "Failed to restore backup: $e"]);
-          }
-          break;
-        case ["delete_backup", [final String path]]:
-          // Handle delete backup requests.
-          try {
-            final (_) = await deleteBackup(path);
-            __notifyEveryoneAboutDatabaseChangeInstantly(from: null, isServerUpdated: true);
-
-            sendPort.send(name, true);
-          } catch (e) {
-            sendPort.send(name, ["error", "Failed to delete backup: $e"]);
-          }
-        case ["get_database_size", _]:
-          // Handle get database size requests.
-          final size = await getDatabaseSize();
-          sendPort.send(name, size);
-          break;
-        case ["load_backups", _]:
-          final result = await readBackups();
-
-          sendPort.send(name, result);
-          break;
-        case ["get_notifications", _]:
-          final notifs = await NotificationLocalStorage.instance.getNotifications();
-          sendPort.send(
-              name,
-              notifs
-                  .map((n) => {
-                        'id': n.id,
-                        'title': n.title,
-                        'message': n.message,
-                        'path': n.path,
-                        'time': n.time.toIso8601String(),
-                        'isRead': n.isRead,
-                        'type': n.type.value,
-                      })
-                  .toList());
-          break;
-        case [
-            "add_notification",
-            [final String title, final String message, final String path, final String? type]
-          ]:
-          final notificationType = type != null
-              ? NotificationType.values
-                  .firstWhere((e) => e.value == type, orElse: () => NotificationType.info)
-              : NotificationType.info;
-
-          final notification = await NotificationLocalStorage.instance.addNotification(
-            title: title,
-            message: message,
-            path: path,
-            type: notificationType,
-          );
-
-          _notifyEveryoneAboutNotification(notification: notification);
-
-          sendPort.send(name, {
-            'id': notification.id,
-            'title': notification.title,
-            'message': notification.message,
-            'path': notification.path,
-            'time': notification.time.toIso8601String(),
-            'isRead': notification.isRead,
-            'type': notification.type.value,
-          });
-          break;
         case _:
-          printBoxed("Unknown message type: $args", "MAIN2WS:invocation");
-          sendPort.send(name, [
-            "error",
-            "Unknown message type: $args",
-            StackTrace.current.toString(),
-          ]);
+          await _handleInvocation(context, name, args);
       }
     } else {
       if (kDebugMode) {
@@ -327,101 +222,12 @@ Future<void> _handleConnection(
 
     final [name as String, message] = object as List<Object?>;
     final sendPort = messageChannel.sendPort;
+    final context = ClientInvocationContext(
+      sendPort: sendPort,
+      clientChannel: (webSocketChannel, messageChannel),
+    );
 
-    switch (message) {
-      case ["resetDb", _]:
-        await resetDatabase();
-        break;
-      case ["db", [final String method, final List<Object?> arguments]]:
-        // Handle each db method call.
-        final hasChanged = await _handleDbMessage(method, arguments, sendPort, name);
-
-        /// If the method was not successfully handled, ignore the rest of this body.
-        if (hasChanged == null) break;
-        if (hasChanged) {
-          _notifyEveryoneAboutDatabaseChange(from: webSocketChannel, isServerUpdated: true);
-        }
-
-        /// Hook onto the database update that signifies that the user has logged in.
-        if (method == "update") {
-          await _hookOntoUpdate(arguments, (webSocketChannel, messageChannel));
-        }
-
-        break;
-      case ["create_backup", [final String key]]:
-        // Handle backup requests.
-        final result = await createBackup(key);
-        __notifyEveryoneAboutDatabaseChangeInstantly(from: null, isServerUpdated: true);
-
-        sendPort.send(name, result);
-        break;
-      case ["restore_backup", [final String path, final String key]]:
-        // Handle restore requests.
-        try {
-          final (_) = await restoreBackup(path, key);
-          __notifyEveryoneAboutDatabaseChangeInstantly(from: null, isServerUpdated: true);
-
-          sendPort.send(name, true);
-        } catch (e) {
-          sendPort.send(name, ["error", "Failed to restore backup: $e"]);
-        }
-        break;
-      case ["delete_backup", [final String path]]:
-        // Handle delete backup requests.
-        try {
-          final (_) = await deleteBackup(path);
-          __notifyEveryoneAboutDatabaseChangeInstantly(from: null, isServerUpdated: true);
-
-          sendPort.send(name, true);
-        } catch (e) {
-          sendPort.send(name, ["error", "Failed to delete backup: $e"]);
-        }
-      case ["get_database_size", _]:
-        // Handle get database size requests.
-        final size = await getDatabaseSize();
-
-        sendPort.send(name, size);
-        break;
-      case ["load_backups", _]:
-        final result = await readBackups();
-
-        sendPort.send(name, result);
-        break;
-
-      case [
-          "add_notification",
-          [final String title, final String message, final String path, final String? type]
-        ]:
-        final notificationType = type != null
-            ? NotificationType.values
-                .firstWhere((e) => e.value == type, orElse: () => NotificationType.info)
-            : NotificationType.info;
-
-        final notification = await NotificationLocalStorage.instance.addNotification(
-          title: title,
-          message: message,
-          path: path,
-          type: notificationType,
-        );
-
-        _notifyEveryoneAboutNotification(notification: notification);
-
-        sendPort.send(name, {
-          'id': notification.id,
-          'title': notification.title,
-          'message': notification.message,
-          'path': notification.path,
-          'time': notification.time.toIso8601String(),
-          'isRead': notification.isRead,
-          'type': notification.type.value,
-        });
-        break;
-      case _:
-        if (kDebugMode) {
-          printBoxed("Received unexpected message: $message");
-        }
-        break;
-    }
+    await _handleInvocation(context, name, message);
   });
 
   if (kDebugMode) {
@@ -429,6 +235,109 @@ Future<void> _handleConnection(
   }
 
   _clientChannels.add((webSocketChannel, messageChannel, null));
+}
+
+Future<void> _handleInvocation(InvocationContext context, String name, Object? message) async {
+  final sendPort = context.sendPort;
+
+  switch (message) {
+    case ["resetDb", _]:
+      await resetDatabase();
+      break;
+    case ["db", [final String method, final List<Object?> arguments]]:
+      // Handle each db method call.
+      final hasChanged = await _handleDbMessage(method, arguments, context.sendPort, name);
+
+      /// If the method was not successfully handled, ignore the rest of this body.
+      if (hasChanged == null) break;
+      if (hasChanged) {
+        final channel = context.clientChannel?.$1;
+
+        _notifyEveryoneAboutDatabaseChange(from: channel, isServerUpdated: true);
+      }
+
+      /// Hook onto the database update that signifies that the user has logged in.
+      if (method == "update") {
+        final channel = context.clientChannel;
+
+        await _hookOntoUpdate(arguments, channel);
+      }
+
+      break;
+    case ["create_backup", [final String key]]:
+      // Handle backup requests.
+      final result = await createBackup(key);
+      __notifyEveryoneAboutDatabaseChangeInstantly(from: null, isServerUpdated: true);
+
+      sendPort.send(name, result);
+      break;
+    case ["restore_backup", [final String path, final String key]]:
+      // Handle restore requests.
+      try {
+        final (_) = await restoreBackup(path, key);
+        __notifyEveryoneAboutDatabaseChangeInstantly(from: null, isServerUpdated: true);
+
+        sendPort.send(name, true);
+      } catch (e) {
+        sendPort.send(name, ["error", "Failed to restore backup: $e"]);
+      }
+      break;
+    case ["delete_backup", [final String path]]:
+      // Handle delete backup requests.
+      try {
+        final (_) = await deleteBackup(path);
+        __notifyEveryoneAboutDatabaseChangeInstantly(from: null, isServerUpdated: true);
+
+        sendPort.send(name, true);
+      } catch (e) {
+        sendPort.send(name, ["error", "Failed to delete backup: $e"]);
+      }
+    case ["get_database_size", _]:
+      // Handle get database size requests.
+      final size = await getDatabaseSize();
+
+      sendPort.send(name, size);
+      break;
+    case ["load_backups", _]:
+      final result = await readBackups();
+
+      sendPort.send(name, result);
+      break;
+
+    case [
+        "add_notification",
+        [final String title, final String message, final String path, final String? type]
+      ]:
+      final notificationType = type != null
+          ? NotificationType.values
+              .firstWhere((e) => e.value == type, orElse: () => NotificationType.info)
+          : NotificationType.info;
+
+      final notification = await NotificationLocalStorage.instance.addNotification(
+        title: title,
+        message: message,
+        path: path,
+        type: notificationType,
+      );
+
+      _notifyEveryoneAboutNotification(notification: notification);
+
+      sendPort.send(name, {
+        'id': notification.id,
+        'title': notification.title,
+        'message': notification.message,
+        'path': notification.path,
+        'time': notification.time.toIso8601String(),
+        'isRead': notification.isRead,
+        'type': notification.type.value,
+      });
+      break;
+    case _:
+      if (kDebugMode) {
+        printBoxed("Received unexpected message: $message");
+      }
+      break;
+  }
 }
 
 Future<bool?> _handleDbMessage(
@@ -598,9 +507,9 @@ void _notifyEveryoneAboutNotification({
 /// This method hooks onto the database update that signifies that the user has logged in.
 /// We need to ensure that this matches the signature of the update method in the database helper.
 Future<void> _hookOntoUpdate(
-  List<Object?> arguments, [
+  List<Object?> arguments,
   (WebSocketChannel, MessageChannel)? clientChannel,
-]) async {
+) async {
   late final index = _clientChannels.indexWhere((c) => (c.$1, c.$2) == clientChannel);
 
   /// MANUAL LOGIN.
@@ -626,11 +535,8 @@ Future<void> _hookOntoUpdate(
       await _logToMain(LogCommand.userLoggedIn, user);
     } else {
       /// We assume that the user logged in from the server.
+      printBoxed("USER ID IS SET TO BE $userId");
       _userId = userId;
-
-      if (kDebugMode) {
-        print("User with ID $userId logged in from a new client.");
-      }
     }
     return;
   }
@@ -639,11 +545,7 @@ Future<void> _hookOntoUpdate(
   ///   If we detect a manual logout (either the client or the server pressed the logout button),
   ///   we want to let everyone know about it.
   if (arguments
-      case [
-        "users",
-        {"login_status": 0},
-        {"where": "id = ?", "whereArgs": [final int userId]},
-      ]) {
+      case ["users", {"login_status": 0}, {"where": "id = ?", "whereArgs": [final int userId]}]) {
     if (clientChannel case (final webSocketChannel, final messageChannel) when index >= 0) {
       _clientChannels[index] = (webSocketChannel, messageChannel, null);
 
@@ -658,9 +560,8 @@ Future<void> _hookOntoUpdate(
       }
 
       await _logToMain(LogCommand.userLoggedOut, user);
-    } else {
-      // assert(_userId == userId, "User ID should match the one in the arguments.");
-
+    } else if (_userId == userId) {
+      printBoxed("USER ID IS SET TO BE $userId");
       _userId = null;
     }
 
@@ -715,4 +616,42 @@ Future<void> _logoutClientForcefully(int userId) async {
   }
 
   _notifyEveryoneAboutDatabaseChange(from: null, isServerUpdated: true);
+}
+
+enum InvocationOrigin { main, client }
+
+class InvocationContext {
+  const InvocationContext({
+    required this.sendPort,
+    required this.origin,
+    required this.clientChannel,
+  });
+
+  final InvocationOrigin origin;
+  final NamedSendPort sendPort;
+  final (WebSocketChannel, MessageChannel)? clientChannel;
+}
+
+extension type const MainInvocationContext._(InvocationContext context)
+    implements InvocationContext {
+  //
+  MainInvocationContext({required NamedSendPort sendPort})
+      : this._(InvocationContext(
+          sendPort: sendPort,
+          origin: InvocationOrigin.main,
+          clientChannel: null,
+        ));
+}
+
+extension type const ClientInvocationContext._(InvocationContext context)
+    implements InvocationContext {
+  //
+  ClientInvocationContext({
+    required NamedSendPort sendPort,
+    required (WebSocketChannel, MessageChannel)? clientChannel,
+  }) : this._(InvocationContext(
+          sendPort: sendPort,
+          origin: InvocationOrigin.client,
+          clientChannel: clientChannel,
+        ));
 }

@@ -395,15 +395,17 @@ class _BackupRow extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          TimerWidget(builder: (context, now) {
-            final formattedDate = _formatDate(dateCreated, now);
+          TimerWidget(
+            builder: (context, now) {
+              final formattedDate = _formatDate(dateCreated, now);
 
-            if (isEncrypted) {
-              return Text('Encrypted backup created on $formattedDate');
-            } else {
-              return Text('Unencrypted backup created on $formattedDate');
-            }
-          }),
+              if (isEncrypted) {
+                return Text('Encrypted backup created on $formattedDate');
+              } else {
+                return Text('Unencrypted backup created on $formattedDate');
+              }
+            },
+          ),
           Row(
             children: [
               TextButton(
@@ -498,8 +500,6 @@ class _BackupRow extends StatelessWidget {
               child: const Text('Ok'),
               onPressed: () async {
                 final key = textController.text.trim();
-                final didUserConfirm = await _confirmBackup();
-                if (!didUserConfirm || !context.mounted) return;
                 final didSucceed = await context //
                     .read<DatabaseInformationCubit>()
                     .restoreBackup(path: backup, key: key);
@@ -511,9 +511,12 @@ class _BackupRow extends StatelessWidget {
                     message: 'Backup restored successfully to $dateCreated',
                   );
 
-                  final user = context.read<AuthenticationBloc>().state.user!;
+                  if (context.read<AuthenticationBloc>().state.user case final user?) {
+                    context //
+                        .read<UserLogListBloc>()
+                        .add(RestoreBackupEvent(user));
+                  }
 
-                  context.read<UserLogListBloc>().add(RestoreBackupEvent(user));
                   context.pop();
                 } else {
                   errorNotifier.value =

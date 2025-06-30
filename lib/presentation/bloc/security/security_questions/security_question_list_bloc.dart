@@ -10,8 +10,7 @@ part 'security_question_list_event.dart';
 part 'security_question_list_state.dart';
 
 class SecurityQuestionListBloc extends Bloc<SecurityQuestionListEvent, SecurityQuestionListState> {
-  SecurityQuestionListBloc(this._repository, SecurityQuestionListState initialState)
-      : super(initialState) {
+  SecurityQuestionListBloc(this._repository, super.initialState) {
     on<FetchSecurityQuestionsEvent>(_onFetchSecurityQuestions);
     on<FilterSecurityQuestionsEvent>(_onFilterSecurityQuestions);
     on<AddSecurityQuestionEvent>(_onAddSecurityQuestion);
@@ -28,9 +27,6 @@ class SecurityQuestionListBloc extends Bloc<SecurityQuestionListEvent, SecurityQ
       final securityQuestions = await _repository.getAllSecurityQuestions();
       emit(state.copyWith(status: DataStatus.success, securityQuestions: securityQuestions));
     } catch (e) {
-      if (kDebugMode) {
-        print("BLoC Error fetching security questions: $e");
-      }
       emit(state.copyWith(status: DataStatus.error));
     }
   }

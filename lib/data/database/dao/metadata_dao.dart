@@ -30,7 +30,6 @@ base class MetadataDao extends DaoBase {
 
   Future<int> getRecordCount() async {
     final db = databaseHelper.database;
-    print("HI");
     final allTables = await db.query(
       'sqlite_master',
       where: 'type=?',
@@ -38,7 +37,6 @@ base class MetadataDao extends DaoBase {
       columns: ['name'],
     );
 
-    print("HI");
     var count = 0;
     for (final {"name": tableName as String} in allTables) {
       if (tableName.startsWith("sqlite")) continue;
@@ -48,8 +46,6 @@ base class MetadataDao extends DaoBase {
         count += rowCount;
       }
     }
-    print("HID");
-
     if (kDebugMode) {
       print(allTables);
     }

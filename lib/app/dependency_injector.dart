@@ -314,7 +314,6 @@ class DependencyInjector extends ChangeNotifier {
       BlocProvider(
         key: key(),
         create: (context) {
-          print("REMAKING MEE, ${_databaseHelper != null}");
           final state = _databaseInformationCubit?.state ?? const DatabaseInformationState();
 
           return _databaseInformationCubit =

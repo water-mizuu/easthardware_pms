@@ -1,8 +1,7 @@
 import 'package:easthardware_pms/utils/undefined.dart';
 
 class PaymentMethod {
-
-  PaymentMethod({
+  const PaymentMethod({
     this.id,
     required this.name,
   });
@@ -13,8 +12,10 @@ class PaymentMethod {
       name: map['name'] as String,
     );
   }
+
   final int? id;
   final String name;
+
   PaymentMethod Function({
     int? id,
     String name,
@@ -32,6 +33,7 @@ class PaymentMethod {
 
   Map<String, dynamic> toMap() {
     return {
+      'id': id,
       'name': name,
     };
   }
