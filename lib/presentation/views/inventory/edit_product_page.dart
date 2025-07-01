@@ -94,7 +94,12 @@ class EditProductPage extends StatelessWidget {
                     }
                     context.read<ProductListBloc>().add(
                           UpdateProductEvent(
-                            state.toProduct().copyWith(id: state.productId),
+                            state.toProduct().copyWith(
+                                  id: state.productId,
+                                  reorderPoint: product.reorderPoint,
+                                  creationDate: product.creationDate,
+                                  creatorId: product.creatorId,
+                                ),
                             Category(name: state.categoryName),
                             [
                               ...state.secondaryUnits //

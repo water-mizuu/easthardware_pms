@@ -11,7 +11,7 @@ class ProductFlagsView {
         SELECT
         ip.product_id,
         DATE(i.invoice_date) AS sale_date,
-        COUNT(*) AS sales
+        SUM(ip.quantity * ip.conversion_factor) AS sales
         FROM invoice_products ip
         JOIN invoices i ON ip.invoice_id = i.id
         WHERE DATE(i.invoice_date) >= DATE('now', '-30 days')

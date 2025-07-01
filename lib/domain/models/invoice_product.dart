@@ -11,7 +11,7 @@ class InvoiceProduct {
     this.description,
     required this.quantity,
     this.secondaryUnit,
-    this.conversionFactor,
+    this.conversionFactor = 1.0,
     required this.rate,
     required this.amount,
   });

@@ -13,7 +13,7 @@ class SummarySection extends StatelessWidget {
   Widget build(BuildContext context) {
     return LayoutMode.builder((context, mode, keys) {
       final productCount = ProductCountCard(key: keys['productCount']);
-      final saleCount = SaleCountCard(key: keys['saleCount']);
+      final saleCount = LowStockCountCard(key: keys['saleCount']);
       final totalSales = TotalSalesCard(key: keys['totalSales']);
       final totalOrders = TotalOrdersCard(key: keys['totalOrders']);
 
