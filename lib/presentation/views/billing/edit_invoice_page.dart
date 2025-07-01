@@ -62,6 +62,7 @@ class EditInvoicePage extends StatelessWidget {
               listener: (context, state) {
                 if (state.status == FormStatus.submitting) {
                   final invoice = state.copyWith().toInvoice();
+
                   final products = state.products //
                       .map((product) => product.toInvoiceProduct())
                       .toList();
@@ -202,8 +203,6 @@ class _PageFormState extends State<PageForm> {
     final id = context.watch<InvoiceFormBloc>().state.invoiceId;
     if (_invoiceId != id) {
       final customerName = context.read<InvoiceFormBloc>().state.customerName;
-      print(customerName);
-
       _customerNameController.text = customerName;
     }
   }

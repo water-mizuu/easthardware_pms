@@ -120,6 +120,7 @@ class InvoiceListBloc extends Bloc<InvoiceListEvent, InvoiceListState> {
       await Future.wait(products);
 
       // 6. Update the product stock for new products (subtract, like add invoice)
+
       for (final invoiceProduct in event.invoiceProducts) {
         await _productRepository.updateProductStock(
           invoiceProduct.productId,
@@ -157,6 +158,7 @@ class InvoiceListBloc extends Bloc<InvoiceListEvent, InvoiceListState> {
     emit(state.copyWith(status: DataStatus.loading));
     try {
       final invoice = await _repository.updateInvoice(event.invoice);
+
       final invoices = List<Invoice>.from(state.invoices)
         ..removeWhere((i) => i.id == event.invoice.id)
         ..add(event.invoice);

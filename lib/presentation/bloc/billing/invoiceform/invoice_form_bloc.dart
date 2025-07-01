@@ -210,8 +210,6 @@ class InvoiceFormBloc extends Bloc<InvoiceFormEvent, InvoiceFormState> {
   ) async {
     await Future.delayed(Duration.zero);
 
-    /// Checks
-    /// - Products must not be empty
     final products = state.products;
     final invoiceDateErrorMessage = state.invoiceDateErrorMessage;
     final dueDateErrorMessage = state.dueDateErrorMessage;

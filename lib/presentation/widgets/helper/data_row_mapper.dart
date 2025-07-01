@@ -45,7 +45,51 @@ class DataRowMapper {
               ],
             ),
           );
-
+    if (product.quantity == 0) {
+      return DataRow(
+        onSelectChanged: viewAction != null ? (_) => viewAction() : null,
+        cells: [
+          DataCell(
+            Align(
+              alignment: Alignment.centerLeft,
+              child: Text(
+                product.name,
+                style: TextStyles.body,
+              ),
+            ),
+          ),
+          DataCell(
+            Align(
+              alignment: Alignment.centerLeft,
+              child: Text(
+                product.categoryName ?? '',
+                style: TextStyles.body,
+              ),
+            ),
+          ),
+          DataCell(
+            Align(
+              alignment: Alignment.centerLeft,
+              child: Text(
+                CurrencyFormatter.full(product.salePrice),
+                style: TextStyles.body,
+              ),
+            ),
+          ),
+          DataCell(
+            Align(
+              alignment: Alignment.centerLeft,
+              child: Text(
+                '${product.quantity.toString()} ${product.mainUnit}(s)',
+                style: TextStyles.body,
+              ),
+            ),
+          ),
+          DataCell(Row(children: [Badges.bad('Out of Stock')])),
+          if (actionsCell case final actionsCell?) actionsCell,
+        ],
+      );
+    }
     if (product.isBelowReorderPoint == true) {
       return DataRow(
         onSelectChanged: viewAction != null ? (_) => viewAction() : null,
