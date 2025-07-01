@@ -259,23 +259,25 @@ class DataRowMapper {
   static DataRow mapUserToRow(
     User user,
     bool isLoggedIn, {
-    required void Function()? editAction,
-    required void Function()? archiveFunction,
+    required void Function(User user)? editAction,
+    required void Function(User user)? archiveFunction,
   }) {
-    final actionsCell = editAction == null
+    final actionsCell = editAction == null && archiveFunction == null
         ? null
         : DataCell(
             DropDownButton(
               title: const Text('Actions', style: TextStyles.body),
               items: [
-                MenuFlyoutItem(
-                  text: const Text('Edit', style: TextStyles.body),
-                  onPressed: editAction,
-                ),
-                MenuFlyoutItem(
-                  text: const Text('Make Inactive', style: TextStyles.body),
-                  onPressed: archiveFunction,
-                ),
+                if (editAction != null)
+                  MenuFlyoutItem(
+                    text: const Text('Edit', style: TextStyles.body),
+                    onPressed: () => editAction(user),
+                  ),
+                if (archiveFunction != null)
+                  MenuFlyoutItem(
+                    text: const Text('Make Inactive', style: TextStyles.body),
+                    onPressed: () => archiveFunction(user),
+                  ),
               ],
             ),
           );

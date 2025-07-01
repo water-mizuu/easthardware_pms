@@ -2,7 +2,6 @@ import 'package:easthardware_pms/domain/enums/enums.dart';
 import 'package:easthardware_pms/domain/models/user.dart';
 import 'package:easthardware_pms/presentation/bloc/authentication/authentication/authentication_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/security/user_list/user_list_bloc.dart';
-import 'package:easthardware_pms/presentation/bloc/security/user_log_list/user_log_list_bloc.dart';
 import 'package:easthardware_pms/presentation/cubit/security/user_display/user_display_cubit.dart';
 import 'package:easthardware_pms/presentation/router/app_routes.dart';
 import 'package:easthardware_pms/presentation/widgets/helper/data_row_mapper.dart';
@@ -61,10 +60,13 @@ class PageHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Row(
+    return Row(
       children: [
-        HeadingText('All Users'),
-        Spacer(flex: 2),
+        const HeadingText('All Users'),
+        const Spacer(flex: 2),
+        TextButtonFilled('Add User', onPressed: () {
+          context.navigate(AppRoutes.admin.createUser);
+        }),
       ],
     );
   }
@@ -77,6 +79,14 @@ class PageActions extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
+        Expanded(
+          child: TextBox(
+            onChanged: (value) {
+              context.read<UserDisplayCubit>().search(value);
+            },
+            placeholder: 'Search',
+          ),
+        ),
         ComboBox<AccessLevel?>(
           placeholder: const Text('Filter by Level'),
           value: context.select((UserDisplayCubit c) => c.state.accessLevelFilter),
@@ -89,18 +99,7 @@ class PageActions extends StatelessWidget {
               ComboBoxItem(value: accessLevel, child: Text(accessLevel.name.toTitleCase())),
           ],
         ),
-        Expanded(
-          child: TextBox(
-            onChanged: (value) {
-              context.read<UserDisplayCubit>().search(value);
-            },
-            placeholder: 'Search',
-          ),
-        ),
         const Spacer(flex: 2),
-        TextButtonFilled('Add User', onPressed: () {
-          context.navigate(AppRoutes.admin.createUser);
-        }),
       ].withSpacing(() => Spacing.h16),
     );
   }
@@ -149,136 +148,168 @@ class UserDataTable extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocBuilder<UserDisplayCubit, UserDisplayState>(
       builder: (context, displayState) {
-        return BlocBuilder<UserListBloc, UserListState>(
-          builder: (context, state) {
-            if (state.status == DataStatus.loading) {
-              return const Center(child: ProgressRing());
-            }
+        final displayCubit = context.read<UserDisplayCubit>();
+        final users = displayState.filteredUsers ?? displayState.allUsers;
 
-            final displayCubit = context.read<UserDisplayCubit>();
-            final users = displayState.filteredUsers ?? displayState.allUsers;
-            final currentUser = context.read<AuthenticationBloc>().state.user!;
+        if (users == null || users.isEmpty) {
+          return Container(
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(4),
+            ),
+            child: const Center(
+              child: Text('No users found', style: TextStyles.body),
+            ),
+          );
+        }
 
-            if (users == null || users.isEmpty) {
-              return Container(
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(4),
-                ),
-                child: const Center(
-                  child: Text('No users found', style: TextStyles.body),
-                ),
-              );
-            }
-
-            // Create a data source for the paginated data table
-            final dataSource = _UserDataSource(
-                users: users,
-                onEditUser: (user) {
-                  context.navigateWithExtra(AppRoutes.admin.editUser, user);
-                },
-                onArchiveUser: currentUser.accessLevel == AccessLevel.administrator
-                    ? (user) {
-                        context.read<UserListBloc>().add(
-                              UpdateUserEvent(
-                                user.copyWith(
-                                  archiveStatus: user.archiveStatus == 1 ? 0 : 1,
-                                ),
-                              ),
-                            );
-                        context
-                            .read<UserLogListBloc>()
-                            .add(AddArchiveEvent('User ${user.id}', user));
+        return DecoratedBox(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(4),
+          ),
+          child: TableThemeData(
+            child: PaginatedDataTable(
+                sortColumnIndex: _getSortColumnIndex(displayState.sortBy),
+                sortAscending: _getSortAscending(displayState.sortBy),
+                rowsPerPage: 10,
+                availableRowsPerPage: const [5, 10, 20, 50],
+                columns: [
+                  DataColumn(
+                    label: Expanded(
+                        child: Row(
+                      children: [
+                        const Text('Name', overflow: TextOverflow.fade),
+                        if (_getSortColumnIndex(displayState.sortBy) != 0) ...[
+                          const Spacer(),
+                          const Icon(
+                            FluentIcons.scroll_up_down,
+                            size: 12,
+                          ),
+                        ],
+                      ],
+                    )),
+                    onSort: (_, __) {
+                      if (displayState.sortBy == UserDisplaySortBy.nameAscending ||
+                          displayState.sortBy == UserDisplaySortBy.nameDescending) {
+                        displayCubit.sort(displayState.sortBy);
+                      } else {
+                        displayCubit.sort(UserDisplaySortBy.nameAscending);
                       }
-                    : (user) {});
-
-            return DecoratedBox(
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(4),
-              ),
-              child: TableThemeData(
-                child: PaginatedDataTable(
-                  sortColumnIndex: _getSortColumnIndex(displayState.sortBy),
-                  sortAscending: _getSortAscending(displayState.sortBy),
-                  rowsPerPage: 10,
-                  availableRowsPerPage: const [5, 10, 20, 50],
-                  columns: [
-                    DataColumn(
-                      label: const Text('Name', overflow: TextOverflow.fade),
-                      onSort: (columnIndex, ascending) {
-                        displayCubit.sort(
-                          ascending
-                              ? UserDisplaySortBy.nameAscending
-                              : UserDisplaySortBy.nameDescending,
-                        );
-                      },
+                    },
+                  ),
+                  DataColumn(
+                    label: Expanded(
+                        child: Row(
+                      children: [
+                        const Text('Level of Access', overflow: TextOverflow.fade),
+                        if (_getSortColumnIndex(displayState.sortBy) != 1) ...[
+                          const Spacer(),
+                          const Icon(
+                            FluentIcons.scroll_up_down,
+                            size: 12,
+                          ),
+                        ],
+                      ],
+                    )),
+                    onSort: (_, __) {
+                      if (displayState.sortBy == UserDisplaySortBy.accessLevelAscending ||
+                          displayState.sortBy == UserDisplaySortBy.accessLevelDescending) {
+                        displayCubit.sort(displayState.sortBy);
+                      } else {
+                        displayCubit.sort(UserDisplaySortBy.accessLevelAscending);
+                      }
+                    },
+                  ),
+                  DataColumn(
+                    label: Expanded(
+                        child: Row(
+                      children: [
+                        const Text('Creation Date', overflow: TextOverflow.fade),
+                        if (_getSortColumnIndex(displayState.sortBy) != 2) ...[
+                          const Spacer(),
+                          const Icon(
+                            FluentIcons.scroll_up_down,
+                            size: 12,
+                          ),
+                        ],
+                      ],
+                    )),
+                    onSort: (_, __) {
+                      if (displayState.sortBy == UserDisplaySortBy.creationDateAscending ||
+                          displayState.sortBy == UserDisplaySortBy.creationDateDescending) {
+                        displayCubit.sort(displayState.sortBy);
+                      } else {
+                        displayCubit.sort(UserDisplaySortBy.creationDateAscending);
+                      }
+                    },
+                  ),
+                  DataColumn(
+                    label: Expanded(
+                      child: Row(
+                        children: [
+                          const Text('Status', overflow: TextOverflow.fade),
+                          if (_getSortColumnIndex(displayState.sortBy) != 3) ...[
+                            const Spacer(),
+                            const Icon(
+                              FluentIcons.scroll_up_down,
+                              size: 12,
+                            ),
+                          ],
+                        ],
+                      ),
                     ),
-                    DataColumn(
-                      label: const Text('Level of Access', overflow: TextOverflow.fade),
-                      onSort: (columnIndex, ascending) {
-                        displayCubit.sort(
-                          ascending
-                              ? UserDisplaySortBy.accessLevelAscending
-                              : UserDisplaySortBy.accessLevelDescending,
-                        );
-                      },
-                    ),
-                    DataColumn(
-                      label: const Text('Creation Date', overflow: TextOverflow.fade),
-                      onSort: (columnIndex, ascending) {
-                        displayCubit.sort(
-                          ascending
-                              ? UserDisplaySortBy.creationDateAscending
-                              : UserDisplaySortBy.creationDateDescending,
-                        );
-                      },
-                    ),
-                    DataColumn(
-                      label: const Text('Status', overflow: TextOverflow.fade),
-                      onSort: (columnIndex, ascending) {
-                        displayCubit.sort(
-                          ascending
-                              ? UserDisplaySortBy.statusAscending
-                              : UserDisplaySortBy.statusDescending,
-                        );
-                      },
-                    ),
-                    const DataColumn(
-                      label: Text('Actions', overflow: TextOverflow.fade),
-                    ),
-                  ],
-                  source: dataSource,
-                ),
-              ),
-            );
-          },
+                    onSort: (_, __) {
+                      if (displayState.sortBy == UserDisplaySortBy.statusAscending ||
+                          displayState.sortBy == UserDisplaySortBy.statusDescending) {
+                        displayCubit.sort(displayState.sortBy);
+                      } else {
+                        displayCubit.sort(UserDisplaySortBy.statusAscending);
+                      }
+                    },
+                  ),
+                  const DataColumn(
+                    label: Expanded(child: Text('Actions', overflow: TextOverflow.fade)),
+                  ),
+                ],
+                source: UserDataSource(context: context, users: users)),
+          ),
         );
       },
     );
   }
 }
 
-class _UserDataSource extends DataTableSource {
-  _UserDataSource({
+class UserDataSource extends DataTableSource {
+  UserDataSource({
+    required this.context,
     required this.users,
-    required this.onEditUser,
-    required this.onArchiveUser,
   });
-  final List<User> users;
-  final Function(User) onEditUser;
-  final Function(User) onArchiveUser;
+
+  final BuildContext context;
+  late final List<User> users;
+
+  void editUser(User user) {
+    context.navigateWithExtra(AppRoutes.admin.editUser, user);
+  }
+
+  void archiveUser(User user) {
+    context.read<UserListBloc>().add(ArchiveUserEvent(user));
+  }
 
   @override
   DataRow getRow(int index) {
+    final currentUser = context.read<AuthenticationBloc>().state.user!;
     final user = users[index];
     final isLoggedIn = user.loginStatus == 1;
+    final isOwnAccount = user.id == currentUser.id;
+    final isAnAdministrator = currentUser.accessLevel == AccessLevel.administrator;
 
     return DataRowMapper.mapUserToRow(
       user,
       isLoggedIn,
-      editAction: () => onEditUser(user),
-      archiveFunction: () => onArchiveUser(user),
+      editAction: isOwnAccount ? editUser : null,
+      archiveFunction: isAnAdministrator && !isOwnAccount ? archiveUser : null,
     );
   }
 

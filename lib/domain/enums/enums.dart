@@ -60,6 +60,8 @@ enum CategoryDisplaySortBy {
 enum PaymentDisplaySortBy {
   dateAscending('Date (Newest First)'),
   dateDescending('Date (Oldest First)'),
+  customerAscending('Customer (A-Z)'),
+  customerDescending('Customer (Z-A)'),
   amountAscending('Amount (Low to High)'),
   amountDescending('Amount (High to Low)'),
   referenceAscending('Reference (A-Z)'),

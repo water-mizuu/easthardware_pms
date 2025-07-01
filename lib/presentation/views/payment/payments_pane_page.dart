@@ -1,4 +1,5 @@
 import 'package:easthardware_pms/domain/enums/enums.dart';
+import 'package:easthardware_pms/presentation/bloc/billing/invoicelist/invoice_list_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/payment/payment_list/payment_list_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/payment/payment_method_list/'
     'payment_method_list_bloc.dart';
@@ -26,10 +27,13 @@ class _PaymentsPanePageState extends State<PaymentsPanePage> {
   @override
   void initState() {
     super.initState();
+    final invoices = context.read<InvoiceListBloc>().state.invoices;
     // Get payments from the payment bloc
-    context.read<PaymentDisplayCubit>().updatePayments(
-          context.read<PaymentListBloc>().state.payments,
-        );
+    final payments = context.read<PaymentListBloc>().state.payments;
+    context.read<PaymentDisplayCubit>().updatePayments(payments.map((payment) {
+          final invoice = invoices.firstWhere((invoice) => invoice.id == payment.invoiceId);
+          return (payment, invoice.customerName);
+        }).toList());
   }
 
   @override
@@ -37,7 +41,12 @@ class _PaymentsPanePageState extends State<PaymentsPanePage> {
     return BlocListener<PaymentListBloc, PaymentListState>(
       listenWhen: (previous, current) => previous.payments != current.payments,
       listener: (context, state) {
-        context.read<PaymentDisplayCubit>().updatePayments(state.payments);
+        final invoices = context.read<InvoiceListBloc>().state.invoices;
+        final payments = state.payments.map((payment) {
+          final invoice = invoices.firstWhere((invoice) => invoice.id == payment.invoiceId);
+          return (payment, invoice.customerName);
+        }).toList();
+        context.read<PaymentDisplayCubit>().updatePayments(payments);
       },
       child: Padding(
         padding: AppPadding.panePadding,
@@ -118,12 +127,15 @@ class PaymentsDataTable extends StatelessWidget {
       case PaymentDisplaySortBy.dateAscending:
       case PaymentDisplaySortBy.dateDescending:
         return 0; // Index of the Date column
-      case PaymentDisplaySortBy.amountAscending:
-      case PaymentDisplaySortBy.amountDescending:
+      case PaymentDisplaySortBy.customerAscending:
+      case PaymentDisplaySortBy.customerDescending:
         return 1; // Index of the Amount column
       case PaymentDisplaySortBy.referenceAscending:
       case PaymentDisplaySortBy.referenceDescending:
         return 2; // Index of the Reference column
+      case PaymentDisplaySortBy.amountAscending:
+      case PaymentDisplaySortBy.amountDescending:
+        return 3; // Index of the Reference column
       default:
         return null; // No column is being sorted
     }
@@ -132,21 +144,21 @@ class PaymentsDataTable extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<PaymentDisplayCubit, PaymentDisplayState>(
-      builder: (context, methodState) {
+      builder: (context, displayState) {
         return BlocBuilder<PaymentListBloc, PaymentListState>(
           builder: (context, state) {
-            final paymentBloc = context.read<PaymentDisplayCubit>();
-            final payments = paymentBloc.state.allPayments;
+            final displayCubit = context.read<PaymentDisplayCubit>();
             final paymentMethodBloc = context.read<PaymentMethodListBloc>();
             final paymentMethods = paymentMethodBloc.state.paymentMethods;
 
+            final payments = displayState.filteredPayments ?? displayState.allPayments ?? [];
             return Expanded(
               child: DecoratedBox(
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(4),
                 ),
-                child: payments == null || payments.isEmpty
+                child: payments.isEmpty
                     ? const Center(
                         child: Text('No payments found', style: TextStyles.body),
                       )
@@ -167,15 +179,15 @@ class PaymentsDataTable extends StatelessWidget {
                           rowsPerPage: 10,
                           columnSpacing: 50,
                           showCheckboxColumn: false,
-                          sortAscending: paymentBloc.state.sortAscending,
-                          sortColumnIndex: _getSortColumnIndex(paymentBloc.state.sortBy),
+                          sortAscending: displayCubit.state.sortAscending,
+                          sortColumnIndex: _getSortColumnIndex(displayCubit.state.sortBy),
                           columns: [
                             DataColumn(
                               label: Expanded(
                                 child: Row(
                                   children: [
                                     const Text('Date', style: TextStyles.tableHeader),
-                                    if (_getSortColumnIndex(paymentBloc.state.sortBy) != 0) ...[
+                                    if (_getSortColumnIndex(displayCubit.state.sortBy) != 0) ...[
                                       const Spacer(),
                                       const Icon(
                                         FluentIcons.scroll_up_down,
@@ -186,11 +198,63 @@ class PaymentsDataTable extends StatelessWidget {
                                 ),
                               ),
                               onSort: (_, __) {
-                                context.read<PaymentDisplayCubit>().sort(
-                                      paymentBloc.state.sortBy == PaymentDisplaySortBy.dateAscending
-                                          ? PaymentDisplaySortBy.dateDescending
-                                          : PaymentDisplaySortBy.dateAscending,
-                                    );
+                                if (displayState.sortBy == PaymentDisplaySortBy.dateAscending ||
+                                    displayState.sortBy == PaymentDisplaySortBy.dateDescending) {
+                                  displayCubit.sort(displayState.sortBy);
+                                } else {
+                                  displayCubit.sort(PaymentDisplaySortBy.dateAscending);
+                                }
+                              },
+                            ),
+                            DataColumn(
+                              label: Expanded(
+                                child: Row(
+                                  children: [
+                                    const Text('Customer', style: TextStyles.tableHeader),
+                                    if (_getSortColumnIndex(displayCubit.state.sortBy) != 1) ...[
+                                      const Spacer(),
+                                      const Icon(
+                                        FluentIcons.scroll_up_down,
+                                        size: 12,
+                                      ),
+                                    ],
+                                  ],
+                                ),
+                              ),
+                              onSort: (_, __) {
+                                if (displayState.sortBy == PaymentDisplaySortBy.customerAscending ||
+                                    displayState.sortBy ==
+                                        PaymentDisplaySortBy.customerDescending) {
+                                  displayCubit.sort(displayState.sortBy);
+                                } else {
+                                  displayCubit.sort(PaymentDisplaySortBy.customerAscending);
+                                }
+                              },
+                            ),
+                            DataColumn(
+                              label: Expanded(
+                                child: Row(
+                                  children: [
+                                    const Text('Payment Reference', style: TextStyles.tableHeader),
+                                    if (_getSortColumnIndex(displayCubit.state.sortBy) != 2) ...[
+                                      const Spacer(),
+                                      const Icon(
+                                        FluentIcons.scroll_up_down,
+                                        size: 12,
+                                      ),
+                                    ],
+                                  ],
+                                ),
+                              ),
+                              onSort: (_, __) {
+                                if (displayState.sortBy ==
+                                        PaymentDisplaySortBy.referenceAscending ||
+                                    displayState.sortBy ==
+                                        PaymentDisplaySortBy.referenceAscending) {
+                                  displayCubit.sort(displayState.sortBy);
+                                } else {
+                                  displayCubit.sort(PaymentDisplaySortBy.referenceAscending);
+                                }
                               },
                             ),
                             DataColumn(
@@ -198,7 +262,7 @@ class PaymentsDataTable extends StatelessWidget {
                                 child: Row(
                                   children: [
                                     const Text('Amount', style: TextStyles.tableHeader),
-                                    if (_getSortColumnIndex(paymentBloc.state.sortBy) != 1) ...[
+                                    if (_getSortColumnIndex(displayCubit.state.sortBy) != 3) ...[
                                       const Spacer(),
                                       const Icon(
                                         FluentIcons.scroll_up_down,
@@ -209,36 +273,12 @@ class PaymentsDataTable extends StatelessWidget {
                                 ),
                               ),
                               onSort: (_, __) {
-                                context.read<PaymentDisplayCubit>().sort(
-                                      paymentBloc.state.sortBy ==
-                                              PaymentDisplaySortBy.amountAscending
-                                          ? PaymentDisplaySortBy.amountDescending
-                                          : PaymentDisplaySortBy.amountAscending,
-                                    );
-                              },
-                            ),
-                            DataColumn(
-                              label: Expanded(
-                                child: Row(
-                                  children: [
-                                    const Text('Reference', style: TextStyles.tableHeader),
-                                    if (_getSortColumnIndex(paymentBloc.state.sortBy) != 2) ...[
-                                      const Spacer(),
-                                      const Icon(
-                                        FluentIcons.scroll_up_down,
-                                        size: 12,
-                                      ),
-                                    ],
-                                  ],
-                                ),
-                              ),
-                              onSort: (_, __) {
-                                context.read<PaymentDisplayCubit>().sort(
-                                      paymentBloc.state.sortBy ==
-                                              PaymentDisplaySortBy.referenceAscending
-                                          ? PaymentDisplaySortBy.referenceDescending
-                                          : PaymentDisplaySortBy.referenceAscending,
-                                    );
+                                if (displayState.sortBy == PaymentDisplaySortBy.amountAscending ||
+                                    displayState.sortBy == PaymentDisplaySortBy.amountDescending) {
+                                  displayCubit.sort(displayState.sortBy);
+                                } else {
+                                  displayCubit.sort(PaymentDisplaySortBy.amountAscending);
+                                }
                               },
                             ),
                             const DataColumn(

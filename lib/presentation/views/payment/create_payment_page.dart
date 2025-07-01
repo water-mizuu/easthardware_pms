@@ -88,14 +88,28 @@ class _CreatePaymentPageState extends State<CreatePaymentPage> {
                 final payment = state
                     .copyWith(creatorId: creator.id, creationDate: creationDate) //
                     .toPayment();
-                final invoice = state.invoice!.copyWith(
-                  amountPaid: state.amount,
-                  paymentMethod: state.paymentMethod!.id!,
-                  paymentDate: (state.invoice!.amountDue - state.amount) <= 0 //
-                      ? creationDate
-                      : null,
+                final invoice = state.invoice!;
+                final paymentMethod = state.paymentMethod!;
+                final discount = invoice.discountType == DiscountType.percentage
+                    ? (invoice.amountDue * (invoice.discount ?? 0) / 100)
+                    : (invoice.discount ?? 0.0);
+                final openBalance = max(
+                    0.0,
+                    invoice.amountDue - //
+                        discount -
+                        payment.amount -
+                        (invoice.amountPaid ?? 0) //
+                    );
+                final paymentDate = openBalance <= 0 ? creationDate : null;
+                final amountPaid = openBalance <= 0
+                    ? (invoice.amountPaid ?? 0) + payment.amount
+                    : invoice.amountPaid;
+                final paidInvoice = invoice.copyWith(
+                  amountPaid: min(invoice.amountDue - discount, amountPaid ?? 0.0),
+                  paymentMethod: paymentMethod.id!,
+                  paymentDate: paymentDate,
                 );
-                context.read<InvoiceListBloc>().add(UpdateInvoiceEvent(invoice));
+                context.read<InvoiceListBloc>().add(UpdateInvoiceEvent(paidInvoice));
                 context.read<PaymentListBloc>().add(AddPaymentEvent(payment));
                 context.read<UserLogListBloc>().add(
                       AddCreateEvent(
@@ -114,22 +128,28 @@ class _CreatePaymentPageState extends State<CreatePaymentPage> {
 
                 // Validate form data before printing
                 if (paymentFormState.invoice == null) {
-                  // Show error - no invoice selected
-                  return;
+                  context
+                      .read<PaymentFormBloc>() //
+                      .add(const InvoiceNumberErrorChanged('Please select an invoice.'));
                 }
 
                 if (paymentFormState.paymentMethod == null) {
-                  // Show error - no payment method selected
-                  return;
+                  context
+                      .read<PaymentFormBloc>() //
+                      .add(const PaymentMethodErrorChanged('Please select a payment method.'));
                 }
 
                 if (paymentFormState.paymentReference.isEmpty) {
-                  // Show error - no reference number
+                  context
+                      .read<PaymentFormBloc>() //
+                      .add(const ReferenceNumberErrorChanged('Please enter a reference number.'));
                   return;
                 }
 
                 if (paymentFormState.amount <= 0) {
-                  // Show error - invalid amount
+                  context
+                      .read<PaymentFormBloc>() //
+                      .add(const AmountReceivedErrorChanged('Please enter a valid amount.'));
                   return;
                 }
 
@@ -544,24 +564,7 @@ class _PaymentFormState extends State<PaymentForm> {
                           style: TextStyles.body.merge(TextStyles.onSurface),
                         ),
                         Spacing.v8,
-                        TextFormBox(
-                          readOnly: invoice == null,
-                          initialValue: CurrencyFormatter.full(
-                                  (invoice?.amountDue ?? 0.0) - (invoice?.amountPaid ?? 0.0))
-                              .replaceAll('₱', '')
-                              .trim(),
-                          inputFormatters: [
-                            FilteringTextInputFormatter.allow(RegExp(r'^\d+(\.\d{0,2})?$')),
-                            LengthLimitingTextInputFormatter(12)
-                          ],
-                          onChanged: (value) {
-                            context //
-                                .read<PaymentFormBloc>()
-                                .add(
-                                  AmountChanged(double.tryParse(value) ?? 0.0),
-                                );
-                          },
-                        ),
+                        AmountReceivedFormBox(invoice: invoice),
                         if (state.amountReceivedError != null)
                           Text(
                             context.watch<PaymentFormBloc>().state.amountReceivedError!,
@@ -583,6 +586,75 @@ class _PaymentFormState extends State<PaymentForm> {
           ),
         );
       },
+    );
+  }
+}
+
+class AmountReceivedFormBox extends StatefulWidget {
+  const AmountReceivedFormBox({
+    super.key,
+    required this.invoice,
+  });
+
+  final Invoice? invoice;
+
+  @override
+  State<AmountReceivedFormBox> createState() => _AmountReceivedFormBoxState();
+}
+
+class _AmountReceivedFormBoxState extends State<AmountReceivedFormBox> {
+  final TextEditingController _controller = TextEditingController();
+  @override
+  void initState() {
+    super.initState();
+    _updateControllerValue();
+
+    // Add listener to update bloc when text changes
+    _controller.addListener(() {
+      final amount = double.tryParse(_controller.text) ?? 0.0;
+      context.read<PaymentFormBloc>().add(AmountChanged(amount));
+    });
+  }
+
+  @override
+  void didUpdateWidget(AmountReceivedFormBox oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.invoice != widget.invoice) {
+      _updateControllerValue();
+    }
+  }
+
+  void _updateControllerValue() {
+    final invoice = widget.invoice;
+    final amountDue = invoice?.amountDue ?? 0.0;
+    final discount = invoice?.discountType == DiscountType.percentage
+        ? (amountDue * (invoice?.discount ?? 0) / 100)
+        : (invoice?.discount ?? 0.0);
+    final amountPaid = invoice?.amountPaid ?? 0.0;
+
+    final openBalance = max(
+      0.0,
+      amountDue - discount - amountPaid,
+    );
+    _controller.text = openBalance.toStringAsFixed(2);
+    context.read<PaymentFormBloc>().add(AmountChanged(openBalance));
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return TextFormBox(
+      readOnly: widget.invoice == null,
+      inputFormatters: [
+        FilteringTextInputFormatter.allow(RegExp(r'^\d+(\.\d{0,2})?$')),
+        LengthLimitingTextInputFormatter(12)
+      ],
+      controller: _controller,
     );
   }
 }
@@ -858,17 +930,23 @@ class InvoiceSummary extends StatelessWidget {
           return const Center(child: ProgressRing());
         }
         final invoice = context.read<PaymentFormBloc>().state.invoice;
-
-        final total = invoice?.amountDue ?? 0.0;
+        final payments = context
+            .watch<PaymentListBloc>()
+            .state
+            .payments
+            .where((payment) => payment.invoiceId == invoice?.id)
+            .toList();
+        final subtotal = invoice?.amountDue ?? 0.0;
         final discount = invoice?.discountType == DiscountType.percentage
-            ? (total * (invoice?.discount ?? 0) / 100)
+            ? (subtotal * (invoice?.discount ?? 0) / 100)
             : (invoice?.discount ?? 0.0);
-
-        final alreadyPaid = invoice?.amountPaid ?? 0.0;
-        final payment = context.watch<PaymentFormBloc>().state.amount;
-        final subtotal = total - discount;
-        final openBalance = max(0.0, total - payment - alreadyPaid);
-        final change = max(0.0, -(total - payment - alreadyPaid));
+        final amountPaid = payments.fold(
+          0.0,
+          (previousValue, payment) => previousValue + payment.amount,
+        );
+        final amountReceied = context.watch<PaymentFormBloc>().state.amount.abs();
+        final openBalance = max(0.0, subtotal - discount - amountPaid - amountReceied);
+        final change = max(0.0, -(subtotal - discount - amountPaid - amountReceied));
 
         return Row(
           children: [
@@ -902,7 +980,7 @@ class InvoiceSummary extends StatelessWidget {
                         textAlign: TextAlign.end,
                       ),
                       Text(
-                        CurrencyFormatter.full(0),
+                        CurrencyFormatter.full(discount),
                         style: TextStyles.body.merge(TextStyles.strong),
                       ),
                     ],
@@ -917,7 +995,7 @@ class InvoiceSummary extends StatelessWidget {
                         textAlign: TextAlign.end,
                       ),
                       Text(
-                        CurrencyFormatter.full(total),
+                        CurrencyFormatter.full(amountPaid),
                         style: TextStyles.body.merge(TextStyles.strong),
                       ),
                     ],
@@ -954,23 +1032,21 @@ class InvoiceSummary extends StatelessWidget {
                       ),
                     ],
                   ),
-                  if (change > 0) ...[
-                    Spacing.v8,
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          'CHANGE:',
-                          style: TextStyles.title.merge(TextStyles.onSurfaceVariant),
-                          textAlign: TextAlign.end,
-                        ),
-                        Text(
-                          CurrencyFormatter.full(change),
-                          style: TextStyles.title,
-                        ),
-                      ],
-                    ),
-                  ]
+                  Spacing.v8,
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'CHANGE:',
+                        style: TextStyles.title.merge(TextStyles.onSurfaceVariant),
+                        textAlign: TextAlign.end,
+                      ),
+                      Text(
+                        CurrencyFormatter.full(change),
+                        style: TextStyles.title,
+                      ),
+                    ],
+                  ),
                 ],
               ),
             ),

@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:easthardware_pms/domain/enums/enums.dart';
 import 'package:easthardware_pms/domain/models/invoice.dart';
 import 'package:easthardware_pms/presentation/bloc/authentication/authentication/authentication_bloc.dart';
@@ -440,9 +442,9 @@ class InvoicePaymentsTable extends StatelessWidget {
               const SizedBox(width: 32.0, child: Center(child: Text("#"))),
               Spacing.h16,
               Expanded(
-                flex: 1,
+                flex: 2,
                 child: Text(
-                  'PAYMENT',
+                  'REFERENCE NUMBER',
                   style: TextStyles.body.merge(TextStyles.strong),
                 ),
               ),
@@ -454,7 +456,7 @@ class InvoicePaymentsTable extends StatelessWidget {
                 ),
               ),
               Spacing.h16,
-              const Spacer(flex: 3),
+              const Spacer(flex: 4),
               Spacing.h16,
               Expanded(
                 child: Text(
@@ -478,8 +480,9 @@ class InvoicePaymentsTable extends StatelessWidget {
                 SizedBox(width: 32.0, child: Center(child: Text('${i + 1}'))),
                 Spacing.h16,
                 Expanded(
+                  flex: 2,
                   child: Text(
-                    'Payment # ${payments[i].id.toString()}',
+                    payments[i].referenceNumber,
                     style: TextStyles.body,
                   ),
                 ),
@@ -491,7 +494,7 @@ class InvoicePaymentsTable extends StatelessWidget {
                   ),
                 ),
                 Spacing.h16,
-                const Spacer(flex: 3),
+                const Spacer(flex: 4),
                 Spacing.h16,
                 Expanded(
                   child: Text(
@@ -520,12 +523,17 @@ class InvoiceSummary extends StatelessWidget {
           return const Center(child: ProgressRing());
         }
 
-        final total = invoice.amountDue;
+        final subtotal = invoice.amountDue;
         final discount = invoice.discountType == DiscountType.percentage
-            ? (total * (invoice.discount ?? 0) / 100)
+            ? (invoice.discount ?? 0.0) * subtotal / 100
             : invoice.discount;
+        final amountPaid = invoice.amountPaid ?? 0;
+        final openBalance = max(0.0, subtotal - (discount ?? 0.0) - amountPaid);
 
-        final subtotal = total - (discount ?? 0);
+        final discountText =
+            discount != null && discount > 0 ? CurrencyFormatter.full(discount, '- Php ') : '0.00';
+        final amountPaidText =
+            amountPaid > 0 ? CurrencyFormatter.full(amountPaid, '- Php ') : '0.00';
 
         return Row(
           children: [
@@ -544,7 +552,7 @@ class InvoiceSummary extends StatelessWidget {
                         textAlign: TextAlign.end,
                       ),
                       Text(
-                        CurrencyFormatter.full(subtotal),
+                        CurrencyFormatter.full(subtotal, 'Php '),
                         style: TextStyles.body,
                       ),
                     ],
@@ -559,7 +567,7 @@ class InvoiceSummary extends StatelessWidget {
                         textAlign: TextAlign.end,
                       ),
                       Text(
-                        CurrencyFormatter.full(discount ?? 0.0),
+                        discountText,
                         style: TextStyles.body,
                       ),
                     ],
@@ -574,7 +582,7 @@ class InvoiceSummary extends StatelessWidget {
                         textAlign: TextAlign.end,
                       ),
                       Text(
-                        CurrencyFormatter.full(invoice.amountPaid ?? 0),
+                        amountPaidText,
                         style: TextStyles.body,
                       ),
                     ],
@@ -589,7 +597,7 @@ class InvoiceSummary extends StatelessWidget {
                         textAlign: TextAlign.end,
                       ),
                       Text(
-                        CurrencyFormatter.full(total - (invoice.amountPaid ?? 0)),
+                        CurrencyFormatter.full(openBalance, 'Php '),
                         style: TextStyles.title,
                       ),
                     ],

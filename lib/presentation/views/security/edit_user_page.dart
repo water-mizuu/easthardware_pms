@@ -20,6 +20,7 @@ import 'package:easthardware_pms/presentation/widgets/dialog/success_dialog.dart
 import 'package:easthardware_pms/presentation/widgets/layout/spacing.dart';
 import 'package:easthardware_pms/presentation/widgets/layout_mode_provider.dart';
 import 'package:easthardware_pms/presentation/widgets/text.dart';
+import 'package:easthardware_pms/presentation/widgets/ui/styles.dart';
 import 'package:easthardware_pms/presentation/widgets/ui/text_button.dart';
 import 'package:easthardware_pms/utils/boxed.dart';
 import 'package:easthardware_pms/utils/notification.dart';
@@ -88,6 +89,17 @@ class _EditUserPageState extends State<EditUserPage> {
                       state.copyWith(creationDate: widget.user.creationDate).mapStateToUser(),
                     ),
                   );
+
+              final questions = state.questions.toList();
+              final userId = state.userId!;
+              // Add the security questions update event
+              for (var i = 0; i < questions.length; i++) {
+                final question = questions[i];
+                context.read<SecurityQuestionListBloc>().add(UpdateSecurityQuestionEvent(
+                      question.toSecurityQuestion(userId),
+                    ));
+              }
+              // Update the security questions
               context.read<UserListBloc>().add(const LoadAllUsersEvent());
               // This makes the form status be submitted
               context.read<UserFormBloc>().add(FormResetEvent());
@@ -736,19 +748,16 @@ class AccessLevelField extends StatelessWidget with UserFormValidator {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            const BodyText('Access Level'),
+            const Text('Access Level', style: TextStyles.body),
             Spacing.v8,
             ComboBox(
               placeholder: const BodyText('Select Access Level'),
               value: state.accessLevel,
               isExpanded: true,
-              onChanged: (value) {
-                context.read<UserFormBloc>().add(AccessLevelFieldChangedEvent(value!));
-              },
               items: AccessLevel.values.map((level) {
                 return ComboBoxItem(
                   value: level.name,
-                  child: BodyText(level.name.capitalize()),
+                  child: Text(level.toString(), style: TextStyles.body),
                 );
               }).toList(),
             ),
@@ -875,12 +884,7 @@ class _SecurityQuestionFieldsState extends State<SecurityQuestionFields> with Us
                         validator: (value) => validateSecurityAnswer(value, index),
                         obscureText: isObscured,
                         onChanged: (value) {
-                          context.read<UserFormBloc>().add(
-                                AnswerFieldChangedEvent(
-                                  value,
-                                  index,
-                                ),
-                              );
+                          context.read<UserFormBloc>().add(AnswerFieldChangedEvent(value, index));
                         },
                       );
                     },

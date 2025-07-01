@@ -26,6 +26,16 @@ class DeleteUserEvent extends UserListEvent {
   final User user;
 }
 
+class ArchiveUserEvent extends UserListEvent {
+  const ArchiveUserEvent(this.user);
+  final User user;
+}
+
+class UnarchiveUserEvent extends UserListEvent {
+  const UnarchiveUserEvent(this.user);
+  final User user;
+}
+
 class FilterUsersByAccessLevelEvent extends UserListEvent {
   const FilterUsersByAccessLevelEvent(this.accessLevelQuery);
   final AccessLevel? accessLevelQuery;

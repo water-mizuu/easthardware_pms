@@ -11,6 +11,7 @@ class PaymentFormState {
     this.creatorId,
     this.creationDate,
     this.status = FormStatus.initial,
+    this.invoiceNumberError,
     this.paymentMethodError,
     this.referenceNumberError,
     this.amountReceivedError,
@@ -26,6 +27,8 @@ class PaymentFormState {
   final int? creatorId;
   final DateTime? creationDate;
   final FormStatus status;
+  // Errors
+  final String? invoiceNumberError;
   final String? paymentMethodError;
   final String? referenceNumberError;
   final String? amountReceivedError;
@@ -41,6 +44,7 @@ class PaymentFormState {
     int? creatorId,
     DateTime? creationDate,
     FormStatus? status,
+    String? invoiceNumberError,
     String? paymentMethodError,
     String? referenceNumberError,
     String? amountReceivedError,
@@ -56,9 +60,10 @@ class PaymentFormState {
       Object? creatorId = undefined,
       Object? creationDate = undefined,
       Object? status = undefined,
-      Object? paymentMethodError,
-      Object? referenceNumberError,
-      Object? amountReceivedError,
+      Object? invoiceNumberError = undefined,
+      Object? paymentMethodError = undefined,
+      Object? referenceNumberError = undefined,
+      Object? amountReceivedError = undefined,
       Object? lastAutomatedUpdate = undefined,
     }) {
       return PaymentFormState(
@@ -71,6 +76,7 @@ class PaymentFormState {
         creatorId: creatorId.or(this.creatorId),
         creationDate: creationDate.or(this.creationDate),
         status: status.or(this.status),
+        invoiceNumberError: invoiceNumberError.or(this.invoiceNumberError),
         paymentMethodError: paymentMethodError.or(this.paymentMethodError),
         referenceNumberError: referenceNumberError.or(this.referenceNumberError),
         amountReceivedError: amountReceivedError.or(this.amountReceivedError),

@@ -81,20 +81,20 @@ class UserDisplayCubit extends Cubit<UserDisplayState> {
     switch (currentSort) {
       case UserDisplaySortBy.nameAscending:
       case UserDisplaySortBy.nameDescending:
-        return ascending ? UserDisplaySortBy.nameAscending : UserDisplaySortBy.nameDescending;
+        return ascending ? UserDisplaySortBy.nameDescending : UserDisplaySortBy.nameAscending;
       case UserDisplaySortBy.accessLevelAscending:
       case UserDisplaySortBy.accessLevelDescending:
         return ascending
-            ? UserDisplaySortBy.accessLevelAscending
-            : UserDisplaySortBy.accessLevelDescending;
+            ? UserDisplaySortBy.accessLevelDescending
+            : UserDisplaySortBy.accessLevelAscending;
       case UserDisplaySortBy.creationDateAscending:
       case UserDisplaySortBy.creationDateDescending:
         return ascending
-            ? UserDisplaySortBy.creationDateAscending
-            : UserDisplaySortBy.creationDateDescending;
+            ? UserDisplaySortBy.creationDateDescending
+            : UserDisplaySortBy.creationDateAscending;
       case UserDisplaySortBy.statusAscending:
       case UserDisplaySortBy.statusDescending:
-        return ascending ? UserDisplaySortBy.statusAscending : UserDisplaySortBy.statusDescending;
+        return ascending ? UserDisplaySortBy.statusDescending : UserDisplaySortBy.statusAscending;
       default:
         return currentSort;
     }

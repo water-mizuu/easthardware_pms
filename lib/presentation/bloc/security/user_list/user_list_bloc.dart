@@ -6,6 +6,7 @@ import 'package:dart_bloc_concurrency/dart_bloc_concurrency.dart';
 import 'package:easthardware_pms/domain/enums/enums.dart';
 import 'package:easthardware_pms/domain/models/user.dart';
 import 'package:easthardware_pms/domain/repository/user_repository.dart';
+import 'package:easthardware_pms/utils/boxed.dart';
 import 'package:easthardware_pms/utils/duration.dart';
 import 'package:easthardware_pms/utils/levenshtein.dart';
 import 'package:easthardware_pms/utils/undefined.dart';
@@ -22,6 +23,8 @@ class UserListBloc extends Bloc<UserListEvent, UserListState> {
     on<LoadAllUsersEvent>(_onLoadUsers);
     on<AddUserEvent>(_onAddUser);
     on<UpdateUserEvent>(_onUpdateUser);
+    on<ArchiveUserEvent>(_onArchiveUser);
+    on<UnarchiveUserEvent>(_onUnarchiveUser);
     on<DeleteUserEvent>(_onDeleteUser);
     on<UserLoggedInEvent>(_onUserLoggedIn);
     on<UserLoggedOutEvent>(_onUserLoggedOut);
@@ -100,6 +103,56 @@ class UserListBloc extends Bloc<UserListEvent, UserListState> {
         print('Error updating user $e');
       }
       emit(state.copyWith(status: DataStatus.error));
+    }
+  }
+
+  Future<void> _onArchiveUser(ArchiveUserEvent event, Emitter<UserListState> emit) async {
+    emit(state.copyWith(status: DataStatus.loading));
+    try {
+      final updatedUser = event.user.copyWith(archiveStatus: 1);
+      await _repository.updateUser(updatedUser);
+      final updatedUsers = List<User>.from(state.users);
+      final index = updatedUsers.indexWhere((user) => user.id == updatedUser.id);
+      if (index != -1) {
+        updatedUsers[index] = updatedUser;
+      }
+
+      emit(
+        state.copyWith(
+          users: updatedUsers,
+          filteredUsers: updatedUsers,
+          status: DataStatus.success,
+        ),
+      );
+    } catch (e) {
+      if (kDebugMode) {
+        printBoxed('Error archiving user $e');
+      }
+    }
+  }
+
+  Future<void> _onUnarchiveUser(UnarchiveUserEvent event, Emitter<UserListState> emit) async {
+    emit(state.copyWith(status: DataStatus.loading));
+    try {
+      final updatedUser = event.user.copyWith(archiveStatus: 0);
+      await _repository.updateUser(updatedUser);
+      final updatedUsers = List<User>.from(state.users);
+      final index = updatedUsers.indexWhere((user) => user.id == updatedUser.id);
+      if (index != -1) {
+        updatedUsers[index] = updatedUser;
+      }
+
+      emit(
+        state.copyWith(
+          users: updatedUsers,
+          filteredUsers: updatedUsers,
+          status: DataStatus.success,
+        ),
+      );
+    } catch (e) {
+      if (kDebugMode) {
+        printBoxed('Error archiving user $e');
+      }
     }
   }
 

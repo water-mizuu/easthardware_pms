@@ -16,15 +16,15 @@ class PaymentDisplayState with EquatableMixin {
         sortBy = PaymentDisplaySortBy.dateDescending,
         sortAscending = false;
 
-  final List<Payment>? allPayments;
-  final List<Payment>? filteredPayments;
+  final List<(Payment, String)>? allPayments;
+  final List<(Payment, String)>? filteredPayments;
   final String searchQuery;
   final PaymentDisplaySortBy sortBy;
   final bool sortAscending;
 
   PaymentDisplayState Function({
-    List<Payment>? allPayments,
-    List<Payment>? filteredPayments,
+    List<(Payment, String)>? allPayments,
+    List<(Payment, String)>? filteredPayments,
     String searchQuery,
     PaymentDisplaySortBy sortBy,
     bool sortAscending,

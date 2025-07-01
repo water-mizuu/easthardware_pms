@@ -303,11 +303,15 @@ final class _InvoicePdfGenerator implements PdfGenerator {
   }
 
   pw.Widget _buildInvoiceSummary() {
-    final subtotal = invoiceProducts.fold<double>(0, (sum, product) => sum + product.amount);
-    final discount = invoice.discount ?? 0.0;
-    final total = invoice.amountDue;
-    final amountPaid = invoice.amountPaid ?? 0.0;
-    final balance = total - amountPaid;
+    final subtotal = invoice.amountDue;
+    final discount = invoice.discountType == DiscountType.percentage
+        ? (invoice.discount ?? 0.0) * subtotal / 100
+        : invoice.discount;
+    final discountText =
+        discount != null && discount > 0 ? CurrencyFormatter.full(discount, '- Php ') : '0.00';
+    final amountPaid = invoice.amountPaid ?? 0;
+    final amountPaidText = amountPaid > 0 ? CurrencyFormatter.full(amountPaid, '- Php ') : '0.00';
+    final openBalance = subtotal - (discount ?? 0.0) - amountPaid;
 
     return pw.Row(
       children: [
@@ -320,29 +324,19 @@ final class _InvoicePdfGenerator implements PdfGenerator {
                   'Subtotal:',
                   CurrencyFormatter.full(subtotal, 'Php '),
                 ),
-                if (discount > 0)
-                  _buildSummaryRow(
-                    'Discount:',
-                    invoice.discountType == DiscountType.percentage
-                        ? '${discount.toStringAsFixed(2)}%'
-                        : CurrencyFormatter.full(discount, 'Php '),
-                  ),
                 _buildSummaryRow(
-                  'Total:',
-                  CurrencyFormatter.full(total, 'Php '),
+                  'Discount:',
+                  discountText,
+                ),
+                _buildSummaryRow(
+                  'Amount Paid:',
+                  amountPaidText,
+                ),
+                _buildSummaryRow(
+                  'Balance:',
+                  CurrencyFormatter.full(openBalance, 'Php '),
                   isTotal: true,
                 ),
-                if (amountPaid > 0) ...[
-                  _buildSummaryRow(
-                    'Amount Paid:',
-                    CurrencyFormatter.full(amountPaid, 'Php '),
-                  ),
-                  _buildSummaryRow(
-                    'Balance:',
-                    CurrencyFormatter.full(balance, 'Php '),
-                    isTotal: true,
-                  ),
-                ],
               ],
             ),
           ),

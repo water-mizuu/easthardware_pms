@@ -42,6 +42,42 @@ class PaymentReferenceChanged extends PaymentFormEvent {
   List<Object?> get props => [paymentReference];
 }
 
+class PaymentMethodErrorChanged extends PaymentFormEvent {
+  const PaymentMethodErrorChanged(this.paymentMethodError);
+
+  final String? paymentMethodError;
+
+  @override
+  List<Object?> get props => [paymentMethodError];
+}
+
+class ReferenceNumberErrorChanged extends PaymentFormEvent {
+  const ReferenceNumberErrorChanged(this.referenceNumberError);
+
+  final String? referenceNumberError;
+
+  @override
+  List<Object?> get props => [referenceNumberError];
+}
+
+class InvoiceNumberErrorChanged extends PaymentFormEvent {
+  const InvoiceNumberErrorChanged(this.invoiceNumberError);
+
+  final String? invoiceNumberError;
+
+  @override
+  List<Object?> get props => [invoiceNumberError];
+}
+
+class AmountReceivedErrorChanged extends PaymentFormEvent {
+  const AmountReceivedErrorChanged(this.amountReceivedError);
+
+  final String? amountReceivedError;
+
+  @override
+  List<Object?> get props => [amountReceivedError];
+}
+
 class AmountChanged extends PaymentFormEvent {
   const AmountChanged(this.amount);
 

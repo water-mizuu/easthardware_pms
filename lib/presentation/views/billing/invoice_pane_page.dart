@@ -320,7 +320,6 @@ class InvoiceDataTable extends StatelessWidget {
                     source: InvoiceDataSource(
                       invoices: invoices,
                       context: context,
-                      onSort: displayCubit.sort,
                     ),
                   ),
                 ),

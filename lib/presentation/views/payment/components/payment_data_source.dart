@@ -14,7 +14,7 @@ class PaymentDataSource extends DataTableSource {
     this.context,
   });
 
-  final List<Payment> payments;
+  final List<(Payment, String)> payments;
   final List<PaymentMethod> paymentMethods;
   final Function(Payment)? onEdit;
   final Function(Payment)? onDelete;
@@ -39,19 +39,23 @@ class PaymentDataSource extends DataTableSource {
     return DataRow(
       cells: [
         DataCell(Text(
-          dateFormatter.format(payment.paymentDate),
+          dateFormatter.format(payment.$1.paymentDate),
           style: TextStyles.body,
         )),
         DataCell(Text(
-          formatter.format(payment.amount),
+          payment.$2,
           style: TextStyles.body,
         )),
         DataCell(Text(
-          payment.referenceNumber,
+          formatter.format(payment.$1.amount),
           style: TextStyles.body,
         )),
         DataCell(Text(
-          getPaymentMethodName(payment.paymentMethod),
+          payment.$1.referenceNumber,
+          style: TextStyles.body,
+        )),
+        DataCell(Text(
+          getPaymentMethodName(payment.$1.paymentMethod),
           style: TextStyles.body,
         )),
         DataCell(
@@ -61,12 +65,12 @@ class PaymentDataSource extends DataTableSource {
               if (onEdit != null)
                 IconButton(
                   icon: const Icon(FluentIcons.edit),
-                  onPressed: () => onEdit!(payment),
+                  onPressed: () => onEdit!(payment.$1),
                 ),
               if (onDelete != null)
                 IconButton(
                   icon: const Icon(FluentIcons.delete),
-                  onPressed: () => onDelete!(payment),
+                  onPressed: () => onDelete!(payment.$1),
                 ),
             ],
           ),

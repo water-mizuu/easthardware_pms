@@ -20,12 +20,10 @@ class InvoiceDataSource extends DataTableSource {
   InvoiceDataSource({
     required this.invoices,
     required this.context,
-    required this.onSort,
   });
 
   final List<Invoice> invoices;
   final BuildContext context;
-  final void Function(InvoiceDisplaySortBy) onSort;
 
   final currencyFormat = NumberFormat.currency(
     locale: 'en_PH',

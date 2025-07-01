@@ -19,6 +19,10 @@ class PaymentFormBloc extends Bloc<PaymentFormEvent, PaymentFormState> {
     on<PaymentMethodChanged>(_onPaymentMethodChanged);
     on<PaymentReferenceChanged>(_onPaymentReferenceChanged);
     on<AmountChanged>(_onAmountChanged);
+    on<PaymentMethodErrorChanged>(_onPaymentMethodErrorChanged);
+    on<ReferenceNumberErrorChanged>(_onReferenceNumberErrorChanged);
+    on<InvoiceNumberErrorChanged>(_onInvoiceNumberErrorChanged);
+    on<AmountReceivedErrorChanged>(_onAmountReceivedErrorChanged);
     on<PaymentDateChanged>(_onPaymentDateChanged);
     on<PrintPaymentRequestEvent>(_onPrintPaymentRequestEvent);
     on<SavePaymentRequestEvent>(_onSavePaymentRequestEvent);
@@ -89,23 +93,55 @@ class PaymentFormBloc extends Bloc<PaymentFormEvent, PaymentFormState> {
     }
   }
 
+  void _onPaymentMethodErrorChanged(
+    PaymentMethodErrorChanged event,
+    Emitter<PaymentFormState> emit,
+  ) {
+    emit(state.copyWith(paymentMethodError: event.paymentMethodError));
+  }
+
+  void _onReferenceNumberErrorChanged(
+    ReferenceNumberErrorChanged event,
+    Emitter<PaymentFormState> emit,
+  ) {
+    emit(state.copyWith(referenceNumberError: event.referenceNumberError));
+  }
+
+  void _onInvoiceNumberErrorChanged(
+    InvoiceNumberErrorChanged event,
+    Emitter<PaymentFormState> emit,
+  ) {
+    emit(state.copyWith(invoiceNumberError: event.invoiceNumberError));
+  }
+
+  void _onAmountReceivedErrorChanged(
+    AmountReceivedErrorChanged event,
+    Emitter<PaymentFormState> emit,
+  ) {
+    emit(state.copyWith(amountReceivedError: event.amountReceivedError));
+  }
+
   Future<void> _onFormSubmitted(FormSubmittedEvent event, Emitter<PaymentFormState> emit) async {
     emit(state.copyWith(status: FormStatus.initial));
   }
 
   Future<bool> _validateForms(Emitter<PaymentFormState> emit) async {
     final alreadyClosed = state.invoice!.paymentDate != null;
+    final invoiceNumberError = state.invoice!.id == null //
+        ? 'Please select an invoice'
+        : null;
     final paymentMethodError = state.paymentMethod == null //
-        ? 'A payment method must be selected'
+        ? 'Please select a payment method'
         : null;
     final referenceMethodError = state.paymentReference.isEmpty //
-        ? 'A reference number must be provided'
+        ? 'Please enter a reference number'
         : null;
-    final amountReceivedError = state.amount == 0 //
-        ? 'Amount received cannot be empty'
+    final amountReceivedError = state.amount <= 0 //
+        ? 'Please enter a valid amount'
         : null;
 
     final errorPersists = alreadyClosed ||
+        invoiceNumberError != null ||
         paymentMethodError != null ||
         referenceMethodError != null ||
         amountReceivedError != null;
@@ -113,6 +149,7 @@ class PaymentFormBloc extends Bloc<PaymentFormEvent, PaymentFormState> {
     if (errorPersists) {
       emit(
         state.copyWith(
+          invoiceNumberError: invoiceNumberError,
           paymentMethodError: paymentMethodError,
           referenceNumberError: referenceMethodError,
           amountReceivedError: amountReceivedError,

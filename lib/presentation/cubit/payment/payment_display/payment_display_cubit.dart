@@ -16,7 +16,7 @@ class PaymentDisplayCubit extends Cubit<PaymentDisplayState> {
   }
 
   // Method to update the list of payments
-  void updatePayments(List<Payment> payments) {
+  void updatePayments(List<(Payment, String)> payments) {
     if (payments.isEmpty) {
       emit(state.copyWith(
         searchQuery: '',
@@ -108,9 +108,9 @@ class PaymentDisplayCubit extends Cubit<PaymentDisplayState> {
 
     if (searchQuery.isNotEmpty) {
       filteredPayments = allPayments.where((payment) {
-        final reference = payment.referenceNumber.toLowerCase();
-        final amount = payment.amount.toString().toLowerCase();
-        final date = payment.paymentDate.toString().toLowerCase();
+        final reference = payment.$1.referenceNumber.toLowerCase();
+        final amount = payment.$1.amount.toString().toLowerCase();
+        final date = payment.$1.paymentDate.toString().toLowerCase();
 
         // Simple contains check
         if (reference.contains(searchQuery) ||
@@ -133,25 +133,31 @@ class PaymentDisplayCubit extends Cubit<PaymentDisplayState> {
   }
 
   // Helper method to sort payments
-  void _sortPayments(List<Payment> payments) {
+  void _sortPayments(List<(Payment, String)> payments) {
     switch (state.sortBy) {
       case PaymentDisplaySortBy.dateAscending:
-        payments.sort((a, b) => a.paymentDate.compareTo(b.paymentDate));
+        payments.sort((a, b) => a.$1.paymentDate.compareTo(b.$1.paymentDate));
         break;
       case PaymentDisplaySortBy.dateDescending:
-        payments.sort((a, b) => b.paymentDate.compareTo(a.paymentDate));
+        payments.sort((a, b) => b.$1.paymentDate.compareTo(a.$1.paymentDate));
+        break;
+      case PaymentDisplaySortBy.customerAscending:
+        payments.sort((a, b) => a.$2.compareTo(b.$2));
+        break;
+      case PaymentDisplaySortBy.customerDescending:
+        payments.sort((a, b) => b.$2.compareTo(a.$2));
         break;
       case PaymentDisplaySortBy.amountAscending:
-        payments.sort((a, b) => a.amount.compareTo(b.amount));
+        payments.sort((a, b) => a.$1.amount.compareTo(b.$1.amount));
         break;
       case PaymentDisplaySortBy.amountDescending:
-        payments.sort((a, b) => b.amount.compareTo(a.amount));
+        payments.sort((a, b) => b.$1.amount.compareTo(a.$1.amount));
         break;
       case PaymentDisplaySortBy.referenceAscending:
-        payments.sort((a, b) => a.referenceNumber.compareTo(b.referenceNumber));
+        payments.sort((a, b) => a.$1.referenceNumber.compareTo(b.$1.referenceNumber));
         break;
       case PaymentDisplaySortBy.referenceDescending:
-        payments.sort((a, b) => b.referenceNumber.compareTo(a.referenceNumber));
+        payments.sort((a, b) => b.$1.referenceNumber.compareTo(a.$1.referenceNumber));
         break;
     }
   }
