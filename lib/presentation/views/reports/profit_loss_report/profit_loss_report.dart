@@ -5,6 +5,7 @@ import 'package:easthardware_pms/presentation/bloc/inventory/product_list/produc
 import 'package:easthardware_pms/presentation/bloc/order/orderlist/order_list_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/profit_loss/profit_loss_report/profit_loss_report_bloc.dart';
 import 'package:easthardware_pms/presentation/router/app_routes.dart';
+import 'package:easthardware_pms/presentation/views/reports/common/reports_globals.dart';
 import 'package:easthardware_pms/presentation/views/reports/pdf_helpers/pdf_generation.dart';
 import 'package:easthardware_pms/presentation/views/reports/profit_loss_report/profit_loss_query_data.dart';
 import 'package:easthardware_pms/presentation/widgets/animated_single_child_scroll_view.dart';
@@ -184,7 +185,7 @@ class ProfitLossReportPage extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         ProfitLossReportOptions(),
-                        Spacing.v24,
+                        Spacing.v32,
                         ProfitLossSummaryCard(),
                         Spacing.v24,
                         ProfitLossReportPreview(),
@@ -230,28 +231,24 @@ class ProfitLossReportOptions extends StatelessWidget {
       children: [
         const SubheadingText('Report Options'),
         Spacing.v12,
-        Container(
-          padding: AppPadding.cardPadding,
-          color: FluentTheme.of(context).cardColor,
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: const [
-                    _StartDateSelection(),
-                    _EndDateSelection(),
-                    _GroupBySelection(),
-                    _SortBySelection(),
-                    _TakeSelection(),
-                  ].withSpacing(() => Spacing.v8),
-                ),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: const [
+                  _StartDateSelection(),
+                  _EndDateSelection(),
+                  _GroupBySelection(),
+                  _SortBySelection(),
+                  _RowLimitSelection(),
+                ].withSpacing(() => Spacing.v8),
               ),
-              const _GenerateButtons(),
-            ],
-          ),
+            ),
+            const _GenerateButtons(),
+          ],
         ),
       ],
     );
@@ -270,89 +267,46 @@ class ProfitLossSummaryCard extends StatelessWidget {
           return const SizedBox();
         }
 
-        return Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            const SubheadingText('Summary'),
-            Spacing.v12,
-            Container(
-              padding: AppPadding.cardPadding,
-              color: FluentTheme.of(context).cardColor,
-              child: Row(
-                children: [
-                  _SummaryCard(
-                    title: 'Total Revenue',
-                    value: CurrencyFormatter.full(summary.totalRevenue, "Php "),
-                    color: Colors.green,
-                  ),
-                  Spacing.h16,
-                  _SummaryCard(
-                    title: 'Total Expenses',
-                    value: CurrencyFormatter.full(summary.totalExpenses, "Php "),
-                    color: Colors.red,
-                  ),
-                  Spacing.h16,
-                  _SummaryCard(
-                    title: 'Net Profit',
-                    value: CurrencyFormatter.full(summary.totalProfit, "Php "),
-                    color: summary.totalProfit >= 0 ? Colors.green : Colors.red,
-                  ),
-                  Spacing.h16,
-                  _SummaryCard(
-                    title: 'Profit Margin',
-                    value: "${summary.averageProfitMargin.toStringAsFixed(2)}%",
-                    color: summary.averageProfitMargin >= 0 ? Colors.green : Colors.red,
-                  ),
-                ],
+        return Container(
+          padding: AppPadding.cardPadding,
+          color: FluentTheme.of(context).cardColor,
+          child: Row(
+            children: [
+              Expanded(
+                child: ReportsGlobals.summaryItem(
+                  'Total Revenue',
+                  CurrencyFormatter.full(summary.totalRevenue, "Php "),
+                  FluentIcons.money,
+                ),
               ),
-            ),
-          ],
+              Spacing.h16,
+              Expanded(
+                child: ReportsGlobals.summaryItem(
+                  'Total Expenses',
+                  CurrencyFormatter.full(summary.totalExpenses, "Php "),
+                  FluentIcons.receipt_processing,
+                ),
+              ),
+              Spacing.h16,
+              Expanded(
+                child: ReportsGlobals.summaryItem(
+                  'Net Profit',
+                  CurrencyFormatter.full(summary.totalProfit, "Php "),
+                  FluentIcons.graph_symbol,
+                ),
+              ),
+              Spacing.h16,
+              Expanded(
+                child: ReportsGlobals.summaryItem(
+                  'Profit Margin',
+                  "${summary.averageProfitMargin.toStringAsFixed(2)}%",
+                  FluentIcons.line_chart,
+                ),
+              ),
+            ],
+          ),
         );
       },
-    );
-  }
-}
-
-class _SummaryCard extends StatelessWidget {
-  const _SummaryCard({
-    required this.title,
-    required this.value,
-    required this.color,
-  });
-
-  final String title;
-  final String value;
-  final Color color;
-
-  @override
-  Widget build(BuildContext context) {
-    return Expanded(
-      child: Container(
-        padding: const EdgeInsets.all(12.0),
-        decoration: BoxDecoration(
-          color: color.withOpacity(0.1),
-          borderRadius: BorderRadius.circular(8.0),
-          border: Border.all(color: color.withOpacity(0.3), width: 1.0),
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Text(
-              title,
-              style: FluentTheme.of(context).typography.bodyStrong,
-              textAlign: TextAlign.center,
-            ),
-            Spacing.v8,
-            Text(
-              value,
-              style: FluentTheme.of(context).typography.title,
-              textAlign: TextAlign.center,
-            ),
-          ],
-        ),
-      ),
     );
   }
 }
@@ -459,8 +413,8 @@ class _SortBySelection extends StatelessWidget {
   }
 }
 
-class _TakeSelection extends StatelessWidget {
-  const _TakeSelection();
+class _RowLimitSelection extends StatelessWidget {
+  const _RowLimitSelection();
 
   @override
   Widget build(BuildContext context) {
@@ -468,14 +422,20 @@ class _TakeSelection extends StatelessWidget {
       children: [
         const SizedBox(width: 80, child: Text('Row Limit: ')),
         Spacing.h8,
-        Expanded(
+        ConstrainedBox(
+          constraints: const BoxConstraints(
+            minWidth: 120,
+            maxWidth: 180,
+          ),
           child: NumberBox<int>(
-            value: context.select((ProfitLossReportBloc b) => b.state.queryData.take),
+            value: context.select((ProfitLossReportBloc b) => b.state.queryData.rowLimit),
+            clearButton: false,
+            mode: SpinButtonPlacementMode.none,
             onChanged: (value) {
               if (value != null && value > 0) {
                 context //
                     .read<ProfitLossReportBloc>()
-                    .add(ProfitLossReportSetTakeEvent(value));
+                    .add(ProfitLossReportSetRowLimitEvent(value));
               }
             },
             min: 1,
@@ -496,7 +456,7 @@ class _GenerateButtons extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocBuilder<ProfitLossReportBloc, ProfitLossReportState>(
       builder: (context, reportState) {
-        final profitLossData = reportState.queryData.profitLossDataWithTake ?? [];
+        final profitLossData = reportState.queryData.profitLossDataWithRowLimit ?? [];
 
         return Row(
           children: [
@@ -536,7 +496,8 @@ class _ProfitLossTablePreview extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final data =
-        context.select((ProfitLossReportBloc b) => b.state.queryData.profitLossDataWithTake) ?? [];
+        context.select((ProfitLossReportBloc b) => b.state.queryData.profitLossDataWithRowLimit) ??
+            [];
 
     return Container(
       padding: AppPadding.cardPadding,
@@ -546,9 +507,6 @@ class _ProfitLossTablePreview extends StatelessWidget {
         children: [
           Container(
             padding: const EdgeInsets.all(6.0),
-            decoration: const BoxDecoration(
-              border: Border(bottom: BorderSide(color: Colors.grey)),
-            ),
             child: Row(
               children: [
                 for (final _ProfitLossColumn(:name, :flex) in profitLossColumns)
@@ -565,14 +523,6 @@ class _ProfitLossTablePreview extends StatelessWidget {
 
               return Container(
                 padding: const EdgeInsets.all(6.0),
-                decoration: BoxDecoration(
-                  border: Border(
-                    bottom: BorderSide(
-                      color: FluentTheme.of(context).menuColor,
-                      width: 0.5,
-                    ),
-                  ),
-                ),
                 child: Row(
                   children: [
                     for (final _ProfitLossColumn(:flex, :value) in profitLossColumns)
@@ -591,14 +541,6 @@ class _ProfitLossTablePreview extends StatelessWidget {
           ),
           Container(
             padding: const EdgeInsets.all(6.0),
-            decoration: BoxDecoration(
-              border: Border(
-                bottom: BorderSide(
-                  color: FluentTheme.of(context).menuColor,
-                  width: 0.5,
-                ),
-              ),
-            ),
             child: Row(
               children: ([
                 for (final _ProfitLossColumn(:flex, :total) in profitLossColumns)

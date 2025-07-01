@@ -101,11 +101,11 @@ class InventoryReportSetCategoryEvent extends InventoryReportEvent {
   List<Object?> get props => [category];
 }
 
-class InventoryReportSetTakeEvent extends InventoryReportEvent {
-  const InventoryReportSetTakeEvent(this.take);
+class InventoryReportSetRowLimitEvent extends InventoryReportEvent {
+  const InventoryReportSetRowLimitEvent(this.rowLimit);
 
-  final int take;
+  final int rowLimit;
 
   @override
-  List<Object?> get props => [take];
+  List<Object?> get props => [rowLimit];
 }

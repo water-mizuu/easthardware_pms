@@ -69,6 +69,7 @@ class AppRoutes {
     inventoryReport: AppRoute<Null>('/admin/reports/inventory'),
     salesByProductReport: AppRoute<Null>('/admin/reports/sales_by_product'),
     salesByCategoryReport: AppRoute<Null>('/admin/reports/sales_by_category'),
+    invoiceSalesReport: AppRoute<Null>('/admin/reports/invoice_sales'),
     expenseReport: AppRoute<Null>('/admin/reports/expense'),
     profitLossReport: AppRoute<Null>('/admin/reports/profit_loss'),
     businessSnapshotReport: AppRoute<Null>('/admin/reports/business_snapshot'),

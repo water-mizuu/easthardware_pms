@@ -343,7 +343,9 @@ class _PdfPreview extends StatelessWidget {
     final generationState = context.watch<PdfGenerationState>();
 
     return Container(
-      decoration: BoxDecoration(border: Border.all(color: Colors.grey, width: 1.0)),
+      decoration: BoxDecoration(
+        border: Border.all(color: const Color.fromARGB(255, 218, 216, 215), width: 1.0),
+      ),
       constraints: BoxConstraints(
         maxHeight: 480,
         minHeight: min(constraints.maxHeight, 480),

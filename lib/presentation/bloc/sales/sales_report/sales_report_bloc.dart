@@ -48,7 +48,7 @@ class SalesReportBloc extends Bloc<SalesReportEvent, SalesReportState> {
     on<SalesReportUpdateInvoiceProductsEvent>(_onUpdateInvoiceProducts);
     on<SalesReportUpdateOrdersEvent>(_onUpdateOrders);
     on<SalesReportUpdateOrderProductsEvent>(_onUpdateOrderProducts);
-    on<SalesReportSetRowLimitEvent>(_onSetTake);
+    on<SalesReportSetRowLimitEvent>(_onSetRowLimit);
 
     // Initialize the query data
     add(const SalesReportInitializeEvent());
@@ -142,7 +142,7 @@ class SalesReportBloc extends Bloc<SalesReportEvent, SalesReportState> {
     _recalculateSalesData(emit);
   }
 
-  void _onSetTake(SalesReportSetRowLimitEvent event, Emitter<SalesReportState> emit) {
+  void _onSetRowLimit(SalesReportSetRowLimitEvent event, Emitter<SalesReportState> emit) {
     emit(state.copyWith(queryData: state.queryData.copyWith(rowLimit: event.limit)));
     _recalculateSalesData(emit);
   }

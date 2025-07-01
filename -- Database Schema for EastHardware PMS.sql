@@ -12,7 +12,7 @@ CREATE TABLE categories (
   archive_status INTEGER DEFAULT 0
 );
 
--- Users Table  
+-- Users Table
 CREATE TABLE users (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   uid TEXT NOT NULL,

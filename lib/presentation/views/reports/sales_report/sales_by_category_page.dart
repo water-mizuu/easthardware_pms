@@ -6,6 +6,7 @@ import 'package:easthardware_pms/presentation/bloc/inventory/product_list/produc
 import 'package:easthardware_pms/presentation/bloc/order/orderlist/order_list_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/sales/sales_report/sales_report_bloc.dart';
 import 'package:easthardware_pms/presentation/router/app_routes.dart';
+import 'package:easthardware_pms/presentation/views/reports/common/reports_globals.dart';
 import 'package:easthardware_pms/presentation/views/reports/pdf_helpers/pdf_generation.dart';
 import 'package:easthardware_pms/presentation/views/reports/sales_report/'
     'extensions/sales_by_category_datum.dart';
@@ -170,7 +171,7 @@ class SalesByCategoryPage extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         SalesReportOptions(),
-                        Spacing.v24,
+                        Spacing.v32,
                         SalesReportPreview(),
                       ],
                     ),
@@ -214,27 +215,23 @@ class SalesReportOptions extends StatelessWidget {
       children: [
         const SubheadingText('Report Options'),
         Spacing.v12,
-        Container(
-          padding: AppPadding.cardPadding,
-          color: FluentTheme.of(context).cardColor,
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: const [
-                    _StartDateSelection(),
-                    _EndDateSelection(),
-                    _SortBySelection(),
-                    _RowLimitSelection(),
-                  ].withSpacing(() => Spacing.v8),
-                ),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: const [
+                  _StartDateSelection(),
+                  _EndDateSelection(),
+                  _SortBySelection(),
+                  _RowLimitSelection(),
+                ].withSpacing(() => Spacing.v8),
               ),
-              const _GenerateButtons(),
-            ],
-          ),
+            ),
+            const _GenerateButtons(),
+          ],
         ),
       ],
     );
@@ -352,7 +349,7 @@ class _GenerateButtons extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocBuilder<SalesReportBloc, SalesReportState>(
       builder: (context, reportState) {
-        final salesData = reportState.queryData.salesByCategoryDataWithTake ?? [];
+        final salesData = reportState.queryData.salesByCategoryDataWithRowLimit ?? [];
 
         return Row(
           children: [
@@ -380,8 +377,74 @@ class SalesReportPreview extends StatelessWidget {
       children: [
         SubheadingText('Report Preview'),
         Spacing.v12,
+        _SalesSummarySection(),
+        Spacing.v16,
         _SalesTablePreview(),
       ],
+    );
+  }
+}
+
+class _SalesSummarySection extends StatelessWidget {
+  const _SalesSummarySection();
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<SalesReportBloc, SalesReportState>(
+      builder: (context, state) {
+        final salesData = state.queryData.salesByCategoryDataWithRowLimit ?? [];
+        final totalCategories = salesData.length;
+        final totalUnitsSold = salesData.fold<double>(0.0, (sum, item) => sum + item.unitsSold);
+        final totalUnitsOrdered =
+            salesData.fold<double>(0.0, (sum, item) => sum + item.unitsOrdered);
+        final totalRevenue = salesData.fold<double>(0.0, (sum, item) => sum + item.totalRevenue);
+        final grossProfit = salesData.fold<double>(0.0, (sum, item) => sum + item.grossProfit);
+
+        return Container(
+          padding: AppPadding.cardPadding,
+          color: FluentTheme.of(context).cardColor,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              Expanded(
+                child: ReportsGlobals.summaryItem(
+                  'Categories',
+                  totalCategories.toString(),
+                  FluentIcons.category_classification,
+                ),
+              ),
+              Expanded(
+                child: ReportsGlobals.summaryItem(
+                  'Units Sold',
+                  totalUnitsSold.toStringAsFixed(0),
+                  FluentIcons.shopping_cart,
+                ),
+              ),
+              Expanded(
+                child: ReportsGlobals.summaryItem(
+                  'Units Ordered',
+                  totalUnitsOrdered.toStringAsFixed(0),
+                  FluentIcons.package,
+                ),
+              ),
+              Expanded(
+                child: ReportsGlobals.summaryItem(
+                  'Total Revenue',
+                  CurrencyFormatter.full(totalRevenue),
+                  FluentIcons.money,
+                ),
+              ),
+              Expanded(
+                child: ReportsGlobals.summaryItem(
+                  'Gross Profit',
+                  CurrencyFormatter.full(grossProfit),
+                  FluentIcons.graph_symbol,
+                ),
+              ),
+            ].withSpacing(() => Spacing.h8),
+          ),
+        );
+      },
     );
   }
 }
@@ -392,7 +455,7 @@ class _SalesTablePreview extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocSelector<SalesReportBloc, SalesReportState, List<SalesByCategoryDatum>?>(
-      selector: (state) => state.queryData.salesByCategoryDataWithTake,
+      selector: (state) => state.queryData.salesByCategoryDataWithRowLimit,
       builder: (context, salesData) {
         final data = salesData ?? [];
 
@@ -559,6 +622,10 @@ final class _SalesReportPdfGenerator implements PdfGenerator {
         header: (context) => _buildPdfHeader(context, logo, startDate, endDate),
         build: (context) {
           return [
+            // Summary section
+            _buildSummary(context, salesData),
+            pw.SizedBox(height: 15),
+
             // Sales Table
             pw.Table(
               border: pw.TableBorder.symmetric(),
@@ -581,6 +648,40 @@ final class _SalesReportPdfGenerator implements PdfGenerator {
     );
 
     return pdf.save();
+  }
+
+  pw.Widget _buildSummary(pw.Context context, List<SalesByCategoryDatum> salesData) {
+    final totalCategories = salesData.length;
+    final totalUnitsSold = salesData.fold<double>(0.0, (sum, item) => sum + item.unitsSold);
+    final totalUnitsOrdered = salesData.fold<double>(0.0, (sum, item) => sum + item.unitsOrdered);
+    final totalRevenue = salesData.fold<double>(0.0, (sum, item) => sum + item.totalRevenue);
+    final grossProfit = salesData.fold<double>(0.0, (sum, item) => sum + item.grossProfit);
+
+    return pw.Row(
+      mainAxisAlignment: pw.MainAxisAlignment.spaceAround,
+      children: [
+        _buildPdfSummaryItem('Categories', totalCategories.toString()),
+        _buildPdfSummaryItem('Units Sold', totalUnitsSold.toStringAsFixed(0)),
+        _buildPdfSummaryItem('Units Ordered', totalUnitsOrdered.toStringAsFixed(0)),
+        _buildPdfSummaryItem('Total Revenue', CurrencyFormatter.full(totalRevenue, "Php ")),
+        _buildPdfSummaryItem('Gross Profit', CurrencyFormatter.full(grossProfit, "Php ")),
+      ],
+    );
+  }
+
+  pw.Widget _buildPdfSummaryItem(String label, String value) {
+    return pw.Column(
+      children: [
+        pw.Text(
+          value,
+          style: pw.TextStyle(fontSize: 12, fontWeight: pw.FontWeight.bold),
+        ),
+        pw.Text(
+          label,
+          style: const pw.TextStyle(fontSize: 10),
+        ),
+      ],
+    );
   }
 
   pw.Widget _buildPdfHeader(

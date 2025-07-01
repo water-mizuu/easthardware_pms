@@ -139,6 +139,12 @@ class BusinessSalesReports extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 ReportItemCard(
+                  icon: FluentIcons.document,
+                  title: 'Invoice Sales Report',
+                  description: 'Track individual invoice payments, due amounts, and payment status',
+                  onPressed: () => context.navigate(AppRoutes.admin.invoiceSalesReport),
+                ),
+                ReportItemCard(
                   icon: FluentIcons.product_catalog,
                   title: 'Sales by Product',
                   description: 'Analyze which products are generating the most revenue',

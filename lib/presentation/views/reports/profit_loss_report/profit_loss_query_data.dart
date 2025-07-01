@@ -155,7 +155,7 @@ class ProfitLossQueryData extends Equatable {
     this.summary,
     this.groupBy = ProfitLossGroupBy.month,
     this.sortBy = ProfitLossSortBy.dateDescending,
-    this.take,
+    this.rowLimit,
   });
 
   final DateTime startDate;
@@ -164,7 +164,7 @@ class ProfitLossQueryData extends Equatable {
   final ProfitLossSummary? summary;
   final ProfitLossGroupBy groupBy;
   final ProfitLossSortBy sortBy;
-  final int? take;
+  final int? rowLimit;
 
   ProfitLossQueryData Function({
     DateTime? startDate,
@@ -173,7 +173,7 @@ class ProfitLossQueryData extends Equatable {
     ProfitLossSummary? summary,
     ProfitLossGroupBy? groupBy,
     ProfitLossSortBy? sortBy,
-    int? take,
+    int? rowLimit,
   }) get copyWith {
     return ({
       Object? startDate = undefined,
@@ -182,7 +182,7 @@ class ProfitLossQueryData extends Equatable {
       Object? summary = undefined,
       Object? groupBy = undefined,
       Object? sortBy = undefined,
-      Object? take = undefined,
+      Object? rowLimit = undefined,
     }) {
       return ProfitLossQueryData(
         startDate: startDate.or(this.startDate),
@@ -191,17 +191,18 @@ class ProfitLossQueryData extends Equatable {
         summary: summary.or(this.summary),
         groupBy: groupBy.or(this.groupBy),
         sortBy: sortBy.or(this.sortBy),
-        take: take.or(this.take),
+        rowLimit: rowLimit.or(this.rowLimit),
       );
     };
   }
 
   @override
-  List<Object?> get props => [startDate, endDate, profitLossData, summary, groupBy, sortBy, take];
+  List<Object?> get props =>
+      [startDate, endDate, profitLossData, summary, groupBy, sortBy, rowLimit];
 
-  List<ProfitLossEntry>? get profitLossDataWithTake {
-    if (take != null && profitLossData != null) {
-      return profitLossData?.take(take!).toList();
+  List<ProfitLossEntry>? get profitLossDataWithRowLimit {
+    if (rowLimit != null && profitLossData != null) {
+      return profitLossData?.take(rowLimit!).toList();
     }
     return profitLossData;
   }

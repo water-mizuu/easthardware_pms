@@ -46,7 +46,7 @@ class InventoryReportBloc extends Bloc<InventoryReportEvent, InventoryReportStat
     on<InventoryReportSetSortByEvent>(_onSetSortBy);
     on<InventoryReportSetSearchQueryEvent>(_onSetSearchQuery);
     on<InventoryReportSetCategoryEvent>(_onSetCategory);
-    on<InventoryReportSetTakeEvent>(_onSetTake);
+    on<InventoryReportSetRowLimitEvent>(_onSetRowLimit);
 
     // Initialize the query data
     add(const InventoryReportInitializeEvent());
@@ -126,11 +126,11 @@ class InventoryReportBloc extends Bloc<InventoryReportEvent, InventoryReportStat
     await _updateQueryData(emit);
   }
 
-  Future<void> _onSetTake(
-    InventoryReportSetTakeEvent event,
+  Future<void> _onSetRowLimit(
+    InventoryReportSetRowLimitEvent event,
     Emitter<InventoryReportState> emit,
   ) async {
-    final updatedQueryData = state.queryData.copyWith(take: event.take);
+    final updatedQueryData = state.queryData.copyWith(rowLimit: event.rowLimit);
     emit(state.copyWith(queryData: updatedQueryData));
     await _updateQueryData(emit);
   }

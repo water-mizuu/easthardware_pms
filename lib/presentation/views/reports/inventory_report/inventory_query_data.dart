@@ -12,7 +12,7 @@ class InventoryQueryData {
     required this.searchQuery,
     required this.category,
     required this.sortBy,
-    this.take,
+    this.rowLimit,
   });
 
   InventoryQueryData.empty()
@@ -21,14 +21,14 @@ class InventoryQueryData {
         searchQuery = '',
         category = null,
         sortBy = InventoryDisplaySortBy.urgencyAscending,
-        take = null;
+        rowLimit = null;
 
   final DateTime? date;
   final List<Product>? filteredProducts;
   final String searchQuery;
   final Category? category;
   final InventoryDisplaySortBy sortBy;
-  final int? take;
+  final int? rowLimit;
 
   InventoryQueryData Function({
     DateTime? date,
@@ -36,7 +36,7 @@ class InventoryQueryData {
     String searchQuery,
     Category? category,
     InventoryDisplaySortBy sortBy,
-    int? take,
+    int? rowLimit,
   }) get copyWith {
     return ({
       Object? date = undefined,
@@ -44,7 +44,7 @@ class InventoryQueryData {
       Object? searchQuery = undefined,
       Object? category = undefined,
       Object? sortBy = undefined,
-      Object? take = undefined,
+      Object? rowLimit = undefined,
     }) {
       return InventoryQueryData(
         date: date.or(this.date),
@@ -52,14 +52,14 @@ class InventoryQueryData {
         searchQuery: searchQuery.or(this.searchQuery),
         category: category.or(this.category),
         sortBy: sortBy.or(this.sortBy),
-        take: take.or(this.take),
+        rowLimit: rowLimit.or(this.rowLimit),
       );
     };
   }
 
-  List<Product>? get filteredProductsWithTake {
-    if (take != null && filteredProducts != null) {
-      return filteredProducts?.take(take!).toList();
+  List<Product>? get filteredProductsWithRowLimit {
+    if (rowLimit != null && filteredProducts != null) {
+      return filteredProducts?.take(rowLimit!).toList();
     }
     return filteredProducts;
   }

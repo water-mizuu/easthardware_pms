@@ -7,6 +7,7 @@ import 'package:easthardware_pms/presentation/bloc/inventory/product_list/produc
 import 'package:easthardware_pms/presentation/bloc/order/orderlist/order_list_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/sales/sales_report/sales_report_bloc.dart';
 import 'package:easthardware_pms/presentation/router/app_routes.dart';
+import 'package:easthardware_pms/presentation/views/reports/common/reports_globals.dart';
 import 'package:easthardware_pms/presentation/views/reports/pdf_helpers/pdf_generation.dart';
 import 'package:easthardware_pms/presentation/views/reports/sales_report/sales_query_data.dart';
 import 'package:easthardware_pms/presentation/widgets/animated_single_child_scroll_view.dart';
@@ -196,7 +197,7 @@ class SalesByProductPage extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         SalesReportOptions(),
-                        Spacing.v24,
+                        Spacing.v32,
                         SalesReportPreview(),
                       ],
                     ),
@@ -249,27 +250,23 @@ class SalesReportOptions extends StatelessWidget {
       children: [
         const SubheadingText('Report Options'),
         Spacing.v12,
-        Container(
-          padding: AppPadding.cardPadding,
-          color: FluentTheme.of(context).cardColor,
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: const [
-                    _StartDateSelection(),
-                    _EndDateSelection(),
-                    _SortBySelection(),
-                    _RowLimitSelection(),
-                  ].withSpacing(() => Spacing.v8),
-                ),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: const [
+                  _StartDateSelection(),
+                  _EndDateSelection(),
+                  _SortBySelection(),
+                  _RowLimitSelection(),
+                ].withSpacing(() => Spacing.v8),
               ),
-              const _GenerateButtons(),
-            ],
-          ),
+            ),
+            const _GenerateButtons(),
+          ],
         ),
       ],
     );
@@ -390,7 +387,7 @@ class _GenerateButtons extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocBuilder<SalesReportBloc, SalesReportState>(
       builder: (context, reportState) {
-        final salesData = reportState.queryData.salesByProductDataWithTake ?? [];
+        final salesData = reportState.queryData.salesByProductDataWithRowLimit ?? [];
 
         return Row(
           children: [
@@ -421,7 +418,103 @@ class SalesReportPreview extends StatelessWidget {
       children: [
         SubheadingText('Report Preview'),
         Spacing.v12,
+        _SalesSummarySection(),
+        Spacing.v16,
         _SalesTablePreview(),
+      ],
+    );
+  }
+}
+
+class _SalesSummarySection extends StatelessWidget {
+  const _SalesSummarySection();
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<SalesReportBloc, SalesReportState>(
+      builder: (context, state) {
+        final salesData = state.queryData.salesByProductDataWithRowLimit ?? [];
+        final totalProducts = salesData.length;
+        final totalUnitsSold = salesData.fold<double>(0.0, (sum, item) => sum + item.$2.unitsSold);
+        final totalUnitsOrdered =
+            salesData.fold<double>(0.0, (sum, item) => sum + item.$2.unitsOrdered);
+        final totalRevenue = salesData.fold<double>(
+            0.0, (sum, item) => sum + (item.$2.unitsSold * item.$2.product.salePrice));
+        final totalOrderCost = salesData.fold<double>(
+            0.0, (sum, item) => sum + (item.$2.unitsOrdered * item.$2.product.orderCost));
+        final grossProfit = totalRevenue - totalOrderCost;
+
+        return Container(
+          padding: AppPadding.cardPadding,
+          color: FluentTheme.of(context).cardColor,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              Expanded(
+                child: ReportsGlobals.summaryItem(
+                  'Products Sold',
+                  totalProducts.toString(),
+                  FluentIcons.product_list,
+                ),
+              ),
+              Expanded(
+                child: ReportsGlobals.summaryItem(
+                  'Units Sold',
+                  totalUnitsSold.toStringAsFixed(0),
+                  FluentIcons.shopping_cart,
+                ),
+              ),
+              Expanded(
+                child: ReportsGlobals.summaryItem(
+                  'Units Ordered',
+                  totalUnitsOrdered.toStringAsFixed(0),
+                  FluentIcons.package,
+                ),
+              ),
+              Expanded(
+                child: ReportsGlobals.summaryItem(
+                  'Total Revenue',
+                  CurrencyFormatter.full(totalRevenue),
+                  FluentIcons.money,
+                ),
+              ),
+              Expanded(
+                child: ReportsGlobals.summaryItem(
+                  'Gross Profit',
+                  CurrencyFormatter.full(grossProfit),
+                  FluentIcons.graph_symbol,
+                ),
+              ),
+            ].withSpacing(() => Spacing.h8),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildSummaryItem(String label, String value, IconData icon) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(
+          icon,
+          size: 24,
+          color: Colors.blue,
+        ),
+        Spacing.v8,
+        Text(
+          value,
+          style: TextStyles.body.copyWith(fontSize: 18, fontWeight: FontWeight.bold),
+          textAlign: TextAlign.center,
+        ),
+        Spacing.v4,
+        Text(
+          label,
+          style: TextStyles.caption,
+          textAlign: TextAlign.center,
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
+        ),
       ],
     );
   }
@@ -433,7 +526,7 @@ class _SalesTablePreview extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocSelector<SalesReportBloc, SalesReportState, List<(Product, SalesExtras)>?>(
-      selector: (state) => state.queryData.salesByProductDataWithTake,
+      selector: (state) => state.queryData.salesByProductDataWithRowLimit,
       builder: (context, salesData) {
         final data = salesData ?? [];
 
@@ -611,6 +704,10 @@ final class _SalesReportPdfGenerator implements PdfGenerator {
         header: (context) => _buildPdfHeader(context, logo, startDate, endDate),
         build: (context) {
           return [
+            // Summary section
+            _buildSummary(context, salesData),
+            pw.SizedBox(height: 15),
+
             // Sales Table
             pw.Table(
               border: pw.TableBorder.symmetric(),
@@ -633,6 +730,44 @@ final class _SalesReportPdfGenerator implements PdfGenerator {
     );
 
     return pdf.save();
+  }
+
+  pw.Widget _buildSummary(pw.Context context, List<(Product, SalesExtras)> salesData) {
+    final totalProducts = salesData.length;
+    final totalUnitsSold = salesData.fold<double>(0.0, (sum, item) => sum + item.$2.unitsSold);
+    final totalUnitsOrdered =
+        salesData.fold<double>(0.0, (sum, item) => sum + item.$2.unitsOrdered);
+    final totalRevenue = salesData.fold<double>(
+        0.0, (sum, item) => sum + (item.$2.unitsSold * item.$2.product.salePrice));
+    final totalOrderCost = salesData.fold<double>(
+        0.0, (sum, item) => sum + (item.$2.unitsOrdered * item.$2.product.orderCost));
+    final grossProfit = totalRevenue - totalOrderCost;
+
+    return pw.Row(
+      mainAxisAlignment: pw.MainAxisAlignment.spaceAround,
+      children: [
+        _buildPdfSummaryItem('Products Sold', totalProducts.toString()),
+        _buildPdfSummaryItem('Units Sold', totalUnitsSold.toStringAsFixed(0)),
+        _buildPdfSummaryItem('Units Ordered', totalUnitsOrdered.toStringAsFixed(0)),
+        _buildPdfSummaryItem('Total Revenue', CurrencyFormatter.full(totalRevenue)),
+        _buildPdfSummaryItem('Gross Profit', CurrencyFormatter.full(grossProfit)),
+      ],
+    );
+  }
+
+  pw.Widget _buildPdfSummaryItem(String label, String value) {
+    return pw.Column(
+      children: [
+        pw.Text(
+          value,
+          style: pw.TextStyle(fontSize: 12, fontWeight: pw.FontWeight.bold),
+        ),
+        pw.Text(
+          label,
+          style: const pw.TextStyle(fontSize: 10),
+        ),
+      ],
+    );
   }
 
   /// Builds the PDF header with company logo and report information

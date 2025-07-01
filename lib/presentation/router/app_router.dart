@@ -42,6 +42,8 @@ import 'package:easthardware_pms/presentation/views/reports/'
     'profit_loss_report/profit_loss_report.dart';
 import 'package:easthardware_pms/presentation/views/reports/report_list_pane.dart';
 import 'package:easthardware_pms/presentation/views/reports/'
+    'sales_report/invoice_sales_report.dart';
+import 'package:easthardware_pms/presentation/views/reports/'
     'sales_report/sales_by_category_page.dart';
 import 'package:easthardware_pms/presentation/views/reports/'
     'sales_report/sales_by_product_page.dart';
@@ -269,6 +271,10 @@ final router = GoRouter(
                 TypedGoRoute(
                   route: AppRoutes.admin.salesByCategoryReport,
                   builder: (context, state) => const SalesByCategoryPage(),
+                ),
+                TypedGoRoute(
+                  route: AppRoutes.admin.invoiceSalesReport,
+                  builder: (context, state) => const InvoiceSalesReportPage(),
                 ),
                 TypedGoRoute(
                   route: AppRoutes.admin.expenseReport,

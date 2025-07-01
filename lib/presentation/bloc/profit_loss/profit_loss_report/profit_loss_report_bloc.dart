@@ -35,7 +35,7 @@ class ProfitLossReportBloc extends Bloc<ProfitLossReportEvent, ProfitLossReportS
     on<ProfitLossReportSetEndDateEvent>(_onSetEndDate);
     on<ProfitLossReportSetGroupByEvent>(_onSetGroupBy);
     on<ProfitLossReportSetSortByEvent>(_onSetSortBy);
-    on<ProfitLossReportSetTakeEvent>(_onSetTake);
+    on<ProfitLossReportSetRowLimitEvent>(_onSetRowLimit);
     on<ProfitLossReportSetOverlayEvent>(_onSetOverlay);
     on<ProfitLossReportRemoveOverlayEvent>(_onRemoveOverlay);
 
@@ -104,12 +104,12 @@ class ProfitLossReportBloc extends Bloc<ProfitLossReportEvent, ProfitLossReportS
     _recalculateProfitLossData(emit);
   }
 
-  void _onSetTake(
-    ProfitLossReportSetTakeEvent event,
+  void _onSetRowLimit(
+    ProfitLossReportSetRowLimitEvent event,
     Emitter<ProfitLossReportState> emit,
   ) {
     emit(state.copyWith(
-      queryData: state.queryData.copyWith(take: event.take),
+      queryData: state.queryData.copyWith(rowLimit: event.rowLimit),
     ));
     _recalculateProfitLossData(emit);
   }

@@ -120,14 +120,14 @@ class SalesQueryData with EquatableMixin {
         rowLimit,
       ];
 
-  List<(Product, SalesExtras)>? get salesByProductDataWithTake {
+  List<(Product, SalesExtras)>? get salesByProductDataWithRowLimit {
     if (rowLimit != null && salesByProductData != null) {
       return salesByProductData?.take(rowLimit!).toList();
     }
     return salesByProductData;
   }
 
-  List<SalesByCategoryDatum>? get salesByCategoryDataWithTake {
+  List<SalesByCategoryDatum>? get salesByCategoryDataWithRowLimit {
     if (rowLimit != null && salesByCategoryData != null) {
       return salesByCategoryData?.take(rowLimit!).toList();
     }

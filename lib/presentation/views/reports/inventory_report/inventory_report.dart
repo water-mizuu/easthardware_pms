@@ -11,6 +11,7 @@ import 'package:easthardware_pms/presentation/bloc/inventory/product_list/produc
 import 'package:easthardware_pms/presentation/bloc/order/orderlist/order_list_bloc.dart';
 import 'package:easthardware_pms/presentation/router/app_routes.dart';
 import 'package:easthardware_pms/presentation/views/dashboard/cards/sales_overview.dart';
+import 'package:easthardware_pms/presentation/views/reports/common/reports_globals.dart';
 import 'package:easthardware_pms/presentation/views/reports/pdf_helpers/pdf_commons.dart';
 import 'package:easthardware_pms/presentation/views/reports/pdf_helpers/pdf_generation.dart';
 import 'package:easthardware_pms/presentation/widgets/animated_single_child_scroll_view.dart';
@@ -168,7 +169,7 @@ class InventoryReportPage extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         InventoryReportOptions(),
-                        Spacing.v24,
+                        Spacing.v32,
                         InventoryReportPreview(),
                       ],
                     ),
@@ -211,34 +212,30 @@ class InventoryReportOptions extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
+    return const Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        const SubheadingText('Report Options'),
+        SubheadingText('Report Options'),
         Spacing.v12,
-        Container(
-          padding: AppPadding.cardPadding,
-          color: FluentTheme.of(context).cardColor,
-          child: const Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    _DateSelection(),
-                    Spacing.v8,
-                    _SortBy(),
-                    Spacing.v8,
-                    _RowLimitSelection(),
-                  ],
-                ),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  _DateSelection(),
+                  Spacing.v8,
+                  _SortBy(),
+                  Spacing.v8,
+                  _RowLimitSelection(),
+                ],
               ),
-              _GenerateButtons(),
-            ],
-          ),
+            ),
+            _GenerateButtons(),
+          ],
         ),
       ],
     );
@@ -291,7 +288,7 @@ class _RowLimitSelection extends StatelessWidget {
             maxWidth: 180,
           ),
           child: NumberBox<int>(
-            value: context.select((InventoryReportBloc b) => b.state.queryData.take),
+            value: context.select((InventoryReportBloc b) => b.state.queryData.rowLimit),
             min: 1,
             mode: SpinButtonPlacementMode.none,
             clearButton: false,
@@ -299,7 +296,7 @@ class _RowLimitSelection extends StatelessWidget {
               if (value != null) {
                 context
                     .read<InventoryReportBloc>() //
-                    .add(InventoryReportSetTakeEvent(value));
+                    .add(InventoryReportSetRowLimitEvent(value));
               }
             },
           ),
@@ -336,7 +333,7 @@ class _GenerateButtons extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocBuilder<InventoryReportBloc, InventoryReportState>(
       builder: (context, reportState) {
-        final filteredProducts = reportState.queryData.filteredProductsWithTake ??
+        final filteredProducts = reportState.queryData.filteredProductsWithRowLimit ??
             context.read<ProductListBloc>().state.allProducts;
 
         return Row(
@@ -392,35 +389,35 @@ class _SummarySection extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
           Expanded(
-            child: _buildSummaryItem(
+            child: ReportsGlobals.summaryItem(
               'Total Products',
               totalProducts.toString(),
               FluentIcons.product_list,
             ),
           ),
           Expanded(
-            child: _buildSummaryItem(
+            child: ReportsGlobals.summaryItem(
               'Low Stock Items',
               lowStockCount.toString(),
               FluentIcons.warning,
             ),
           ),
           Expanded(
-            child: _buildSummaryItem(
+            child: ReportsGlobals.summaryItem(
               'Out of Stock',
               deadStockCount.toString(),
               FluentIcons.error,
             ),
           ),
           Expanded(
-            child: _buildSummaryItem(
+            child: ReportsGlobals.summaryItem(
               'Active Products',
               fastMovingCount.toString(),
               FluentIcons.product_list,
             ),
           ),
           Expanded(
-            child: _buildSummaryItem(
+            child: ReportsGlobals.summaryItem(
               'Archived Products',
               archivedProducts.toString(),
               FluentIcons.warning,
@@ -430,19 +427,6 @@ class _SummarySection extends StatelessWidget {
       ),
     );
   }
-
-  Widget _buildSummaryItem(String label, String value, IconData icon) {
-    return Builder(builder: (context) {
-      return Column(
-        children: [
-          Icon(icon, size: 32),
-          Spacing.v8,
-          HeadingText(value),
-          Text(label, style: TextStyles.caption),
-        ],
-      );
-    });
-  }
 }
 
 class _ProductTablePreview extends StatelessWidget {
@@ -451,7 +435,7 @@ class _ProductTablePreview extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocSelector<InventoryReportBloc, InventoryReportState, List<Product>?>(
-      selector: (state) => state.queryData.filteredProductsWithTake,
+      selector: (state) => state.queryData.filteredProductsWithRowLimit,
       builder: (context, filteredProducts) {
         final products = filteredProducts ?? context.read<ProductListBloc>().state.allProducts;
 
@@ -463,13 +447,6 @@ class _ProductTablePreview extends StatelessWidget {
             children: [
               Container(
                 padding: const EdgeInsets.all(6.0),
-                decoration: const BoxDecoration(
-                  border: Border(bottom: BorderSide(color: Colors.grey)),
-                  borderRadius: BorderRadius.only(
-                    topLeft: Radius.circular(8),
-                    topRight: Radius.circular(8),
-                  ),
-                ),
                 child: Row(
                   children: [
                     for (final _ProductColumn(:name, :flex) in productColumns)
@@ -485,14 +462,6 @@ class _ProductTablePreview extends StatelessWidget {
                   final product = products[index];
                   return Container(
                     padding: const EdgeInsets.all(6.0),
-                    decoration: BoxDecoration(
-                      border: Border(
-                        bottom: BorderSide(
-                          color: FluentTheme.of(context).menuColor,
-                          width: 0.5,
-                        ),
-                      ),
-                    ),
                     child: Row(
                       children: [
                         for (final _ProductColumn(:flex, :value, :color) in productColumns)
@@ -511,45 +480,32 @@ class _ProductTablePreview extends StatelessWidget {
               ),
               Container(
                 padding: const EdgeInsets.all(6.0),
-                decoration: BoxDecoration(
-                  border: Border(
-                    bottom: BorderSide(
-                      color: FluentTheme.of(context).menuColor,
-                      width: 0.5,
+                child: Row(
+                  children: [
+                    Expanded(
+                      flex: productColumns.first.flex,
+                      child: Text(
+                        'Total',
+                        style: TextStyles.body.copyWith(fontWeight: FontWeight.bold),
+                      ),
                     ),
-                  ),
-                ),
-                child: DecoratedBox(
-                  decoration: const BoxDecoration(
-                    border: Border(top: BorderSide(color: Colors.grey)),
-                  ),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        flex: productColumns.first.flex,
-                        child: Text(
-                          'Total',
-                          style: TextStyles.body.copyWith(fontWeight: FontWeight.bold),
-                        ),
-                      ),
-                      for (final (index, _ProductColumn(:flex)) in productColumns.indexed)
-                        if (index != 0 && index != productColumns.length - 1)
-                          Expanded(
-                            flex: flex,
-                            child: const Text(
-                              '',
-                              overflow: TextOverflow.ellipsis,
-                            ),
+                    for (final (index, _ProductColumn(:flex)) in productColumns.indexed)
+                      if (index != 0 && index != productColumns.length - 1)
+                        Expanded(
+                          flex: flex,
+                          child: const Text(
+                            '',
+                            overflow: TextOverflow.ellipsis,
                           ),
-                      Expanded(
-                        flex: productColumns.last.flex,
-                        child: Text(
-                          '${products.fold(0.0, (sum, p) => sum + p.quantity).toNumberString()} items',
-                          style: TextStyles.body,
                         ),
+                    Expanded(
+                      flex: productColumns.last.flex,
+                      child: Text(
+                        '${products.fold(0.0, (sum, p) => sum + p.quantity).toNumberString()} items',
+                        style: TextStyles.body,
                       ),
-                    ].withSpacing(() => Spacing.h4),
-                  ),
+                    ),
+                  ].withSpacing(() => Spacing.h4),
                 ),
               ),
             ],

@@ -7,6 +7,7 @@ import 'package:easthardware_pms/presentation/bloc/order/'
     'expense_type_list/expense_type_list_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/order/orderlist/order_list_bloc.dart';
 import 'package:easthardware_pms/presentation/router/app_routes.dart';
+import 'package:easthardware_pms/presentation/views/reports/common/reports_globals.dart';
 import 'package:easthardware_pms/presentation/views/reports/'
     'expense_report/expense_query_data.dart';
 import 'package:easthardware_pms/presentation/views/reports/pdf_helpers/pdf_generation.dart';
@@ -126,7 +127,7 @@ class ExpenseReportPage extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         ExpenseReportOptions(),
-                        Spacing.v24,
+                        Spacing.v32,
                         ExpenseReportPreview(),
                       ],
                     ),
@@ -170,27 +171,23 @@ class ExpenseReportOptions extends StatelessWidget {
       children: [
         const SubheadingText('Report Options'),
         Spacing.v12,
-        Container(
-          padding: AppPadding.cardPadding,
-          color: FluentTheme.of(context).cardColor,
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: const [
-                    _StartDateSelection(),
-                    _EndDateSelection(),
-                    _SortBySelection(),
-                    _RowLimitSelection(),
-                  ].withSpacing(() => Spacing.v8),
-                ),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: const [
+                  _StartDateSelection(),
+                  _EndDateSelection(),
+                  _SortBySelection(),
+                  _RowLimitSelection(),
+                ].withSpacing(() => Spacing.v8),
               ),
-              const _GenerateButtons(),
-            ],
-          ),
+            ),
+            const _GenerateButtons(),
+          ],
         ),
       ],
     );
@@ -283,7 +280,7 @@ class _RowLimitSelection extends StatelessWidget {
             maxWidth: 180,
           ),
           child: NumberBox<int>(
-            value: context.select((ExpenseReportBloc b) => b.state.queryData.take),
+            value: context.select((ExpenseReportBloc b) => b.state.queryData.rowLimit),
             min: 1,
             mode: SpinButtonPlacementMode.none,
             clearButton: false,
@@ -291,7 +288,7 @@ class _RowLimitSelection extends StatelessWidget {
               if (value != null) {
                 context
                     .read<ExpenseReportBloc>() //
-                    .add(ExpenseReportSetTakeEvent(value));
+                    .add(ExpenseReportSetRowLimitEvent(value));
               }
             },
           ),
@@ -308,7 +305,7 @@ class _GenerateButtons extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocBuilder<ExpenseReportBloc, ExpenseReportState>(
       builder: (context, reportState) {
-        final expenseData = reportState.queryData.expenseDataWithTake ?? [];
+        final expenseData = reportState.queryData.expenseDataWithRowLimit ?? [];
 
         return Row(
           children: [
@@ -336,8 +333,73 @@ class ExpenseReportPreview extends StatelessWidget {
       children: [
         SubheadingText('Report Preview'),
         Spacing.v12,
+        _ExpenseSummarySection(),
+        Spacing.v16,
         _ExpenseTablePreview(),
       ],
+    );
+  }
+}
+
+class _ExpenseSummarySection extends StatelessWidget {
+  const _ExpenseSummarySection();
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<ExpenseReportBloc, ExpenseReportState>(
+      builder: (context, state) {
+        final expenseData = state.queryData.expenseDataWithRowLimit ?? [];
+        final totalExpenses = expenseData.length;
+        final totalAmount = expenseData.fold(0.0, (sum, expense) => sum + expense.amountDue);
+        final uniquePayees = expenseData.map((e) => e.payeeName).toSet().length;
+        final uniqueExpenseTypes = expenseData.map((e) => e.expenseTypeName).toSet().length;
+        final averageExpense = totalExpenses > 0 ? totalAmount / totalExpenses : 0.0;
+
+        return Container(
+          padding: AppPadding.cardPadding,
+          color: FluentTheme.of(context).cardColor,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              Expanded(
+                child: ReportsGlobals.summaryItem(
+                  'Total Expenses',
+                  totalExpenses.toString(),
+                  FluentIcons.receipt_processing,
+                ),
+              ),
+              Expanded(
+                child: ReportsGlobals.summaryItem(
+                  'Total Amount',
+                  CurrencyFormatter.full(totalAmount),
+                  FluentIcons.money,
+                ),
+              ),
+              Expanded(
+                child: ReportsGlobals.summaryItem(
+                  'Unique Payees',
+                  uniquePayees.toString(),
+                  FluentIcons.people,
+                ),
+              ),
+              Expanded(
+                child: ReportsGlobals.summaryItem(
+                  'Expense Types',
+                  uniqueExpenseTypes.toString(),
+                  FluentIcons.category_classification,
+                ),
+              ),
+              Expanded(
+                child: ReportsGlobals.summaryItem(
+                  'Average Amount',
+                  CurrencyFormatter.full(averageExpense),
+                  FluentIcons.calculated_table,
+                ),
+              ),
+            ].withSpacing(() => Spacing.h8),
+          ),
+        );
+      },
     );
   }
 }
@@ -348,7 +410,7 @@ class _ExpenseTablePreview extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocSelector<ExpenseReportBloc, ExpenseReportState, List<(Order, ExpenseType)>?>(
-      selector: (state) => state.queryData.expenseDataWithTake,
+      selector: (state) => state.queryData.expenseDataWithRowLimit,
       builder: (context, expenseData) {
         final data = expenseData ?? [];
 
@@ -360,9 +422,6 @@ class _ExpenseTablePreview extends StatelessWidget {
             children: [
               Container(
                 padding: const EdgeInsets.all(6.0),
-                decoration: const BoxDecoration(
-                  border: Border(bottom: BorderSide(color: Colors.grey)),
-                ),
                 child: Row(
                   children: [
                     for (final _ExpenseColumn(:name, :flex) in expenseColumns)
@@ -405,14 +464,6 @@ class _ExpenseTablePreview extends StatelessWidget {
               ),
               Container(
                 padding: const EdgeInsets.all(6.0),
-                decoration: BoxDecoration(
-                  border: Border(
-                    bottom: BorderSide(
-                      color: FluentTheme.of(context).menuColor,
-                      width: 0.5,
-                    ),
-                  ),
-                ),
                 child: Row(
                   children: ([
                     for (final _ExpenseColumn(:flex, :total) in expenseColumns)
@@ -514,6 +565,10 @@ final class _ExpenseReportPdfGenerator implements PdfGenerator {
         header: (context) => _buildPdfHeader(context, logo, startDate, endDate),
         build: (context) {
           return [
+            // Summary section
+            _buildSummary(context, expenseData),
+            pw.SizedBox(height: 15),
+
             // Expense Table
             pw.Table(
               border: pw.TableBorder.symmetric(),
@@ -536,6 +591,40 @@ final class _ExpenseReportPdfGenerator implements PdfGenerator {
     );
 
     return pdf.save();
+  }
+
+  pw.Widget _buildSummary(pw.Context context, List<(Order, ExpenseType)> expenseData) {
+    final totalExpenses = expenseData.length;
+    final totalAmount = expenseData.fold<double>(0.0, (sum, expense) => sum + expense.$1.amountDue);
+    final uniquePayees = expenseData.map((e) => e.$1.payeeName).toSet().length;
+    final uniqueExpenseTypes = expenseData.map((e) => e.$2.name).toSet().length;
+    final averageExpense = totalExpenses > 0 ? totalAmount / totalExpenses : 0.0;
+
+    return pw.Row(
+      mainAxisAlignment: pw.MainAxisAlignment.spaceAround,
+      children: [
+        _buildPdfSummaryItem('Total Expenses', totalExpenses.toString()),
+        _buildPdfSummaryItem('Total Amount', CurrencyFormatter.full(totalAmount)),
+        _buildPdfSummaryItem('Unique Payees', uniquePayees.toString()),
+        _buildPdfSummaryItem('Expense Types', uniqueExpenseTypes.toString()),
+        _buildPdfSummaryItem('Average Amount', CurrencyFormatter.full(averageExpense)),
+      ],
+    );
+  }
+
+  pw.Widget _buildPdfSummaryItem(String label, String value) {
+    return pw.Column(
+      children: [
+        pw.Text(
+          value,
+          style: pw.TextStyle(fontSize: 12, fontWeight: pw.FontWeight.bold),
+        ),
+        pw.Text(
+          label,
+          style: const pw.TextStyle(fontSize: 10),
+        ),
+      ],
+    );
   }
 
   pw.Widget _buildPdfHeader(

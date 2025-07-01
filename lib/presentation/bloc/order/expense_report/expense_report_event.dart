@@ -47,13 +47,13 @@ class ExpenseReportSetSortByEvent extends ExpenseReportEvent {
   List<Object?> get props => [sortBy];
 }
 
-class ExpenseReportSetTakeEvent extends ExpenseReportEvent {
-  const ExpenseReportSetTakeEvent(this.take);
+class ExpenseReportSetRowLimitEvent extends ExpenseReportEvent {
+  const ExpenseReportSetRowLimitEvent(this.rowLimit);
 
-  final int? take;
+  final int? rowLimit;
 
   @override
-  List<Object?> get props => [take];
+  List<Object?> get props => [rowLimit];
 }
 
 class ExpenseReportSetOverlayEvent extends ExpenseReportEvent {

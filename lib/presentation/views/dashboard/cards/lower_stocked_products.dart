@@ -1,6 +1,7 @@
 import 'package:easthardware_pms/domain/models/product.dart';
 import 'package:easthardware_pms/presentation/bloc/inventory/product_list/product_list_bloc.dart';
 import 'package:easthardware_pms/presentation/router/app_routes.dart';
+import 'package:easthardware_pms/presentation/widgets/animated_single_child_scroll_view.dart';
 import 'package:easthardware_pms/presentation/widgets/layout/spacing.dart';
 import 'package:easthardware_pms/presentation/widgets/text.dart';
 import 'package:easthardware_pms/utils/typed_routes.dart';
@@ -16,6 +17,8 @@ class LowerStockedProducts extends StatefulWidget {
 }
 
 class _LowerStockedProductsState extends State<LowerStockedProducts> {
+  late final GlobalKey _globalKey = GlobalKey();
+
   late final AnimatedScrollController verticalScrollController;
   late final AnimatedScrollController horizontalScrollController;
 
@@ -48,6 +51,8 @@ class _LowerStockedProductsState extends State<LowerStockedProducts> {
     ),
   };
 
+  double? height;
+
   @override
   void initState() {
     super.initState();
@@ -57,6 +62,16 @@ class _LowerStockedProductsState extends State<LowerStockedProducts> {
     horizontalScrollController = AnimatedScrollController(
       animationFactory: const ChromiumEaseInOut(),
     );
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final renderBox = _globalKey.currentContext?.findRenderObject() as RenderBox?;
+
+      if (renderBox != null) {
+        setState(() {
+          height = renderBox.size.height;
+        });
+      }
+    });
   }
 
   @override
@@ -92,7 +107,7 @@ class _LowerStockedProductsState extends State<LowerStockedProducts> {
               style: const TextStyle(fontWeight: FontWeight.w600),
             )
       ],
-      for (final product in products) //
+      for (final product in height == null ? products.take(6) : products) //
         [
           for (final (flex, selector) in _rowExtents.values)
             if (flex != null) Expanded(flex: flex, child: selector(product)) else selector(product)
@@ -100,6 +115,7 @@ class _LowerStockedProductsState extends State<LowerStockedProducts> {
     ];
 
     return Container(
+      key: _globalKey,
       color: FluentTheme.of(context).cardColor,
       padding: AppPadding.cardPadding,
       child: Column(
@@ -116,15 +132,26 @@ class _LowerStockedProductsState extends State<LowerStockedProducts> {
             )
           else
             Expanded(
-              child: Column(
-                children: [
-                  for (final row in matrix)
-                    Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [for (final cell in row) cell],
-                    ),
-                ],
-              ),
+              child: Builder(builder: (context) {
+                final widget = Column(
+                  children: [
+                    for (final row in matrix)
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [for (final cell in row) cell],
+                      ),
+                  ],
+                );
+
+                if (height == null) {
+                  return widget;
+                }
+
+                return ConstrainedBox(
+                  constraints: BoxConstraints(maxHeight: height!),
+                  child: AnimatedSingleChildScrollView(child: widget),
+                );
+              }),
             )
         ],
       ),

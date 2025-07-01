@@ -112,7 +112,7 @@ class ExpenseQueryData extends Equatable {
     this.expenseData,
     this.expenseSummary,
     this.sortBy = ExpenseReportSortBy.dateDescending,
-    this.take,
+    this.rowLimit,
   });
 
   final DateTime startDate;
@@ -120,7 +120,7 @@ class ExpenseQueryData extends Equatable {
   final List<(Order, ExpenseType)>? expenseData;
   final List<ExpenseExtras>? expenseSummary;
   final ExpenseReportSortBy sortBy;
-  final int? take;
+  final int? rowLimit;
 
   ExpenseQueryData Function({
     DateTime startDate,
@@ -128,7 +128,7 @@ class ExpenseQueryData extends Equatable {
     List<(Order, ExpenseType)>? expenseData,
     List<ExpenseExtras>? expenseSummary,
     ExpenseReportSortBy sortBy,
-    int? take,
+    int? rowLimit,
   }) get copyWith {
     return ({
       Object? startDate = undefined,
@@ -136,7 +136,7 @@ class ExpenseQueryData extends Equatable {
       Object? expenseData = undefined,
       Object? expenseSummary = undefined,
       Object? sortBy = undefined,
-      Object? take = undefined,
+      Object? rowLimit = undefined,
     }) {
       return ExpenseQueryData(
         startDate: startDate.or(this.startDate),
@@ -144,17 +144,17 @@ class ExpenseQueryData extends Equatable {
         expenseData: expenseData.or(this.expenseData),
         expenseSummary: expenseSummary.or(this.expenseSummary),
         sortBy: sortBy.or(this.sortBy),
-        take: take.or(this.take),
+        rowLimit: rowLimit.or(this.rowLimit),
       );
     };
   }
 
   @override
-  List<Object?> get props => [startDate, endDate, expenseData, expenseSummary, sortBy, take];
+  List<Object?> get props => [startDate, endDate, expenseData, expenseSummary, sortBy, rowLimit];
 
-  List<(Order, ExpenseType)>? get expenseDataWithTake {
-    if (take != null && expenseData != null) {
-      return expenseData?.take(take!).toList();
+  List<(Order, ExpenseType)>? get expenseDataWithRowLimit {
+    if (rowLimit != null && expenseData != null) {
+      return expenseData?.take(rowLimit!).toList();
     }
     return expenseData;
   }
