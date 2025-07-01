@@ -83,6 +83,10 @@ enum InvoiceDisplaySortBy {
   customerDescending('Customer (Z-A)'),
   totalAscending('Total (Low to High)'),
   totalDescending('Total (High to Low)'),
+  paidAscending('Paid (Low to High)'),
+  paidDescending('Paid (High to Low)'),
+  remainingAscending('Remaining (Low to High)'),
+  remainingDescending('Remaining (High to Low)'),
   statusAscending('Status (A-Z)'),
   statusDescending('Status (Z-A)');
 

@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math';
 import 'dart:ui';
 
 import 'package:easthardware_pms/domain/models/category.dart';
@@ -83,98 +84,93 @@ class _BusinessSnapshotReportState extends State<BusinessSnapshotReport> {
   }
 
   Widget _buildFilters(BuildContext context, BusinessSnapshotReportState state) {
-    return Card(
-      child: Padding(
-        padding: AppPadding.cardPadding,
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const SubheadingText('Report Filters'),
+              Spacing.v8,
+              Row(
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  const SubheadingText('Report Filters'),
-                  Spacing.v8,
-                  Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const SizedBox(width: 80, child: Text('Start Date: ')),
-                      Spacing.h8,
-                      Flexible(
-                        child: BorderedDatePicker(
-                          selected: state.queryData.currentPeriodStart,
-                          onChanged: (date) {
-                            context
-                                .read<BusinessSnapshotReportBloc>()
-                                .add(BusinessSnapshotReportSetStartDateEvent(date));
-                          },
-                        ),
-                      ),
-                    ],
+                  const SizedBox(width: 80, child: Text('Start Date: ')),
+                  Spacing.h8,
+                  Flexible(
+                    child: BorderedDatePicker(
+                      selected: state.queryData.currentPeriodStart,
+                      onChanged: (date) {
+                        context
+                            .read<BusinessSnapshotReportBloc>()
+                            .add(BusinessSnapshotReportSetStartDateEvent(date));
+                      },
+                    ),
                   ),
-                  Spacing.v8,
-                  Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const SizedBox(width: 80, child: Text('End Date: ')),
-                      Spacing.h8,
-                      Flexible(
-                        child: BorderedDatePicker(
-                          selected: state.queryData.currentPeriodEnd,
-                          onChanged: (date) {
-                            context
-                                .read<BusinessSnapshotReportBloc>()
-                                .add(BusinessSnapshotReportSetEndDateEvent(date));
-                          },
-                        ),
-                      ),
-                    ],
-                  ),
-                  Spacing.v16,
-                  Row(
-                    children: [
-                      const Text('Comparison Period:'),
-                      Spacing.h8,
-                      ComboBox<BusinessSnapshotPeriod>(
-                        value: state.queryData.comparisonPeriod,
-                        items: [
-                          for (final period in BusinessSnapshotPeriod.values)
-                            ComboBoxItem<BusinessSnapshotPeriod>(
-                              value: period,
-                              child: Text(period.name),
-                            ),
-                        ],
-                        onChanged: (value) {
-                          if (value != null) {
-                            context
-                                .read<BusinessSnapshotReportBloc>()
-                                .add(BusinessSnapshotReportSetComparisonPeriodEvent(value));
-                          }
-                        },
-                      ),
-                    ],
-                  ),
-                  Spacing.v8,
-                  _buildProductSelectionSection(context, state),
-                  Spacing.v8,
-                  _buildCategorySelectionSection(context, state),
                 ],
               ),
-            ),
-            Spacing.h16,
-            BlocBuilder<BusinessSnapshotReportBloc, BusinessSnapshotReportState>(
-              builder: (context, reportState) {
-                return TextButtonFilled(
-                  'Generate Business Snapshot Report',
-                  onPressed: reportState.isGenerating
-                      ? null
-                      : () => unawaited(_generatePdfReport(context, reportState)),
-                );
-              },
-            ),
-          ],
+              Spacing.v8,
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const SizedBox(width: 80, child: Text('End Date: ')),
+                  Spacing.h8,
+                  Flexible(
+                    child: BorderedDatePicker(
+                      selected: state.queryData.currentPeriodEnd,
+                      onChanged: (date) {
+                        context
+                            .read<BusinessSnapshotReportBloc>()
+                            .add(BusinessSnapshotReportSetEndDateEvent(date));
+                      },
+                    ),
+                  ),
+                ],
+              ),
+              Spacing.v16,
+              Row(
+                children: [
+                  const Text('Comparison Period:'),
+                  Spacing.h8,
+                  ComboBox<BusinessSnapshotPeriod>(
+                    value: state.queryData.comparisonPeriod,
+                    items: [
+                      for (final period in BusinessSnapshotPeriod.values)
+                        ComboBoxItem<BusinessSnapshotPeriod>(
+                          value: period,
+                          child: Text(period.name),
+                        ),
+                    ],
+                    onChanged: (value) {
+                      if (value != null) {
+                        context
+                            .read<BusinessSnapshotReportBloc>()
+                            .add(BusinessSnapshotReportSetComparisonPeriodEvent(value));
+                      }
+                    },
+                  ),
+                ],
+              ),
+              Spacing.v8,
+              _buildProductSelectionSection(context, state),
+              Spacing.v8,
+              _buildCategorySelectionSection(context, state),
+            ],
+          ),
         ),
-      ),
+        Spacing.h16,
+        BlocBuilder<BusinessSnapshotReportBloc, BusinessSnapshotReportState>(
+          builder: (context, reportState) {
+            return TextButtonFilled(
+              'Generate Business Snapshot Report',
+              onPressed: reportState.isGenerating
+                  ? null
+                  : () => unawaited(_generatePdfReport(context, reportState)),
+            );
+          },
+        ),
+      ],
     );
   }
 
@@ -561,18 +557,18 @@ class _BusinessSnapshotReportState extends State<BusinessSnapshotReport> {
   Widget _buildSalesHistorySection(BuildContext context, BusinessSnapshotReportState state) {
     final revenueTrends = state.queryData.revenueTrends ?? [];
 
-    return Card(
-      child: Padding(
-        padding: AppPadding.cardPadding,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const SubheadingText('Sales History'),
-            Spacing.v16,
-            if (revenueTrends.isNotEmpty)
-              RepaintBoundary(
-                key: _chartKey,
-                child: Column(
+    return RepaintBoundary(
+      key: _chartKey,
+      child: Card(
+        child: Padding(
+          padding: AppPadding.cardPadding,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const SubheadingText('Sales History'),
+              Spacing.v16,
+              if (revenueTrends.isNotEmpty)
+                Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     // Legend
@@ -585,12 +581,9 @@ class _BusinessSnapshotReportState extends State<BusinessSnapshotReport> {
                       queryData: state.queryData,
                     ),
                   ],
-                ),
-              )
-            else
-              RepaintBoundary(
-                key: _chartKey,
-                child: const SizedBox(
+                )
+              else
+                const SizedBox(
                   height: 300,
                   child: Center(
                     child: Column(
@@ -610,8 +603,8 @@ class _BusinessSnapshotReportState extends State<BusinessSnapshotReport> {
                     ),
                   ),
                 ),
-              ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -797,6 +790,7 @@ class _BusinessSnapshotReportState extends State<BusinessSnapshotReport> {
           return ComboBox<Product>(
             placeholder: const Text('Choose a product...'),
             value: selectedProduct,
+            isExpanded: true,
             items: [
               for (final product in availableProducts)
                 ComboBoxItem<Product>(
@@ -863,6 +857,7 @@ class _BusinessSnapshotReportState extends State<BusinessSnapshotReport> {
         content: StatefulBuilder(builder: (context, setState) {
           return ComboBox<(int, String)>(
             placeholder: const Text('Choose a category...'),
+            isExpanded: true,
             value: selectedCategory,
             onChanged: (value) => setState(() => selectedCategory = value),
             items: [
@@ -1515,7 +1510,10 @@ class _SalesHistoryChart extends StatelessWidget {
 
     final lineChartData = _createLineChartData();
 
-    return LineChart(lineChartData);
+    return ConstrainedBox(
+      constraints: const BoxConstraints(maxHeight: 450),
+      child: LineChart(lineChartData),
+    );
   }
 
   LineChartData _createLineChartData() {
@@ -1531,11 +1529,15 @@ class _SalesHistoryChart extends StatelessWidget {
 
       for (var i = 0; i < revenueTrends.length; i++) {
         final trend = revenueTrends[i];
-        revenueSpots.add(FlSpot(i.toDouble(), trend.revenue));
-        expenseSpots.add(FlSpot(i.toDouble(), trend.expenses));
-        profitSpots.add(FlSpot(i.toDouble(), trend.profit));
+        final revenue = trend.revenue.isFinite ? trend.revenue : 0.0;
+        final expenses = trend.expenses.isFinite ? trend.expenses : 0.0;
+        final profit = trend.profit.isFinite ? trend.profit : 0.0;
 
-        allValues.addAll([trend.revenue, trend.expenses, trend.profit.abs()]);
+        revenueSpots.add(FlSpot(i.toDouble(), revenue));
+        expenseSpots.add(FlSpot(i.toDouble(), expenses));
+        profitSpots.add(FlSpot(i.toDouble(), profit));
+
+        allValues.addAll([revenue, expenses, profit.abs()]);
 
         if (dateLabels.length <= i) {
           dateLabels.add(DateFormat('MMM dd').format(trend.date));
@@ -1586,48 +1588,49 @@ class _SalesHistoryChart extends StatelessWidget {
       const Color(0xFFFF5722), // Deep Orange
       const Color(0xFF00BCD4), // Cyan
     ];
-    for (var seriesIndex = 0; seriesIndex < productSeries.length; seriesIndex++) {
-      final series = productSeries[seriesIndex];
-      final spots = <FlSpot>[];
+    // for (var seriesIndex = 0; seriesIndex < productSeries.length; seriesIndex++) {
+    //   final series = productSeries[seriesIndex];
+    //   final spots = <FlSpot>[];
 
-      for (var i = 0; i < series.trends.length; i++) {
-        final trend = series.trends[i];
-        spots.add(FlSpot(i.toDouble(), trend.revenue));
-        allValues.add(trend.revenue);
-      }
+    //   for (var i = 0; i < series.trends.length; i++) {
+    //     final trend = series.trends[i];
+    //     final revenue = trend.revenue.isFinite ? trend.revenue : 0.0;
+    //     spots.add(FlSpot(i.toDouble(), revenue));
+    //     allValues.add(revenue);
+    //   }
 
-      if (spots.isNotEmpty) {
-        lineBarsData.add(LineChartBarData(
-          spots: spots,
-          isCurved: true,
-          color: productColors[seriesIndex % productColors.length],
-          barWidth: 2,
-          isStrokeCapRound: true,
-          dotData: FlDotData(
-            show: true,
-            getDotPainter: (spot, percent, barData, index) {
-              return FlDotCirclePainter(
-                radius: 3,
-                color: productColors[seriesIndex % productColors.length],
-                strokeWidth: 1,
-                strokeColor: Colors.white,
-              );
-            },
-          ),
-          belowBarData: BarAreaData(show: false),
-        ));
-      }
-    } // Add category sales trend lines
+    //   if (spots.isNotEmpty) {
+    //     lineBarsData.add(LineChartBarData(
+    //       spots: spots,
+    //       isCurved: true,
+    //       color: productColors[seriesIndex % productColors.length],
+    //       barWidth: 2,
+    //       isStrokeCapRound: true,
+    //       dotData: FlDotData(
+    //         show: true,
+    //         getDotPainter: (spot, percent, barData, index) {
+    //           return FlDotCirclePainter(
+    //             radius: 3,
+    //             color: productColors[seriesIndex % productColors.length],
+    //             strokeWidth: 1,
+    //             strokeColor: Colors.white,
+    //           );
+    //         },
+    //       ),
+    //       belowBarData: BarAreaData(show: false),
+    //     ));
+    //   }
+    // } // Add category sales trend lines
     final categorySeries = queryData.categorySalesTrendSeries;
     final categoryColors = [
-      const Color(0x00cddc39), // Lime
-      const Color(0x00ffc107), // Amber
-      const Color(0x00673ab7), // Deep Purple
-      const Color(0x00607d8b), // Blue Grey
-      const Color(0x008bc34a), // Light Green
-      const Color(0x00f44336), // Red Accent
-      const Color(0x00ffeb3b), // Yellow Accent
-      const Color(0x0003a9f4), // Light Blue
+      const Color(0xFFCDDC39), // Lime
+      const Color(0xFFFFC107), // Amber
+      const Color(0xFF673AB7), // Deep Purple
+      const Color(0xFF607D8B), // Blue Grey
+      const Color(0xFF8BC34A), // Light Green
+      const Color(0xFFF44336), // Red Accent
+      const Color(0xFFFFEB3B), // Yellow Accent
+      const Color(0xFF03A9F4), // Light Blue
     ];
 
     for (var seriesIndex = 0; seriesIndex < categorySeries.length; seriesIndex++) {
@@ -1635,8 +1638,9 @@ class _SalesHistoryChart extends StatelessWidget {
       final spots = <FlSpot>[];
       for (var i = 0; i < series.trends.length; i++) {
         final trend = series.trends[i];
-        spots.add(FlSpot(i.toDouble(), trend.totalRevenue));
-        allValues.add(trend.totalRevenue);
+        final totalRevenue = trend.totalRevenue.isFinite ? trend.totalRevenue : 0.0;
+        spots.add(FlSpot(i.toDouble(), totalRevenue));
+        allValues.add(totalRevenue);
       }
 
       if (spots.isNotEmpty) {
@@ -1663,12 +1667,31 @@ class _SalesHistoryChart extends StatelessWidget {
 
     // Handle edge cases where there's no data
     if (allValues.isEmpty) {
-      return LineChartData();
+      return LineChartData(
+        minX: 0,
+        maxX: 1,
+        minY: 0,
+        maxY: 100,
+        lineBarsData: [],
+      );
     }
 
-    final maxY = allValues.reduce((a, b) => a > b ? a : b);
-    final minY = allValues.where((v) => v < 0).isNotEmpty //
-        ? allValues.reduce((a, b) => a < b ? a : b)
+    // Filter out any NaN or infinite values
+    final validValues = allValues.where((v) => v.isFinite).toList();
+
+    if (validValues.isEmpty) {
+      return LineChartData(
+        minX: 0,
+        maxX: 1,
+        minY: 0,
+        maxY: 100,
+        lineBarsData: [],
+      );
+    }
+
+    final maxY = validValues.reduce((a, b) => a > b ? a : b);
+    final minY = validValues.where((v) => v < 0).isNotEmpty //
+        ? validValues.reduce(min)
         : 0.0;
 
     final dataLength = revenueTrends.isNotEmpty
@@ -1793,8 +1816,12 @@ class _SalesHistoryChart extends StatelessWidget {
         sideTitles: SideTitles(
           showTitles: true,
           reservedSize: 32,
-          interval: _calculateInterval(),
+          interval: revenueTrends.isNotEmpty ? _calculateInterval() : 1.0,
           getTitlesWidget: (value, meta) {
+            if (!value.isFinite) {
+              return const SizedBox.shrink();
+            }
+
             final index = value.toInt();
             if (index < 0 || index >= revenueTrends.length) {
               return const SizedBox.shrink();
@@ -1818,6 +1845,10 @@ class _SalesHistoryChart extends StatelessWidget {
           showTitles: true,
           reservedSize: 80,
           getTitlesWidget: (value, meta) {
+            if (!value.isFinite) {
+              return const SizedBox.shrink();
+            }
+
             return SideTitleWidget(
               meta: meta,
               child: Text(
@@ -1836,10 +1867,11 @@ class _SalesHistoryChart extends StatelessWidget {
   double _calculateInterval() {
     // Show approximately 6-8 labels on the x-axis
     const maxLabels = 8;
-    if (revenueTrends.length <= maxLabels) {
-      return 1.0; // Show all labels if we have few data points
+    if (revenueTrends.isEmpty || revenueTrends.length <= maxLabels) {
+      return 1.0; // Show all labels if we have few data points or no data
     }
-    return (revenueTrends.length / maxLabels).ceilToDouble();
+    final interval = (revenueTrends.length / maxLabels).ceilToDouble();
+    return interval.isFinite && interval > 0 ? interval : 1.0;
   }
 }
 

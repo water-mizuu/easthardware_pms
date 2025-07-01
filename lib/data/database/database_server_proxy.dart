@@ -1,3 +1,4 @@
+import 'package:easthardware_pms/utils/boxed.dart';
 import 'package:easthardware_pms/utils/message_channel.dart';
 import 'package:flutter/foundation.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
@@ -39,10 +40,14 @@ mixin ServerRedirect {
 mixin ResettableDatabase on ServerRedirect {
   Future<void> reset() async {
     if (kDebugMode) {
-      print("Restarting database connection...");
+      printBoxed("Restarting database connection...");
     }
 
     await server.invokeMethod("resetDb");
+
+    if (kDebugMode) {
+      printBoxed("Restarted database connection...");
+    }
   }
 }
 

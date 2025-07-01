@@ -365,7 +365,13 @@ class DataRowMapper {
     final invoiceCustomer = invoice.customerName.isNotEmpty //
         ? invoice.customerName
         : "Walk-in Customer";
+
+    final paymentValue = (invoice.amountPaid ?? 0.0);
+
     final invoiceTotal = CurrencyFormatter.full(invoice.amountDue);
+    final invoicePaid = CurrencyFormatter.full(paymentValue);
+    final invoiceRemaining = CurrencyFormatter.full(invoice.amountDue - paymentValue);
+
     final actionsCell = editAction == null && printAction == null && receivePaymentAction == null
         ? null
         : DataCell(
@@ -399,6 +405,8 @@ class DataRowMapper {
           DataCell(Text(invoiceId)),
           DataCell(Text(invoiceCustomer)),
           DataCell(Text(invoiceTotal)),
+          DataCell(Text(invoicePaid)),
+          DataCell(Text(invoiceRemaining)),
           DataCell(Row(children: [Badges.good('Paid on $paymentDate')])),
           if (actionsCell case final actionsCell?) actionsCell,
         ],
@@ -412,6 +420,8 @@ class DataRowMapper {
           DataCell(Text(invoiceId)),
           DataCell(Text(invoiceCustomer)),
           DataCell(Text(invoiceTotal)),
+          DataCell(Text(invoicePaid)),
+          DataCell(Text(invoiceRemaining)),
           DataCell(Row(children: [Badges.bad('Overdue')])),
           if (actionsCell case final actionsCell?) actionsCell,
         ],
@@ -425,6 +435,8 @@ class DataRowMapper {
           DataCell(Text(invoiceId)),
           DataCell(Text(invoiceCustomer)),
           DataCell(Text(invoiceTotal)),
+          DataCell(Text(invoicePaid)),
+          DataCell(Text(invoiceRemaining)),
           DataCell(Row(children: [
             Badges.warn('Due in ${invoice.dueDate.difference(DateTime.now()).inDays} days')
           ])),
@@ -439,6 +451,8 @@ class DataRowMapper {
         DataCell(Text(invoiceId)),
         DataCell(Text(invoiceCustomer)),
         DataCell(Text(invoiceTotal)),
+        DataCell(Text(invoicePaid)),
+        DataCell(Text(invoiceRemaining)),
         DataCell(Row(children: [Badges.normal('Due')])),
         if (actionsCell case final actionsCell?) actionsCell,
       ],

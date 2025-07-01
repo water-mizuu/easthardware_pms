@@ -97,6 +97,18 @@ class InvoiceDisplayCubit extends Cubit<InvoiceDisplayState> {
             ? InvoiceDisplaySortBy.totalDescending
             : InvoiceDisplaySortBy.totalAscending;
 
+      case InvoiceDisplaySortBy.paidAscending:
+      case InvoiceDisplaySortBy.paidDescending:
+        return ascending //
+            ? InvoiceDisplaySortBy.paidDescending
+            : InvoiceDisplaySortBy.paidAscending;
+
+      case InvoiceDisplaySortBy.remainingAscending:
+      case InvoiceDisplaySortBy.remainingDescending:
+        return ascending
+            ? InvoiceDisplaySortBy.remainingDescending
+            : InvoiceDisplaySortBy.remainingAscending;
+
       case InvoiceDisplaySortBy.statusAscending:
       case InvoiceDisplaySortBy.statusDescending:
         return ascending
@@ -176,6 +188,18 @@ class InvoiceDisplayCubit extends Cubit<InvoiceDisplayState> {
         break;
       case InvoiceDisplaySortBy.totalDescending:
         sortedInvoices.sort((a, b) => b.amountDue.compareTo(a.amountDue));
+        break;
+      case InvoiceDisplaySortBy.paidAscending:
+        sortedInvoices.sort((a, b) => (a.amountPaid ?? 0.0).compareTo((b.amountPaid ?? 0.0)));
+        break;
+      case InvoiceDisplaySortBy.paidDescending:
+        sortedInvoices.sort((a, b) => (b.amountPaid ?? 0.0).compareTo((a.amountPaid ?? 0.0)));
+        break;
+      case InvoiceDisplaySortBy.remainingAscending:
+        sortedInvoices.sort((a, b) => a.remaining.compareTo(b.remaining));
+        break;
+      case InvoiceDisplaySortBy.remainingDescending:
+        sortedInvoices.sort((a, b) => b.remaining.compareTo(a.remaining));
         break;
       case InvoiceDisplaySortBy.statusAscending:
         final paidInvoices = sortedInvoices.where((i) => i.paymentDate != null).toList();

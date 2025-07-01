@@ -44,7 +44,7 @@ final DateTime currentDate = DateTime(2025, 6, 29);
 
 /// Constants for configuring mock data generation
 const int NUM_INVOICES = 100; // Increased from 50
-const int NUM_ORDERS = 80; // Increased from 20
+const int NUM_ORDERS = 40; // Increased from 20
 const int MAX_PRODUCTS = 50; // Limit products to 50
 const int DAYS_IN_PAST = 180; // How far back the orders and invoices go (approximately 6 months)
 
@@ -1544,7 +1544,7 @@ Future<void> generateMockData(DatabaseHelper databaseHelper) async {
     // Generate orders evenly distributed over time
     for (var i = 0; i < NUM_ORDERS; i++) {
       // Distribute orders evenly from today to DAYS_IN_PAST
-      final daysAgo = (i * DAYS_IN_PAST / NUM_ORDERS).round();
+      final daysAgo = (i * DAYS_IN_PAST / 2).round();
       final orderDate = currentDate.subtract(Duration(days: daysAgo));
 
       // Determine expense type (bias towards inventory restock)
@@ -1596,7 +1596,7 @@ Future<void> generateMockData(DatabaseHelper databaseHelper) async {
 
       if (expenseTypeId == expenseTypeIds[0]) {
         // For inventory restock - use actual products
-        final productCount = 1 + (i % 4); // 1-4 products per order
+        final productCount = 1 + (i % 2); // 1-4 products per order
         final selectedProducts = <int>{}; // Avoid duplicate products in same order
 
         for (var j = 0; j < productCount; j++) {
@@ -1622,11 +1622,11 @@ Future<void> generateMockData(DatabaseHelper databaseHelper) async {
           // Determine quantity for restocking
           double quantity;
           if (product.mainUnit == "piece" || product.mainUnit == "set") {
-            quantity = 10.0 + (j % 10); // 10-19 for piece/set items for restocking
+            quantity = 4.0 + (j % 10); // 10-19 for piece/set items for restocking
           } else if (product.mainUnit == "bag" || product.mainUnit == "gallon") {
-            quantity = 5.0 + (j % 5); // 5-9 for heavy items
+            quantity = 3.0 + (j % 5); // 5-9 for heavy items
           } else {
-            quantity = 8.0 + (j % 7); // 8-14 for other items
+            quantity = 2.0 + (j % 7); // 8-14 for other items
           }
 
           // Use purchase price as rate for orders

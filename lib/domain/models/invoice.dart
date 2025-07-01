@@ -133,7 +133,8 @@ class Invoice {
   }
 
   Map<String, dynamic> toMap() {
-    final map = <String, dynamic>{
+    return {
+      'id': id,
       'customer_name': customerName,
       'invoice_date': invoiceDate.toIso8601String(),
       'due_date': dueDate.toIso8601String(),
@@ -143,30 +144,12 @@ class Invoice {
       'amount_due': amountDue,
       'creator_id': creatorId,
       'creation_date': creationDate.toIso8601String(),
+      'discount': discount,
+      'discount_type': discountType?.index,
+      'payment_date': paymentDate?.toIso8601String(),
+      'amount_paid': amountPaid,
     };
-
-    // Only add optional fields if they are not null
-    if (discount != null) {
-      map['discount'] = discount;
-      // Only include discount_type if discount is present
-      if (discountType != null) {
-        map['discount_type'] = discountType!.index;
-      }
-    }
-
-    if (paymentDate != null) {
-      map['payment_date'] = paymentDate!.toIso8601String();
-    }
-
-    if (amountPaid != null) {
-      map['amount_paid'] = amountPaid;
-    }
-
-    // Include ID if available (for updates)
-    if (id != null) {
-      map['id'] = id;
-    }
-
-    return map;
   }
+
+  double get remaining => amountDue - (amountPaid ?? 0.0);
 }

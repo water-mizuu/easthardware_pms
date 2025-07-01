@@ -3,7 +3,8 @@ import 'dart:async';
 import 'package:easthardware_pms/domain/enums/enums.dart';
 import 'package:easthardware_pms/domain/models/invoice.dart';
 import 'package:easthardware_pms/presentation/bloc/billing/invoicelist/invoice_list_bloc.dart';
-import 'package:easthardware_pms/presentation/bloc/inventory/category_list/category_list_bloc.dart';
+import 'package:easthardware_pms/presentation/bloc/inventory/'
+    'category_list/category_list_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/inventory/product_list/product_list_bloc.dart';
 import 'package:easthardware_pms/presentation/router/app_routes.dart';
 import 'package:easthardware_pms/presentation/views/billing/components/invoice_information_content_dialog.dart';
