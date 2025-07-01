@@ -1,6 +1,7 @@
 import 'package:bloc/bloc.dart';
 import 'package:easthardware_pms/domain/models/product.dart';
 import 'package:easthardware_pms/presentation/cubit/archive/archive_sort_enums.dart';
+import 'package:easthardware_pms/utils/compare_lowercase.dart';
 import 'package:equatable/equatable.dart';
 
 part 'archived_product_display_state.dart';
@@ -28,7 +29,7 @@ class ArchivedProductDisplayCubit extends Cubit<ArchivedProductDisplayState> {
 
   void sort(ArchivedProductSortBy sortBy) {
     final products = List<Product>.from(state.filteredProducts);
-    bool sortAscending = true;
+    var sortAscending = true;
 
     switch (sortBy) {
       case ArchivedProductSortBy.idAscending:
@@ -41,29 +42,29 @@ class ArchivedProductDisplayCubit extends Cubit<ArchivedProductDisplayState> {
         sortAscending = false;
         break;
       case ArchivedProductSortBy.skuAscending:
-        products.sort((a, b) => a.sku.compareTo(b.sku));
+        products.sort((a, b) => a.sku.compareToLowercase(b.sku));
         sortBy = ArchivedProductSortBy.skuDescending;
         break;
       case ArchivedProductSortBy.skuDescending:
-        products.sort((a, b) => b.sku.compareTo(a.sku));
+        products.sort((a, b) => b.sku.compareToLowercase(a.sku));
         sortBy = ArchivedProductSortBy.skuAscending;
         sortAscending = false;
         break;
       case ArchivedProductSortBy.nameAscending:
-        products.sort((a, b) => a.name.compareTo(b.name));
+        products.sort((a, b) => a.name.compareToLowercase(b.name));
         sortBy = ArchivedProductSortBy.nameDescending;
         break;
       case ArchivedProductSortBy.nameDescending:
-        products.sort((a, b) => b.name.compareTo(a.name));
+        products.sort((a, b) => b.name.compareToLowercase(a.name));
         sortBy = ArchivedProductSortBy.nameAscending;
         sortAscending = false;
         break;
       case ArchivedProductSortBy.categoryAscending:
-        products.sort((a, b) => (a.categoryName ?? '').compareTo(b.categoryName ?? ''));
+        products.sort((a, b) => (a.categoryName ?? '').compareToLowercase(b.categoryName ?? ''));
         sortBy = ArchivedProductSortBy.categoryDescending;
         break;
       case ArchivedProductSortBy.categoryDescending:
-        products.sort((a, b) => (b.categoryName ?? '').compareTo(a.categoryName ?? ''));
+        products.sort((a, b) => (b.categoryName ?? '').compareToLowercase(a.categoryName ?? ''));
         sortBy = ArchivedProductSortBy.categoryAscending;
         sortAscending = false;
         break;

@@ -1,4 +1,5 @@
 import 'package:easthardware_pms/domain/models/product.dart';
+import 'package:easthardware_pms/utils/compare_lowercase.dart';
 
 enum InventoryDisplaySortBy {
   nameAscending('Name (A-Z)'),
@@ -27,13 +28,13 @@ enum InventoryDisplaySortBy {
 
     switch (this) {
       case InventoryDisplaySortBy.nameAscending:
-        return a.name.compareTo(b.name);
+        return a.name.compareToLowercase(b.name);
       case InventoryDisplaySortBy.nameDescending:
-        return b.name.compareTo(a.name);
+        return b.name.compareToLowercase(a.name);
       case InventoryDisplaySortBy.categoryAscending:
-        return (a.categoryName ?? '').compareTo(b.categoryName ?? '');
+        return (a.categoryName ?? '').compareToLowercase(b.categoryName ?? '');
       case InventoryDisplaySortBy.categoryDescending:
-        return (b.categoryName ?? '').compareTo(a.categoryName ?? '');
+        return (b.categoryName ?? '').compareToLowercase(a.categoryName ?? '');
       case InventoryDisplaySortBy.stockAscending:
         return a.quantity.compareTo(b.quantity);
       case InventoryDisplaySortBy.stockDescending:
@@ -67,7 +68,7 @@ enum InventoryDisplaySortBy {
             break;
         }
 
-        return a.name.compareTo(b.name); // Both are in stock, sort by name
+        return a.name.compareToLowercase(b.name); // Both are in stock, sort by name
       case InventoryDisplaySortBy.urgencyDescending:
         return -compareProducts(a, b); // Reverse urgency order
     }

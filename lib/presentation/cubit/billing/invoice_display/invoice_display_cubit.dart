@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:bloc/bloc.dart';
 import 'package:easthardware_pms/domain/enums/enums.dart';
 import 'package:easthardware_pms/domain/models/invoice.dart';
+import 'package:easthardware_pms/utils/compare_lowercase.dart';
 import 'package:easthardware_pms/utils/levenshtein.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -165,10 +166,10 @@ class InvoiceDisplayCubit extends Cubit<InvoiceDisplayState> {
         sortedInvoices.sort((a, b) => b.id!.compareTo(a.id!));
         break;
       case InvoiceDisplaySortBy.customerAscending:
-        sortedInvoices.sort((a, b) => a.customerName.compareTo(b.customerName));
+        sortedInvoices.sort((a, b) => a.customerName.compareToLowercase(b.customerName));
         break;
       case InvoiceDisplaySortBy.customerDescending:
-        sortedInvoices.sort((a, b) => b.customerName.compareTo(a.customerName));
+        sortedInvoices.sort((a, b) => b.customerName.compareToLowercase(a.customerName));
         break;
       case InvoiceDisplaySortBy.totalAscending:
         sortedInvoices.sort((a, b) => a.amountDue.compareTo(b.amountDue));

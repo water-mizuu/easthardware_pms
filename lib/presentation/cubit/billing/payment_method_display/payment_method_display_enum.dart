@@ -1,8 +1,9 @@
 import 'package:easthardware_pms/domain/models/payment_method.dart';
+import 'package:easthardware_pms/utils/compare_lowercase.dart';
 
 enum PaymentMethodDisplaySortBy {
-  nameAscending('Name Ascending'),
-  nameDescending('Name Descending');
+  nameAscending('Name (A-Z)'),
+  nameDescending('Name (Z-A)');
 
   const PaymentMethodDisplaySortBy(this.name);
   final String name;
@@ -10,9 +11,9 @@ enum PaymentMethodDisplaySortBy {
   int comparePaymentMethods(PaymentMethod a, PaymentMethod b) {
     switch (this) {
       case PaymentMethodDisplaySortBy.nameAscending:
-        return a.name.compareTo(b.name);
+        return a.name.compareToLowercase(b.name);
       case PaymentMethodDisplaySortBy.nameDescending:
-        return b.name.compareTo(a.name);
+        return b.name.compareToLowercase(a.name);
     }
   }
 }

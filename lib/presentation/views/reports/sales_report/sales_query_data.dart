@@ -2,6 +2,7 @@ import 'package:easthardware_pms/domain/models/product.dart';
 import 'package:easthardware_pms/presentation/views/reports/common/reports_globals.dart';
 import 'package:easthardware_pms/presentation/views/reports/sales_report/'
     'extensions/sales_by_category_datum.dart';
+import 'package:easthardware_pms/utils/compare_lowercase.dart';
 import 'package:easthardware_pms/utils/undefined.dart';
 import 'package:equatable/equatable.dart';
 
@@ -135,20 +136,20 @@ class SalesQueryData with EquatableMixin {
 }
 
 enum SalesByProductReportSortBy {
-  skuAscending('SKU Ascending'),
-  skuDescending('SKU Descending'),
-  productNameAscending('Product Name Ascending'),
-  productNameDescending('Product Name Descending'),
-  unitsSoldAscending('Units Sold Ascending'),
-  unitsSoldDescending('Units Sold Descending'),
-  sellingPriceAscending('Selling Price Ascending'),
-  sellingPriceDescending('Selling Price Descending'),
-  totalRevenueAscending('Total Revenue Ascending'),
-  totalRevenueDescending('Total Revenue Descending'),
-  totalOrderCostAscending('Total Order Cost Ascending'),
-  totalOrderCostDescending('Total Order Cost Descending'),
-  grossProfitAscending('Gross Profit Ascending'),
-  grossProfitDescending('Gross Profit Descending'),
+  skuAscending('SKU (A-Z)'),
+  skuDescending('SKU (Z-A)'),
+  productNameAscending('Product Name (A-Z)'),
+  productNameDescending('Product Name (Z-A)'),
+  unitsSoldAscending('Units Sold (Low to High)'),
+  unitsSoldDescending('Units Sold (High to Low)'),
+  sellingPriceAscending('Selling Price (Low to High)'),
+  sellingPriceDescending('Selling Price (High to Low)'),
+  totalRevenueAscending('Total Revenue (Low to High)'),
+  totalRevenueDescending('Total Revenue (High to Low)'),
+  totalOrderCostAscending('Total Order Cost (Low to High)'),
+  totalOrderCostDescending('Total Order Cost (High to Low)'),
+  grossProfitAscending('Gross Profit (Low to High)'),
+  grossProfitDescending('Gross Profit (High to Low)'),
   ;
 
   const SalesByProductReportSortBy(this.name);
@@ -212,13 +213,13 @@ enum SalesByProductReportSortBy {
 
     switch (this) {
       case SalesByProductReportSortBy.skuAscending:
-        return productA.sku.compareTo(productB.sku);
+        return productA.sku.compareToLowercase(productB.sku);
       case SalesByProductReportSortBy.skuDescending:
-        return productB.sku.compareTo(productA.sku);
+        return productB.sku.compareToLowercase(productA.sku);
       case SalesByProductReportSortBy.productNameAscending:
-        return productA.name.compareTo(productB.name);
+        return productA.name.compareToLowercase(productB.name);
       case SalesByProductReportSortBy.productNameDescending:
-        return productB.name.compareTo(productA.name);
+        return productB.name.compareToLowercase(productA.name);
       case SalesByProductReportSortBy.unitsSoldAscending:
         return extrasA.unitsSold.compareTo(extrasB.unitsSold);
       case SalesByProductReportSortBy.unitsSoldDescending:
@@ -244,20 +245,20 @@ enum SalesByProductReportSortBy {
 }
 
 enum SalesByCategoryReportSortBy {
-  categoryNameAscending('Category Name Ascending'),
-  categoryNameDescending('Category Name Descending'),
-  unitsSoldAscending('Units Sold Ascending'),
-  unitsSoldDescending('Units Sold Descending'),
-  unitsOrderedAscending('Units Ordered Ascending'),
-  unitsOrderedDescending('Units Ordered Descending'),
-  sellingPriceAscending('Selling Price Ascending'),
-  sellingPriceDescending('Selling Price Descending'),
-  totalRevenueAscending('Total Revenue Ascending'),
-  totalRevenueDescending('Total Revenue Descending'),
-  totalOrderCostAscending('Total Order Cost Ascending'),
-  totalOrderCostDescending('Total Order Cost Descending'),
-  grossProfitAscending('Gross Profit Ascending'),
-  grossProfitDescending('Gross Profit Descending'),
+  categoryNameAscending('Category Name (A-Z)'),
+  categoryNameDescending('Category Name (Z-A)'),
+  unitsSoldAscending('Units Sold (Low to High)'),
+  unitsSoldDescending('Units Sold (High to Low)'),
+  unitsOrderedAscending('Units Ordered (Low to High)'),
+  unitsOrderedDescending('Units Ordered (High to Low)'),
+  sellingPriceAscending('Selling Price (Low to High)'),
+  sellingPriceDescending('Selling Price (High to Low)'),
+  totalRevenueAscending('Total Revenue (Low to High)'),
+  totalRevenueDescending('Total Revenue (High to Low)'),
+  totalOrderCostAscending('Total Order Cost (Low to High)'),
+  totalOrderCostDescending('Total Order Cost (High to Low)'),
+  grossProfitAscending('Gross Profit (Low to High)'),
+  grossProfitDescending('Gross Profit (High to Low)'),
   ;
 
   const SalesByCategoryReportSortBy(this.name);
@@ -309,9 +310,9 @@ enum SalesByCategoryReportSortBy {
 
     switch (this) {
       case SalesByCategoryReportSortBy.categoryNameAscending:
-        return a.category.name.compareTo(b.category.name);
+        return a.category.name.compareToLowercase(b.category.name);
       case SalesByCategoryReportSortBy.categoryNameDescending:
-        return b.category.name.compareTo(a.category.name);
+        return b.category.name.compareToLowercase(a.category.name);
       case SalesByCategoryReportSortBy.unitsSoldAscending:
         return a.unitsSold.compareTo(b.unitsSold);
       case SalesByCategoryReportSortBy.unitsSoldDescending:

@@ -1,6 +1,7 @@
 import 'package:easthardware_pms/domain/models/expense_type.dart';
 import 'package:easthardware_pms/domain/models/order.dart';
 import 'package:easthardware_pms/presentation/views/reports/common/reports_globals.dart';
+import 'package:easthardware_pms/utils/compare_lowercase.dart';
 import 'package:easthardware_pms/utils/undefined.dart';
 import 'package:equatable/equatable.dart';
 
@@ -68,13 +69,13 @@ enum ExpenseReportSortBy {
   int compare((Order, ExpenseType) a, (Order, ExpenseType) b) {
     switch (this) {
       case ExpenseReportSortBy.expenseTypeAscending:
-        return a.expenseType.name.compareTo(b.expenseType.name);
+        return a.expenseType.name.compareToLowercase(b.expenseType.name);
       case ExpenseReportSortBy.expenseTypeDescending:
-        return b.expenseType.name.compareTo(a.expenseType.name);
+        return b.expenseType.name.compareToLowercase(a.expenseType.name);
       case ExpenseReportSortBy.payeeNameAscending:
-        return a.order.payeeName.compareTo(b.order.payeeName);
+        return a.order.payeeName.compareToLowercase(b.order.payeeName);
       case ExpenseReportSortBy.payeeNameDescending:
-        return b.order.payeeName.compareTo(a.order.payeeName);
+        return b.order.payeeName.compareToLowercase(a.order.payeeName);
       case ExpenseReportSortBy.amountDueAscending:
         return a.order.amountDue.compareTo(b.order.amountDue);
       case ExpenseReportSortBy.amountDueDescending:

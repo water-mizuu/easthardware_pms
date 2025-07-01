@@ -23,6 +23,7 @@ import 'package:easthardware_pms/presentation/widgets/ui/loading_page.dart';
 import 'package:easthardware_pms/presentation/widgets/ui/styles.dart';
 import 'package:easthardware_pms/presentation/widgets/ui/text_button.dart';
 import 'package:easthardware_pms/utils/boxed.dart';
+import 'package:easthardware_pms/utils/compare_lowercase.dart';
 import 'package:easthardware_pms/utils/show_single_dialog.dart';
 import 'package:easthardware_pms/utils/typed_routes.dart';
 import 'package:fl_chart/fl_chart.dart';
@@ -579,7 +580,7 @@ class _FormTableRowState extends State<FormTableRow> {
       },
       builder: (context, state) {
         final products = (context.read<ProductListBloc>().state.allProducts)
-          ..sort((a, b) => (a.name.toLowerCase()).compareTo(b.name.toLowerCase()));
+          ..sort((a, b) => a.name.compareToLowercase(b.name));
 
         final bloc = context.read<InvoiceFormBloc>();
         final currentFormProduct = state.products[widget.index];

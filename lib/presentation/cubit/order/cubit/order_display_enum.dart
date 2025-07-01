@@ -1,4 +1,5 @@
 import 'package:easthardware_pms/domain/models/order.dart';
+import 'package:easthardware_pms/utils/compare_lowercase.dart';
 
 enum OrderDisplaySortBy {
   orderDateAscending,
@@ -23,9 +24,9 @@ enum OrderDisplaySortBy {
       case OrderDisplaySortBy.idDescending:
         return (a, b) => b.id!.compareTo(a.id!);
       case OrderDisplaySortBy.payeeNameAscending:
-        return (a, b) => a.payeeName.compareTo(b.payeeName);
+        return (a, b) => a.payeeName.compareToLowercase(b.payeeName);
       case OrderDisplaySortBy.payeeNameDescending:
-        return (a, b) => b.payeeName.compareTo(a.payeeName);
+        return (a, b) => b.payeeName.compareToLowercase(a.payeeName);
       case OrderDisplaySortBy.expenseTypeAscending:
         return (a, b) => a.expenseType.compareTo(b.expenseType);
       case OrderDisplaySortBy.expenseTypeDescending:

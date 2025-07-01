@@ -1,6 +1,7 @@
 import 'package:bloc/bloc.dart';
 import 'package:easthardware_pms/presentation/cubit/order/expense_type_display/display_expense_type.dart';
 import 'package:easthardware_pms/presentation/cubit/order/expense_type_display/expense_type_display_enum.dart';
+import 'package:easthardware_pms/utils/compare_lowercase.dart';
 import 'package:equatable/equatable.dart';
 
 part 'expense_type_display_state.dart';
@@ -85,8 +86,8 @@ class ExpenseTypeDisplayCubit extends Cubit<ExpenseTypeDisplayState> {
 
   void _sortByName(List<DisplayExpenseType> items, bool ascending) {
     items.sort((a, b) => ascending
-        ? a.expenseType.name.compareTo(b.expenseType.name)
-        : b.expenseType.name.compareTo(a.expenseType.name));
+        ? a.expenseType.name.compareToLowercase(b.expenseType.name)
+        : b.expenseType.name.compareToLowercase(a.expenseType.name));
 
     emit(
       state.copyWith(

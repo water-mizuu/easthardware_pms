@@ -2,6 +2,7 @@ import 'package:easthardware_pms/domain/models/category.dart';
 import 'package:easthardware_pms/domain/models/expense_type.dart';
 import 'package:easthardware_pms/domain/models/product.dart';
 import 'package:easthardware_pms/presentation/views/reports/common/reports_globals.dart';
+import 'package:easthardware_pms/utils/compare_lowercase.dart';
 import 'package:easthardware_pms/utils/undefined.dart';
 import 'package:equatable/equatable.dart';
 
@@ -243,9 +244,9 @@ enum TopSellingProductSortBy {
   int compare(TopSellingProduct a, TopSellingProduct b) {
     switch (this) {
       case TopSellingProductSortBy.nameAscending:
-        return a.product.name.compareTo(b.product.name);
+        return a.product.name.compareToLowercase(b.product.name);
       case TopSellingProductSortBy.nameDescending:
-        return b.product.name.compareTo(a.product.name);
+        return b.product.name.compareToLowercase(a.product.name);
       case TopSellingProductSortBy.quantitySoldAscending:
         return a.quantitySold.compareTo(b.quantitySold);
       case TopSellingProductSortBy.quantitySoldDescending:
@@ -277,9 +278,9 @@ enum ExpenseBreakdownSortBy {
   int compare(ExpenseBreakdown a, ExpenseBreakdown b) {
     switch (this) {
       case ExpenseBreakdownSortBy.nameAscending:
-        return a.expenseType.name.compareTo(b.expenseType.name);
+        return a.expenseType.name.compareToLowercase(b.expenseType.name);
       case ExpenseBreakdownSortBy.nameDescending:
-        return b.expenseType.name.compareTo(a.expenseType.name);
+        return b.expenseType.name.compareToLowercase(a.expenseType.name);
       case ExpenseBreakdownSortBy.amountAscending:
         return a.amount.compareTo(b.amount);
       case ExpenseBreakdownSortBy.amountDescending:
@@ -309,9 +310,9 @@ enum BusinessMetricSortBy {
   int compare(BusinessMetric a, BusinessMetric b) {
     switch (this) {
       case BusinessMetricSortBy.nameAscending:
-        return a.name.compareTo(b.name);
+        return a.name.compareToLowercase(b.name);
       case BusinessMetricSortBy.nameDescending:
-        return b.name.compareTo(a.name);
+        return b.name.compareToLowercase(a.name);
       case BusinessMetricSortBy.currentValueAscending:
         return a.currentValue.compareTo(b.currentValue);
       case BusinessMetricSortBy.currentValueDescending:

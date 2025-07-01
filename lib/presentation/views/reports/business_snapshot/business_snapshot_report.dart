@@ -16,6 +16,7 @@ import 'package:easthardware_pms/presentation/widgets/helper/currency_formatter.
 import 'package:easthardware_pms/presentation/widgets/layout/spacing.dart';
 import 'package:easthardware_pms/presentation/widgets/text.dart';
 import 'package:easthardware_pms/presentation/widgets/ui/text_button.dart';
+import 'package:easthardware_pms/utils/compare_lowercase.dart';
 import 'package:easthardware_pms/utils/notification.dart';
 import 'package:easthardware_pms/utils/num_iterable_extension.dart';
 import 'package:easthardware_pms/utils/typed_routes.dart';
@@ -775,7 +776,7 @@ class _BusinessSnapshotReportState extends State<BusinessSnapshotReport> {
     final availableProducts = state.products
         .where((p) => !state.queryData.selectedProducts.any((s) => s.id == p.id))
         .toList()
-      ..sort((a, b) => a.name.compareTo(b.name));
+      ..sort((a, b) => a.name.compareToLowercase(b.name));
 
     if (availableProducts.isEmpty) {
       showNotification(
