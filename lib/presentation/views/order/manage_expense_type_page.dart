@@ -21,6 +21,9 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:scroll_animator/scroll_animator.dart';
+import 'package:easthardware_pms/presentation/bloc/security/user_log_list/user_log_list_bloc.dart';
+import 'package:easthardware_pms/presentation/cubit/notifications/cubit/notification_cubit.dart';
+import 'package:easthardware_pms/presentation/bloc/authentication/authentication/authentication_bloc.dart';
 
 class ManageExpenseTypePage extends StatefulWidget {
   const ManageExpenseTypePage({super.key});
@@ -313,10 +316,30 @@ Future<void> showContentDialog(BuildContext context, [ExpenseType? expenseType])
             listenWhen: (previous, current) => previous.status != current.status,
             listener: (context, state) {
               if (state.status == FormStatus.submitting) {
+                final authState = context.read<AuthenticationBloc>().state;
                 if (isAdding) {
                   bloc.add(AddExpenseTypeEvent(ExpenseType(name: state.name)));
+                  context.read<UserLogListBloc>().add(
+                        AddUpdateEvent(
+                          'Expense Type #${bloc.state.expenseTypes.length + 1}',
+                          authState.user!,
+                        ),
+                      );
                 } else {
                   bloc.add(UpdateExpenseTypeEvent(expenseType.copyWith(name: state.name)));
+                  context.read<UserLogListBloc>().add(
+                        AddUpdateEvent(
+                          'Expense Type #${expenseType.id}',
+                          authState.user!,
+                        ),
+                      );
+                  context.read<NotificationCubit>().addNotification(
+                        type: NotificationType.warning,
+                        title: 'Notice:',
+                        message:
+                            '${expenseType.name} expense type was updated by ${authState.user!.username}.',
+                        path: '',
+                      );
                 }
                 context.read<ExpenseTypeFormCubit>().onSubmit();
               } else if (state.status == FormStatus.submitted) {

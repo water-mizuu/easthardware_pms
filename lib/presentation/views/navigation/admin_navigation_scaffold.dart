@@ -1,6 +1,7 @@
 import 'dart:io' show Platform;
 
 import 'package:easthardware_pms/presentation/cubit/navigation/navigation_cubit.dart';
+import 'package:easthardware_pms/presentation/cubit/notifications/cubit/notification_cubit.dart';
 import 'package:easthardware_pms/presentation/router/app_routes.dart';
 import 'package:easthardware_pms/presentation/views/navigation/common_side_panel_mixin.dart';
 import 'package:easthardware_pms/presentation/widgets/brand/navrail_header.dart';
@@ -8,6 +9,7 @@ import 'package:easthardware_pms/presentation/widgets/helper/nav_rail_route_inde
 import 'package:easthardware_pms/presentation/widgets/is_full_screen_provider.dart';
 import 'package:easthardware_pms/presentation/widgets/layout_mode_provider.dart';
 import 'package:easthardware_pms/presentation/widgets/title_bar.dart';
+import 'package:easthardware_pms/presentation/widgets/ui/styles.dart';
 import 'package:easthardware_pms/utils/boxed.dart';
 import 'package:easthardware_pms/utils/typed_routes.dart';
 import 'package:fluent_ui/fluent_ui.dart';
@@ -165,7 +167,33 @@ class _AdminNavigationViewState extends State<AdminNavigationView>
               }
             },
             items: _navigationItems,
-            footerItems: _footerItems,
+            footerItems: [
+              PaneItem(
+                infoBadge: context.watch<NotificationCubit>().state.notifications.isNotEmpty
+                    ? InfoBadge(
+                        source: Center(
+                            child: Text(
+                          '${ //
+                          context. //
+                              read<NotificationCubit>(). //
+                              state.notifications.where(
+                                (n) => !n.isRead,
+                              ).length //
+                          }',
+                          style: const TextStyle(color: Colors.white).merge(TextStyles.tooltip),
+                        )),
+                      )
+                    : null,
+                body: const NullWidget(),
+                title: const Text('Notifications'),
+                icon: const Icon(FluentIcons.action_center),
+                onTap: () {
+                  if (!context.mounted) return;
+                  context.navigate(AppRoutes.admin.notifications);
+                },
+              ),
+              ..._footerItems
+            ],
           ),
         ),
       ),

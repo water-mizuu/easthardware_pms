@@ -13,6 +13,7 @@ import 'package:easthardware_pms/presentation/bloc/order/orderlist/order_list_bl
 import 'package:easthardware_pms/presentation/bloc/payment/'
     'payment_method_list/payment_method_list_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/security/user_log_list/user_log_list_bloc.dart';
+import 'package:easthardware_pms/presentation/cubit/notifications/cubit/notification_cubit.dart';
 import 'package:easthardware_pms/presentation/models/form_order_item.dart';
 import 'package:easthardware_pms/presentation/router/app_routes.dart';
 import 'package:easthardware_pms/presentation/views/order/'
@@ -34,7 +35,6 @@ import 'package:easthardware_pms/presentation/widgets/text.dart';
 import 'package:easthardware_pms/presentation/widgets/ui/form_table_column.dart';
 import 'package:easthardware_pms/presentation/widgets/ui/styles.dart';
 import 'package:easthardware_pms/presentation/widgets/ui/text_button.dart';
-import 'package:easthardware_pms/utils/notification.dart';
 import 'package:easthardware_pms/utils/typed_routes.dart';
 import 'package:fluent_ui/fluent_ui.dart';
 import 'package:flutter/services.dart';
@@ -129,16 +129,17 @@ class _EditExpenseOrderPageState extends State<EditExpenseOrderPage> {
           BlocListener<OrderListBloc, OrderListState>(
             listenWhen: (p, c) => c.status == DataStatus.success && p.status != c.status,
             listener: (context, state) {
+              final authState = context.read<AuthenticationBloc>().state;
               final userName = context.read<AuthenticationBloc>().state.user!;
               final orderId = widget.order.id!;
               context.read<UserLogListBloc>().add(AddUpdateEvent('Order #$orderId', userName));
               context.read<UserLogListBloc>().add(const LoadUserLogsEvent());
-
-              showNotification(
-                title: "Success",
-                message: "Order #$orderId has been successfully updated.",
-                severity: InfoBarSeverity.success,
-              );
+              context.read<NotificationCubit>().addNotification(
+                    type: NotificationType.warning,
+                    title: 'Notice:',
+                    message: 'Order No.$orderId was updated by ${authState.user!.username}.',
+                    path: '${AppRoutes.admin.editExpenseOrder.path},$orderId',
+                  );
               context.navigate(AppRoutes.admin.order);
             },
           ),

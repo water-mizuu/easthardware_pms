@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:fluent_ui/fluent_ui.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:easthardware_pms/presentation/cubit/notifications/cubit/notification_cubit.dart';
@@ -11,22 +13,13 @@ class NotificationsPanePage extends StatefulWidget {
 }
 
 class _NotificationsPanePageState extends State<NotificationsPanePage> {
-  final TextEditingController _messageController = TextEditingController();
-  final TextEditingController _pathController = TextEditingController();
-  final dateFormat = DateFormat('MMM dd, yyyy hh:mm a');
-  NotificationType _selectedType = NotificationType.info;
-
   @override
   void initState() {
     super.initState();
-    // Load notifications when the page is opened
-    context.read<NotificationCubit>().loadNotifications();
   }
 
   @override
   void dispose() {
-    _messageController.dispose();
-    _pathController.dispose();
     super.dispose();
   }
 
@@ -37,78 +30,6 @@ class _NotificationsPanePageState extends State<NotificationsPanePage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Create notification form
-          Card(
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'Create New Notification',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 16),
-                  // Message input
-                  InfoLabel(
-                    label: 'Message',
-                    child: TextBox(
-                      controller: _messageController,
-                      placeholder: 'Notification message...',
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  // Path input
-                  InfoLabel(
-                    label: 'Path',
-                    child: TextBox(
-                      controller: _pathController,
-                      placeholder: 'e.g., /invoices/123',
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  // Type selection
-                  InfoLabel(
-                    label: 'Type',
-                    child: ComboBox<NotificationType>(
-                      value: _selectedType,
-                      items: NotificationType.values.map((type) {
-                        return ComboBoxItem<NotificationType>(
-                          value: type,
-                          child: Text(type.name.toUpperCase()),
-                        );
-                      }).toList(),
-                      onChanged: (value) {
-                        setState(() {
-                          _selectedType = value!;
-                        });
-                      },
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  // Create button
-                  FilledButton(
-                    onPressed: () {
-                      if (_messageController.text.isNotEmpty && _pathController.text.isNotEmpty) {
-                        context.read<NotificationCubit>().addNotification(
-                              title: 'New Notification',
-                              type: _selectedType,
-                              message: _messageController.text,
-                              path: _pathController.text,
-                            );
-                        _messageController.clear();
-                        _pathController.clear();
-                      }
-                    },
-                    child: const Text('Create Notification'),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          const SizedBox(height: 16),
-
-          // Notification list header with actions
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -120,23 +41,16 @@ class _NotificationsPanePageState extends State<NotificationsPanePage> {
                 children: [
                   Button(
                     onPressed: () {
-                      context.read<NotificationCubit>().markAllAsRead();
+                      unawaited(context.read<NotificationCubit>().markAllAsRead());
                     },
                     child: const Text('Mark All as Read'),
                   ),
                   const SizedBox(width: 8),
                   Button(
                     onPressed: () {
-                      context.read<NotificationCubit>().deleteAllNotifications();
+                      unawaited(context.read<NotificationCubit>().deleteAllNotifications());
                     },
                     child: const Text('Delete All'),
-                  ),
-                  const SizedBox(width: 8),
-                  Button(
-                    onPressed: () {
-                      context.read<NotificationCubit>().loadNotifications();
-                    },
-                    child: const Text('Refresh'),
                   ),
                 ],
               ),
@@ -179,7 +93,7 @@ class _NotificationsPanePageState extends State<NotificationsPanePage> {
                                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                   children: [
                                     Text(
-                                      dateFormat.format(notification.time),
+                                      DateFormat('yyyy-MM-dd HH:mm:ss').format(notification.time),
                                       style: TextStyle(
                                         color: Colors.grey[130],
                                         fontSize: 12,
@@ -241,9 +155,9 @@ class _NotificationsPanePageState extends State<NotificationsPanePage> {
                                     const SizedBox(width: 8),
                                     Button(
                                       onPressed: () {
-                                        context
+                                        unawaited(context
                                             .read<NotificationCubit>()
-                                            .deleteNotification(notification.id);
+                                            .deleteNotification(notification.id));
                                       },
                                       child: const Text('Delete'),
                                     ),

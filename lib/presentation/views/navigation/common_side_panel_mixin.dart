@@ -1,7 +1,6 @@
 import 'package:easthardware_pms/presentation/bloc/authentication/'
     'authentication/authentication_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/server/server_bloc.dart';
-import 'package:easthardware_pms/presentation/router/app_routes.dart';
 import 'package:easthardware_pms/presentation/widgets/dialog/log_out_dialog.dart';
 import 'package:easthardware_pms/presentation/widgets/text.dart';
 import 'package:easthardware_pms/utils/typed_routes.dart';
@@ -88,15 +87,6 @@ mixin CommonSidePanelMixin on NavigationPanelMixin {
           },
         ),
       ],
-      PaneItem(
-        body: const NullWidget(),
-        title: const Text('Notifications'),
-        icon: const Icon(FluentIcons.action_center),
-        onTap: () {
-          if (!context.mounted) return;
-          context.navigate(AppRoutes.admin.notifications);
-        },
-      ),
       PaneItem(
         body: const NullWidget(),
         icon: const Icon(FluentIcons.contact),

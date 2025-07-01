@@ -8,6 +8,7 @@ import 'package:easthardware_pms/presentation/bloc/billing/invoicelist/invoice_l
 import 'package:easthardware_pms/presentation/bloc/inventory/product_list/product_list_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/inventory/unit_list/unit_list_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/security/user_log_list/user_log_list_bloc.dart';
+import 'package:easthardware_pms/presentation/cubit/notifications/cubit/notification_cubit.dart';
 import 'package:easthardware_pms/presentation/models/form_product.dart';
 import 'package:easthardware_pms/presentation/router/app_routes.dart';
 import 'package:easthardware_pms/presentation/widgets/auto_auto_suggest_box.dart';
@@ -45,6 +46,7 @@ class CreateInvoicePage extends StatelessWidget {
     return BlocProvider(
       create: (_) => InvoiceFormBloc(),
       child: Builder(builder: (context) {
+        final previousLowStock = context.read<ProductListBloc>().state.lowStockProducts;
         return MultiBlocListener(
           listeners: [
             BlocListener<InvoiceFormBloc, InvoiceFormState>(
@@ -99,7 +101,6 @@ class CreateInvoicePage extends StatelessWidget {
                       .add(AddCreateEvent('Invoice #${latest.id}', authState.user!))
                   ..read<UserLogListBloc>() //
                       .add(const LoadUserLogsEvent());
-
                 switch (formState.action) {
                   case InvoicePostAction.create:
                     context.read<InvoiceFormBloc>().add(const FormSubmittedEvent());
@@ -108,12 +109,15 @@ class CreateInvoicePage extends StatelessWidget {
                   case InvoicePostAction.payment:
                     if (authState.user!.accessLevel == AccessLevel.administrator) {
                       context.navigateWithExtra(AppRoutes.admin.createPayment.withInvoice, latest);
+                      context.read<InvoiceFormBloc>().add(const FormSubmittedEvent());
                     } else {
                       context.navigateWithExtra(AppRoutes.staff.createPayment.withInvoice, latest);
+                      context.read<InvoiceFormBloc>().add(const FormSubmittedEvent());
                     }
                     break;
 
                   case InvoicePostAction.none:
+                    context.read<InvoiceFormBloc>().add(const FormSubmittedEvent());
                     final route = authState.user!.accessLevel == AccessLevel.administrator
                         ? AppRoutes.admin.billing
                         : AppRoutes.staff.billing;
@@ -130,6 +134,27 @@ class CreateInvoicePage extends StatelessWidget {
                 //
               },
             ),
+            BlocListener<ProductListBloc, ProductListState>(
+              listenWhen: (prev, curr) => prev.lowStockProducts != curr.lowStockProducts,
+              listener: (context, state) {
+                printBoxed('Low stock products updated');
+                printBoxed('Previous low stock products: ${state.lowStockProducts.length}');
+                final newlyLowStock = state.lowStockProducts
+                    .where(
+                      (item) => !previousLowStock.map((p) => p.id).contains(item.id),
+                    )
+                    .toList();
+                printBoxed(newlyLowStock);
+                for (final product in newlyLowStock) {
+                  context.read<NotificationCubit>().addNotification(
+                        type: NotificationType.warning,
+                        title: 'Low Stock Alert',
+                        message: 'Product ${product.name} is low on stock.',
+                        path: AppRoutes.admin.createRestockOrder.withProduct.path,
+                      );
+                }
+              },
+            )
           ],
           child: Stack(
             children: [

@@ -2,11 +2,14 @@ import 'dart:async';
 
 import 'package:easthardware_pms/domain/enums/enums.dart';
 import 'package:easthardware_pms/domain/models/category.dart';
+import 'package:easthardware_pms/presentation/bloc/authentication/authentication/authentication_bloc.dart';
 
 import 'package:easthardware_pms/presentation/bloc/inventory/category_list/category_list_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/inventory/product_list/product_list_bloc.dart';
+import 'package:easthardware_pms/presentation/bloc/security/user_log_list/user_log_list_bloc.dart';
 import 'package:easthardware_pms/presentation/cubit/inventory/category_display/category_display_cubit.dart';
 import 'package:easthardware_pms/presentation/cubit/inventory/category_form/category_form_cubit.dart';
+import 'package:easthardware_pms/presentation/cubit/notifications/cubit/notification_cubit.dart';
 import 'package:easthardware_pms/presentation/router/app_routes.dart';
 import 'package:easthardware_pms/presentation/views/inventory/category_data_source.dart';
 import 'package:easthardware_pms/presentation/widgets/layout/spacing.dart';
@@ -287,10 +290,30 @@ Future<void> showContentDialog(BuildContext context, [Category? category]) async
             listener: (context, state) {
               switch (state.status) {
                 case FormStatus.submitting:
+                  final authState = context.read<AuthenticationBloc>().state;
                   if (isAdding) {
                     bloc.add(AddCategoryEvent(Category(name: state.name!)));
+                    context.read<UserLogListBloc>().add(
+                          AddUpdateEvent(
+                            'Category #${bloc.state.categories.length + 1}',
+                            authState.user!,
+                          ),
+                        );
                   } else {
                     bloc.add(UpdateCategoryEvent(category.copyWith(name: state.name!)));
+                    context.read<UserLogListBloc>().add(
+                          AddUpdateEvent(
+                            'Category #${category.id}',
+                            authState.user!,
+                          ),
+                        );
+                    context.read<NotificationCubit>().addNotification(
+                          type: NotificationType.warning,
+                          title: 'Notice:',
+                          message:
+                              '${category.name} category was updated by ${authState.user!.username}.',
+                          path: '',
+                        );
                   }
                   context.read<CategoryFormCubit>().onSubmit();
                   break;

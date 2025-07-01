@@ -45,12 +45,6 @@ class NotificationCubit extends Cubit<NotificationState> {
     emit(state.copyWith(notifications: notifications));
   }
 
-  Future<void> loadNotifications() async {
-    if (_proxy == null) return;
-    final notifications = await _proxy.getNotifications();
-    emit(state.copyWith(notifications: notifications));
-  }
-
   // Keep client-side only implementations as requested
   Future<void> markAsRead(int id) async {
     final notifications = state.notifications.map((n) {

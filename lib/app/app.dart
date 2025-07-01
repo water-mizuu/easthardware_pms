@@ -7,6 +7,7 @@ import 'package:easthardware_pms/presentation/bloc/authentication/'
 import 'package:easthardware_pms/presentation/bloc/security/user_log_list/user_log_list_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/server/server_bloc.dart';
 import 'package:easthardware_pms/presentation/cubit/navigation/navigation_cubit.dart';
+import 'package:easthardware_pms/presentation/cubit/notifications/cubit/notification_cubit.dart';
 import 'package:easthardware_pms/presentation/router/app_router.dart';
 import 'package:easthardware_pms/presentation/router/app_routes.dart';
 import 'package:easthardware_pms/presentation/widgets/is_full_screen_provider.dart';
@@ -83,8 +84,20 @@ class _AppState extends State<App> {
             case null: // User is not authenticated.
               context.navigate(AppRoutes.login);
             case AccessLevel.staff:
+              context.read<NotificationCubit>().addNotification(
+                    type: NotificationType.info,
+                    title: '${user!.username} Logged in',
+                    message: '',
+                    path: '',
+                  );
               context.navigate(AppRoutes.staff.dashboard);
             case AccessLevel.administrator:
+              context.read<NotificationCubit>().addNotification(
+                    type: NotificationType.info,
+                    title: '${user!.username} Logged in',
+                    message: '',
+                    path: '',
+                  );
               context.navigate(AppRoutes.admin.dashboard);
           }
         },

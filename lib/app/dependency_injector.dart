@@ -329,7 +329,7 @@ class DependencyInjector extends ChangeNotifier {
           return notificationCubit = NotificationCubit(
             serverBloc.state.customChannel,
             state,
-          )..mapIf(_databaseHelper != null, (c) async => await c.loadNotifications());
+          );
         },
       ),
       BlocProvider(

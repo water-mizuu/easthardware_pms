@@ -9,6 +9,7 @@ import 'package:easthardware_pms/presentation/bloc/inventory/product_form/produc
 import 'package:easthardware_pms/presentation/bloc/inventory/product_list/product_list_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/inventory/unit_list/unit_list_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/security/user_log_list/user_log_list_bloc.dart';
+import 'package:easthardware_pms/presentation/cubit/notifications/cubit/notification_cubit.dart';
 import 'package:easthardware_pms/presentation/router/app_routes.dart';
 import 'package:easthardware_pms/presentation/views/inventory/product_information_form_content.dart';
 import 'package:easthardware_pms/presentation/widgets/layout/spacing.dart';
@@ -128,18 +129,20 @@ class EditProductPage extends StatelessWidget {
             BlocListener<ProductListBloc, ProductListState>(
               listenWhen: (p, c) => p.latest != c.latest && c.latest != null,
               listener: (context, state) {
+                final authState = context.read<AuthenticationBloc>().state;
                 final user = context.read<AuthenticationBloc>().state.user!;
                 context //
                     .read<UserLogListBloc>()
                     .add(AddUpdateEvent('Product #${state.latest!.id}', user));
                 context.read<CategoryListBloc>().add(const ReloadCategoriesEvent());
                 context.read<UnitListBloc>().add(const ReloadUnitsEvent());
-                if (kDebugMode) {
-                  printBoxed(
-                    'Product #${state.latest!.id} updated by ${user.username}',
-                    'EditProductPage',
-                  );
-                }
+                context.read<NotificationCubit>().addNotification(
+                      type: NotificationType.warning,
+                      title: 'Notice:',
+                      message:
+                          'Product ${product.name} was updated by ${authState.user!.username}.',
+                      path: '${AppRoutes.admin.editInvoice.path},${product.id}',
+                    );
                 context.read<ProductFormBloc>().add(FormSubmittedEvent());
               },
             ),

@@ -12,6 +12,8 @@ import 'package:easthardware_pms/presentation/widgets/text.dart';
 import 'package:easthardware_pms/presentation/widgets/ui/styles.dart';
 import 'package:easthardware_pms/presentation/widgets/ui/table_theme_data.dart';
 import 'package:easthardware_pms/presentation/widgets/ui/text_button.dart';
+import 'package:easthardware_pms/presentation/bloc/security/user_log_list/user_log_list_bloc.dart';
+import 'package:easthardware_pms/presentation/cubit/notifications/cubit/notification_cubit.dart';
 import 'package:fluent_ui/fluent_ui.dart';
 import 'package:flutter/material.dart'
     show DataCell, DataColumn, DataRow, DataTableSource, PaginatedDataTable;
@@ -118,6 +120,13 @@ class PageHeader extends StatelessWidget {
                 listener: (context, state) {
                   if (state.status == FormStatus.submitting) {
                     bloc.add(AddPaymentMethodEvent(PaymentMethod(name: state.name)));
+                    final authState = context.read<AuthenticationBloc>().state;
+                    context.read<UserLogListBloc>().add(
+                          AddUpdateEvent(
+                            'Payment Method #${bloc.state.paymentMethods.length + 1}',
+                            authState.user!,
+                          ),
+                        );
                     context.read<PaymentMethodFormCubit>().onSubmit();
                   } else if (state.status == FormStatus.submitted) {
                     if (context.mounted) {
@@ -399,6 +408,20 @@ class PaymentMethodDataSource extends DataTableSource {
                 listener: (context, state) {
                   if (state.status == FormStatus.submitting) {
                     bloc.add(UpdatePaymentMethodEvent(paymentMethod.copyWith(name: state.name)));
+                    final authState = context.read<AuthenticationBloc>().state;
+                    context.read<UserLogListBloc>().add(
+                          AddUpdateEvent(
+                            'Payment Method #${paymentMethod.id}',
+                            authState.user!,
+                          ),
+                        );
+                    context.read<NotificationCubit>().addNotification(
+                          type: NotificationType.warning,
+                          title: 'Notice:',
+                          message:
+                              '${paymentMethod.name} payment method was updated by ${authState.user!.username}.',
+                          path: '',
+                        );
                     context.read<PaymentMethodFormCubit>().onSubmit();
                   } else if (state.status == FormStatus.submitted) {
                     if (context.mounted) {

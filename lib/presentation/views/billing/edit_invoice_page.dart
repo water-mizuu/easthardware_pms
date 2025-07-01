@@ -9,6 +9,7 @@ import 'package:easthardware_pms/presentation/bloc/billing/invoicelist/invoice_l
 import 'package:easthardware_pms/presentation/bloc/inventory/product_list/product_list_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/inventory/unit_list/unit_list_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/security/user_log_list/user_log_list_bloc.dart';
+import 'package:easthardware_pms/presentation/cubit/notifications/cubit/notification_cubit.dart';
 import 'package:easthardware_pms/presentation/models/form_product.dart';
 import 'package:easthardware_pms/presentation/router/app_routes.dart';
 import 'package:easthardware_pms/presentation/widgets/auto_auto_suggest_box.dart';
@@ -23,7 +24,6 @@ import 'package:easthardware_pms/presentation/widgets/ui/loading_page.dart';
 import 'package:easthardware_pms/presentation/widgets/ui/styles.dart';
 import 'package:easthardware_pms/presentation/widgets/ui/text_button.dart';
 import 'package:easthardware_pms/utils/boxed.dart';
-import 'package:easthardware_pms/utils/notification.dart';
 import 'package:easthardware_pms/utils/show_single_dialog.dart';
 import 'package:easthardware_pms/utils/typed_routes.dart';
 import 'package:fl_chart/fl_chart.dart';
@@ -56,6 +56,7 @@ class EditInvoicePage extends StatelessWidget {
         return InvoiceFormBloc.fromExistingInvoice(invoice, products);
       },
       child: Builder(builder: (context) {
+        final previousLowStock = context.read<ProductListBloc>().state.lowStockProducts;
         return MultiBlocListener(
           listeners: [
             BlocListener<InvoiceFormBloc, InvoiceFormState>(
@@ -122,11 +123,13 @@ class EditInvoicePage extends StatelessWidget {
                         .add(AddUpdateEvent('Invoice #${latest.id}', authState.user!));
                     context.read<UserLogListBloc>().add(const LoadUserLogsEvent());
 
-                    showNotification(
-                      title: "Success",
-                      message: "Invoice #${latest.id} has been successfully updated.",
-                      severity: InfoBarSeverity.success,
-                    );
+                    context.read<NotificationCubit>().addNotification(
+                          type: NotificationType.warning,
+                          title: 'Notice:',
+                          message:
+                              'Invoice No. ${invoice.id} was updated by ${authState.user!.username}.',
+                          path: '${AppRoutes.admin.editInvoice.path},${latest.id}',
+                        );
                     final route = authState.user!.accessLevel == AccessLevel.administrator
                         ? AppRoutes.admin.billing
                         : AppRoutes.staff.billing;
@@ -135,6 +138,26 @@ class EditInvoicePage extends StatelessWidget {
                 }
               },
             ),
+            BlocListener<ProductListBloc, ProductListState>(
+              listenWhen: (prev, curr) => prev.lowStockProducts != curr.lowStockProducts,
+              listener: (context, state) {
+                final newlyLowStock = state.lowStockProducts
+                    .where(
+                      (item) => !previousLowStock.map((p) => p.id).contains(item.id),
+                    )
+                    .toList();
+                printBoxed(newlyLowStock);
+                for (final product in newlyLowStock) {
+                  context.read<NotificationCubit>().addNotification(
+                        type: NotificationType.error,
+                        title: 'Warning:',
+                        message: 'Product ${product.name} is low on stock.',
+                        path:
+                            '${AppRoutes.admin.createRestockOrder.withProduct.path},${product.id}',
+                      );
+                }
+              },
+            )
           ],
           child: Stack(
             children: [
