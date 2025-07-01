@@ -4,6 +4,7 @@ import 'package:easthardware_pms/presentation/bloc/authentication/authentication
 import 'package:easthardware_pms/presentation/bloc/security/user_list/user_list_bloc.dart';
 import 'package:easthardware_pms/presentation/cubit/security/user_display/user_display_cubit.dart';
 import 'package:easthardware_pms/presentation/router/app_routes.dart';
+import 'package:easthardware_pms/presentation/views/security/user_information_content_dialog.dart';
 import 'package:easthardware_pms/presentation/widgets/helper/data_row_mapper.dart';
 import 'package:easthardware_pms/presentation/widgets/layout/spacing.dart';
 import 'package:easthardware_pms/presentation/widgets/text.dart';
@@ -170,6 +171,7 @@ class UserDataTable extends StatelessWidget {
           ),
           child: TableThemeData(
             child: PaginatedDataTable(
+                showCheckboxColumn: false,
                 sortColumnIndex: _getSortColumnIndex(displayState.sortBy),
                 sortAscending: _getSortAscending(displayState.sortBy),
                 rowsPerPage: 10,
@@ -293,6 +295,18 @@ class UserDataSource extends DataTableSource {
     context.navigateWithExtra(AppRoutes.admin.editUser, user);
   }
 
+  void viewUser(User user) {
+    showDialog(
+      barrierDismissible: true,
+      context: context,
+      builder: (dialogContext) => UserInformationContentDialog(
+        currentUser: context.read<AuthenticationBloc>().state.user!,
+        dialogContext: dialogContext,
+        user: user,
+      ),
+    );
+  }
+
   void archiveUser(User user) {
     context.read<UserListBloc>().add(ArchiveUserEvent(user));
   }
@@ -308,6 +322,7 @@ class UserDataSource extends DataTableSource {
     return DataRowMapper.mapUserToRow(
       user,
       isLoggedIn,
+      viewAction: viewUser,
       editAction: isOwnAccount ? editUser : null,
       archiveFunction: isAnAdministrator && !isOwnAccount ? archiveUser : null,
     );

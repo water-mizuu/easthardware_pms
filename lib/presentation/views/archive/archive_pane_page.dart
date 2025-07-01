@@ -228,9 +228,17 @@ class _ArchivedProductsBodyState extends State<ArchivedProductsBody> {
                           columns: [
                             DataColumn(
                               label: Expanded(
-                                child: ConstrainedBox(
-                                  constraints: const BoxConstraints(minWidth: 60),
-                                  child: const Text('ID', style: TextStyles.strong),
+                                child: Row(
+                                  children: [
+                                    const Text('ID', style: TextStyles.strong),
+                                    if (_getSortColumnIndex(state.sortBy) != 0) ...[
+                                      const Spacer(),
+                                      const Icon(
+                                        FluentIcons.scroll_up_down,
+                                        size: 12,
+                                      ),
+                                    ],
+                                  ],
                                 ),
                               ),
                               onSort: (_, __) {
@@ -244,9 +252,17 @@ class _ArchivedProductsBodyState extends State<ArchivedProductsBody> {
                             ),
                             DataColumn(
                               label: Expanded(
-                                child: ConstrainedBox(
-                                  constraints: const BoxConstraints(minWidth: 100),
-                                  child: const Text('SKU', style: TextStyles.strong),
+                                child: Row(
+                                  children: [
+                                    const Text('SKU', style: TextStyles.strong),
+                                    if (_getSortColumnIndex(state.sortBy) != 1) ...[
+                                      const Spacer(),
+                                      const Icon(
+                                        FluentIcons.scroll_up_down,
+                                        size: 12,
+                                      ),
+                                    ],
+                                  ],
                                 ),
                               ),
                               onSort: (_, __) {
@@ -260,9 +276,17 @@ class _ArchivedProductsBodyState extends State<ArchivedProductsBody> {
                             ),
                             DataColumn(
                               label: Expanded(
-                                child: ConstrainedBox(
-                                  constraints: const BoxConstraints(minWidth: 150),
-                                  child: const Text('Name', style: TextStyles.strong),
+                                child: Row(
+                                  children: [
+                                    const Text('Name', style: TextStyles.strong),
+                                    if (_getSortColumnIndex(state.sortBy) != 2) ...[
+                                      const Spacer(),
+                                      const Icon(
+                                        FluentIcons.scroll_up_down,
+                                        size: 12,
+                                      ),
+                                    ],
+                                  ],
                                 ),
                               ),
                               onSort: (_, __) {
@@ -276,9 +300,17 @@ class _ArchivedProductsBodyState extends State<ArchivedProductsBody> {
                             ),
                             DataColumn(
                               label: Expanded(
-                                child: ConstrainedBox(
-                                  constraints: const BoxConstraints(minWidth: 100),
-                                  child: const Text('Category', style: TextStyles.strong),
+                                child: Row(
+                                  children: [
+                                    const Text('Category', style: TextStyles.strong),
+                                    if (_getSortColumnIndex(state.sortBy) != 3) ...[
+                                      const Spacer(),
+                                      const Icon(
+                                        FluentIcons.scroll_up_down,
+                                        size: 12,
+                                      ),
+                                    ],
+                                  ],
                                 ),
                               ),
                               onSort: (_, __) {
@@ -292,9 +324,17 @@ class _ArchivedProductsBodyState extends State<ArchivedProductsBody> {
                             ),
                             DataColumn(
                               label: Expanded(
-                                child: ConstrainedBox(
-                                  constraints: const BoxConstraints(minWidth: 100),
-                                  child: const Text('Price', style: TextStyles.strong),
+                                child: Row(
+                                  children: [
+                                    const Text('Price', style: TextStyles.strong),
+                                    if (_getSortColumnIndex(state.sortBy) != 4) ...[
+                                      const Spacer(),
+                                      const Icon(
+                                        FluentIcons.scroll_up_down,
+                                        size: 12,
+                                      ),
+                                    ],
+                                  ],
                                 ),
                               ),
                               onSort: (_, __) {
@@ -308,6 +348,7 @@ class _ArchivedProductsBodyState extends State<ArchivedProductsBody> {
                             ),
                           ],
                           source: ArchivedProductDataSource(
+                            context: context,
                             products: state.filteredProducts,
                           ),
                         ),
@@ -443,9 +484,17 @@ class _ArchivedUsersBodyState extends State<ArchivedUsersBody> {
                           columns: [
                             DataColumn(
                               label: Expanded(
-                                child: ConstrainedBox(
-                                  constraints: const BoxConstraints(minWidth: 60),
-                                  child: const Text('ID', style: TextStyles.strong),
+                                child: Row(
+                                  children: [
+                                    const Text('ID', style: TextStyles.strong),
+                                    if (_getSortColumnIndex(state.sortBy) != 0) ...[
+                                      const Spacer(),
+                                      const Icon(
+                                        FluentIcons.scroll_up_down,
+                                        size: 12,
+                                      ),
+                                    ],
+                                  ],
                                 ),
                               ),
                               onSort: (_, __) {
@@ -459,9 +508,17 @@ class _ArchivedUsersBodyState extends State<ArchivedUsersBody> {
                             ),
                             DataColumn(
                               label: Expanded(
-                                child: ConstrainedBox(
-                                  constraints: const BoxConstraints(minWidth: 100),
-                                  child: const Text('Username', style: TextStyles.strong),
+                                child: Row(
+                                  children: [
+                                    const Text('Username', style: TextStyles.strong),
+                                    if (_getSortColumnIndex(state.sortBy) != 1) ...[
+                                      const Spacer(),
+                                      const Icon(
+                                        FluentIcons.scroll_up_down,
+                                        size: 12,
+                                      ),
+                                    ],
+                                  ],
                                 ),
                               ),
                               onSort: (_, __) {
@@ -475,9 +532,17 @@ class _ArchivedUsersBodyState extends State<ArchivedUsersBody> {
                             ),
                             DataColumn(
                               label: Expanded(
-                                child: ConstrainedBox(
-                                  constraints: const BoxConstraints(minWidth: 150),
-                                  child: const Text('Name', style: TextStyles.strong),
+                                child: Row(
+                                  children: [
+                                    const Text('Name', style: TextStyles.strong),
+                                    if (_getSortColumnIndex(state.sortBy) != 2) ...[
+                                      const Spacer(),
+                                      const Icon(
+                                        FluentIcons.scroll_up_down,
+                                        size: 12,
+                                      ),
+                                    ],
+                                  ],
                                 ),
                               ),
                               onSort: (_, __) {
@@ -491,9 +556,17 @@ class _ArchivedUsersBodyState extends State<ArchivedUsersBody> {
                             ),
                             DataColumn(
                               label: Expanded(
-                                child: ConstrainedBox(
-                                  constraints: const BoxConstraints(minWidth: 100),
-                                  child: const Text('Access Level', style: TextStyles.strong),
+                                child: Row(
+                                  children: [
+                                    const Text('Access Level', style: TextStyles.strong),
+                                    if (_getSortColumnIndex(state.sortBy) != 3) ...[
+                                      const Spacer(),
+                                      const Icon(
+                                        FluentIcons.scroll_up_down,
+                                        size: 12,
+                                      ),
+                                    ],
+                                  ],
                                 ),
                               ),
                               onSort: (_, __) {
@@ -507,9 +580,17 @@ class _ArchivedUsersBodyState extends State<ArchivedUsersBody> {
                             ),
                             DataColumn(
                               label: Expanded(
-                                child: ConstrainedBox(
-                                  constraints: const BoxConstraints(minWidth: 120),
-                                  child: const Text('Creation Date', style: TextStyles.strong),
+                                child: Row(
+                                  children: [
+                                    const Text('Creation Date', style: TextStyles.strong),
+                                    if (_getSortColumnIndex(state.sortBy) != 4) ...[
+                                      const Spacer(),
+                                      const Icon(
+                                        FluentIcons.scroll_up_down,
+                                        size: 12,
+                                      ),
+                                    ],
+                                  ],
                                 ),
                               ),
                               onSort: (_, __) {
@@ -523,6 +604,7 @@ class _ArchivedUsersBodyState extends State<ArchivedUsersBody> {
                             ),
                           ],
                           source: ArchivedUserDataSource(
+                            context: context,
                             users: state.filteredUsers,
                           ),
                         ),

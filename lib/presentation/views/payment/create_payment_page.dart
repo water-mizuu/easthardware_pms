@@ -100,12 +100,11 @@ class _CreatePaymentPageState extends State<CreatePaymentPage> {
                         payment.amount -
                         (invoice.amountPaid ?? 0) //
                     );
-                final paymentDate = openBalance <= 0 ? creationDate : null;
-                final amountPaid = openBalance <= 0
-                    ? (invoice.amountPaid ?? 0) + payment.amount
-                    : invoice.amountPaid;
+                final paymentDate = openBalance == 0 ? creationDate : null;
+
+                final amountPaid = (invoice.amountPaid ?? 0) + payment.amount;
                 final paidInvoice = invoice.copyWith(
-                  amountPaid: min(invoice.amountDue - discount, amountPaid ?? 0.0),
+                  amountPaid: amountPaid,
                   paymentMethod: paymentMethod.id!,
                   paymentDate: paymentDate,
                 );

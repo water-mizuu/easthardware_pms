@@ -329,16 +329,22 @@ class OrderDataSource extends DataTableSource {
   DataRow? getRow(int index) {
     if (index >= _orders.length) return null;
     final order = _orders[index];
-    return DataRowMapper.mapOrderToRow(order, () {
-      // Show order information dialog
-      unawaited(showDialog(
-        context: _context,
-        builder: (context) => OrderInformationContentDialog(
-          context: context,
-          order: order,
-        ),
-      ));
-    });
+    return DataRowMapper.mapOrderToRow(
+      order,
+      () {
+        // Show order information dialog
+        unawaited(
+          showDialog(
+            barrierDismissible: true,
+            context: _context,
+            builder: (context) => OrderInformationContentDialog(
+              context: context,
+              order: order,
+            ),
+          ),
+        );
+      },
+    );
   }
 
   @override

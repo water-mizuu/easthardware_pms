@@ -136,16 +136,15 @@ class InventoryReportBloc extends Bloc<InventoryReportEvent, InventoryReportStat
   }
 
   Future<void> _updateQueryData(Emitter<InventoryReportState> emit) async {
-    /// We need to take into account the products that were filtered by the search query.
-    ///   Lastly, the products that are included based on the date.
-
-    var result = state.allProducts;
+    /// First, filter out archived products except for the archived count
+    var result = state.allProducts.where((p) => p.archiveStatus == 0).toList();
     if (result.isEmpty) {
       final updatedQueryData = state.queryData.copyWith(filteredProducts: []);
       emit(state.copyWith(queryData: updatedQueryData));
       return;
     }
 
+    /// Apply date filtering and other criteria
     if (kDebugMode) {
       print(state.queryData.date);
     }

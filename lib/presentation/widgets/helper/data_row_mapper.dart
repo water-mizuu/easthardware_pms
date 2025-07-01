@@ -10,7 +10,6 @@ import 'package:easthardware_pms/presentation/cubit/inventory/category_display/c
 import 'package:easthardware_pms/presentation/models/data_cell_functions.dart';
 import 'package:easthardware_pms/presentation/models/form_product.dart';
 import 'package:easthardware_pms/presentation/widgets/helper/currency_formatter.dart';
-import 'package:easthardware_pms/presentation/widgets/text.dart';
 import 'package:easthardware_pms/presentation/widgets/ui/badges.dart';
 import 'package:easthardware_pms/presentation/widgets/ui/compound_button.dart';
 import 'package:easthardware_pms/presentation/widgets/ui/styles.dart';
@@ -303,6 +302,7 @@ class DataRowMapper {
   static DataRow mapUserToRow(
     User user,
     bool isLoggedIn, {
+    required void Function(User user)? viewAction,
     required void Function(User user)? editAction,
     required void Function(User user)? archiveFunction,
   }) {
@@ -327,9 +327,10 @@ class DataRowMapper {
           );
 
     return DataRow(
+      onSelectChanged: viewAction != null ? (_) => viewAction(user) : null,
       cells: [
         DataCell(Text('${user.firstName} ${user.lastName}', style: TextStyles.body)),
-        DataCell(Text(user.accessLevel.name.toTitleCase(), style: TextStyles.body)),
+        DataCell(Text(user.accessLevel.toString(), style: TextStyles.body)),
         DataCell(Text(
           DateFormat.yMMMMd().format(DateTime.parse(user.creationDate.toString())),
           style: TextStyles.body,

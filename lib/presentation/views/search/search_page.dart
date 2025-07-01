@@ -16,7 +16,7 @@ class ProductsBody extends SearchTableResult<Product> {
   factory ProductsBody() => instance;
   ProductsBody._()
       : super(
-          selector: (b) => b.state.results.products,
+          selector: (b) => b.state.results.products.where((p) => p.archiveStatus == 0).toList(),
           columns: [
             ('ID', (context, p) => p.id.toString()),
             ('SKU', (context, p) => p.sku),
