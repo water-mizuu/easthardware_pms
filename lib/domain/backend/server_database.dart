@@ -588,6 +588,7 @@ Future<Database> _getDatabase(int? savedHeartbeat) async {
     }
 
     final path = join(await getDatabasesPath(), 'database.db');
+    printBoxed(path);
     _databaseInstance = await openDatabase(
       path,
       version: 8,

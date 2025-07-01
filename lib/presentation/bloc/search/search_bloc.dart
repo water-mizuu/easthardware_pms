@@ -36,9 +36,8 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
       (p) => {
         p.id?.toString(),
         p.sku,
-        p.name,
-        p.categoryName,
-        p.description,
+        p.name.toLowerCase(),
+        p.categoryName?.toLowerCase(),
       } //
           .whereType<String>(),
     ).then((p) => p.sublist(0, min(p.length, state.limit)));
@@ -52,11 +51,10 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
       query,
       (i) => {
         i.id?.toString(),
-        i.customerName,
-        i.referenceNumber,
-        i.customerName,
-        i.referenceNumber,
-        i.memo,
+        DateFormat('yyyy-MM-dd').format(i.creationDate),
+        i.customerName.toLowerCase(),
+        i.referenceNumber?.toLowerCase(),
+        i.memo?.toLowerCase(),
       }.whereType<String>(),
     ).then((p) => p.sublist(0, min(p.length, state.limit)));
   }
@@ -71,19 +69,21 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
       query,
       (o) => {
         o.id?.toString(),
-        o.referenceNumber,
+        o.referenceNumber?.toLowerCase(),
         DateFormat('yyyy-MM-dd').format(o.orderDate),
-        o.payeeName,
-        expenseTypeCache.putIfAbsent(
-          o.expenseType,
-          () => state.allExpenseTypes
-              .firstWhere(
-                (et) => et.id == o.expenseType,
-                orElse: () => const ExpenseType(name: '-'),
-              )
-              .name,
-        ),
-        o.memo,
+        o.payeeName.toLowerCase(),
+        expenseTypeCache
+            .putIfAbsent(
+              o.expenseType,
+              () => state.allExpenseTypes
+                  .firstWhere(
+                    (et) => et.id == o.expenseType,
+                    orElse: () => const ExpenseType(name: '-'),
+                  )
+                  .name,
+            )
+            .toLowerCase(),
+        o.memo?.toLowerCase(),
       }.whereType<String>(),
     ).then((p) => p.sublist(0, min(p.length, state.limit)));
   }

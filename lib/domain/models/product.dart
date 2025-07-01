@@ -171,4 +171,13 @@ class Product {
 
     return map;
   }
+
+  @override
+  String toString() => '${{
+        id?.toString(),
+        sku,
+        name.toLowerCase(),
+        categoryName?.toLowerCase(),
+        description?.toLowerCase(),
+      }}';
 }
