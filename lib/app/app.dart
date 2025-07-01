@@ -86,17 +86,17 @@ class _AppState extends State<App> {
             case AccessLevel.staff:
               context.read<NotificationCubit>().addNotification(
                     type: NotificationType.info,
-                    title: '${user!.username} Logged in',
+                    title: '${user!.username} logged in',
                     message: '',
-                    path: '',
+                    path: 'user',
                   );
               context.navigate(AppRoutes.staff.dashboard);
             case AccessLevel.administrator:
               context.read<NotificationCubit>().addNotification(
                     type: NotificationType.info,
-                    title: '${user!.username} Logged in',
+                    title: '${user!.username} logged in',
                     message: '',
-                    path: '',
+                    path: 'user',
                   );
               context.navigate(AppRoutes.admin.dashboard);
           }

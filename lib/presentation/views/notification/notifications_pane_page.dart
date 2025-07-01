@@ -1,5 +1,14 @@
 import 'dart:async';
-
+import 'package:easthardware_pms/domain/enums/enums.dart';
+import 'package:easthardware_pms/presentation/bloc/authentication/authentication/authentication_bloc.dart';
+import 'package:easthardware_pms/presentation/bloc/billing/invoicelist/invoice_list_bloc.dart';
+import 'package:easthardware_pms/presentation/bloc/inventory/product_list/product_list_bloc.dart';
+import 'package:easthardware_pms/presentation/bloc/order/orderlist/order_list_bloc.dart';
+import 'package:easthardware_pms/presentation/router/app_routes.dart';
+import 'package:easthardware_pms/presentation/widgets/ui/badges.dart';
+import 'package:easthardware_pms/presentation/widgets/ui/styles.dart';
+import 'package:easthardware_pms/presentation/widgets/ui/text_button.dart';
+import 'package:easthardware_pms/utils/typed_routes.dart';
 import 'package:fluent_ui/fluent_ui.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:easthardware_pms/presentation/cubit/notifications/cubit/notification_cubit.dart';
@@ -35,22 +44,22 @@ class _NotificationsPanePageState extends State<NotificationsPanePage> {
             children: [
               const Text(
                 'Current Notifications',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                style: TextStyles.title,
               ),
               Row(
                 children: [
-                  Button(
+                  TextButton(
+                    "Mark All as Read",
                     onPressed: () {
                       unawaited(context.read<NotificationCubit>().markAllAsRead());
                     },
-                    child: const Text('Mark All as Read'),
                   ),
                   const SizedBox(width: 8),
-                  Button(
+                  TextButton(
+                    'Clear All',
                     onPressed: () {
                       unawaited(context.read<NotificationCubit>().deleteAllNotifications());
                     },
-                    child: const Text('Delete All'),
                   ),
                 ],
               ),
@@ -70,104 +79,105 @@ class _NotificationsPanePageState extends State<NotificationsPanePage> {
 
                 return ListView.builder(
                   itemCount: state.notifications.length,
-                  itemBuilder: (context, index) {
+                  itemBuilder: (itemBuilder, index) {
                     final notification = state.notifications[index];
 
-                    return Card(
-                      padding: const EdgeInsets.all(8.0),
-                      margin: const EdgeInsets.only(bottom: 8),
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          // Icon based on notification type
-                          _buildNotificationIcon(notification.type),
-                          const SizedBox(width: 12),
-
-                          // Notification content
-                          Expanded(
-                            child: Column(
+                    return HoverButton(
+                      onPressed: () {},
+                      builder: (context, states) {
+                        return Card(
+                          padding: const EdgeInsets.all(12.0),
+                          margin: const EdgeInsets.only(bottom: 4),
+                          backgroundColor: states.isHovered
+                              ? FluentTheme.of(context).resources.cardBackgroundFillColorSecondary
+                              : null,
+                          child: MouseRegion(
+                            onEnter: (_) {
+                              if (!notification.isRead) {
+                                unawaited(
+                                    context.read<NotificationCubit>().markAsRead(notification.id));
+                              }
+                            },
+                            child: Row(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                // Notification metadata (time + read status)
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Text(
-                                      DateFormat('yyyy-MM-dd HH:mm:ss').format(notification.time),
-                                      style: TextStyle(
-                                        color: Colors.grey[130],
-                                        fontSize: 12,
-                                      ),
-                                    ),
-                                    if (!notification.isRead)
-                                      Container(
-                                        padding:
-                                            const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                                        decoration: BoxDecoration(
-                                          color: Colors.blue,
-                                          borderRadius: BorderRadius.circular(10),
-                                        ),
-                                        child: const Text(
-                                          'NEW',
-                                          style: TextStyle(
-                                            color: Colors.white,
-                                            fontSize: 10,
-                                            fontWeight: FontWeight.bold,
+                                // Icon based on path
+                                _buildNotificationIcon(notification.path.split(',').first.trim()),
+                                const SizedBox(width: 12),
+
+                                // Notification content
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                                    children: [
+                                      Row(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          Text(notification.title, style: TextStyles.strong),
+                                          Row(
+                                            children: [
+                                              Text(
+                                                DateFormat('hh:mm a').format(notification.time),
+                                                style: TextStyles.onSurfaceVariant
+                                                    .merge(TextStyles.caption),
+                                              ),
+                                              const SizedBox(width: 8),
+                                              if (!notification.isRead) Badges.normal(''),
+                                              const SizedBox(width: 8),
+                                              IconButton(
+                                                icon:
+                                                    const Icon(FluentIcons.chrome_close, size: 12),
+                                                onPressed: () {
+                                                  unawaited(itemBuilder
+                                                      .read<NotificationCubit>()
+                                                      .deleteNotification(notification.id));
+                                                },
+                                              ),
+                                              if ( //
+                                                  _mapPathToRoute(notification. //
+                                                          path
+                                                          .split(',')
+                                                          .first
+                                                          .trim()) !=
+                                                      null //
+                                                  ) ...[
+                                                const SizedBox(width: 8),
+                                                IconButton(
+                                                  icon: const Icon(FluentIcons.chevron_right_med,
+                                                      size: 12),
+                                                  onPressed: () {
+                                                    final path =
+                                                        notification.path.split(',').first.trim();
+                                                    final id = int.tryParse(
+                                                        notification.path.split(',').last);
+                                                    final route = _mapPathToRoute(path);
+                                                    if (route != null) {
+                                                      final extra = _mapPathToExtra(path, id);
+                                                      context.navigateWithExtra(route, extra);
+                                                    } else {}
+                                                  },
+                                                ),
+                                              ]
+                                            ],
                                           ),
-                                        ),
+                                        ],
                                       ),
-                                  ],
-                                ),
-                                const SizedBox(height: 4),
 
-                                // Message
-                                Text(
-                                  notification.message,
-                                  style: TextStyle(
-                                    fontWeight:
-                                        notification.isRead ? FontWeight.normal : FontWeight.bold,
-                                  ),
-                                ),
-                                const SizedBox(height: 4),
-
-                                // Path
-                                Text(
-                                  'Path: ${notification.path}',
-                                  style: TextStyle(
-                                    color: Colors.grey[130],
-                                    fontSize: 12,
-                                  ),
-                                ),
-
-                                // Notification action buttons
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.end,
-                                  children: [
-                                    if (!notification.isRead)
-                                      Button(
-                                        onPressed: () {
-                                          context
-                                              .read<NotificationCubit>()
-                                              .markAsRead(notification.id);
-                                        },
-                                        child: const Text('Mark as Read'),
+                                      // Message
+                                      Text(
+                                        notification.message,
+                                        style:
+                                            TextStyles.onSurfaceVariant.merge(TextStyles.caption),
                                       ),
-                                    const SizedBox(width: 8),
-                                    Button(
-                                      onPressed: () {
-                                        unawaited(context
-                                            .read<NotificationCubit>()
-                                            .deleteNotification(notification.id));
-                                      },
-                                      child: const Text('Delete'),
-                                    ),
-                                  ],
+                                    ],
+                                  ),
                                 ),
                               ],
                             ),
                           ),
-                        ],
-                      ),
+                        );
+                      },
                     );
                   },
                 );
@@ -179,33 +189,94 @@ class _NotificationsPanePageState extends State<NotificationsPanePage> {
     );
   }
 
-  Widget _buildNotificationIcon(NotificationType type) {
-    IconData icon;
-    Color color;
+  AppRoute? _mapPathToRoute(String path) {
+    final level = context.read<AuthenticationBloc>().state.user!.accessLevel;
+    if (level == AccessLevel.administrator) {
+      switch (path) {
+        case '/admin/create/restock_order':
+          return AppRoutes.admin.createRestockOrder.withProduct;
+        case '/admin/edit/product':
+          return AppRoutes.admin.editProduct;
+        case '/admin/edit/invoice':
+          return AppRoutes.admin.editInvoice;
+        case '/admin/edit/restock_order':
+          return AppRoutes.admin.editRestockOrder;
+        case '/admin/edit/expense_order':
+          return AppRoutes.admin.editExpenseOrder;
+        case 'user':
+        default:
+          return null;
+      }
+    } else {
+      switch (path) {
+        case '/admin/edit/invoice':
+          return AppRoutes.admin.editInvoice;
+        case '/admin/edit/product':
+        case '/admin/create/restock_order':
+        case '/admin/edit/restock_order':
+        case '/admin/edit/expense_order':
+        case 'user':
+        default:
+          return null;
+      }
+    }
+  }
 
-    switch (type) {
-      case NotificationType.info:
-        icon = FluentIcons.info;
-        color = Colors.blue;
+  dynamic _mapPathToExtra(String path, int? id) {
+    if (id == null) return null;
+    switch (path) {
+      case '/admin/create/restock_order':
+      case '/admin/edit/product':
+        return context
+            .read<ProductListBloc>()
+            .state
+            .allProducts
+            .firstWhere((product) => product.id == id);
+      case '/admin/edit/invoice':
+        return context
+            .read<InvoiceListBloc>()
+            .state
+            .invoices
+            .firstWhere((invoice) => invoice.id == id);
+      case '/admin/edit/restock_order':
+      case '/admin/edit/expense_order':
+        return context //
+            .read<OrderListBloc>()
+            .state
+            .allOrderItems
+            .firstWhere((order) => order.id == id);
+      case 'user':
+      default:
+        return null;
+    }
+  }
+
+  Widget _buildNotificationIcon(String path) {
+    IconData icon;
+
+    switch (path) {
+      case '/admin/create/restock_order':
+        icon = FluentIcons.product_warning;
         break;
-      case NotificationType.warning:
-        icon = FluentIcons.warning;
-        color = Colors.yellow;
+      case '/admin/edit/product':
+        icon = FluentIcons.product_release;
         break;
-      case NotificationType.error:
-        icon = FluentIcons.error;
-        color = Colors.red;
+      case '/admin/edit/invoice':
+        icon = FluentIcons.text_document_edit;
         break;
-      case NotificationType.success:
-        icon = FluentIcons.check_mark;
-        color = Colors.green;
+      case '/admin/edit/restock_order':
+        icon = FluentIcons.text_document_edit;
+        break;
+      case '/admin/edit/expense_order':
+        icon = FluentIcons.text_document_edit;
+        break;
+      case 'user':
+        icon = FluentIcons.contact;
+        break;
+      default:
+        icon = FluentIcons.ringer;
         break;
     }
-
-    return Icon(
-      icon,
-      color: color,
-      size: 24,
-    );
+    return Icon(icon, size: 16);
   }
 }

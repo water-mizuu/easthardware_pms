@@ -150,7 +150,8 @@ class CreateInvoicePage extends StatelessWidget {
                         type: NotificationType.warning,
                         title: 'Low Stock Alert',
                         message: 'Product ${product.name} is low on stock.',
-                        path: AppRoutes.admin.createRestockOrder.withProduct.path,
+                        path:
+                            '${AppRoutes.admin.createRestockOrder.withProduct.path},${product.id}',
                       );
                 }
               },

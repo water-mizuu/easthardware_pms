@@ -141,7 +141,7 @@ class EditProductPage extends StatelessWidget {
                       title: 'Notice:',
                       message:
                           'Product ${product.name} was updated by ${authState.user!.username}.',
-                      path: '${AppRoutes.admin.editInvoice.path},${product.id}',
+                      path: '${AppRoutes.admin.editProduct.path},${product.id}',
                     );
                 context.read<ProductFormBloc>().add(FormSubmittedEvent());
               },
