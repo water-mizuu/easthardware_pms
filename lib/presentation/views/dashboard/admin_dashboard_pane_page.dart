@@ -106,8 +106,7 @@ class SectionAlpha extends StatelessWidget {
   Widget build(BuildContext context) {
     return LayoutMode.builder((context, mode, keys) {
       return switch (mode) {
-        LayoutMode.wide => ConstrainedBox(
-            constraints: const BoxConstraints(maxHeight: 280),
+        LayoutMode.wide => IntrinsicHeight(
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
@@ -121,15 +120,15 @@ class SectionAlpha extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               ConstrainedBox(
-                constraints: const BoxConstraints(maxHeight: 280),
+                constraints: const BoxConstraints(maxHeight: 380.0),
                 child: ExpenseBreakdownCard(key: keys['expensesBreakdown']),
               ),
               ConstrainedBox(
-                constraints: const BoxConstraints(maxHeight: 280),
+                constraints: const BoxConstraints(maxHeight: 380.0),
                 child: ProfitAndLossCard(key: keys['profitAndLoss']),
               ),
               ConstrainedBox(
-                constraints: const BoxConstraints(maxHeight: 280),
+                constraints: const BoxConstraints(maxHeight: 380.0),
                 child: LowerStockedProducts(key: keys['lowerStockedProducts']),
               ),
             ].withSpacing(() => Spacing.v8),

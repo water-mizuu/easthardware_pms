@@ -7,7 +7,6 @@ import 'package:easthardware_pms/utils/typed_routes.dart';
 import 'package:fluent_ui/fluent_ui.dart';
 import 'package:provider/provider.dart';
 import 'package:scroll_animator/scroll_animator.dart';
-import 'package:two_dimensional_scrollables/two_dimensional_scrollables.dart';
 
 class LowerStockedProducts extends StatefulWidget {
   const LowerStockedProducts({super.key});
@@ -20,18 +19,17 @@ class _LowerStockedProductsState extends State<LowerStockedProducts> {
   late final AnimatedScrollController verticalScrollController;
   late final AnimatedScrollController horizontalScrollController;
 
-  static const double cellHeight = 36.0;
-  static final Map<String, (SpanExtent, Widget Function(Product))> _rowExtents = {
+  static final Map<String, (int?, Widget Function(Product))> _rowExtents = {
     "Name": (
-      const MaxSpanExtent(FixedSpanExtent(180.00), FractionalSpanExtent(0.50)),
+      4,
       (p) => Text(p.name),
     ),
     "Quantity": (
-      const MaxSpanExtent(FixedSpanExtent(120.00), FractionalSpanExtent(0.25)),
+      2,
       (p) => Text("${p.quantity} ${p.mainUnit}"),
     ),
     "Actions": (
-      const MaxSpanExtent(FixedSpanExtent(80.00), RemainingSpanExtent()),
+      1,
       (p) {
         return Builder(builder: (context) {
           return Align(
@@ -74,15 +72,31 @@ class _LowerStockedProductsState extends State<LowerStockedProducts> {
     final products = context
         .select((ProductListBloc b) => b.state.allProducts)
         .where((p) => p.isBelowReorderPoint == true)
-        .toList();
+        .toList()
+      ..sort((a, b) => a.quantity.compareTo(b.quantity));
 
     final matrix = [
       [
-        for (final columnName in _rowExtents.keys)
-          Text(columnName, style: const TextStyle(fontWeight: FontWeight.w600)),
+        for (final MapEntry(key: columnName, value: (flex, _)) in _rowExtents.entries)
+          if (flex != null)
+            Expanded(
+              flex: flex,
+              child: Text(
+                columnName,
+                style: const TextStyle(fontWeight: FontWeight.w600),
+              ),
+            )
+          else
+            Text(
+              columnName,
+              style: const TextStyle(fontWeight: FontWeight.w600),
+            )
       ],
       for (final product in products) //
-        [for (final (_, selector) in _rowExtents.values) selector(product)]
+        [
+          for (final (flex, selector) in _rowExtents.values)
+            if (flex != null) Expanded(flex: flex, child: selector(product)) else selector(product)
+        ]
     ];
 
     return Container(
@@ -102,32 +116,16 @@ class _LowerStockedProductsState extends State<LowerStockedProducts> {
             )
           else
             Expanded(
-              child: TableView.builder(
-                verticalDetails: ScrollableDetails.vertical(
-                  controller: verticalScrollController,
-                ),
-                horizontalDetails: ScrollableDetails.horizontal(
-                  controller: horizontalScrollController,
-                ),
-                rowCount: matrix.length,
-                columnCount: matrix.first.length,
-                pinnedRowCount: 1,
-                columnBuilder: (int index) => TableSpan(
-                  extent: _rowExtents.values.elementAt(index).$1,
-                ),
-                rowBuilder: (int index) => const TableSpan(extent: FixedSpanExtent(cellHeight)),
-                cellBuilder: (BuildContext context, TableVicinity vicinity) {
-                  final (y, x) = (vicinity.row, vicinity.column);
-
-                  return TableViewCell(
-                    child: Padding(
-                      padding: const EdgeInsets.only(right: 8.0),
-                      child: matrix[y][x],
+              child: Column(
+                children: [
+                  for (final row in matrix)
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [for (final cell in row) cell],
                     ),
-                  );
-                },
+                ],
               ),
-            ),
+            )
         ],
       ),
     );

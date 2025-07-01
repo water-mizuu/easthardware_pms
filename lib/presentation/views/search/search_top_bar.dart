@@ -1,10 +1,12 @@
 import 'dart:async';
 
+import 'package:easthardware_pms/domain/models/expense_type.dart';
 import 'package:easthardware_pms/domain/models/invoice.dart';
 import 'package:easthardware_pms/domain/models/order.dart';
 import 'package:easthardware_pms/domain/models/product.dart';
 import 'package:easthardware_pms/presentation/bloc/billing/invoicelist/invoice_list_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/inventory/product_list/product_list_bloc.dart';
+import 'package:easthardware_pms/presentation/bloc/order/expense_type_list/expense_type_list_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/order/orderlist/order_list_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/search/search_bloc.dart';
 import 'package:easthardware_pms/presentation/views/navigation/common_side_panel_mixin.dart';
@@ -32,6 +34,7 @@ class _SearchPageState extends State<SearchPage> {
   late List<Product>? _products;
   late List<Invoice>? _invoices;
   late List<Order>? _orders;
+  late List<ExpenseType>? _expenseTypes;
 
   late final SearchBloc _searchBloc;
 
@@ -61,6 +64,7 @@ class _SearchPageState extends State<SearchPage> {
     _products = null;
     _invoices = null;
     _orders = null;
+    _expenseTypes = null;
 
     _searchBloc = SearchBloc();
   }
@@ -72,12 +76,22 @@ class _SearchPageState extends State<SearchPage> {
     final products = context.watch<ProductListBloc>().state.allProducts;
     final invoices = context.watch<InvoiceListBloc>().state.invoices;
     final orders = context.watch<OrderListBloc>().state.allOrders;
-    if (products != _products || invoices != _invoices || orders != _orders) {
+    final expenseTypes = context.watch<ExpenseTypeListBloc>().state.expenseTypes;
+    if (products != _products ||
+        invoices != _invoices ||
+        orders != _orders ||
+        expenseTypes != _expenseTypes) {
+      _products = products;
+      _invoices = invoices;
+      _orders = orders;
+      _expenseTypes = expenseTypes;
+
       _searchBloc.add(
         SearchDependentsUpdated(
           products: products,
           invoices: invoices,
           orders: orders,
+          expenseTypes: expenseTypes,
         ),
       );
     }
@@ -121,6 +135,8 @@ class _SearchMenu extends StatelessWidget with NavigationPanelMixin {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           const _SearchElement(),
+          Spacing.v8,
+          const _SearchLimit(),
           Spacing.v12,
           Expanded(
             child: Builder(builder: (context) {
@@ -156,6 +172,31 @@ class _SearchMenu extends StatelessWidget with NavigationPanelMixin {
           ),
         ],
       ),
+    );
+  }
+}
+
+class _SearchLimit extends StatelessWidget {
+  const _SearchLimit();
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        const Text("Search limit:"),
+        Spacing.h8,
+        Expanded(
+          child: TextFormBox(
+            initialValue: context.select((SearchBloc b) => b.state.limit.toString()),
+            onChanged: (value) {
+              final limit = int.tryParse(value);
+              if (limit != null) {
+                context.read<SearchBloc>().add(SearchLimitUpdated(limit));
+              }
+            },
+          ),
+        ),
+      ],
     );
   }
 }

@@ -1,6 +1,8 @@
 import 'dart:async';
+import 'dart:math';
 
 import 'package:dart_bloc_concurrency/dart_bloc_concurrency.dart';
+import 'package:easthardware_pms/domain/models/expense_type.dart';
 import 'package:easthardware_pms/domain/models/invoice.dart';
 import 'package:easthardware_pms/domain/models/order.dart';
 import 'package:easthardware_pms/domain/models/product.dart';
@@ -14,9 +16,16 @@ part 'search_event.dart';
 part 'search_state.dart';
 
 class SearchBloc extends Bloc<SearchEvent, SearchState> {
-  SearchBloc() : super(const SearchState(allProducts: [], allInvoices: [], allOrders: [])) {
+  SearchBloc()
+      : super(const SearchState(
+          allProducts: [],
+          allInvoices: [],
+          allOrders: [],
+          allExpenseTypes: [],
+        )) {
     on<SearchDependentsUpdated>(_onDependentsUpdated);
     on<SearchQueryUpdated>(_onQueryUpdated, transformer: debounce(0.ms));
+    on<SearchLimitUpdated>(_onSearchLimitUpdated);
     on<SearchReset>(_onSearchReset);
   }
 
@@ -32,7 +41,7 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
         p.description,
       } //
           .whereType<String>(),
-    );
+    ).then((p) => p.sublist(0, min(p.length, state.limit)));
   }
 
   Future<List<Invoice>> _processInvoice(String query) {
@@ -49,10 +58,12 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
         i.referenceNumber,
         i.memo,
       }.whereType<String>(),
-    );
+    ).then((p) => p.sublist(0, min(p.length, state.limit)));
   }
 
   Future<List<Order>> _processOrder(String query) {
+    final expenseTypeCache = <int, String>{};
+
     /// For now, we will just search by customer name and reference number.
     ///   Eventually, this should include stuff like product names, order numbers, etc.
     return Levenshtein.rankItems(
@@ -63,10 +74,18 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
         o.referenceNumber,
         DateFormat('yyyy-MM-dd').format(o.orderDate),
         o.payeeName,
-        o.expenseType.toString(),
+        expenseTypeCache.putIfAbsent(
+          o.expenseType,
+          () => state.allExpenseTypes
+              .firstWhere(
+                (et) => et.id == o.expenseType,
+                orElse: () => const ExpenseType(name: '-'),
+              )
+              .name,
+        ),
         o.memo,
       }.whereType<String>(),
-    );
+    ).then((p) => p.sublist(0, min(p.length, state.limit)));
   }
 
   Future<void> _onDependentsUpdated(
@@ -77,7 +96,20 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
       allProducts: event.products,
       allInvoices: event.invoices,
       allOrders: event.orders,
+      allExpenseTypes: event.expenseTypes,
     ));
+
+    if (state.query.isNotEmpty) {
+      /// If the query is not empty, we need to re-process the results.
+      add(SearchQueryUpdated(state.query));
+    } else {
+      /// If the query is empty, we reset the results.
+      add(const SearchReset());
+    }
+  }
+
+  Future<void> _onSearchLimitUpdated(SearchLimitUpdated event, Emitter<SearchState> emit) async {
+    emit(state.copyWith(limit: event.limit));
 
     if (state.query.isNotEmpty) {
       /// If the query is not empty, we need to re-process the results.
@@ -126,9 +158,9 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
     emit(state.copyWith(
       query: '',
       results: SearchResults(
-        products: state.allProducts.toList(),
-        invoices: state.allInvoices.toList(),
-        orders: state.allOrders.toList(),
+        products: state.allProducts.toList().take(state.limit).toList(),
+        invoices: state.allInvoices.toList().take(state.limit).toList(),
+        orders: state.allOrders.toList().take(state.limit).toList(),
       ),
     ));
   }

@@ -5,7 +5,9 @@ final class SearchState {
     required this.allProducts,
     required this.allInvoices,
     required this.allOrders,
+    required this.allExpenseTypes,
     this.query = '',
+    this.limit = 20,
     this.results = const SearchResults.empty(),
     this.isLoading = false,
     this.errorMessage,
@@ -14,8 +16,10 @@ final class SearchState {
   final List<Product> allProducts;
   final List<Invoice> allInvoices;
   final List<Order> allOrders;
+  final List<ExpenseType> allExpenseTypes;
 
   final String query;
+  final int limit;
   final SearchResults results;
   final bool isLoading;
   final String? errorMessage;
@@ -24,7 +28,9 @@ final class SearchState {
     List<Product> allProducts,
     List<Invoice> allInvoices,
     List<Order> allOrders,
+    List<ExpenseType> allExpenseTypes,
     String query,
+    int limit,
     List<String> searchHistory,
     SearchResults results,
     bool isLoading,
@@ -34,7 +40,9 @@ final class SearchState {
       Object? allProducts = undefined,
       Object? allInvoices = undefined,
       Object? allOrders = undefined,
+      Object? allExpenseTypes = undefined,
       Object? query = undefined,
+      Object? limit = undefined,
       Object? searchHistory = undefined,
       Object? results = undefined,
       Object? isLoading = undefined,
@@ -44,7 +52,9 @@ final class SearchState {
         allProducts: allProducts.or(this.allProducts),
         allInvoices: allInvoices.or(this.allInvoices),
         allOrders: allOrders.or(this.allOrders),
+        allExpenseTypes: allExpenseTypes.or(this.allExpenseTypes),
         query: query.or(this.query),
+        limit: limit.or(this.limit),
         results: results.or(this.results),
         isLoading: isLoading.or(this.isLoading),
         errorMessage: errorMessage.or(this.errorMessage),

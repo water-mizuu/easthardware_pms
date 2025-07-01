@@ -78,7 +78,7 @@ class _ProfitAndLossTitle extends StatelessWidget {
               Builder(builder: (context) {
                 final timeframe = context.watch<ProfitAndLossChangeNotifier>().timeframe;
 
-                return GrayText('Net profit for ${timeframe.displayText}');
+                return GrayText('Net profit and payment status for ${timeframe.displayText}');
               }),
             ],
           ),
@@ -123,7 +123,8 @@ class _ProfitAndLossContent extends StatelessWidget {
           invoice.invoiceDate.isBefore(endDate.add(const Duration(days: 1)));
     }).toList();
 
-    final totalIncome = incomeInvoices.fold(0.0, (s, i) => s + (i.amountPaid ?? 0.0));
+    final totalIncomeDue = incomeInvoices.fold(0.0, (s, i) => s + i.amountDue);
+    final totalIncomePaid = incomeInvoices.fold(0.0, (s, i) => s + (i.amountPaid ?? 0.0));
 
     // Calculate expenses from orders for the selected period
     final expenseOrders = orderState.allOrders.where((order) {
@@ -132,8 +133,9 @@ class _ProfitAndLossContent extends StatelessWidget {
     }).toList();
 
     final totalExpenses = expenseOrders.fold(0.0, (s, o) => s + o.amountDue);
-    final netProfit = totalIncome - totalExpenses;
-    final profitPercentage = totalIncome > 0 ? ((netProfit / totalIncome) * 100).round() : 0;
+    final netProfit = totalIncomePaid - totalExpenses;
+    final profitPercentage =
+        totalIncomePaid > 0 ? ((netProfit / totalIncomePaid) * 100).round() : 0;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -180,12 +182,84 @@ class _ProfitAndLossContent extends StatelessWidget {
             ),
           ],
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: 12),
 
-        // Income section
-        _FinancialBar(
-          label: 'Income',
-          amount: totalIncome,
+        // Payment status summary
+        if (totalIncomeDue > 0) ...[
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: FluentTheme.of(context).cardColor.withOpacity(0.5),
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(
+                color: FluentTheme.of(context).resources.dividerStrokeColorDefault,
+                width: 0.5,
+              ),
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Payment Status',
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: FluentTheme.of(context).resources.textFillColorSecondary,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        '${((totalIncomePaid / totalIncomeDue) * 100).round()}% collected',
+                        style: const TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: totalIncomePaid >= totalIncomeDue
+                        ? Colors.green.withOpacity(0.1)
+                        : totalIncomePaid > 0
+                            ? Colors.orange.withOpacity(0.1)
+                            : Colors.red.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Text(
+                    totalIncomePaid >= totalIncomeDue
+                        ? 'Fully Paid'
+                        : totalIncomePaid > 0
+                            ? 'Partially Paid'
+                            : 'Unpaid',
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w500,
+                      color: totalIncomePaid >= totalIncomeDue
+                          ? Colors.green
+                          : totalIncomePaid > 0
+                              ? Colors.orange
+                              : Colors.red,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
+        ],
+
+        // Sales section with paid/unpaid split
+        _SalesBar(
+          label: 'Sales',
+          totalAmount: totalIncomeDue,
+          paidAmount: totalIncomePaid,
+          unpaidAmount: totalIncomeDue - totalIncomePaid,
           color: Colors.green,
         ),
         const SizedBox(height: 16),
@@ -228,6 +302,147 @@ class _ProfitAndLossContent extends StatelessWidget {
         final startDate = DateTime(2000, 1, 1); // Arbitrary start date
         return (startDate, now);
     }
+  }
+}
+
+class _SalesBar extends StatelessWidget {
+  const _SalesBar({
+    required this.label,
+    required this.totalAmount,
+    required this.paidAmount,
+    required this.unpaidAmount,
+    required this.color,
+  });
+
+  final String label;
+  final double totalAmount;
+  final double paidAmount;
+  final double unpaidAmount;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    // Calculate percentages for the split bar
+    final paidPercentage = totalAmount > 0 ? (paidAmount / totalAmount) : 0.0;
+    final unpaidPercentage = totalAmount > 0 ? (unpaidAmount / totalAmount) : 0.0;
+
+    return Row(
+      children: [
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              CurrencyFormatter.full(totalAmount),
+              style: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 12,
+                color: FluentTheme.of(context).resources.textFillColorSecondary,
+              ),
+            ),
+            const SizedBox(height: 4),
+            // Show breakdown if there are both paid and unpaid amounts
+            if (paidAmount > 0 && unpaidAmount > 0) ...[
+              Text(
+                '${CurrencyFormatter.full(paidAmount)} paid',
+                style: TextStyle(
+                  fontSize: 10,
+                  color: color,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              Text(
+                '${CurrencyFormatter.full(unpaidAmount)} pending',
+                style: TextStyle(
+                  fontSize: 10,
+                  color: color.withOpacity(0.6),
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ] else if (paidAmount > 0) ...[
+              Text(
+                'Fully paid',
+                style: TextStyle(
+                  fontSize: 10,
+                  color: color,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ] else if (unpaidAmount > 0) ...[
+              Text(
+                'Unpaid',
+                style: TextStyle(
+                  fontSize: 10,
+                  color: color.withOpacity(0.6),
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
+          ],
+        ),
+        const Spacer(),
+        Expanded(
+          child: Container(
+            height: 20,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(4),
+            ),
+            child: totalAmount > 0
+                ? Row(
+                    children: [
+                      // Paid portion
+                      if (paidPercentage > 0)
+                        Expanded(
+                          flex: (paidPercentage * 100).round(),
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: color,
+                              borderRadius: BorderRadius.only(
+                                topLeft: const Radius.circular(4),
+                                bottomLeft: const Radius.circular(4),
+                                topRight:
+                                    unpaidPercentage > 0 ? Radius.zero : const Radius.circular(4),
+                                bottomRight:
+                                    unpaidPercentage > 0 ? Radius.zero : const Radius.circular(4),
+                              ),
+                            ),
+                          ),
+                        ),
+                      // Unpaid portion
+                      if (unpaidPercentage > 0)
+                        Expanded(
+                          flex: (unpaidPercentage * 100).round(),
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: color.withOpacity(0.3),
+                              borderRadius: BorderRadius.only(
+                                topLeft:
+                                    paidPercentage > 0 ? Radius.zero : const Radius.circular(4),
+                                bottomLeft:
+                                    paidPercentage > 0 ? Radius.zero : const Radius.circular(4),
+                                topRight: const Radius.circular(4),
+                                bottomRight: const Radius.circular(4),
+                              ),
+                            ),
+                          ),
+                        ),
+                    ],
+                  )
+                : Container(
+                    decoration: BoxDecoration(
+                      color: Colors.grey.withOpacity(0.3),
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                  ),
+          ),
+        ),
+      ],
+    );
   }
 }
 

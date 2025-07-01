@@ -78,9 +78,10 @@ class ExpenseBreakdownCard extends StatelessWidget {
           children: [
             BlocBuilder<ExpenseBreakdownCubit, ExpenseBreakdownState>(
               builder: (context, state) {
-                return Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  crossAxisAlignment: CrossAxisAlignment.center,
+                return Wrap(
+                  alignment: WrapAlignment.spaceBetween,
+                  spacing: 4.0,
+                  crossAxisAlignment: WrapCrossAlignment.center,
                   children: [
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,

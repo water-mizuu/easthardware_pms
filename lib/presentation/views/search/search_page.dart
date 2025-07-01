@@ -1,3 +1,4 @@
+import 'package:easthardware_pms/domain/models/expense_type.dart';
 import 'package:easthardware_pms/domain/models/invoice.dart';
 import 'package:easthardware_pms/domain/models/order.dart';
 import 'package:easthardware_pms/domain/models/product.dart';
@@ -17,10 +18,10 @@ class ProductsBody extends SearchTableResult<Product> {
       : super(
           selector: (b) => b.state.results.products,
           columns: [
-            ('ID', (p) => p.id.toString()),
-            ('SKU', (p) => p.sku),
-            ('Name', (p) => p.name),
-            ('Category', (p) => p.categoryName.toString()),
+            ('ID', (context, p) => p.id.toString()),
+            ('SKU', (context, p) => p.sku),
+            ('Name', (context, p) => p.name),
+            ('Category', (context, p) => p.categoryName.toString()),
           ],
           rowExtents: const {
             0: FixedSpanExtent(64.00),
@@ -47,11 +48,11 @@ class InvoicesBody extends SearchTableResult<Invoice> {
       : super(
           selector: (b) => b.state.results.invoices,
           columns: [
-            ('Invoice No.', (p) => p.id.toString()),
-            ('Invoice Date', (p) => DateFormat('yyyy-MM-dd').format(p.invoiceDate)),
-            ('Customer Name', (p) => p.customerName),
-            ('Payment Reference No.', (p) => p.referenceNumber ?? ""),
-            ('Memo', (p) => p.memo ?? ""),
+            ('Invoice No.', (context, p) => p.id.toString()),
+            ('Invoice Date', (context, p) => DateFormat('yyyy-MM-dd').format(p.invoiceDate)),
+            ('Customer Name', (context, p) => p.customerName),
+            ('Payment Reference No.', (context, p) => p.referenceNumber ?? ""),
+            ('Memo', (context, p) => p.memo ?? ""),
           ],
           rowExtents: const {
             0: FixedSpanExtent(96.00),
@@ -80,12 +81,19 @@ class OrdersBody extends SearchTableResult<Order> {
       : super(
           selector: (b) => b.state.results.orders,
           columns: [
-            ('Order No.', (p) => p.id.toString()),
-            ('Order Date', (p) => DateFormat('yyyy-MM-dd').format(p.orderDate)),
-            ('Payee Name', (p) => p.payeeName),
-            ('Expense Type', (p) => "${p.expenseType}"),
-            ('Amount', (p) => CurrencyFormatter.full(p.amountDue)),
-            ('Memo', (p) => p.memo ?? ""),
+            ('Order No.', (context, p) => p.id.toString()),
+            ('Order Date', (context, p) => DateFormat('yyyy-MM-dd').format(p.orderDate)),
+            ('Payee Name', (context, p) => p.payeeName),
+            (
+              'Expense Type',
+              (context, p) => (context.read<SearchBloc>().state)
+                  .allExpenseTypes
+                  .firstWhere((et) => et.id == p.expenseType,
+                      orElse: () => const ExpenseType(name: '-'))
+                  .name
+            ),
+            ('Amount', (context, p) => CurrencyFormatter.full(p.amountDue)),
+            ('Memo', (context, p) => p.memo?.limitLength(30) ?? ""),
           ],
           rowExtents: const {
             0: FixedSpanExtent(96.00),
@@ -112,6 +120,13 @@ class OrdersBody extends SearchTableResult<Order> {
   static final OrdersBody instance = OrdersBody._();
 }
 
+extension on String {
+  String limitLength(int i) {
+    if (length <= i) return this;
+    return '${substring(0, i)}...';
+  }
+}
+
 class SearchTableResult<T> extends StatefulWidget {
   const SearchTableResult({
     required this.selector,
@@ -121,7 +136,7 @@ class SearchTableResult<T> extends StatefulWidget {
   });
 
   final List<T> Function(SearchBloc) selector;
-  final List<(String, String Function(T))> columns;
+  final List<(String, String Function(BuildContext, T))> columns;
   final Map<int, SpanExtent> rowExtents;
 
   @override
@@ -159,7 +174,7 @@ class _SearchTableResultState<T> extends State<SearchTableResult<T>> {
     final results = context.select(widget.selector);
     final matrix = [widget.columns.map((c) => c.$1).toList()]
         .followedBy(results //
-            .map((p) => widget.columns.map((c) => c.$2(p)).toList())
+            .map((p) => widget.columns.map((c) => c.$2(context, p)).toList())
             .expand((x) => [x]))
         .toList();
 
