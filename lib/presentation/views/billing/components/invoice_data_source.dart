@@ -27,7 +27,7 @@ class InvoiceDataSource extends DataTableSource {
 
   final currencyFormat = NumberFormat.currency(
     locale: 'en_PH',
-    symbol: '₱',
+    symbol: 'Php ',
     decimalDigits: 2,
   );
 

@@ -1,3 +1,4 @@
+import 'package:easthardware_pms/presentation/views/reports/common/reports_globals.dart';
 import 'package:easthardware_pms/utils/undefined.dart';
 import 'package:equatable/equatable.dart';
 
@@ -141,10 +142,9 @@ enum ProfitLossSortBy {
 /// Query data for profit and loss report
 class ProfitLossQueryData extends Equatable {
   factory ProfitLossQueryData.empty() {
-    final now = DateTime.now();
     return ProfitLossQueryData(
-      startDate: DateTime(now.year, now.month, 1),
-      endDate: now,
+      startDate: ReportsGlobals.defaultStartDate,
+      endDate: ReportsGlobals.defaultEndDate,
     );
   }
 

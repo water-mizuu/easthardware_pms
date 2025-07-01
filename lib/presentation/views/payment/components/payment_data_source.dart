@@ -33,7 +33,7 @@ class PaymentDataSource extends DataTableSource {
     if (index >= payments.length) return null;
 
     final payment = payments[index];
-    final formatter = NumberFormat.currency(symbol: '₱', decimalDigits: 2);
+    final formatter = NumberFormat.currency(symbol: 'Php ', decimalDigits: 2);
     final dateFormatter = DateFormat('MMM dd, yyyy');
 
     return DataRow(

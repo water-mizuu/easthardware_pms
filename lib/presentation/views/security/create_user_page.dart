@@ -203,7 +203,7 @@ class PageHeader extends StatelessWidget {
             context.navigate(AppRoutes.admin.users);
           },
         ),
-        const HeadingText('Create User'),
+        const DisplayText('Create User'),
         const Spacer(flex: 1),
         TextButtonFilled(
           'Save User',
@@ -276,7 +276,10 @@ class FirstNameLastNameFields extends StatelessWidget with UserFormValidator {
               TextFormBox(
                 inputFormatters: [
                   LengthLimitingTextInputFormatter(30),
-                  FilteringTextInputFormatter.allow(RegExp(r'^[a-zA-Z\s]*$')),
+                  FilteringTextInputFormatter.allow(
+                    RegExp(r'^[a-zA-Z\s]*$'),
+                    replacementString: context.select((UserFormBloc b) => b.state.firstName),
+                  ),
                 ],
                 validator: validateFirstName,
                 placeholder: 'First Name',
@@ -297,7 +300,10 @@ class FirstNameLastNameFields extends StatelessWidget with UserFormValidator {
               TextFormBox(
                 inputFormatters: [
                   LengthLimitingTextInputFormatter(30),
-                  FilteringTextInputFormatter.allow(RegExp(r'^[a-zA-Z\s]*$')),
+                  FilteringTextInputFormatter.allow(
+                    RegExp(r'^[a-zA-Z\s]*$'),
+                    replacementString: context.select((UserFormBloc b) => b.state.lastName),
+                  ),
                 ],
                 validator: validateLastName,
                 placeholder: 'Last Name',
@@ -334,7 +340,10 @@ class UsernameField extends StatelessWidget with UserFormValidator {
         TextFormBox(
           inputFormatters: [
             LengthLimitingTextInputFormatter(30),
-            FilteringTextInputFormatter.allow(RegExp(r'^[a-zA-Z0-9_]*$')),
+            FilteringTextInputFormatter.allow(
+              RegExp(r'^[a-zA-Z0-9_]*$'),
+              replacementString: context.select((UserFormBloc b) => b.state.username),
+            ),
           ],
           validator: (value) => validateUsername(value, existingUsernames),
           placeholder: 'Username',

@@ -187,7 +187,10 @@ class _SearchElement extends StatelessWidget {
           child: TextFormBox(
             inputFormatters: [
               LengthLimitingTextInputFormatter(60),
-              FilteringTextInputFormatter.allow(RegExp(r'^[a-zA-Z0-9\s\-_]+$')),
+              FilteringTextInputFormatter.allow(
+                RegExp(r'^[a-zA-Z0-9\s\-_]+$'),
+                replacementString: context.select((SearchBloc b) => b.state.query),
+              ),
             ],
             placeholder: 'Enter search keyword; e.g. product name, invoice number, etc.',
             onChanged: (value) {

@@ -87,7 +87,11 @@ class _ExpenseTypeComboBoxState extends State<ExpenseTypeComboBox> {
                                 TextFormBox(
                                   inputFormatters: [
                                     LengthLimitingTextInputFormatter(60),
-                                    FilteringTextInputFormatter.allow(RegExp(r'^[a-zA-Z0-9\s]+$')),
+                                    FilteringTextInputFormatter.allow(
+                                      RegExp(r'^[a-zA-Z0-9\s]+$'),
+                                      replacementString:
+                                          context.read<ExpenseTypeFormCubit>().state.name,
+                                    ),
                                   ],
                                   placeholder: 'Expense Type Name',
                                   validator: (value) {

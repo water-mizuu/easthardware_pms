@@ -426,7 +426,7 @@ class _ChartUtils {
       bottomTitles: AxisTitles(
         sideTitles: SideTitles(
           showTitles: true,
-          reservedSize: 32,
+          reservedSize: 24,
           interval: interval,
           getTitlesWidget: (double value, TitleMeta meta) {
             const style = TextStyle(fontSize: 14);
@@ -468,7 +468,7 @@ class _ChartUtils {
           },
           showTitles: true,
           interval: maxY > 0 ? (maxY ~/ 4).toDouble() : 1,
-          reservedSize: 72,
+          reservedSize: 96,
         ),
       ),
     );

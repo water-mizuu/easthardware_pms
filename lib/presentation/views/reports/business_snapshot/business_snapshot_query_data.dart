@@ -1,6 +1,7 @@
 import 'package:easthardware_pms/domain/models/category.dart';
 import 'package:easthardware_pms/domain/models/expense_type.dart';
 import 'package:easthardware_pms/domain/models/product.dart';
+import 'package:easthardware_pms/presentation/views/reports/common/reports_globals.dart';
 import 'package:easthardware_pms/utils/undefined.dart';
 import 'package:equatable/equatable.dart';
 
@@ -462,10 +463,9 @@ class CategorySalesTrendSeries extends Equatable {
 /// Query data for business snapshot report
 class BusinessSnapshotQueryData extends Equatable {
   factory BusinessSnapshotQueryData.empty() {
-    final now = DateTime.now();
     return BusinessSnapshotQueryData(
-      currentPeriodStart: DateTime(now.year, now.month, 1),
-      currentPeriodEnd: now,
+      currentPeriodStart: ReportsGlobals.defaultStartDate,
+      currentPeriodEnd: ReportsGlobals.defaultEndDate,
     );
   }
   const BusinessSnapshotQueryData({

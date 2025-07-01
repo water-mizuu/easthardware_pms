@@ -197,7 +197,10 @@ class OrderPageForm extends StatelessWidget with OrderFormValidator {
                     TextFormBox(
                       inputFormatters: [
                         LengthLimitingTextInputFormatter(60),
-                        FilteringTextInputFormatter.allow(RegExp(r'^[a-zA-Z0-9\s\-_]+$')),
+                        FilteringTextInputFormatter.allow(
+                          RegExp(r'^[a-zA-Z0-9\s\-_]+$'),
+                          replacementString: state.payeeName,
+                        ),
                       ],
                       initialValue: state.payeeName,
                       onChanged: (value) => bloc.add(PayeeNameChangedEvent(value)),
@@ -249,7 +252,10 @@ class OrderPageForm extends StatelessWidget with OrderFormValidator {
                       onChanged: (value) => bloc.add(ReferenceNumberChangedEvent(value)),
                       inputFormatters: [
                         LengthLimitingTextInputFormatter(60),
-                        FilteringTextInputFormatter.allow(RegExp(r'^[a-zA-Z0-9\s\-_]+$')),
+                        FilteringTextInputFormatter.allow(
+                          RegExp(r'^[a-zA-Z0-9\s\-_]+$'),
+                          replacementString: state.referenceNumber,
+                        ),
                       ],
                     ),
                     if (state.referenceNumberErrorMessage != null)

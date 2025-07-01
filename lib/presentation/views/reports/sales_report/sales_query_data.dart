@@ -1,5 +1,5 @@
 import 'package:easthardware_pms/domain/models/product.dart';
-import 'package:easthardware_pms/presentation/views/dashboard/cards/sales_overview.dart';
+import 'package:easthardware_pms/presentation/views/reports/common/reports_globals.dart';
 import 'package:easthardware_pms/presentation/views/reports/sales_report/'
     'extensions/sales_by_category_datum.dart';
 import 'package:easthardware_pms/utils/undefined.dart';
@@ -55,11 +55,9 @@ class SalesExtras with EquatableMixin {
 
 class SalesQueryData with EquatableMixin {
   factory SalesQueryData.empty() {
-    final now = DateTime.now().zeroedTime();
-
     return SalesQueryData(
-      startDate: now.subtract(const Duration(days: 30)),
-      endDate: now,
+      startDate: ReportsGlobals.defaultStartDate,
+      endDate: ReportsGlobals.defaultEndDate,
     );
   }
   const SalesQueryData({

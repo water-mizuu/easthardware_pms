@@ -4,6 +4,7 @@ import 'package:easthardware_pms/domain/models/invoice_product.dart';
 import 'package:easthardware_pms/domain/models/order.dart';
 import 'package:easthardware_pms/domain/models/order_product.dart';
 import 'package:easthardware_pms/domain/models/product.dart';
+import 'package:easthardware_pms/presentation/views/reports/common/reports_globals.dart';
 import 'package:easthardware_pms/presentation/views/reports/profit_loss_report/profit_loss_query_data.dart';
 import 'package:easthardware_pms/utils/date_filter.dart';
 import 'package:easthardware_pms/utils/num_iterable_extension.dart';
@@ -290,8 +291,8 @@ class ProfitLossReportBloc extends Bloc<ProfitLossReportEvent, ProfitLossReportS
       totalExpenses: totalExpenses,
       totalProfit: totalProfit,
       averageProfitMargin: averageProfitMargin,
-      periodStart: startDate,
-      periodEnd: endDate.subtract(const Duration(days: 1)), // Adjust back to actual end date
+      periodStart: ReportsGlobals.defaultStartDate,
+      periodEnd: ReportsGlobals.defaultEndDate,
     );
 
     emit(state.copyWith(

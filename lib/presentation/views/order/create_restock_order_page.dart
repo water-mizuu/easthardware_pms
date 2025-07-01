@@ -207,7 +207,10 @@ class OrderPageForm extends StatelessWidget {
                     TextFormBox(
                       inputFormatters: [
                         LengthLimitingTextInputFormatter(60),
-                        FilteringTextInputFormatter.allow(RegExp(r'^[a-zA-Z0-9\s\-_]+$')),
+                        FilteringTextInputFormatter.allow(
+                          RegExp(r'^[a-zA-Z0-9\s\-_]+$'),
+                          replacementString: state.payeeName,
+                        ),
                       ],
                       initialValue: state.payeeName,
                       onChanged: (value) => context //
@@ -259,7 +262,10 @@ class OrderPageForm extends StatelessWidget {
                     TextFormBox(
                       inputFormatters: [
                         LengthLimitingTextInputFormatter(60),
-                        FilteringTextInputFormatter.allow(RegExp(r'^[a-zA-Z0-9\s\-_]+$')),
+                        FilteringTextInputFormatter.allow(
+                          RegExp(r'^[a-zA-Z0-9\s\-_]+$'),
+                          replacementString: state.referenceNumber,
+                        ),
                       ],
                       initialValue: state.referenceNumber,
                       onChanged: (value) =>

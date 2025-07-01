@@ -107,7 +107,10 @@ class _FormUsernameField extends StatelessWidget with LoginFormValidator {
                 .read<LoginFormBloc>()
                 .add(LoginFormUsernameChanged(value)),
             inputFormatters: [
-              FilteringTextInputFormatter.allow(RegExp(r'^[a-zA-Z0-9_]*$')),
+              FilteringTextInputFormatter.allow(
+                RegExp(r'^[a-zA-Z0-9_]*$'),
+                replacementString: context.select((LoginFormBloc b) => b.state.username),
+              ),
               LengthLimitingTextInputFormatter(30),
             ],
           ),

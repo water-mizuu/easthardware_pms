@@ -65,11 +65,11 @@ final keys = (searchKey: GlobalKey<NavigatorState>(),);
 const initialLocation = AppRoutes.login;
 
 /// This is the global key for the root navigator. This should be used for modals.
-final rootWidgetKey = GlobalKey<NavigatorState>(debugLabel: "Complain the money's hard");
+final rootWidgetKey = GlobalKey<NavigatorState>();
 
 /// This is the global key for the inner navigator, containing the overlay.
 ///   This should be used for overlay calls.
-final overlayWidgetKey = GlobalKey<NavigatorState>(debugLabel: "bailey");
+final overlayWidgetKey = GlobalKey<NavigatorState>();
 
 final router = GoRouter(
   initialLocation: initialLocation as String,

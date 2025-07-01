@@ -150,7 +150,7 @@ class SaleInformationSection extends StatelessWidget with ProductFormValidator {
         TextFormBox(
           prefix: Padding(
             padding: const EdgeInsets.only(left: 16.0),
-            child: Text('₱', style: TextStyles.onSurfaceVariant.merge(TextStyles.body)),
+            child: Text('Php ', style: TextStyles.onSurfaceVariant.merge(TextStyles.body)),
           ),
           inputFormatters: [
             FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*')),
@@ -187,7 +187,7 @@ class OrderInformationSection extends StatelessWidget with ProductFormValidator 
         TextFormBox(
           prefix: Padding(
             padding: const EdgeInsets.only(left: 16.0),
-            child: Text('₱', style: TextStyles.onSurfaceVariant.merge(TextStyles.body)),
+            child: Text('Php ', style: TextStyles.onSurfaceVariant.merge(TextStyles.body)),
           ),
           inputFormatters: [
             FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*')),
@@ -286,7 +286,10 @@ class ProductNameField extends StatelessWidget with ProductFormValidator {
         Spacing.v4,
         TextFormBox(
           inputFormatters: [
-            FilteringTextInputFormatter.allow(RegExp(r'^[a-zA-Z0-9\s]+$')),
+            FilteringTextInputFormatter.allow(
+              RegExp(r'^[a-zA-Z0-9\s]+$'),
+              replacementString: context.select((ProductFormBloc b) => b.state.name),
+            ),
             LengthLimitingTextInputFormatter(60),
           ],
           autofocus: true,
@@ -319,7 +322,10 @@ class StockKeepingUnitField extends StatelessWidget with ProductFormValidator {
         Spacing.v4,
         TextFormBox(
           inputFormatters: [
-            FilteringTextInputFormatter.allow(RegExp(r'^[a-zA-Z0-9_-]+$')),
+            FilteringTextInputFormatter.allow(
+              RegExp(r'^[a-zA-Z0-9_-]+$'),
+              replacementString: context.select((ProductFormBloc b) => b.state.sku),
+            ),
             LengthLimitingTextInputFormatter(60),
           ],
           initialValue: context.watch<ProductFormBloc>().state.sku,
@@ -633,7 +639,13 @@ class _SecondaryUnitFieldState extends State<SecondaryUnitField> with ProductFor
               Expanded(
                 child: TextFormBox(
                   inputFormatters: [
-                    FilteringTextInputFormatter.allow(RegExp(r'^[a-zA-Z0-9\s]+$')),
+                    FilteringTextInputFormatter.allow(
+                      RegExp(r'^[a-zA-Z0-9\s]+$'),
+                      replacementString: (context.watch<ProductFormBloc>().state)
+                          .secondaryUnits[widget.index]
+                          .name
+                          .value,
+                    ),
                     LengthLimitingTextInputFormatter(60),
                   ],
                   controller: _nameController,

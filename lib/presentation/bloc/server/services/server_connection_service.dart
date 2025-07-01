@@ -23,8 +23,7 @@ Future<(ShelfServer, ShelfServer, Stream<ServerEvent>)> startServers(int port) a
 Future<String> getLocalIpAddress() async {
   final localIp = await NetworkInfo().getWifiIP();
   if (localIp == null) {
-    throw Exception(
-        'Could not determine local IP address. Please ensure you are connected to a WiFi network or local network (Ethernet). Network connectivity is required to host or connect to a server.');
+    return "127.0.0.1";
   }
   return localIp;
 }

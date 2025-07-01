@@ -23,7 +23,3 @@ final class SearchQueryUpdated implements SearchEvent {
 final class SearchReset implements SearchEvent {
   const SearchReset();
 }
-
-final class SearchQuerySaved implements SearchEvent {
-  const SearchQuerySaved();
-}

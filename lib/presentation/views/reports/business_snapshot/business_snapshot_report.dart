@@ -17,6 +17,7 @@ import 'package:easthardware_pms/presentation/widgets/layout/spacing.dart';
 import 'package:easthardware_pms/presentation/widgets/text.dart';
 import 'package:easthardware_pms/presentation/widgets/ui/text_button.dart';
 import 'package:easthardware_pms/utils/notification.dart';
+import 'package:easthardware_pms/utils/num_iterable_extension.dart';
 import 'package:easthardware_pms/utils/typed_routes.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:fluent_ui/fluent_ui.dart';
@@ -128,7 +129,7 @@ class _BusinessSnapshotReportState extends State<BusinessSnapshotReport> {
                       ),
                     ],
                   ),
-                  Spacing.v8,
+                  Spacing.v16,
                   Row(
                     children: [
                       const Text('Comparison Period:'),
@@ -253,7 +254,7 @@ class _BusinessSnapshotReportState extends State<BusinessSnapshotReport> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                CurrencyFormatter.full(metric.currentValue, "Php "),
+                CurrencyFormatter.full(metric.currentValue),
                 style: const TextStyle(fontSize: 16),
               ),
               Row(
@@ -400,13 +401,13 @@ class _BusinessSnapshotReportState extends State<BusinessSnapshotReport> {
                       TableCell(
                         child: Padding(
                           padding: const EdgeInsets.all(8.0),
-                          child: Text(CurrencyFormatter.full(product.revenue, "Php ")),
+                          child: Text(CurrencyFormatter.full(product.revenue)),
                         ),
                       ),
                       TableCell(
                         child: Padding(
                           padding: const EdgeInsets.all(8.0),
-                          child: Text(CurrencyFormatter.full(product.profit, "Php ")),
+                          child: Text(CurrencyFormatter.full(product.profit)),
                         ),
                       ),
                     ],
@@ -506,7 +507,7 @@ class _BusinessSnapshotReportState extends State<BusinessSnapshotReport> {
                       TableCell(
                         child: Padding(
                           padding: const EdgeInsets.all(8.0),
-                          child: Text(CurrencyFormatter.full(expense.amount, "Php ")),
+                          child: Text(CurrencyFormatter.full(expense.amount)),
                         ),
                       ),
                       TableCell(
@@ -532,16 +533,18 @@ class _BusinessSnapshotReportState extends State<BusinessSnapshotReport> {
                         child: Text(
                           CurrencyFormatter.full(
                             expenses.fold(0, (sum, expense) => sum + expense.amount),
-                            "Php ",
                           ),
                           style: const TextStyle(fontWeight: FontWeight.bold),
                         ),
                       ),
                     ),
-                    const TableCell(
+                    TableCell(
                       child: Padding(
-                        padding: EdgeInsets.all(8.0),
-                        child: Text('100%', style: TextStyle(fontWeight: FontWeight.bold)),
+                        padding: const EdgeInsets.all(8.0),
+                        child: Text(
+                          '${expenses.fold<double>(0, (sum, expense) => sum + expense.percentage).toStringAsFixed(1)}%',
+                          style: const TextStyle(fontWeight: FontWeight.bold),
+                        ),
                       ),
                     ),
                   ],
@@ -568,23 +571,19 @@ class _BusinessSnapshotReportState extends State<BusinessSnapshotReport> {
             if (revenueTrends.isNotEmpty)
               RepaintBoundary(
                 key: _chartKey,
-                child: SizedBox(
-                  height: 300,
-                  child: Column(
-                    children: [
-                      // Legend
-                      Padding(
-                        padding: const EdgeInsets.only(bottom: 16.0),
-                        child: _buildChartLegend(state.queryData),
-                      ), // Chart
-                      Expanded(
-                        child: _SalesHistoryChart(
-                          revenueTrends: revenueTrends,
-                          queryData: state.queryData,
-                        ),
-                      ),
-                    ],
-                  ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // Legend
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 16.0),
+                      child: _buildChartLegend(state.queryData),
+                    ), // Chart
+                    _SalesHistoryChart(
+                      revenueTrends: revenueTrends,
+                      queryData: state.queryData,
+                    ),
+                  ],
                 ),
               )
             else
@@ -960,6 +959,8 @@ class _Header extends StatelessWidget {
   }
 }
 
+const _cellPadding = pw.EdgeInsets.symmetric(horizontal: 8.0, vertical: 2.0);
+
 class _PdfGenerator with PdfCommons implements PdfGenerator {
   const _PdfGenerator(this.state, this.chartImage);
 
@@ -978,42 +979,42 @@ class _PdfGenerator with PdfCommons implements PdfGenerator {
     pdf.addPage(
       pw.MultiPage(
         pageFormat: format ?? PdfPageFormat.a4,
-        margin: const pw.EdgeInsets.all(32),
-        header: (context) => _buildPdfHeader(context, logo),
-        footer: (context) => _buildPdfFooter(context),
+        margin: const pw.EdgeInsets.all(12),
+        header: (context) => buildPdfHeaderDoubleDate(
+          context,
+          logo,
+          state.queryData.currentPeriodStart,
+          state.queryData.currentPeriodEnd,
+          reportType: 'Business Snapshot Report',
+        ),
         build: (pw.Context context) {
           return [
-            _buildPdfTitle(),
-            pw.SizedBox(height: 20),
             _buildPdfSummary(),
-            pw.SizedBox(height: 24),
+            pw.SizedBox(height: 8),
 
             // Key Metrics Section
             _buildPdfSectionHeader('Key Business Metrics'),
-            pw.SizedBox(height: 12),
+            pw.SizedBox(height: 4),
             _buildPdfMetricsTable(state),
-            pw.NewPage(),
+            pw.SizedBox(height: 8),
 
             // Top Products Section
             _buildPdfSectionHeader('Top Performing Products'),
-            pw.SizedBox(height: 12),
+            pw.SizedBox(height: 4),
             _buildPdfTopProductsTable(state),
-            pw.SizedBox(height: 24),
+            pw.SizedBox(height: 8),
 
             // Expense Breakdown Section
             _buildPdfSectionHeader('Expense Breakdown'),
-            pw.SizedBox(height: 12),
+            pw.SizedBox(height: 4),
             _buildPdfExpenseBreakdownTable(state),
 
             if (chartImage case final chartImage?) ...[
-              pw.NewPage(),
+              pw.SizedBox(height: 8),
               _buildPdfSectionHeader('Sales History Chart'),
-              pw.SizedBox(height: 12),
+              pw.SizedBox(height: 4),
               _buildPdfChart(chartImage),
             ],
-
-            pw.SizedBox(height: 24),
-            _buildPdfFooterNote(),
           ];
         },
       ),
@@ -1022,124 +1023,12 @@ class _PdfGenerator with PdfCommons implements PdfGenerator {
     return pdf.save();
   }
 
-  pw.Widget _buildPdfHeader(pw.Context context, ByteData logo) {
-    return pw.Container(
-      margin: const pw.EdgeInsets.only(bottom: 20),
-      child: pw.Row(
-        crossAxisAlignment: pw.CrossAxisAlignment.start,
-        children: [
-          pw.Image(
-            pw.MemoryImage(logo.buffer.asUint8List()),
-            width: 60,
-            height: 60,
-          ),
-          pw.SizedBox(width: 20),
-          pw.Expanded(
-            child: pw.Column(
-              crossAxisAlignment: pw.CrossAxisAlignment.start,
-              children: [
-                pw.Text(
-                  'East Hardware',
-                  style: pw.TextStyle(
-                    fontSize: 24,
-                    fontWeight: pw.FontWeight.bold,
-                  ),
-                ),
-                pw.SizedBox(height: 4),
-                pw.Text(
-                  'Business Management System',
-                  style: const pw.TextStyle(
-                    fontSize: 12,
-                    color: PdfColors.grey600,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          pw.Column(
-            crossAxisAlignment: pw.CrossAxisAlignment.end,
-            children: [
-              pw.Text(
-                'Generated: ${DateFormat('MMM d, yyyy • h:mm a').format(DateTime.now())}',
-                style: const pw.TextStyle(fontSize: 10, color: PdfColors.grey600),
-              ),
-              pw.SizedBox(height: 2),
-              pw.Text(
-                'Page ${context.pageNumber} of ${context.pagesCount}',
-                style: const pw.TextStyle(fontSize: 10, color: PdfColors.grey600),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  pw.Widget _buildPdfFooter(pw.Context context) {
-    return pw.Container(
-      margin: const pw.EdgeInsets.only(top: 20),
-      padding: const pw.EdgeInsets.symmetric(vertical: 8),
-      decoration: const pw.BoxDecoration(
-        border: pw.Border(top: pw.BorderSide(color: PdfColors.grey300)),
-      ),
-      child: pw.Row(
-        mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
-        children: [
-          pw.Text(
-            'East Hardware Business Snapshot Report',
-            style: const pw.TextStyle(fontSize: 10, color: PdfColors.grey600),
-          ),
-          pw.Text(
-            'Confidential',
-            style: pw.TextStyle(
-              fontSize: 10,
-              color: PdfColors.grey600,
-              fontWeight: pw.FontWeight.bold,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  pw.Widget _buildPdfTitle() {
-    return pw.Container(
-      padding: const pw.EdgeInsets.symmetric(vertical: 16),
-      decoration: const pw.BoxDecoration(
-        border: pw.Border(bottom: pw.BorderSide(color: PdfColors.blue, width: 3)),
-      ),
-      child: pw.Column(
-        crossAxisAlignment: pw.CrossAxisAlignment.start,
-        children: [
-          pw.Text(
-            'Business Snapshot Report',
-            style: pw.TextStyle(
-              fontSize: 28,
-              fontWeight: pw.FontWeight.bold,
-              color: PdfColors.blue800,
-            ),
-          ),
-          pw.SizedBox(height: 8),
-          pw.Text(
-            'Comprehensive Business Performance Overview',
-            style: pw.TextStyle(
-              fontSize: 14,
-              color: PdfColors.grey700,
-              fontStyle: pw.FontStyle.italic,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
   pw.Widget _buildPdfSummary() {
     return pw.Container(
-      padding: const pw.EdgeInsets.all(16),
+      padding: const pw.EdgeInsets.all(8),
       decoration: pw.BoxDecoration(
-        color: PdfColors.grey100,
-        borderRadius: pw.BorderRadius.circular(8),
-        border: pw.Border.all(color: PdfColors.grey300),
+        border: pw.Border.all(color: PdfColors.grey300, width: 0.5),
+        borderRadius: pw.BorderRadius.circular(4),
       ),
       child: pw.Column(
         crossAxisAlignment: pw.CrossAxisAlignment.start,
@@ -1147,12 +1036,11 @@ class _PdfGenerator with PdfCommons implements PdfGenerator {
           pw.Text(
             'Report Summary',
             style: pw.TextStyle(
-              fontSize: 16,
+              fontSize: 12,
               fontWeight: pw.FontWeight.bold,
-              color: PdfColors.blue800,
             ),
           ),
-          pw.SizedBox(height: 8),
+          pw.SizedBox(height: 4),
           pw.Row(
             children: [
               pw.Expanded(
@@ -1161,11 +1049,11 @@ class _PdfGenerator with PdfCommons implements PdfGenerator {
                   children: [
                     pw.Text(
                       'Report Period:',
-                      style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
+                      style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 9),
                     ),
                     pw.Text(
                       '${DateFormat('MMM d, yyyy').format(state.queryData.currentPeriodStart)} to ${DateFormat('MMM d, yyyy').format(state.queryData.currentPeriodEnd)}',
-                      style: const pw.TextStyle(fontSize: 12),
+                      style: const pw.TextStyle(fontSize: 8),
                     ),
                   ],
                 ),
@@ -1176,11 +1064,11 @@ class _PdfGenerator with PdfCommons implements PdfGenerator {
                   children: [
                     pw.Text(
                       'Comparison Period:',
-                      style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
+                      style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 9),
                     ),
                     pw.Text(
                       state.queryData.comparisonPeriod.name,
-                      style: const pw.TextStyle(fontSize: 12),
+                      style: const pw.TextStyle(fontSize: 8),
                     ),
                   ],
                 ),
@@ -1189,21 +1077,21 @@ class _PdfGenerator with PdfCommons implements PdfGenerator {
           ),
           if (state.queryData.selectedProducts.isNotEmpty ||
               state.queryData.selectedCategories.isNotEmpty) ...[
-            pw.SizedBox(height: 12),
+            pw.SizedBox(height: 4),
             pw.Text(
               'Filters Applied:',
-              style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
+              style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 9),
             ),
-            pw.SizedBox(height: 4),
+            pw.SizedBox(height: 2),
             if (state.queryData.selectedProducts.isNotEmpty)
               pw.Text(
                 'Products: ${state.queryData.selectedProducts.map((p) => p.name).join(", ")}',
-                style: const pw.TextStyle(fontSize: 11),
+                style: const pw.TextStyle(fontSize: 8),
               ),
             if (state.queryData.selectedCategories.isNotEmpty)
               pw.Text(
                 'Categories: ${state.queryData.selectedCategories.map((c) => c.name).join(", ")}',
-                style: const pw.TextStyle(fontSize: 11),
+                style: const pw.TextStyle(fontSize: 8),
               ),
           ],
         ],
@@ -1213,17 +1101,15 @@ class _PdfGenerator with PdfCommons implements PdfGenerator {
 
   pw.Widget _buildPdfSectionHeader(String title) {
     return pw.Container(
-      margin: const pw.EdgeInsets.only(top: 8),
-      padding: const pw.EdgeInsets.symmetric(vertical: 8),
+      padding: const pw.EdgeInsets.symmetric(vertical: 4),
       decoration: const pw.BoxDecoration(
-        border: pw.Border(bottom: pw.BorderSide(color: PdfColors.blue300, width: 2)),
+        border: pw.Border(bottom: pw.BorderSide(color: PdfColors.grey400, width: 1)),
       ),
       child: pw.Text(
         title,
         style: pw.TextStyle(
-          fontSize: 18,
+          fontSize: 11,
           fontWeight: pw.FontWeight.bold,
-          color: PdfColors.blue800,
         ),
       ),
     );
@@ -1232,79 +1118,35 @@ class _PdfGenerator with PdfCommons implements PdfGenerator {
   pw.Widget _buildPdfChart(Uint8List chartImage) {
     return pw.Container(
       decoration: pw.BoxDecoration(
-        border: pw.Border.all(color: PdfColors.grey300),
-        borderRadius: pw.BorderRadius.circular(8),
+        border: pw.Border.all(color: PdfColors.grey300, width: 0.5),
+        borderRadius: pw.BorderRadius.circular(4),
       ),
-      padding: const pw.EdgeInsets.all(16),
+      padding: const pw.EdgeInsets.all(8),
       child: pw.Column(
         children: [
           pw.Text(
             'Sales History Trend Analysis',
             style: pw.TextStyle(
-              fontSize: 14,
+              fontSize: 10,
               fontWeight: pw.FontWeight.bold,
-              color: PdfColors.grey700,
             ),
           ),
-          pw.SizedBox(height: 12),
+          pw.SizedBox(height: 4),
           pw.Container(
-            height: 300,
+            height: 200,
             width: double.infinity,
             child: pw.Image(
               pw.MemoryImage(chartImage),
               fit: pw.BoxFit.contain,
             ),
           ),
-          pw.SizedBox(height: 8),
+          pw.SizedBox(height: 4),
           pw.Text(
             'Chart shows revenue, expenses, profit trends, and selected product/category performance over time.',
             style: const pw.TextStyle(
-              fontSize: 10,
-              color: PdfColors.grey600,
+              fontSize: 8,
             ),
             textAlign: pw.TextAlign.center,
-          ),
-        ],
-      ),
-    );
-  }
-
-  pw.Widget _buildPdfFooterNote() {
-    return pw.Container(
-      margin: const pw.EdgeInsets.only(top: 16),
-      padding: const pw.EdgeInsets.all(12),
-      decoration: pw.BoxDecoration(
-        color: PdfColors.blue50,
-        borderRadius: pw.BorderRadius.circular(6),
-        border: pw.Border.all(color: PdfColors.blue200),
-      ),
-      child: pw.Column(
-        crossAxisAlignment: pw.CrossAxisAlignment.start,
-        children: [
-          pw.Text(
-            'Important Notes:',
-            style: pw.TextStyle(
-              fontSize: 12,
-              fontWeight: pw.FontWeight.bold,
-              color: PdfColors.blue800,
-            ),
-          ),
-          pw.SizedBox(height: 4),
-          pw.Text(
-            '• This report contains confidential business information',
-            style: const pw.TextStyle(fontSize: 10, color: PdfColors.grey700),
-          ),
-          pw.Text(
-            '• Data accuracy depends on proper record-keeping and data entry',
-            style: const pw.TextStyle(fontSize: 10, color: PdfColors.grey700),
-          ),
-          pw.Text(
-            '• Trends and comparisons are based on the selected time periods',
-            style: const pw.TextStyle(fontSize: 10, color: PdfColors.grey700),
-          ),
-          pw.Text(
-            '• For questions about this report, contact the system administrator',
-            style: const pw.TextStyle(fontSize: 10, color: PdfColors.grey700),
           ),
         ],
       ),
@@ -1318,232 +1160,339 @@ class _PdfGenerator with PdfCommons implements PdfGenerator {
       return _buildEmptyStateMessage('No key metrics data available');
     }
 
-    return pw.Container(
-      decoration: pw.BoxDecoration(
-        border: pw.Border.all(color: PdfColors.grey300),
-        borderRadius: pw.BorderRadius.circular(8),
-      ),
-      child: pw.Table(
-        border: pw.TableBorder.all(color: PdfColors.grey300, width: 0.5),
-        columnWidths: const {
-          0: pw.FlexColumnWidth(2.5),
-          1: pw.FlexColumnWidth(1.5),
-          2: pw.FlexColumnWidth(1.5),
-          3: pw.FlexColumnWidth(1),
-        },
-        children: [
-          // Header row
-          pw.TableRow(
-            decoration: const pw.BoxDecoration(color: PdfColors.blue600),
-            children: [
-              _buildTableHeaderCell('Metric Name'),
-              _buildTableHeaderCell('Current Value'),
-              _buildTableHeaderCell('Previous Value'),
-              _buildTableHeaderCell('Change'),
-            ],
-          ),
-          // Data rows
-          ...metrics.asMap().entries.map((entry) {
-            final index = entry.key;
-            final metric = entry.value;
-            final isEven = index % 2 == 0;
-
-            return pw.TableRow(
-              decoration: pw.BoxDecoration(
-                color: isEven ? PdfColors.grey50 : PdfColors.white,
-              ),
-              children: [
-                _buildTableCell(metric.name, isLeftAligned: true),
-                _buildTableCell(CurrencyFormatter.full(metric.currentValue, "₱")),
-                _buildTableCell(CurrencyFormatter.full(metric.previousValue, "₱")),
-                _buildTableCell(
-                  '${metric.percentageChange >= 0 ? "+" : ""}${metric.percentageChange.toStringAsFixed(1)}%',
-                  color: metric.isPositiveChange ? PdfColors.green700 : PdfColors.red700,
-                  isBold: true,
-                ),
-              ],
-            );
-          }),
-        ],
-      ),
+    return pw.Table(
+      border: pw.TableBorder.symmetric(),
+      columnWidths: const {
+        0: pw.FlexColumnWidth(2.5),
+        1: pw.FlexColumnWidth(1.5),
+        2: pw.FlexColumnWidth(1.5),
+        3: pw.FlexColumnWidth(1),
+      },
+      children: [
+        // Header row
+        _buildMetricsHeaderRow(),
+        // Data rows
+        ...metrics.map((metric) => _buildMetricsDataRow(metric)),
+      ],
     );
   }
+}
 
-  pw.Widget _buildPdfTopProductsTable(BusinessSnapshotReportState state) {
-    final products = state.queryData.topSellingProducts ?? [];
-
-    if (products.isEmpty) {
-      return _buildEmptyStateMessage('No top products data available');
-    }
-
-    return pw.Container(
-      decoration: pw.BoxDecoration(
-        border: pw.Border.all(color: PdfColors.grey300),
-        borderRadius: pw.BorderRadius.circular(8),
+pw.TableRow _buildMetricsHeaderRow() {
+  return pw.TableRow(
+    decoration: const pw.BoxDecoration(
+      border: pw.Border(
+        bottom: pw.BorderSide(color: PdfColors.grey400, width: 0.5),
       ),
-      child: pw.Table(
-        border: pw.TableBorder.all(color: PdfColors.grey300, width: 0.5),
-        columnWidths: const {
-          0: pw.FlexColumnWidth(2.5),
-          1: pw.FlexColumnWidth(1),
-          2: pw.FlexColumnWidth(1.5),
-          3: pw.FlexColumnWidth(1.5),
-        },
-        children: [
-          // Header row
-          pw.TableRow(
-            decoration: const pw.BoxDecoration(color: PdfColors.green600),
-            children: [
-              _buildTableHeaderCell('Product Name'),
-              _buildTableHeaderCell('Qty Sold'),
-              _buildTableHeaderCell('Revenue'),
-              _buildTableHeaderCell('Profit'),
-            ],
-          ),
-          // Data rows
-          ...products.asMap().entries.map((entry) {
-            final index = entry.key;
-            final product = entry.value;
-            final isEven = index % 2 == 0;
-
-            return pw.TableRow(
-              decoration: pw.BoxDecoration(
-                color: isEven ? PdfColors.grey50 : PdfColors.white,
-              ),
-              children: [
-                _buildTableCell(product.product.name, isLeftAligned: true),
-                _buildTableCell(product.quantitySold.toStringAsFixed(0)),
-                _buildTableCell(CurrencyFormatter.full(product.revenue, "₱")),
-                _buildTableCell(
-                  CurrencyFormatter.full(product.profit, "₱"),
-                  color: product.profit >= 0 ? PdfColors.green700 : PdfColors.red700,
-                ),
-              ],
-            );
-          }),
-        ],
+    ),
+    children: [
+      pw.Padding(
+        padding: _cellPadding,
+        child: pw.Text(
+          'Metric Name',
+          style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 9),
+        ),
       ),
-    );
+      pw.Padding(
+        padding: _cellPadding,
+        child: pw.Text(
+          'Current Value',
+          style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 9),
+        ),
+      ),
+      pw.Padding(
+        padding: _cellPadding,
+        child: pw.Text(
+          'Previous Value',
+          style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 9),
+        ),
+      ),
+      pw.Padding(
+        padding: _cellPadding,
+        child: pw.Text(
+          'Change',
+          style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 9),
+        ),
+      ),
+    ],
+  );
+}
+
+pw.TableRow _buildMetricsDataRow(BusinessMetric metric) {
+  return pw.TableRow(
+    children: [
+      pw.Padding(
+        padding: _cellPadding,
+        child: pw.Text(
+          metric.name,
+          style: const pw.TextStyle(fontSize: 8),
+        ),
+      ),
+      pw.Padding(
+        padding: _cellPadding,
+        child: pw.Text(
+          CurrencyFormatter.full(metric.currentValue),
+          style: const pw.TextStyle(fontSize: 8),
+        ),
+      ),
+      pw.Padding(
+        padding: _cellPadding,
+        child: pw.Text(
+          CurrencyFormatter.full(metric.previousValue),
+          style: const pw.TextStyle(fontSize: 8),
+        ),
+      ),
+      pw.Padding(
+        padding: _cellPadding,
+        child: pw.Text(
+          '${metric.percentageChange >= 0 ? "+" : ""}${metric.percentageChange.toStringAsFixed(1)}%',
+          style: const pw.TextStyle(fontSize: 8),
+        ),
+      ),
+    ],
+  );
+}
+
+pw.Widget _buildPdfTopProductsTable(BusinessSnapshotReportState state) {
+  final products = state.queryData.topSellingProducts ?? [];
+
+  if (products.isEmpty) {
+    return _buildEmptyStateMessage('No top products data available');
   }
 
-  pw.Widget _buildPdfExpenseBreakdownTable(BusinessSnapshotReportState state) {
-    final expenses = state.queryData.expenseBreakdown ?? [];
+  return pw.Table(
+    border: pw.TableBorder.symmetric(),
+    columnWidths: const {
+      0: pw.FlexColumnWidth(2.5),
+      1: pw.FlexColumnWidth(1),
+      2: pw.FlexColumnWidth(1.5),
+      3: pw.FlexColumnWidth(1.5),
+    },
+    children: [
+      // Header row
+      _buildProductsHeaderRow(),
+      // Data rows
+      ...products.map((product) => _buildProductsDataRow(product)),
+    ],
+  );
+}
 
-    if (expenses.isEmpty) {
-      return _buildEmptyStateMessage('No expense breakdown data available');
-    }
-
-    final totalExpenses = expenses.fold<double>(0, (sum, expense) => sum + expense.amount);
-
-    return pw.Container(
-      decoration: pw.BoxDecoration(
-        border: pw.Border.all(color: PdfColors.grey300),
-        borderRadius: pw.BorderRadius.circular(8),
+pw.TableRow _buildProductsHeaderRow() {
+  return pw.TableRow(
+    decoration: const pw.BoxDecoration(
+      border: pw.Border(
+        bottom: pw.BorderSide(color: PdfColors.grey400, width: 0.5),
       ),
-      child: pw.Table(
-        border: pw.TableBorder.all(color: PdfColors.grey300, width: 0.5),
-        columnWidths: const {
-          0: pw.FlexColumnWidth(2.5),
-          1: pw.FlexColumnWidth(1.5),
-          2: pw.FlexColumnWidth(1),
-        },
-        children: [
-          // Header row
-          pw.TableRow(
-            decoration: const pw.BoxDecoration(color: PdfColors.red600),
-            children: [
-              _buildTableHeaderCell('Expense Type'),
-              _buildTableHeaderCell('Amount'),
-              _buildTableHeaderCell('Percentage'),
-            ],
-          ),
-          // Data rows
-          ...expenses.asMap().entries.map((entry) {
-            final index = entry.key;
-            final expense = entry.value;
-            final isEven = index % 2 == 0;
-
-            return pw.TableRow(
-              decoration: pw.BoxDecoration(
-                color: isEven ? PdfColors.grey50 : PdfColors.white,
-              ),
-              children: [
-                _buildTableCell(expense.expenseType.name, isLeftAligned: true),
-                _buildTableCell(CurrencyFormatter.full(expense.amount, "₱")),
-                _buildTableCell('${expense.percentage.toStringAsFixed(1)}%'),
-              ],
-            );
-          }),
-          // Total row
-          pw.TableRow(
-            decoration: const pw.BoxDecoration(color: PdfColors.orange600),
-            children: [
-              _buildTableHeaderCell('Total'),
-              _buildTableHeaderCell(CurrencyFormatter.full(totalExpenses, "₱")),
-              _buildTableHeaderCell('100.0%'),
-            ],
-          ),
-        ],
+    ),
+    children: [
+      pw.Padding(
+        padding: _cellPadding,
+        child: pw.Text(
+          'Product Name',
+          style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 9),
+        ),
       ),
-    );
+      pw.Padding(
+        padding: _cellPadding,
+        child: pw.Text(
+          'Qty Sold',
+          style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 9),
+        ),
+      ),
+      pw.Padding(
+        padding: _cellPadding,
+        child: pw.Text(
+          'Revenue',
+          style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 9),
+        ),
+      ),
+      pw.Padding(
+        padding: _cellPadding,
+        child: pw.Text(
+          'Profit',
+          style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 9),
+        ),
+      ),
+    ],
+  );
+}
+
+pw.TableRow _buildProductsDataRow(TopSellingProduct product) {
+  return pw.TableRow(
+    children: [
+      pw.Padding(
+        padding: _cellPadding,
+        child: pw.Text(
+          product.product.name,
+          style: const pw.TextStyle(fontSize: 8),
+        ),
+      ),
+      pw.Padding(
+        padding: _cellPadding,
+        child: pw.Text(
+          product.quantitySold.toStringAsFixed(0),
+          style: const pw.TextStyle(fontSize: 8),
+        ),
+      ),
+      pw.Padding(
+        padding: _cellPadding,
+        child: pw.Text(
+          CurrencyFormatter.full(product.revenue),
+          style: const pw.TextStyle(fontSize: 8),
+        ),
+      ),
+      pw.Padding(
+        padding: _cellPadding,
+        child: pw.Text(
+          CurrencyFormatter.full(product.profit),
+          style: const pw.TextStyle(fontSize: 8),
+        ),
+      ),
+    ],
+  );
+}
+
+pw.Widget _buildPdfExpenseBreakdownTable(BusinessSnapshotReportState state) {
+  final expenses = state.queryData.expenseBreakdown ?? [];
+
+  if (expenses.isEmpty) {
+    return _buildEmptyStateMessage('No expense breakdown data available');
   }
 
-  pw.Widget _buildTableHeaderCell(String text) {
-    return pw.Padding(
-      padding: const pw.EdgeInsets.all(10),
+  final totalExpenses = expenses.fold<double>(0, (sum, expense) => sum + expense.amount);
+
+  return pw.Table(
+    border: pw.TableBorder.symmetric(),
+    columnWidths: const {
+      0: pw.FlexColumnWidth(2.5),
+      1: pw.FlexColumnWidth(1.5),
+      2: pw.FlexColumnWidth(1),
+    },
+    children: [
+      // Header row
+      _buildExpenseHeaderRow(),
+      // Data rows
+      ...expenses.map((expense) => _buildExpenseDataRow(expense)),
+      // Total row
+      _buildExpenseTotalRow(totalExpenses, expenses),
+    ],
+  );
+}
+
+pw.TableRow _buildExpenseHeaderRow() {
+  return pw.TableRow(
+    decoration: const pw.BoxDecoration(
+      border: pw.Border(
+        bottom: pw.BorderSide(color: PdfColors.grey400, width: 0.5),
+      ),
+    ),
+    children: [
+      pw.Padding(
+        padding: _cellPadding,
+        child: pw.Text(
+          'Expense Type',
+          style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 9),
+        ),
+      ),
+      pw.Padding(
+        padding: _cellPadding,
+        child: pw.Text(
+          'Amount',
+          style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 9),
+        ),
+      ),
+      pw.Padding(
+        padding: _cellPadding,
+        child: pw.Text(
+          'Percentage',
+          style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 9),
+        ),
+      ),
+    ],
+  );
+}
+
+pw.TableRow _buildExpenseDataRow(ExpenseBreakdown expense) {
+  return pw.TableRow(
+    children: [
+      pw.Padding(
+        padding: _cellPadding,
+        child: pw.Text(
+          expense.expenseType.name,
+          style: const pw.TextStyle(fontSize: 8),
+        ),
+      ),
+      pw.Padding(
+        padding: _cellPadding,
+        child: pw.Text(
+          CurrencyFormatter.full(expense.amount),
+          style: const pw.TextStyle(fontSize: 8),
+        ),
+      ),
+      pw.Padding(
+        padding: _cellPadding,
+        child: pw.Text(
+          '${expense.percentage.toStringAsFixed(1)}%',
+          style: const pw.TextStyle(fontSize: 8),
+        ),
+      ),
+    ],
+  );
+}
+
+pw.TableRow _buildExpenseTotalRow(double totalExpenses, List<ExpenseBreakdown> expenses) {
+  // Calculate the actual total percentage for verification
+  final totalPercentage = expenses.map((e) => e.percentage).sum();
+
+  return pw.TableRow(
+    decoration: const pw.BoxDecoration(
+      border: pw.Border(
+        top: pw.BorderSide(color: PdfColors.grey400, width: 0.5),
+      ),
+    ),
+    children: [
+      pw.Padding(
+        padding: _cellPadding,
+        child: pw.Text(
+          'Total',
+          style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 9),
+        ),
+      ),
+      pw.Padding(
+        padding: _cellPadding,
+        child: pw.Text(
+          CurrencyFormatter.full(totalExpenses),
+          style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 9),
+        ),
+      ),
+      pw.Padding(
+        padding: _cellPadding,
+        child: pw.Text(
+          '${totalPercentage.toStringAsFixed(1)}%',
+          style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 9),
+        ),
+      ),
+    ],
+  );
+}
+
+pw.Widget _buildEmptyStateMessage(String message) {
+  return pw.Container(
+    padding: const pw.EdgeInsets.all(16),
+    decoration: pw.BoxDecoration(
+      border: pw.Border.all(color: PdfColors.grey300, width: 0.5),
+      borderRadius: pw.BorderRadius.circular(4),
+    ),
+    child: pw.Center(
       child: pw.Text(
-        text,
-        style: pw.TextStyle(
-          fontWeight: pw.FontWeight.bold,
-          color: PdfColors.white,
-          fontSize: 11,
+        message,
+        style: const pw.TextStyle(
+          fontSize: 10,
         ),
         textAlign: pw.TextAlign.center,
       ),
-    );
-  }
-
-  pw.Widget _buildTableCell(
-    String text, {
-    bool isLeftAligned = false,
-    PdfColor? color,
-    bool isBold = false,
-  }) {
-    return pw.Padding(
-      padding: const pw.EdgeInsets.all(8),
-      child: pw.Text(
-        text,
-        style: pw.TextStyle(
-          fontSize: 10,
-          color: color ?? PdfColors.grey800,
-          fontWeight: isBold ? pw.FontWeight.bold : pw.FontWeight.normal,
-        ),
-        textAlign: isLeftAligned ? pw.TextAlign.left : pw.TextAlign.center,
-      ),
-    );
-  }
-
-  pw.Widget _buildEmptyStateMessage(String message) {
-    return pw.Container(
-      padding: const pw.EdgeInsets.all(32),
-      decoration: pw.BoxDecoration(
-        color: PdfColors.grey100,
-        borderRadius: pw.BorderRadius.circular(8),
-        border: pw.Border.all(color: PdfColors.grey300),
-      ),
-      child: pw.Center(
-        child: pw.Text(
-          message,
-          style: pw.TextStyle(
-            fontSize: 12,
-            color: PdfColors.grey600,
-            fontStyle: pw.FontStyle.italic,
-          ),
-          textAlign: pw.TextAlign.center,
-        ),
-      ),
-    );
-  }
+    ),
+  );
 }
 
 class _SalesHistoryChart extends StatelessWidget {
@@ -1654,29 +1603,30 @@ class _SalesHistoryChart extends StatelessWidget {
           barWidth: 2,
           isStrokeCapRound: true,
           dotData: FlDotData(
-              show: true,
-              getDotPainter: (spot, percent, barData, index) {
-                return FlDotCirclePainter(
-                  radius: 3,
-                  color: productColors[seriesIndex % productColors.length],
-                  strokeWidth: 1,
-                  strokeColor: Colors.white,
-                );
-              }),
+            show: true,
+            getDotPainter: (spot, percent, barData, index) {
+              return FlDotCirclePainter(
+                radius: 3,
+                color: productColors[seriesIndex % productColors.length],
+                strokeWidth: 1,
+                strokeColor: Colors.white,
+              );
+            },
+          ),
           belowBarData: BarAreaData(show: false),
         ));
       }
     } // Add category sales trend lines
     final categorySeries = queryData.categorySalesTrendSeries;
     final categoryColors = [
-      const Color(0xFFCDDC39), // Lime
-      const Color(0xFFFFC107), // Amber
-      const Color(0xFF673AB7), // Deep Purple
-      const Color(0xFF607D8B), // Blue Grey
-      const Color(0xFF8BC34A), // Light Green
-      const Color(0xFFF44336), // Red Accent
-      const Color(0xFFFFEB3B), // Yellow Accent
-      const Color(0xFF03A9F4), // Light Blue
+      const Color(0x00cddc39), // Lime
+      const Color(0x00ffc107), // Amber
+      const Color(0x00673ab7), // Deep Purple
+      const Color(0x00607d8b), // Blue Grey
+      const Color(0x008bc34a), // Light Green
+      const Color(0x00f44336), // Red Accent
+      const Color(0x00ffeb3b), // Yellow Accent
+      const Color(0x0003a9f4), // Light Blue
     ];
 
     for (var seriesIndex = 0; seriesIndex < categorySeries.length; seriesIndex++) {
@@ -1716,8 +1666,9 @@ class _SalesHistoryChart extends StatelessWidget {
     }
 
     final maxY = allValues.reduce((a, b) => a > b ? a : b);
-    final minY =
-        allValues.where((v) => v < 0).isNotEmpty ? allValues.reduce((a, b) => a < b ? a : b) : 0.0;
+    final minY = allValues.where((v) => v < 0).isNotEmpty //
+        ? allValues.reduce((a, b) => a < b ? a : b)
+        : 0.0;
 
     final dataLength = revenueTrends.isNotEmpty
         ? revenueTrends.length
@@ -1777,17 +1728,17 @@ class _SalesHistoryChart extends StatelessWidget {
         switch (touchedSpot.barIndex) {
           case 0: // Revenue
             return LineTooltipItem(
-              'Revenue\n$dateStr\n${CurrencyFormatter.full(touchedSpot.y, "Php ")}',
+              'Revenue\n$dateStr\n${CurrencyFormatter.full(touchedSpot.y)}',
               const TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
             );
           case 1: // Expenses
             return LineTooltipItem(
-              'Expenses\n$dateStr\n${CurrencyFormatter.full(touchedSpot.y, "Php ")}',
+              'Expenses\n$dateStr\n${CurrencyFormatter.full(touchedSpot.y)}',
               const TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
             );
           case 2: // Profit
             return LineTooltipItem(
-              'Profit\n$dateStr\n${CurrencyFormatter.full(touchedSpot.y, "Php ")}',
+              'Profit\n$dateStr\n${CurrencyFormatter.full(touchedSpot.y)}',
               const TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
             );
         }
@@ -1805,7 +1756,7 @@ class _SalesHistoryChart extends StatelessWidget {
             final trend = series.trends[index];
             final dateStr = DateFormat('MMM dd').format(trend.date);
             return LineTooltipItem(
-              '${series.product.name}\n$dateStr\n${CurrencyFormatter.full(touchedSpot.y, "Php ")}',
+              '${series.product.name}\n$dateStr\n${CurrencyFormatter.full(touchedSpot.y)}',
               const TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
             );
           }
@@ -1824,7 +1775,7 @@ class _SalesHistoryChart extends StatelessWidget {
             final trend = series.trends[index];
             final dateStr = DateFormat('MMM dd').format(trend.date);
             return LineTooltipItem(
-              '${series.category.name}\n$dateStr\n${CurrencyFormatter.full(touchedSpot.y, "Php ")}',
+              '${series.category.name}\n$dateStr\n${CurrencyFormatter.full(touchedSpot.y)}',
               const TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
             );
           }

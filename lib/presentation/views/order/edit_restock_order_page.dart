@@ -359,7 +359,11 @@ class _OrderPageFormState extends State<_OrderPageForm> {
                     TextFormBox(
                       inputFormatters: [
                         LengthLimitingTextInputFormatter(60),
-                        FilteringTextInputFormatter.allow(RegExp(r'^[a-zA-Z0-9\s\-_]+$')),
+                        FilteringTextInputFormatter.allow(
+                          RegExp(r'^[a-zA-Z0-9\s\-_]+$'),
+                          replacementString: context //
+                              .select((OrderFormBloc b) => b.state.payeeName),
+                        ),
                       ],
                       controller: _payeeNameController,
                       onChanged: (value) => context //
@@ -411,7 +415,11 @@ class _OrderPageFormState extends State<_OrderPageForm> {
                     TextFormBox(
                       inputFormatters: [
                         LengthLimitingTextInputFormatter(60),
-                        FilteringTextInputFormatter.allow(RegExp(r'^[a-zA-Z0-9\s\-_]+$')),
+                        FilteringTextInputFormatter.allow(
+                          RegExp(r'^[a-zA-Z0-9\s\-_]+$'),
+                          replacementString: context //
+                              .select((OrderFormBloc b) => b.state.referenceNumber),
+                        ),
                       ],
                       controller: _referenceNumberController,
                       onChanged: (value) =>

@@ -283,7 +283,7 @@ class _RowLimitSelection extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        const SizedBox(width: 90, child: Text('Take: ')),
+        const SizedBox(width: 90, child: Text('Row Limit: ')),
         Spacing.h8,
         ConstrainedBox(
           constraints: const BoxConstraints(

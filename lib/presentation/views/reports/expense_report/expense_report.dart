@@ -77,8 +77,8 @@ final expenseColumns = <_ExpenseColumn>[
   _ExpenseColumn(
     name: 'Amount Paid',
     width: const pw.FlexColumnWidth(1),
-    value: (args) => CurrencyFormatter.full(args.order.amountDue, "Php "),
-    total: (data) => CurrencyFormatter.full(data.fold(0, (a, b) => a + b.amountDue), "Php "),
+    value: (args) => CurrencyFormatter.full(args.order.amountDue),
+    total: (data) => CurrencyFormatter.full(data.fold(0, (a, b) => a + b.amountDue)),
   ),
 ];
 
@@ -184,8 +184,8 @@ class ExpenseReportOptions extends StatelessWidget {
                     _StartDateSelection(),
                     _EndDateSelection(),
                     _SortBySelection(),
-                    _TakeSelection(),
-                  ].withSpacing(() => Spacing.v16),
+                    _RowLimitSelection(),
+                  ].withSpacing(() => Spacing.v8),
                 ),
               ),
               const _GenerateButtons(),
@@ -268,14 +268,14 @@ class _SortBySelection extends StatelessWidget {
   }
 }
 
-class _TakeSelection extends StatelessWidget {
-  const _TakeSelection();
+class _RowLimitSelection extends StatelessWidget {
+  const _RowLimitSelection();
 
   @override
   Widget build(BuildContext context) {
     return Row(
       children: [
-        const SizedBox(width: 80, child: Text('Take: ')),
+        const SizedBox(width: 80, child: Text('Row Limit: ')),
         Spacing.h8,
         ConstrainedBox(
           constraints: const BoxConstraints(

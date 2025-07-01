@@ -842,8 +842,8 @@ Future<void> generateMockData(DatabaseHelper databaseHelper) async {
         sku: "EL-007",
         name: "Surge Protector - 8 Outlet",
         categoryId: categoryIds[3],
-        description:
-            "Heavy-duty 8-outlet surge protector with 4,000 joule rating, 6ft cord, and built-in circuit breaker. "
+        description: "Heavy-duty 8-outlet surge protector with 4,000 joule rating, "
+            "6ft cord, and built-in circuit breaker. "
             "Features LED status indicators and safety covers for unused outlets.",
         salePrice: 350.00,
         orderCost: 220.00,

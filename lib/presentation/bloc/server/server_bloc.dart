@@ -24,7 +24,6 @@ import 'package:easthardware_pms/presentation/widgets/dialog/server_success_dial
 import 'package:easthardware_pms/utils/boxed.dart';
 import 'package:easthardware_pms/utils/message_channel.dart';
 import 'package:easthardware_pms/utils/notification.dart';
-import 'package:easthardware_pms/utils/try_future.dart';
 import 'package:easthardware_pms/utils/undefined.dart';
 import 'package:equatable/equatable.dart';
 import 'package:fluent_ui/fluent_ui.dart';
@@ -301,26 +300,8 @@ class ServerBloc extends Bloc<ServerEvent, ServerState> {
 
     try {
       // Check if we're connected to a local network first
-      final (localIp, error) = await connection_service.getLocalIpAddress().tryCatch();
+      final localIp = await connection_service.getLocalIpAddress();
       if (isClosed) return;
-
-      if (error != null) {
-        if (kDebugMode) {
-          print('Error getting local IP: $error');
-        }
-
-        // Set informative bottom text before showing dialog
-        emit(state.copyWith(
-          bottomText: "Network connection required. Please connect to WiFi or local network.",
-        ));
-
-        // Show user-friendly error message about network connectivity
-        await _showNetworkConnectivityError();
-        if (isClosed) return;
-
-        add(const _ServerPromptingUserFromNull());
-        return;
-      }
 
       await ServerConfigurationDialog.show(
         onStartServer: (port) => connection_service.startServers(port),
@@ -330,7 +311,7 @@ class ServerBloc extends Bloc<ServerEvent, ServerState> {
             saveToPreferences: true,
             popupToUser: true,
             args: ServerDatabaseArgs(
-              ip: localIp!,
+              ip: localIp,
               port: landing.port,
               landingServer: landing,
               webSocketServer: webSocket,

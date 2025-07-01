@@ -1,5 +1,6 @@
 import 'package:easthardware_pms/domain/models/expense_type.dart';
 import 'package:easthardware_pms/domain/models/order.dart';
+import 'package:easthardware_pms/presentation/views/reports/common/reports_globals.dart';
 import 'package:easthardware_pms/utils/undefined.dart';
 import 'package:equatable/equatable.dart';
 
@@ -99,11 +100,9 @@ enum ExpenseReportSortBy {
 /// Query data for the expense report
 class ExpenseQueryData extends Equatable {
   factory ExpenseQueryData.empty() {
-    final now = DateTime.now();
-
     return ExpenseQueryData(
-      startDate: DateTime(now.year, now.month, 1),
-      endDate: now,
+      startDate: ReportsGlobals.defaultStartDate,
+      endDate: ReportsGlobals.defaultEndDate,
     );
   }
   const ExpenseQueryData({

@@ -476,7 +476,10 @@ class _BackupRow extends StatelessWidget {
                     placeholder: 'Enter an encryption key',
                     inputFormatters: [
                       LengthLimitingTextInputFormatter(60),
-                      FilteringTextInputFormatter.allow(RegExp(r'^[a-zA-Z0-9_]*$')),
+                      FilteringTextInputFormatter.allow(
+                        RegExp(r'^[a-zA-Z0-9_]*$'),
+                        replacementString: textController.text,
+                      ),
                     ],
                     autofocus: true,
                     autovalidateMode: AutovalidateMode.always,

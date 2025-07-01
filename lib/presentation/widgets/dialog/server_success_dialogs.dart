@@ -90,21 +90,28 @@ class ServerStartedSuccessDialog extends StatelessWidget {
       content: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Text.rich(
+          Text.rich(
             TextSpan(
               children: [
-                TextSpan(
+                const TextSpan(
                   text: "Server started successfully. ",
                   style: TextStyle(fontWeight: FontWeight.bold),
                 ),
-                TextSpan(
-                  text: "Client devices can now connect to the server "
-                      "using the IP address below.",
-                  style: TextStyle(fontWeight: FontWeight.normal),
-                ),
+                if (serverIp != "127.0.0.1")
+                  const TextSpan(
+                    text: "Client devices can now connect to the server "
+                        "using the IP address below.",
+                    style: TextStyle(fontWeight: FontWeight.normal),
+                  )
+                else
+                  TextSpan(
+                    text: "\n WARNING: You are not connected to a network. "
+                        "Clients will not be able to connect to the server.",
+                    style: TextStyle(fontWeight: FontWeight.normal, color: Colors.red),
+                  ),
               ],
             ),
-            style: TextStyle(height: 1.5),
+            style: const TextStyle(height: 1.5),
           ),
           const SizedBox(height: 12.0),
           Row(

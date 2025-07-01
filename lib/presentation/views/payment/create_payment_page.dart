@@ -538,7 +538,11 @@ class _PaymentFormState extends State<PaymentForm> {
                         TextFormBox(
                           readOnly: invoice == null,
                           inputFormatters: [
-                            FilteringTextInputFormatter.allow(RegExp(r'^[a-zA-Z0-9\s]+$')),
+                            FilteringTextInputFormatter.allow(
+                              RegExp(r'^[a-zA-Z0-9\s]+$'),
+                              replacementString:
+                                  context.select((PaymentFormBloc b) => b.state.paymentReference),
+                            ),
                             LengthLimitingTextInputFormatter(60)
                           ],
                           onChanged: (value) {

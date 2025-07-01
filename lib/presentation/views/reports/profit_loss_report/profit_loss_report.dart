@@ -246,7 +246,7 @@ class ProfitLossReportOptions extends StatelessWidget {
                     _GroupBySelection(),
                     _SortBySelection(),
                     _TakeSelection(),
-                  ].withSpacing(() => Spacing.v16),
+                  ].withSpacing(() => Spacing.v8),
                 ),
               ),
               const _GenerateButtons(),

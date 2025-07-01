@@ -15,3 +15,7 @@ const List<String> PAYMENT_METHODS = [
   "Debit Card",
   "Mobile Payment",
 ];
+
+// Currency configuration
+const String DEFAULT_CURRENCY_SYMBOL = 'Php ';
+const String DEFAULT_LOCALE = 'en_PH';

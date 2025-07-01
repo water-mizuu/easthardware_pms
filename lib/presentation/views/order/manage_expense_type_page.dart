@@ -351,7 +351,11 @@ Future<void> showContentDialog(BuildContext context, [ExpenseType? expenseType])
                             TextFormBox(
                               inputFormatters: [
                                 LengthLimitingTextInputFormatter(30),
-                                FilteringTextInputFormatter.allow(RegExp(r'^[a-zA-Z0-9\s\-_]+$')),
+                                FilteringTextInputFormatter.allow(
+                                  RegExp(r'^[a-zA-Z0-9\s\-_]+$'),
+                                  replacementString: context //
+                                      .select((ExpenseTypeFormCubit b) => b.state.name),
+                                ),
                               ],
                               initialValue: isAdding ? '' : expenseType.name,
                               onChanged: context.read<ExpenseTypeFormCubit>().onNameChanged,

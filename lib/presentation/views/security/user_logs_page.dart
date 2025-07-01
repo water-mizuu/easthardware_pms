@@ -156,7 +156,7 @@ class PageActions extends StatelessWidget {
                   ),
                 ],
               ),
-            ].withSpacing(() => Spacing.v4),
+            ].withSpacing(() => Spacing.v8),
           ),
         ),
         TextButtonFilled(

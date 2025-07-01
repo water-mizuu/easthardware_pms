@@ -263,8 +263,8 @@ class SalesReportOptions extends StatelessWidget {
                     _StartDateSelection(),
                     _EndDateSelection(),
                     _SortBySelection(),
-                    _TakeSelection._RowSelection(),
-                  ].withSpacing(() => Spacing.v16),
+                    _RowLimitSelection(),
+                  ].withSpacing(() => Spacing.v8),
                 ),
               ),
               const _GenerateButtons(),
@@ -350,14 +350,14 @@ class _SortBySelection extends StatelessWidget {
   }
 }
 
-class _TakeSelection extends StatelessWidget {
-  const _TakeSelection._RowSelection();
+class _RowLimitSelection extends StatelessWidget {
+  const _RowLimitSelection();
 
   @override
   Widget build(BuildContext context) {
     return Row(
       children: [
-        const SizedBox(width: 80, child: Text('Rows: ')),
+        const SizedBox(width: 80, child: Text('Row Limit: ')),
         Spacing.h8,
         ConstrainedBox(
           constraints: const BoxConstraints(

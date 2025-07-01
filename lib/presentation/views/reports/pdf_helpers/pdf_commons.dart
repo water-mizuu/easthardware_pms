@@ -1,8 +1,15 @@
-import 'dart:typed_data';
-
+import 'package:flutter/services.dart';
 import 'package:pdf/widgets.dart' as pw;
 
 mixin PdfCommons {
+  Future<Uint8List> loadLogo() async {
+    // Load the logo from assets
+    final data = await rootBundle.load('assets/images/logo.png');
+    final uint8List = data.buffer.asUint8List();
+
+    return uint8List;
+  }
+
   pw.Widget buildPdfHeaderSingleDate(
     pw.Context context,
     ByteData logo,
@@ -65,8 +72,9 @@ mixin PdfCommons {
     pw.Context context,
     ByteData logo,
     DateTime startDate,
-    DateTime endDate,
-  ) {
+    DateTime endDate, {
+    String reportType = 'Report',
+  }) {
     return pw.Column(
       mainAxisSize: pw.MainAxisSize.min,
       children: [
@@ -91,7 +99,7 @@ mixin PdfCommons {
                   ],
                 ),
                 pw.Text(
-                  'Expense Report',
+                  reportType,
                   style: const pw.TextStyle(fontSize: 14),
                 ),
               ],
