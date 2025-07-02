@@ -41,6 +41,22 @@ class UpdateProductEvent extends ProductListEvent {
   List<Object> get props => [product];
 }
 
+class ArchiveProductEvent extends ProductListEvent {
+  const ArchiveProductEvent(this.product);
+  final Product product;
+
+  @override
+  List<Object> get props => [product];
+}
+
+class UnarchiveProductEvent extends ProductListEvent {
+  const UnarchiveProductEvent(this.product);
+  final Product product;
+
+  @override
+  List<Object> get props => [product];
+}
+
 class DeleteProductEvent extends ProductListEvent {
   const DeleteProductEvent(this.productId);
   final int productId;

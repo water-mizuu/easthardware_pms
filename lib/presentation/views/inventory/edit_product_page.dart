@@ -180,7 +180,7 @@ class PageHeader extends StatelessWidget {
         ),
         const DisplayText('Edit Product'),
         const Spacer(flex: 1),
-        TextButton('Archive Product', onPressed: () {
+        TextButton('Make Inactive', onPressed: () {
           // Set Status to Inactive
           final previous = context.read<ProductFormBloc>().state.archivedStatus;
           final current = previous == 0 ? 1 : 0;

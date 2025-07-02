@@ -1,5 +1,6 @@
 import 'package:easthardware_pms/domain/models/user.dart';
 import 'package:easthardware_pms/presentation/bloc/authentication/authentication/authentication_bloc.dart';
+import 'package:easthardware_pms/presentation/bloc/security/user_list/user_list_bloc.dart';
 import 'package:easthardware_pms/presentation/views/security/user_information_content_dialog.dart';
 import 'package:easthardware_pms/presentation/widgets/ui/styles.dart';
 import 'package:fluent_ui/fluent_ui.dart';
@@ -38,6 +39,21 @@ class ArchivedUserDataSource extends DataTableSource {
         DataCell(Text('${user.firstName} ${user.lastName}', style: TextStyles.body)),
         DataCell(Text(user.accessLevel.toString(), style: TextStyles.body)),
         DataCell(Text(user.creationDate, style: TextStyles.body)),
+        DataCell(
+          DropDownButton(
+            title: const Text('Actions', style: TextStyles.body),
+            items: [
+              MenuFlyoutItem(
+                text: const Text('Make Active', style: TextStyles.body),
+                onPressed: () => context.read<UserListBloc>().add(
+                      UpdateUserEvent(
+                        user.copyWith(archiveStatus: 0),
+                      ),
+                    ),
+              ),
+            ],
+          ),
+        )
       ],
       onSelectChanged: (_) => viewUser(user),
     );

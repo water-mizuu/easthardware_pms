@@ -346,6 +346,15 @@ class _ArchivedProductsBodyState extends State<ArchivedProductsBody> {
                                 }
                               },
                             ),
+                            const DataColumn(
+                              label: Expanded(
+                                child: Row(
+                                  children: [
+                                    Text('', style: TextStyles.strong),
+                                  ],
+                                ),
+                              ),
+                            ),
                           ],
                           source: ArchivedProductDataSource(
                             context: context,
@@ -601,6 +610,15 @@ class _ArchivedUsersBodyState extends State<ArchivedUsersBody> {
                                   cubit.sort(ArchivedUserSortBy.creationDateAscending);
                                 }
                               },
+                            ),
+                            const DataColumn(
+                              label: Expanded(
+                                child: Row(
+                                  children: [
+                                    Text('', style: TextStyles.strong),
+                                  ],
+                                ),
+                              ),
                             ),
                           ],
                           source: ArchivedUserDataSource(

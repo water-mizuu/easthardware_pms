@@ -25,6 +25,8 @@ class ProductListBloc extends Bloc<ProductListEvent, ProductListState> {
     on<AddProductEvent>(_onAdd);
     on<UpdateProductEvent>(_onUpdate);
     on<DeleteProductEvent>(_onDelete);
+    on<ArchiveProductEvent>(_archiveProductEvent);
+    on<UnarchiveProductEvent>(_unarchiveProductEvent);
   }
   final ProductRepository _productRepository;
   final UnitRepository _unitRepository;
@@ -184,6 +186,41 @@ class ProductListBloc extends Bloc<ProductListEvent, ProductListState> {
       if (kDebugMode) {
         print("Error updating product: $e");
       }
+      emit(state.copyWith(status: DataStatus.error));
+    }
+  }
+
+  Future<void> _archiveProductEvent(ArchiveProductEvent event, Emitter emit) async {
+    emit(state.copyWith(status: DataStatus.loading));
+    try {
+      await _productRepository.updateProduct(
+        event.product.copyWith(
+          archiveStatus: 1,
+          reorderPoint: 0,
+        ),
+      );
+      emit(
+        state.copyWith(
+          allProducts: await _productRepository.getAllProducts(),
+          status: DataStatus.success,
+        ),
+      );
+    } catch (e) {
+      emit(state.copyWith(status: DataStatus.error));
+    }
+  }
+
+  Future<void> _unarchiveProductEvent(UnarchiveProductEvent event, Emitter emit) async {
+    emit(state.copyWith(status: DataStatus.loading));
+    try {
+      await _productRepository.updateProduct(event.product.copyWith(archiveStatus: 0));
+      emit(
+        state.copyWith(
+          allProducts: await _productRepository.getAllProducts(),
+          status: DataStatus.success,
+        ),
+      );
+    } catch (e) {
       emit(state.copyWith(status: DataStatus.error));
     }
   }
