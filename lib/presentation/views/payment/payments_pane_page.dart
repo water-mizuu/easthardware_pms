@@ -290,15 +290,15 @@ class PaymentsDataTable extends StatelessWidget {
                                 ),
                               ),
                             ),
-                            const DataColumn(
-                              label: Expanded(
-                                child: Row(
-                                  children: [
-                                    Text('Actions', style: TextStyles.tableHeader),
-                                  ],
-                                ),
-                              ),
-                            ),
+                            // const DataColumn(
+                            //   label: Expanded(
+                            //     child: Row(
+                            //       children: [
+                            //         Text('Actions', style: TextStyles.tableHeader),
+                            //       ],
+                            //     ),
+                            //   ),
+                            // ),
                           ],
                         ),
                       ),

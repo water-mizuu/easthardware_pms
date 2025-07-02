@@ -1015,7 +1015,7 @@ class InvoiceSummary extends StatelessWidget {
                       Text(
                         context.watch<PaymentFormBloc>().state.amount.abs() == 0
                             ? CurrencyFormatter.full(0)
-                            : '-${CurrencyFormatter.full(context.watch<PaymentFormBloc>().state.amount.abs()).substring(1)}',
+                            : '-${CurrencyFormatter.full(context.watch<PaymentFormBloc>().state.amount.abs())}',
                         style: TextStyles.body.merge(TextStyles.strong),
                       ),
                     ],
