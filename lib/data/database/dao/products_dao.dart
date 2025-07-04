@@ -2,8 +2,9 @@ import 'package:easthardware_pms/data/database/dao/dao_base.dart';
 import 'package:easthardware_pms/data/database/database_helper.dart';
 import 'package:easthardware_pms/data/database/tables/products_table.dart';
 import 'package:easthardware_pms/data/database/views/product_flags_view.dart';
+import 'package:easthardware_pms/domain/constants/debug_constants.dart';
 import 'package:easthardware_pms/domain/models/product.dart';
-import 'package:flutter/foundation.dart';
+import 'package:easthardware_pms/utils/boxed.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 abstract interface class ProductsDao {
@@ -57,8 +58,8 @@ final class ProductsDaoImpl extends DaoBase implements ProductsDao {
 
       return Product.fromMap(json);
     } on StateError {
-      if (kDebugMode) {
-        print("Found duplicate products for id $id!");
+      if (isDebugMode) {
+        printBoxed("Found duplicate products for id $id!");
       }
       return null;
     }

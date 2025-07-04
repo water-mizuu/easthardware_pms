@@ -1,7 +1,7 @@
+import 'package:easthardware_pms/domain/constants/debug_constants.dart';
 import 'package:easthardware_pms/domain/enums/enums.dart';
 import 'package:easthardware_pms/domain/models/user.dart';
 import 'package:easthardware_pms/domain/services/cryptography_service.dart';
-import 'package:flutter/foundation.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:uuid/uuid.dart';
 
@@ -70,7 +70,7 @@ class UsersTable {
       );
     }
 
-    if (kDebugMode) {
+    if (isDebugMode) {
       final salt = CryptographyService.generateSalt();
       final passwordHash = CryptographyService.generateHash(password, salt);
       final admin = User(
@@ -93,7 +93,7 @@ class UsersTable {
       );
     }
 
-    if (kDebugMode) {
+    if (isDebugMode) {
       final salt = CryptographyService.generateSalt();
       final passwordHash = CryptographyService.generateHash(password, salt);
       final staff = User(

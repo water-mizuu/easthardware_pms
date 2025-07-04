@@ -10,8 +10,9 @@ import 'package:easthardware_pms/domain/models/product.dart';
 import 'package:easthardware_pms/presentation/models/form_product.dart';
 import 'package:easthardware_pms/utils/boxed.dart';
 import 'package:easthardware_pms/utils/undefined.dart';
+import 'package:easthardware_pms/domain/constants/debug_constants.dart';
 import 'package:equatable/equatable.dart';
-import 'package:flutter/foundation.dart';
+
 
 part 'invoice_form_event.dart';
 part 'invoice_form_state.dart';
@@ -242,8 +243,8 @@ class InvoiceFormBloc extends Bloc<InvoiceFormEvent, InvoiceFormState> {
 
     final taggedProducts = products.map(
       (product) {
-        if (kDebugMode) {
-          print(const JsonEncoder.withIndent("  ").convert(product.toMap()));
+        if (isDebugMode) {
+          printBoxed(const JsonEncoder.withIndent("  ").convert(product.toMap()));
         }
         if (product.productId == null) {
           return product.copyWith(errorMessage: 'Item cannot be blank');

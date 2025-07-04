@@ -1,10 +1,12 @@
 import 'package:easthardware_pms/presentation/bloc/server/server_bloc.dart';
 import 'package:easthardware_pms/presentation/widgets/layout/spacing.dart';
+import 'package:easthardware_pms/utils/boxed.dart';
 import 'package:easthardware_pms/utils/message_channel.dart';
 import 'package:easthardware_pms/utils/show_single_dialog.dart';
 import 'package:easthardware_pms/utils/try_future.dart';
+import 'package:easthardware_pms/domain/constants/debug_constants.dart';
 import 'package:fluent_ui/fluent_ui.dart';
-import 'package:flutter/foundation.dart';
+
 import 'package:web_socket_channel/web_socket_channel.dart';
 
 class ClientConnectionDialog extends StatefulWidget {
@@ -85,9 +87,9 @@ class _ClientConnectionDialogState extends State<ClientConnectionDialog> {
 
     final (result, error) = await widget.onConnectToServer(address!, port!).tryCatch();
     if (error case (final Object error, final StackTrace stackTrace)) {
-      if (kDebugMode) {
-        print("Failed to: $error");
-        print(stackTrace);
+      if (isDebugMode) {
+        printBoxed("Failed to: $error");
+        printBoxed(stackTrace);
       }
 
       setState(() {

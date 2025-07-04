@@ -5,12 +5,11 @@ import 'dart:async';
 import 'dart:isolate';
 
 import 'package:easthardware_pms/domain/backend/utils/isolate_indicator.dart';
+import 'package:easthardware_pms/domain/constants/debug_constants.dart';
 import 'package:easthardware_pms/domain/services/cryptography_service.dart';
-import 'package:easthardware_pms/main.dart';
 import 'package:easthardware_pms/utils/boxed.dart';
 import 'package:easthardware_pms/utils/message_channel.dart';
 import 'package:easthardware_pms/utils/parallelism.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
 typedef AsymmetricKey = (BigInt, BigInt);
@@ -61,7 +60,7 @@ Future<void> setupKeyMicroService() async {
 
     await _channel.invoke("stop");
 
-    if (kDebugMode) {
+    if (isDebugMode) {
       printBoxed(
         "Public Key: $_publicKey\nPrivate Key: $_privateKey",
         "Generated Keys Microservice",
@@ -121,7 +120,7 @@ Future<void> _spawnKeyMicroserviceIsolate((RootIsolateToken, NamedSendPort) payl
 
   /// @MAIN2MS_KEYS:invocation
   localChannel.listenFrom("invocation", (message) async {
-    if (kDebugMode) {
+    if (isDebugMode) {
       if (printInvocationMessages) {
         printBoxed(message, "MAIN2MS_KEYS:invocation");
       }
@@ -141,7 +140,7 @@ Future<void> _spawnKeyMicroserviceIsolate((RootIsolateToken, NamedSendPort) payl
       return;
     }
 
-    if (kDebugMode) {
+    if (isDebugMode) {
       printBoxed("Received unexpected message: $message");
     }
   });
@@ -158,7 +157,7 @@ void _generateKeys() {
   _publicKey = publicKey;
   _privateKey = privateKey;
 
-  if (kDebugMode) {
+  if (isDebugMode) {
     printBoxed(
       "Public Key: $_publicKey\nPrivate Key: $_privateKey",
       "Generated Keys Microservice",

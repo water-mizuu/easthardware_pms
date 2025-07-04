@@ -1,14 +1,17 @@
+import 'package:easthardware_pms/domain/constants/debug_constants.dart';
 import 'package:easthardware_pms/domain/enums/enums.dart';
 import 'package:easthardware_pms/domain/models/category.dart';
 import 'package:easthardware_pms/presentation/bloc/authentication/authentication/'
     'authentication_bloc.dart';
-import 'package:easthardware_pms/presentation/bloc/inventory/category_list/category_list_bloc.dart';
+import 'package:easthardware_pms/presentation/bloc/inventory/'
+    'category_list/category_list_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/inventory/product_form/product_form_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/inventory/product_list/product_list_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/inventory/unit_list/unit_list_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/security/user_log_list/user_log_list_bloc.dart';
 import 'package:easthardware_pms/presentation/router/app_routes.dart';
-import 'package:easthardware_pms/presentation/views/inventory/product_information_form_content.dart';
+import 'package:easthardware_pms/presentation/views/'
+    'inventory/product_information_form_content.dart';
 import 'package:easthardware_pms/presentation/widgets/layout/spacing.dart';
 import 'package:easthardware_pms/presentation/widgets/text.dart';
 import 'package:easthardware_pms/presentation/widgets/ui/text_button.dart';
@@ -16,7 +19,6 @@ import 'package:easthardware_pms/utils/boxed.dart';
 import 'package:easthardware_pms/utils/notification.dart';
 import 'package:easthardware_pms/utils/typed_routes.dart';
 import 'package:fluent_ui/fluent_ui.dart';
-import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:provider/provider.dart';
 
@@ -51,7 +53,7 @@ class CreateProductPage extends StatelessWidget {
               listener: (context, state) {
                 assert(state.errorMessage != null, "Error message must not be empty.");
 
-                if (kDebugMode) {
+                if (isDebugMode) {
                   printBoxed(
                     "Error occurred while submitting the form: "
                         "${state.errorMessage}\n${StackTrace.current}",
@@ -72,7 +74,7 @@ class CreateProductPage extends StatelessWidget {
               listener: (context, state) {
                 assert(state.errorMessage != null, "Error message must not be empty.");
 
-                if (kDebugMode) {
+                if (isDebugMode) {
                   printBoxed(
                     "Error occurred while submitting the form: "
                         "${state.errorMessage}\n${StackTrace.current}",
@@ -93,7 +95,7 @@ class CreateProductPage extends StatelessWidget {
               listener: (context, state) {
                 assert(state.errorMessage != null, "Error message must not be empty.");
 
-                if (kDebugMode) {
+                if (isDebugMode) {
                   printBoxed(
                     "Error occurred while submitting the form: "
                         "${state.errorMessage}\n${StackTrace.current}",
@@ -183,10 +185,10 @@ class PageHeader extends StatelessWidget {
           icon: const Icon(FluentIcons.back),
           onPressed: () => context.navigate(AppRoutes.admin.inventory),
         ),
-        const DisplayText('Create Product'),
+        const DisplayText('Register Product'),
         const Spacer(flex: 1),
         TextButtonFilled(
-          'Save Product',
+          'Confirm',
           onPressed: () {
             final creatorId = context.read<AuthenticationBloc>().state.user!.id!;
             final productId = context.read<ProductListBloc>().state.allProducts.length;

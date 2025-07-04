@@ -2,7 +2,7 @@ import 'dart:io';
 import 'dart:math';
 import 'dart:ui';
 
-import 'package:flutter/foundation.dart';
+import 'package:easthardware_pms/domain/constants/debug_constants.dart';
 
 /// Prints a boxed representation of the given [value] to the console.
 /// If [label] is provided, it will be displayed at the top of the box.
@@ -11,7 +11,7 @@ import 'package:flutter/foundation.dart';
 /// Using this function should have no side effects such as mutations.
 @pragma('vm:prefer-inline')
 void printBoxed(Object? value, [String? label, Color? color]) {
-  if (kDebugMode) {
+  if (isDebugMode) {
     _printBoxed(value, label, color);
   }
 }

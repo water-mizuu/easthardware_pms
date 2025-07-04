@@ -4,10 +4,12 @@ import 'package:easthardware_pms/presentation/bloc/authentication/login_form/log
 import 'package:easthardware_pms/presentation/bloc/security/user_list/user_list_bloc.dart';
 import 'package:easthardware_pms/presentation/router/app_routes.dart';
 import 'package:easthardware_pms/presentation/views/authentication/login_form.dart';
+import 'package:easthardware_pms/utils/boxed.dart';
 import 'package:easthardware_pms/utils/notification.dart';
 import 'package:easthardware_pms/utils/typed_routes.dart';
+import 'package:easthardware_pms/domain/constants/debug_constants.dart';
 import 'package:fluent_ui/fluent_ui.dart';
-import 'package:flutter/foundation.dart';
+
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:provider/single_child_widget.dart';
 
@@ -80,8 +82,8 @@ class LoginPage extends StatelessWidget {
       BlocListener<LoginFormBloc, LoginFormState>(
         listenWhen: (p, c) => p.status != c.status,
         listener: (context, state) {
-          if (kDebugMode) {
-            print('LoginFormBloc: State changed: ${state.status}');
+          if (isDebugMode) {
+            printBoxed('LoginFormBloc: State changed: ${state.status}');
           }
           if (state.status == FormStatus.submitting) {
             final event = AuthenticationLoginEvent(

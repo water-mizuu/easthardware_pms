@@ -1,8 +1,9 @@
 import 'package:easthardware_pms/domain/backend/extension_types/shelf_server.dart';
 import 'package:easthardware_pms/presentation/bloc/server/server_bloc.dart';
+import 'package:easthardware_pms/utils/boxed.dart';
 import 'package:easthardware_pms/utils/show_single_dialog.dart';
+import 'package:easthardware_pms/domain/constants/debug_constants.dart';
 import 'package:fluent_ui/fluent_ui.dart';
-import 'package:flutter/foundation.dart';
 
 typedef ServerTriple = (ShelfServer, ShelfServer, Stream<ServerEvent>);
 typedef OnSuccess = void Function(ShelfServer, ShelfServer, Stream<ServerEvent>);
@@ -83,8 +84,8 @@ class _ServerConfigurationDialogState extends State<ServerConfigurationDialog> {
       Navigator.of(context).pop();
       widget.onSuccess(landing, webSocket, stream);
     } catch (e) {
-      if (kDebugMode) {
-        print('Server start error: $e');
+      if (isDebugMode) {
+        printBoxed('Server start error: $e');
       }
 
       if (!mounted) return;

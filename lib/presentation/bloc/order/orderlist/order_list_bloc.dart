@@ -9,9 +9,10 @@ import 'package:easthardware_pms/domain/repository/order_item_repository.dart';
 import 'package:easthardware_pms/domain/repository/order_product_repository.dart';
 import 'package:easthardware_pms/domain/repository/order_repository.dart';
 import 'package:easthardware_pms/domain/repository/product_repository.dart';
+import 'package:easthardware_pms/utils/boxed.dart';
 import 'package:easthardware_pms/utils/undefined.dart';
+import 'package:easthardware_pms/domain/constants/debug_constants.dart';
 import 'package:equatable/equatable.dart';
-import 'package:flutter/foundation.dart';
 
 part 'order_list_event.dart';
 part 'order_list_state.dart';
@@ -60,7 +61,7 @@ class OrderListBloc extends Bloc<OrderListEvent, OrderListState> {
     emit(state.copyWith(status: DataStatus.loading));
     try {
       final order = await _repository.insertOrder(event.order);
-      print('[OrderListBloc] Inserted Order: ${order.id}, ${order.toMap()}');
+      printBoxed('[OrderListBloc] Inserted Order: ${order.id}, ${order.toMap()}');
       final products = event.products
           .map((product) => _orderProductRepository.insertOrderProduct(
                 product.copyWith(orderId: order.id),
@@ -69,7 +70,7 @@ class OrderListBloc extends Bloc<OrderListEvent, OrderListState> {
       final newlyAddedProducts = await Future.wait(products);
       // Update product stock: add quantity for each product
 
-      print(
+      printBoxed(
           '[OrderListBloc] Inserted products: ${newlyAddedProducts.map((i) => i.toMap()).toList()}');
       final updateStockFutures = event.products.map((product) {
         return _productRepository.updateProductStock(
@@ -96,11 +97,11 @@ class OrderListBloc extends Bloc<OrderListEvent, OrderListState> {
     emit(state.copyWith(status: DataStatus.loading));
     try {
       final order = await _repository.insertOrder(event.order);
-      if (kDebugMode) {
-        print('[OrderListBloc] Inserted Order: ${order.id}, ${order.toMap()}');
+      if (isDebugMode) {
+        printBoxed('[OrderListBloc] Inserted Order: ${order.id}, ${order.toMap()}');
       }
-      if (kDebugMode) {
-        print(
+      if (isDebugMode) {
+        printBoxed(
             '[OrderListBloc] Inserting Order Items: ${event.items.map((i) => i.toMap()).toList()}');
       }
 
@@ -109,8 +110,8 @@ class OrderListBloc extends Bloc<OrderListEvent, OrderListState> {
           .toList()
           .wait;
 
-      if (kDebugMode) {
-        print(
+      if (isDebugMode) {
+        printBoxed(
           '[OrderListBloc] Newly Inserted Items: '
           '${newlyAddedItems.map((i) => i.toMap()).toList()}',
         );
@@ -125,11 +126,11 @@ class OrderListBloc extends Bloc<OrderListEvent, OrderListState> {
         status: DataStatus.success,
       ));
     } catch (e, stackTrace) {
-      if (kDebugMode) {
-        print('[OrderListBloc] Error adding order items: $e');
+      if (isDebugMode) {
+        printBoxed('[OrderListBloc] Error adding order items: $e');
       }
-      if (kDebugMode) {
-        print('[OrderListBloc] Stack trace: $stackTrace');
+      if (isDebugMode) {
+        printBoxed('[OrderListBloc] Stack trace: $stackTrace');
       }
       emit(state.copyWith(status: DataStatus.error));
     }
@@ -162,11 +163,11 @@ class OrderListBloc extends Bloc<OrderListEvent, OrderListState> {
         status: DataStatus.success,
       ));
 
-      if (kDebugMode) {
-        print('[OrderListBloc] Successfully updated expense order ${event.order.id}');
+      if (isDebugMode) {
+        printBoxed('[OrderListBloc] Successfully updated expense order ${event.order.id}');
       }
     } catch (e) {
-      print('[OrderListBloc] Error updating item order: $e');
+      printBoxed('[OrderListBloc] Error updating item order: $e');
       emit(state.copyWith(status: DataStatus.error));
     }
   }
@@ -220,7 +221,7 @@ class OrderListBloc extends Bloc<OrderListEvent, OrderListState> {
         status: DataStatus.success,
       ));
     } catch (e) {
-      print('[OrderListBloc] Error updating order: $e');
+      printBoxed('[OrderListBloc] Error updating order: $e');
       emit(state.copyWith(status: DataStatus.error));
     }
   }
@@ -237,38 +238,38 @@ class OrderListBloc extends Bloc<OrderListEvent, OrderListState> {
   }
 
   Future<void> _onFetchOrderProducts(FetchOrderProductsEvent event, Emitter emit) async {
-    if (kDebugMode) {
-      print('[OrderListBloc] Fetching order products...');
+    if (isDebugMode) {
+      printBoxed('[OrderListBloc] Fetching order products...');
     }
     emit(state.copyWith(status: DataStatus.loading));
     try {
       final orderProducts = await _orderProductRepository.getAllOrderProducts();
-      if (kDebugMode) {
-        print('[OrderListBloc] Order products fetched: count = \'${orderProducts.length}\'');
+      if (isDebugMode) {
+        printBoxed('[OrderListBloc] Order products fetched: count = \'${orderProducts.length}\'');
       }
       emit(state.copyWith(allOrderProducts: orderProducts, status: DataStatus.success));
     } catch (e) {
-      if (kDebugMode) {
-        print('[OrderListBloc] Error fetching order products: $e');
+      if (isDebugMode) {
+        printBoxed('[OrderListBloc] Error fetching order products: $e');
       }
       emit(state.copyWith(status: DataStatus.error));
     }
   }
 
   Future<void> _onFetchOrderItems(FetchOrderItemsEvent event, Emitter emit) async {
-    if (kDebugMode) {
-      print('[OrderListBloc] Fetching order items...');
+    if (isDebugMode) {
+      printBoxed('[OrderListBloc] Fetching order items...');
     }
     emit(state.copyWith(status: DataStatus.loading));
     try {
       final orderItems = await _orderItemRepository.getAllOrderItems();
-      if (kDebugMode) {
-        print('[OrderListBloc] Order items fetched: count = \'${orderItems.length}\'');
+      if (isDebugMode) {
+        printBoxed('[OrderListBloc] Order items fetched: count = \'${orderItems.length}\'');
       }
       emit(state.copyWith(allOrderItems: orderItems, status: DataStatus.success));
     } catch (e) {
-      if (kDebugMode) {
-        print('[OrderListBloc] Error fetching order items: $e');
+      if (isDebugMode) {
+        printBoxed('[OrderListBloc] Error fetching order items: $e');
       }
       emit(state.copyWith(status: DataStatus.error));
     }

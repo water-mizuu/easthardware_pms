@@ -85,7 +85,7 @@ class _ArchivePanePageState extends State<ArchivePanePage> {
       case 0:
         return const ArchivedProductsBody();
       case 1:
-        return ArchivedUsersBody();
+        return const ArchivedUsersBody();
       default:
         return const Center(child: Text('No tab selected'));
     }
@@ -372,9 +372,9 @@ class _ArchivedProductsBodyState extends State<ArchivedProductsBody> {
 }
 
 class ArchivedUsersBody extends StatefulWidget {
-  ArchivedUsersBody();
+  const ArchivedUsersBody({super.key});
 
-  static final ArchivedUsersBody instance = ArchivedUsersBody();
+  static const ArchivedUsersBody instance = ArchivedUsersBody();
 
   @override
   State<ArchivedUsersBody> createState() => _ArchivedUsersBodyState();

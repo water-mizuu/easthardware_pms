@@ -9,15 +9,11 @@ import 'package:easthardware_pms/domain/models/order_product.dart';
 import 'package:easthardware_pms/domain/models/product.dart';
 import 'package:easthardware_pms/presentation/bloc/inventory/inventory_display/'
     'inventory_display_enum.dart';
-import 'package:easthardware_pms/presentation/views/dashboard/cards/sales_overview.dart';
 import 'package:easthardware_pms/presentation/views/reports/inventory_report/'
     'inventory_query_data.dart';
-import 'package:easthardware_pms/utils/duration.dart';
-import 'package:easthardware_pms/utils/levenshtein.dart';
 import 'package:easthardware_pms/utils/undefined.dart';
 import 'package:equatable/equatable.dart';
 import 'package:fluent_ui/fluent_ui.dart';
-import 'package:flutter/foundation.dart' show kDebugMode;
 
 part 'inventory_report_event.dart';
 part 'inventory_report_state.dart';
@@ -35,6 +31,7 @@ class InventoryReportBloc extends Bloc<InventoryReportEvent, InventoryReportStat
           allOrders: allOrders,
           allOrderProducts: allOrderProducts,
           allProducts: allProducts,
+          filteredProducts: allProducts,
           queryData: InventoryQueryData.empty(),
         )) {
     on<InventoryReportInitializeEvent>(_onInitialize);
@@ -45,6 +42,7 @@ class InventoryReportBloc extends Bloc<InventoryReportEvent, InventoryReportStat
     on<InventoryReportUpdateProductsEvent>(_onUpdateProducts);
     on<InventoryReportSetSortByEvent>(_onSetSortBy);
     on<InventoryReportSetSearchQueryEvent>(_onSetSearchQuery);
+    on<InventoryReportSetFilterEvent>(_onSetFilter);
     on<InventoryReportSetCategoryEvent>(_onSetCategory);
     on<InventoryReportSetRowLimitEvent>(_onSetRowLimit);
 
@@ -123,6 +121,7 @@ class InventoryReportBloc extends Bloc<InventoryReportEvent, InventoryReportStat
   ) async {
     final updatedQueryData = state.queryData.copyWith(category: event.category);
     emit(state.copyWith(queryData: updatedQueryData));
+
     await _updateQueryData(emit);
   }
 
@@ -135,91 +134,33 @@ class InventoryReportBloc extends Bloc<InventoryReportEvent, InventoryReportStat
     await _updateQueryData(emit);
   }
 
+  FutureOr<void> _onSetFilter(
+    InventoryReportSetFilterEvent event,
+    Emitter<InventoryReportState> emit,
+  ) async {
+    emit(state.copyWith(queryData: state.queryData.copyWith(filter: event.filter)));
+
+    await _updateQueryData(emit);
+  }
+
   Future<void> _updateQueryData(Emitter<InventoryReportState> emit) async {
     /// First, filter out archived products except for the archived count
-    var result = state.allProducts.where((p) => p.archiveStatus == 0).toList();
-    if (result.isEmpty) {
-      final updatedQueryData = state.queryData.copyWith(filteredProducts: []);
-      emit(state.copyWith(queryData: updatedQueryData));
+    final unarchivedProducts = state.allProducts.where((p) => p.archiveStatus == 0).toList();
+    if (unarchivedProducts.isEmpty) {
+      emit(state.copyWith(filteredProducts: []));
+
       return;
     }
 
-    /// Apply date filtering and other criteria
-    if (kDebugMode) {
-      print(state.queryData.date);
-    }
-
-    if (state.queryData.date case final queryDate?) {
-      /// We only take the products that were created before or on the query date.
-      result = result
-          .where((p) => DateTime.parse(p.creationDate).isBefore(queryDate.add(1.days)))
-          .toList();
-
-      /// We add back the quantities of the products that were invoiced after the query date.
-      for (final invoice in state.allInvoices) {
-        if (!invoice.creationDate.isAfter(queryDate)) continue;
-
-        for (final product in state.allInvoiceProducts) {
-          if (product.invoiceId != invoice.id) continue;
-
-          final found = result.indexed //
-              .where((p) => p.$2.id == product.productId)
-              .firstOrNull;
-
-          if (found case (final index, final item)) {
-            result[index] = item.copyWith(quantity: item.quantity + product.quantity);
-          }
-        }
-      }
-
-      /// We remove the quantities of the products that were ordered after the query date.
-      for (final order in state.allOrders) {
-        if (!order.creationDate.isAfter(queryDate)) continue;
-
-        for (final product in state.allOrderProducts) {
-          if (product.orderId != order.id) continue;
-
-          final found = result.indexed //
-              .where((p) => p.$2.id == product.productId)
-              .firstOrNull;
-
-          if (found case (final index, final item)) {
-            result[index] = item.copyWith(quantity: item.quantity - product.quantity);
-          }
-        }
-      }
-
-      if (!queryDate.zeroedTime().isAtSameMomentAs(DateTime.now().zeroedTime())) {
-        for (var i = 0; i < result.length; ++i) {
-          /// We remove the statuses as they are not computable for this report.
-          result[i] = result[i].copyWith(
-            isBelowReorderPoint: false,
-            isDeadStock: false,
-            isFastMovingStock: false,
-          );
-        }
-      }
-    }
-
-    if (state.queryData.category != null) {
-      result = result.where((p) => p.categoryId == state.queryData.category!.id).toList();
-    }
-
-    result = await Levenshtein.rankItems<Product>(
-      result,
-      state.queryData.searchQuery,
-      (product) => {
-        product.sku,
-        product.name,
-        if (product.description case final description?) description,
-        if (product.categoryName case final categoryName?) categoryName,
-      },
-      state.queryData.sortBy.compareProducts,
+    final filtered = state.queryData.call(
+      unarchivedProducts,
+      allInvoices: state.allInvoices,
+      allInvoiceProducts: state.allInvoiceProducts,
+      allOrders: state.allOrders,
+      allOrderProducts: state.allOrderProducts,
     );
 
-    final updatedQueryData = state.queryData.copyWith(filteredProducts: result);
-
-    emit(state.copyWith(queryData: updatedQueryData));
+    return emit(state.copyWith(filteredProducts: filtered));
   }
 
   @override

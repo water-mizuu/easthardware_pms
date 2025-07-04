@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:easthardware_pms/app/app.dart';
+import 'package:easthardware_pms/domain/constants/debug_constants.dart';
 import 'package:easthardware_pms/presentation/bloc/authentication/'
     'authentication/authentication_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/security/user_log_list/user_log_list_bloc.dart';
@@ -11,7 +12,6 @@ import 'package:easthardware_pms/presentation/widgets/layout/spacing.dart';
 import 'package:easthardware_pms/utils/boxed.dart';
 import 'package:easthardware_pms/utils/try_future.dart';
 import 'package:fluent_ui/fluent_ui.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:window_manager_plus/window_manager_plus.dart';
@@ -127,7 +127,7 @@ Future<void> _addLogoutEvent(BuildContext context) async {
 ///   it will show a dialog to the user asking them to force close the application
 ///   if they want to.
 Future<void> _closeServers(BuildContext context) async {
-  if (kDebugMode) {
+  if (isDebugMode) {
     printBoxed(
       "Closing the application...\nThe database args are: ${context.read<ServerBloc>().state.databaseArgs}",
       "Application Close",
@@ -202,7 +202,7 @@ Future<void> _closeServers(BuildContext context) async {
     ).wait.tryCatch();
 
     if (error != null) {
-      if (kDebugMode) {
+      if (isDebugMode) {
         printBoxed(
           "Failed to close the server:\n$error",
           "Server Close Error",
@@ -213,7 +213,7 @@ Future<void> _closeServers(BuildContext context) async {
   } else if (databaseArgs is ClientDatabaseArgs) {
     final (_, error) = await databaseArgs.close!.call().tryCatch();
     if (error != null) {
-      if (kDebugMode) {
+      if (isDebugMode) {
         printBoxed(
           "Failed to close the client connection:\n$error",
           "Client Close Error",

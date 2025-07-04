@@ -1,8 +1,10 @@
 import 'package:easthardware_pms/data/database/dao/metadata_dao.dart';
 import 'package:easthardware_pms/data/database/database_server_proxy.dart';
+import 'package:easthardware_pms/utils/boxed.dart';
 import 'package:easthardware_pms/utils/notification.dart';
 import 'package:easthardware_pms/utils/undefined.dart';
-import 'package:flutter/foundation.dart';
+import 'package:easthardware_pms/domain/constants/debug_constants.dart';
+
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:path/path.dart' as path;
 
@@ -32,8 +34,8 @@ class DatabaseInformationCubit extends Cubit<DatabaseInformationState> {
         databaseSize: databaseSize,
       ),
     );
-    if (kDebugMode) {
-      print(("Emitted new state: $state"));
+    if (isDebugMode) {
+      printBoxed(("Emitted new state: $state"));
     }
   }
 

@@ -1,11 +1,12 @@
 import 'dart:async';
 
+import 'package:easthardware_pms/domain/constants/debug_constants.dart';
 import 'package:easthardware_pms/domain/enums/enums.dart';
 import 'package:easthardware_pms/presentation/bloc/authentication/authentication/authentication_bloc.dart';
+import 'package:easthardware_pms/utils/boxed.dart';
 import 'package:easthardware_pms/utils/duration.dart';
 import 'package:easthardware_pms/utils/undefined.dart';
 import 'package:equatable/equatable.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -28,8 +29,8 @@ class LoginFormBloc extends Bloc<LoginFormEvent, LoginFormState> {
   void onEvent(LoginFormEvent event) {
     super.onEvent(event);
 
-    if (kDebugMode) {
-      print('LoginFormBloc: Event received: ${event.runtimeType}');
+    if (isDebugMode) {
+      printBoxed('LoginFormBloc: Event received: ${event.runtimeType}');
     }
   }
 

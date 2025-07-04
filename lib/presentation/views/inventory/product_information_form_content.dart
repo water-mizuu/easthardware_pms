@@ -13,8 +13,9 @@ import 'package:easthardware_pms/presentation/widgets/text.dart';
 import 'package:easthardware_pms/presentation/widgets/ui/styles.dart';
 import 'package:easthardware_pms/utils/boxed.dart';
 import 'package:easthardware_pms/utils/uuid.dart';
+import 'package:easthardware_pms/domain/constants/debug_constants.dart';
 import 'package:fluent_ui/fluent_ui.dart';
-import 'package:flutter/foundation.dart';
+
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -661,7 +662,7 @@ class _SecondaryUnitFieldState extends State<SecondaryUnitField> with ProductFor
                       state.mainUnit
                     ];
 
-                    if (kDebugMode) {
+                    if (isDebugMode) {
                       printBoxed(
                         existingNames.join("\n"),
                         "Unit names tested against [${widget.index}]",

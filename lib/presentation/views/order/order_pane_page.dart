@@ -39,7 +39,7 @@ class _OrderPanePageState extends State<OrderPanePage> {
     // Ensure expense type list is loaded
     final expenseTypeListBloc = context.read<ExpenseTypeListBloc>();
     if (expenseTypeListBloc.state.expenseTypes.isEmpty) {
-      expenseTypeListBloc.add(FetchAllExpenseTypesEvent());
+      expenseTypeListBloc.add(const FetchAllExpenseTypesEvent());
     }
   }
 

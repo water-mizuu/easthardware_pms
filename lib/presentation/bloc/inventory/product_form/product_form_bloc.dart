@@ -9,8 +9,9 @@ import 'package:easthardware_pms/domain/services/cryptography_service.dart';
 import 'package:easthardware_pms/presentation/models/form_unit.dart';
 import 'package:easthardware_pms/utils/boxed.dart';
 import 'package:easthardware_pms/utils/undefined.dart';
+import 'package:easthardware_pms/domain/constants/debug_constants.dart';
 import 'package:equatable/equatable.dart';
-import 'package:flutter/foundation.dart';
+
 import 'package:flutter/widgets.dart';
 
 part 'product_form_event.dart';
@@ -60,7 +61,7 @@ class ProductFormBloc extends Bloc<ProductFormEvent, ProductFormState> {
 
   @override
   void onEvent(ProductFormEvent event) {
-    if (kDebugMode) {
+    if (isDebugMode) {
       printBoxed(event, 'ProductFormBloc');
     }
     super.onEvent(event);
@@ -198,7 +199,7 @@ class ProductFormBloc extends Bloc<ProductFormEvent, ProductFormState> {
       if (formKey.currentState case final FormState formState when formState.validate()) {
         await Future.delayed(Duration.zero);
 
-        if (kDebugMode) {
+        if (isDebugMode) {
           printBoxed(event, 'ProductFormBloc: Button Pressed');
         }
 
@@ -214,7 +215,7 @@ class ProductFormBloc extends Bloc<ProductFormEvent, ProductFormState> {
         emit(state.copyWith(formStatus: FormStatus.invalid));
       }
     } catch (e) {
-      if (kDebugMode) {
+      if (isDebugMode) {
         printBoxed(e.toString().wrap, 'ProductFormBloc: Error on Button Pressed');
       }
 
@@ -234,7 +235,7 @@ class ProductFormBloc extends Bloc<ProductFormEvent, ProductFormState> {
       if (formKey.currentState case final FormState formState when formState.validate()) {
         await Future.delayed(Duration.zero);
 
-        if (kDebugMode) {
+        if (isDebugMode) {
           printBoxed(event, 'ProductFormBloc: Button Pressed');
         }
 
@@ -250,7 +251,7 @@ class ProductFormBloc extends Bloc<ProductFormEvent, ProductFormState> {
         emit(state.copyWith(formStatus: FormStatus.invalid));
       }
     } catch (e) {
-      if (kDebugMode) {
+      if (isDebugMode) {
         printBoxed(e.toString().wrap, 'ProductFormBloc: Error on Button Pressed');
       }
 
@@ -270,7 +271,7 @@ class ProductFormBloc extends Bloc<ProductFormEvent, ProductFormState> {
       if (formKey.currentState case final FormState formState when formState.validate()) {
         await Future.delayed(Duration.zero);
 
-        if (kDebugMode) {
+        if (isDebugMode) {
           printBoxed(event, 'ProductFormBloc: Button Pressed');
         }
 
@@ -286,7 +287,7 @@ class ProductFormBloc extends Bloc<ProductFormEvent, ProductFormState> {
         emit(state.copyWith(formStatus: FormStatus.invalid));
       }
     } catch (e) {
-      if (kDebugMode) {
+      if (isDebugMode) {
         printBoxed(e.toString().wrap, 'ProductFormBloc: Error on Button Pressed');
       }
 
@@ -328,7 +329,7 @@ class ProductFormBloc extends Bloc<ProductFormEvent, ProductFormState> {
         formStatus: FormStatus.initial,
       ));
     } catch (e) {
-      if (kDebugMode) {
+      if (isDebugMode) {
         printBoxed(e.toString().wrap, 'ProductFormBloc: Error on Product Loaded');
       }
       emit(state.copyWith(formStatus: FormStatus.error, errorMessage: e.toString()));

@@ -4,8 +4,9 @@ import 'package:easthardware_pms/presentation/bloc/server/server_bloc.dart';
 import 'package:easthardware_pms/presentation/widgets/dialog/log_out_dialog.dart';
 import 'package:easthardware_pms/presentation/widgets/text.dart';
 import 'package:easthardware_pms/utils/typed_routes.dart';
+import 'package:easthardware_pms/domain/constants/debug_constants.dart';
 import 'package:fluent_ui/fluent_ui.dart';
-import 'package:flutter/foundation.dart';
+
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 mixin NavigationPanelMixin {
@@ -69,7 +70,7 @@ mixin CommonSidePanelMixin on NavigationPanelMixin {
   List<NavigationPaneItem> footerItems(BuildContext context) {
     final user = context.watch<AuthenticationBloc>().state.user;
     return [
-      if (kDebugMode) ...[
+      if (isDebugMode) ...[
         navItem(
           icon: FluentIcons.device_bug,
           title: 'Clear database',

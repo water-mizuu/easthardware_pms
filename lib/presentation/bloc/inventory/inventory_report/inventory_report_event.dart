@@ -83,6 +83,15 @@ class InventoryReportSetSortByEvent extends InventoryReportEvent {
   List<Object?> get props => [sortBy];
 }
 
+class InventoryReportSetFilterEvent extends InventoryReportEvent {
+  const InventoryReportSetFilterEvent(this.filter);
+
+  final InventoryDisplayFilter? filter;
+
+  @override
+  List<Object?> get props => [filter];
+}
+
 class InventoryReportSetSearchQueryEvent extends InventoryReportEvent {
   const InventoryReportSetSearchQueryEvent(this.searchQuery);
 

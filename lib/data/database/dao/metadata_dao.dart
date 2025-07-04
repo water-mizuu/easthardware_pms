@@ -1,5 +1,6 @@
 import 'package:easthardware_pms/data/database/dao/dao_base.dart';
-import 'package:flutter/foundation.dart';
+import 'package:easthardware_pms/domain/constants/debug_constants.dart';
+import 'package:easthardware_pms/utils/boxed.dart';
 
 base class MetadataDao extends DaoBase {
   const MetadataDao(super.databaseHelper);
@@ -21,8 +22,8 @@ base class MetadataDao extends DaoBase {
       records.add((tableName, rows));
     }
 
-    if (kDebugMode) {
-      print(allTables);
+    if (isDebugMode) {
+      printBoxed(allTables);
     }
 
     return records;
@@ -46,8 +47,8 @@ base class MetadataDao extends DaoBase {
         count += rowCount;
       }
     }
-    if (kDebugMode) {
-      print(allTables);
+    if (isDebugMode) {
+      printBoxed(allTables);
     }
 
     return count;

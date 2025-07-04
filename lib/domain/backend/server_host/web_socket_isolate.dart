@@ -11,16 +11,15 @@ import 'package:easthardware_pms/domain/backend/extension_types/log_command.dart
 import 'package:easthardware_pms/domain/backend/extensions/to_message_channel.dart';
 import 'package:easthardware_pms/domain/backend/server_database.dart';
 import 'package:easthardware_pms/domain/backend/utils/isolate_indicator.dart';
+import 'package:easthardware_pms/domain/constants/debug_constants.dart';
 import 'package:easthardware_pms/domain/models/user.dart';
 import 'package:easthardware_pms/domain/models/user_log.dart';
-import 'package:easthardware_pms/main.dart';
 import 'package:easthardware_pms/presentation/cubit/notifications/cubit/notification_cubit.dart';
 import 'package:easthardware_pms/utils/boxed.dart';
 import 'package:easthardware_pms/utils/duration.dart';
 import 'package:easthardware_pms/utils/message_channel.dart';
 import 'package:easthardware_pms/utils/parallelism.dart';
 import 'package:easthardware_pms/utils/try_future.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:network_info_plus/network_info_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -50,7 +49,7 @@ Future<void> spawnWebSocketIsolate((RootIsolateToken, NamedSendPort) payload) as
   _sharedPreferencesAsync = SharedPreferencesAsync();
 
   _savedHeartbeat = await _sharedPreferencesAsync.getInt("heartbeat");
-  if (kDebugMode) {
+  if (isDebugMode) {
     printBoxed("Saved heartbeat: $_savedHeartbeat", "Spawn WebSocket Isolate");
   }
 
@@ -120,7 +119,7 @@ Future<void> spawnWebSocketIsolate((RootIsolateToken, NamedSendPort) payload) as
 
   /// @MAIN2WS:invocation
   mainChannel.listenFrom("invocation", (message) async {
-    if (kDebugMode) {
+    if (isDebugMode) {
       if (printInvocationMessages) {
         printBoxed(message, "MAIN2WS:invocation");
       }
@@ -137,7 +136,7 @@ Future<void> spawnWebSocketIsolate((RootIsolateToken, NamedSendPort) payload) as
           await _handleInvocation(context, name, args);
       }
     } else {
-      if (kDebugMode) {
+      if (isDebugMode) {
         printBoxed("Received unexpected message: $message");
       }
     }
@@ -175,8 +174,8 @@ Future<HttpServer> _shelfWebSocketInitiate(int port) async {
   final server = await shelf_io.serve(handler, ip, port);
   final hostedPort = server.port;
 
-  if (kDebugMode) {
-    print("Serving at $ip:$hostedPort");
+  if (isDebugMode) {
+    printBoxed("Serving at $ip:$hostedPort");
   }
 
   return server;
@@ -214,7 +213,7 @@ Future<void> _handleConnection(
 
   /// @CLIENT2WS:invocation
   messageChannel.listenFrom("invocation", (object) async {
-    if (kDebugMode) {
+    if (isDebugMode) {
       if (printInvocationMessages) {
         printBoxed(object, "CLIENT2WS:invocation");
       }
@@ -230,8 +229,8 @@ Future<void> _handleConnection(
     await _handleInvocation(context, name, message);
   });
 
-  if (kDebugMode) {
-    print("New connection established. Current connections: ${_clientChannels.length + 1}");
+  if (isDebugMode) {
+    printBoxed("New connection established. Current connections: ${_clientChannels.length + 1}");
   }
 
   _clientChannels.add((webSocketChannel, messageChannel, null));
@@ -243,6 +242,7 @@ Future<void> _handleInvocation(InvocationContext context, String name, Object? m
   switch (message) {
     case ["resetDb", _]:
       await resetDatabase();
+      sendPort.send(name, true);
       break;
     case ["db", [final String method, final List<Object?> arguments]]:
       // Handle each db method call.
@@ -333,7 +333,7 @@ Future<void> _handleInvocation(InvocationContext context, String name, Object? m
       });
       break;
     case _:
-      if (kDebugMode) {
+      if (isDebugMode) {
         printBoxed("Received unexpected message: $message");
       }
       break;
@@ -518,16 +518,16 @@ Future<void> _hookOntoUpdate(
     if (clientChannel case (final webSocketChannel, final messageChannel) when index >= 0) {
       _clientChannels[index] = (webSocketChannel, messageChannel, userId);
 
-      if (kDebugMode) {
-        print("User with ID $userId logged in from an existing client.");
+      if (isDebugMode) {
+        printBoxed("User with ID $userId logged in from an existing client.");
       }
 
       final db = await getWebSocketDatabaseHelper(_savedHeartbeat);
       final usersDao = UsersDao(db);
       final user = await usersDao.getUserById(userId);
       if (user == null) {
-        if (kDebugMode) {
-          print("User with ID $userId not found in the database.");
+        if (isDebugMode) {
+          printBoxed("User with ID $userId not found in the database.");
         }
         return;
       }
@@ -553,8 +553,8 @@ Future<void> _hookOntoUpdate(
       final usersDao = UsersDao(db);
       final user = await usersDao.getUserById(userId);
       if (user == null) {
-        if (kDebugMode) {
-          print("User with ID $userId not found in the database.");
+        if (isDebugMode) {
+          printBoxed("User with ID $userId not found in the database.");
         }
         return;
       }
@@ -606,8 +606,8 @@ Future<void> _logoutClientForcefully(int userId) async {
 
     final user = await userListDao.getUserById(userId);
     if (user == null) {
-      if (kDebugMode) {
-        print("User with ID $userId not found in the database.");
+      if (isDebugMode) {
+        printBoxed("User with ID $userId not found in the database.");
       }
       return;
     }

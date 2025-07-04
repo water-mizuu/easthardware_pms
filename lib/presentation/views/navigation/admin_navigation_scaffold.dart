@@ -12,8 +12,9 @@ import 'package:easthardware_pms/presentation/widgets/title_bar.dart';
 import 'package:easthardware_pms/presentation/widgets/ui/styles.dart';
 import 'package:easthardware_pms/utils/boxed.dart';
 import 'package:easthardware_pms/utils/typed_routes.dart';
+import 'package:easthardware_pms/domain/constants/debug_constants.dart';
 import 'package:fluent_ui/fluent_ui.dart';
-import 'package:flutter/foundation.dart';
+
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
@@ -152,7 +153,7 @@ class _AdminNavigationViewState extends State<AdminNavigationView>
             onItemPressed: (index) {
               final probablyRoute = _routeIndexMapper.getRouteFromIndex(index);
               if (probablyRoute case null) {
-                if (kDebugMode) {
+                if (isDebugMode) {
                   printBoxed(
                     "Tried to navigate to a route which does not exist: $probablyRoute",
                     "AdminNavigationView",
@@ -227,7 +228,7 @@ class _AdminNavigationViewState extends State<AdminNavigationView>
           navItem(
             icon: FluentIcons.product_release,
             title: "Register Product",
-            route: AppRoutes.admin.createProduct,
+            route: AppRoutes.admin.registerProduct,
           ),
           navItem(
             icon: FluentIcons.product_catalog,

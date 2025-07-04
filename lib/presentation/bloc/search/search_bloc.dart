@@ -29,8 +29,8 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
     on<SearchReset>(_onSearchReset);
   }
 
-  Future<List<Product>> _processProduct(String query) {
-    return Levenshtein.rankItems(
+  List<Product> _processProduct(String query) {
+    final ranked = Levenshtein.rankItems(
       state.allProducts,
       query,
       (p) => {
@@ -40,13 +40,15 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
         p.categoryName?.toLowerCase(),
       } //
           .whereType<String>(),
-    ).then((p) => p.sublist(0, min(p.length, state.limit)));
+    );
+
+    return ranked.sublist(0, min(ranked.length, state.limit));
   }
 
-  Future<List<Invoice>> _processInvoice(String query) {
+  List<Invoice> _processInvoice(String query) {
     /// For now, we will just search by customer name and reference number.
     ///   Eventually, this should include stuff like product names, invoice numbers, etc.
-    return Levenshtein.rankItems(
+    final ranked = Levenshtein.rankItems(
       state.allInvoices,
       query,
       (i) => {
@@ -56,15 +58,17 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
         i.referenceNumber?.toLowerCase(),
         i.memo?.toLowerCase(),
       }.whereType<String>(),
-    ).then((p) => p.sublist(0, min(p.length, state.limit)));
+    );
+
+    return ranked.sublist(0, min(ranked.length, state.limit));
   }
 
-  Future<List<Order>> _processOrder(String query) {
+  List<Order> _processOrder(String query) {
     final expenseTypeCache = <int, String>{};
 
     /// For now, we will just search by customer name and reference number.
     ///   Eventually, this should include stuff like product names, order numbers, etc.
-    return Levenshtein.rankItems(
+    final ranked = Levenshtein.rankItems(
       state.allOrders,
       query,
       (o) => {
@@ -85,7 +89,9 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
             .toLowerCase(),
         o.memo?.toLowerCase(),
       }.whereType<String>(),
-    ).then((p) => p.sublist(0, min(p.length, state.limit)));
+    );
+
+    return ranked.sublist(0, min(ranked.length, state.limit));
   }
 
   Future<void> _onDependentsUpdated(
@@ -134,11 +140,11 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
 
     emit(state.copyWith(isLoading: true, errorMessage: null));
     try {
-      final (products, invoices, orders) = await (
+      final (products, invoices, orders) = (
         _processProduct(query),
         _processInvoice(query),
         _processOrder(query),
-      ).wait; // Wait for all three processes to complete
+      );
 
       final results = SearchResults(
         products: products,

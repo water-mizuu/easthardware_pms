@@ -1,4 +1,5 @@
 import 'package:bloc/bloc.dart';
+import 'package:easthardware_pms/domain/constants/debug_constants.dart';
 import 'package:easthardware_pms/domain/enums/enums.dart';
 import 'package:easthardware_pms/domain/models/category.dart';
 import 'package:easthardware_pms/domain/models/product.dart';
@@ -9,7 +10,6 @@ import 'package:easthardware_pms/domain/repository/unit_repository.dart';
 import 'package:easthardware_pms/utils/boxed.dart';
 import 'package:easthardware_pms/utils/undefined.dart';
 import 'package:equatable/equatable.dart';
-import 'package:flutter/foundation.dart' show kDebugMode;
 
 part 'product_list_event.dart';
 part 'product_list_state.dart';
@@ -183,8 +183,8 @@ class ProductListBloc extends Bloc<ProductListEvent, ProductListState> {
         ),
       );
     } catch (e) {
-      if (kDebugMode) {
-        print("Error updating product: $e");
+      if (isDebugMode) {
+        printBoxed("Error updating product: $e");
       }
       emit(state.copyWith(status: DataStatus.error));
     }

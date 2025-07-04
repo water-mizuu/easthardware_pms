@@ -6,10 +6,12 @@ import 'package:easthardware_pms/presentation/router/app_routes.dart';
 import 'package:easthardware_pms/presentation/widgets/layout/spacing.dart';
 import 'package:easthardware_pms/presentation/widgets/text.dart';
 import 'package:easthardware_pms/presentation/widgets/ui/text_button.dart';
+import 'package:easthardware_pms/utils/boxed.dart';
 import 'package:easthardware_pms/utils/notification.dart';
 import 'package:easthardware_pms/utils/typed_routes.dart';
+import 'package:easthardware_pms/domain/constants/debug_constants.dart';
 import 'package:fluent_ui/fluent_ui.dart';
-import 'package:flutter/foundation.dart';
+
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class Header extends StatelessWidget {
@@ -48,8 +50,8 @@ class Header extends StatelessWidget {
 
     if (creatorId == null) {
       // Optional: Show error dialog/snack bar
-      if (kDebugMode) {
-        print('Error: creatorId is null.');
+      if (isDebugMode) {
+        printBoxed('Error: creatorId is null.');
       }
       showNotification.error(
         title: 'Error',

@@ -14,7 +14,8 @@ import 'package:easthardware_pms/domain/backend/microservices/key_microservice.d
 import 'package:easthardware_pms/domain/backend/utils/random_int_from_date.dart';
 import 'package:easthardware_pms/domain/services/cryptography_service.dart';
 import 'package:easthardware_pms/utils/boxed.dart';
-import 'package:flutter/foundation.dart';
+import 'package:easthardware_pms/domain/constants/debug_constants.dart';
+
 import 'package:http/http.dart' as http;
 
 /// A typedef for a function that performs a pseudo-TLS handshake.
@@ -143,8 +144,8 @@ class SecureHttp {
           serverPublicKey = (BigInt.parse(keyN), BigInt.parse(keyE));
           break;
         case _:
-          if (kDebugMode) {
-            print(
+          if (isDebugMode) {
+            printBoxed(
               'Invalid response for handshake initiation '
               'with key $handshakeKey: $decodedResponse2',
             );
@@ -195,12 +196,12 @@ class SecureHttp {
         try {
           await http.delete(removeUri, body: "$sessionKey".encryptAsymmetric(serverPublicKey));
 
-          if (kDebugMode) {
+          if (isDebugMode) {
             printBoxed("Session $sessionKey disposed successfully", "Handshake Cleanup");
           }
         } catch (e) {
-          if (kDebugMode) {
-            print(
+          if (isDebugMode) {
+            printBoxed(
               "Error disposing session $sessionKey, "
               "server might have already cleaned it up or an error occurred: $e",
             );
@@ -238,7 +239,7 @@ class SecureHttp {
     // If not found, a new persistent handshake is performed.
     final handshake = zoneExpando[baseUri] ??= await _establishNewHandshake(baseUri);
 
-    if (kDebugMode) {
+    if (isDebugMode) {
       printBoxed(
         "Session Key: ${handshake.$1}, \nEncryption Key: ${handshake.$2}",
         "Cached Handshake result for $baseUri",

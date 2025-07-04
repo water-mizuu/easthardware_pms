@@ -4,6 +4,7 @@ import 'package:easthardware_pms/presentation/bloc/order/orderform/order_form_bl
 import 'package:easthardware_pms/presentation/models/form_order_item.dart';
 import 'package:easthardware_pms/presentation/widgets/ui/form_table_cell.dart';
 import 'package:easthardware_pms/presentation/widgets/ui/text_form_boxes.dart';
+import 'package:easthardware_pms/utils/boxed.dart';
 import 'package:fluent_ui/fluent_ui.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
@@ -101,7 +102,7 @@ class _DescriptionState extends State<Description> {
         }
       } catch (e) {
         // IndexedOrderItem might not be available yet
-        print('Description widget: $e');
+        printBoxed('Description widget: $e');
       }
     }
   }
@@ -114,24 +115,8 @@ class _DescriptionState extends State<Description> {
       final currentFormProduct = context.read<OrderFormBloc>().state.products![index];
 
       if (currentFormProduct.description != value) {
-        // Log the description change to help with debugging
-        print('[Description] Updating description for ${currentFormProduct.productName}:');
-        print('[Description] - Old: "${currentFormProduct.description}"');
-        print('[Description] - New: "$value"');
-
         // Create a copy with the updated description to ensure we don't lose other fields
-        final updatedProduct = currentFormProduct.copyWith(
-          description: value,
-          // Make sure to keep these important fields
-          productId: currentFormProduct.productId,
-          productName: currentFormProduct.productName,
-          quantity: currentFormProduct.quantity,
-          rate: currentFormProduct.rate,
-          unit: currentFormProduct.unit,
-          unitId: currentFormProduct.unitId,
-          conversionFactor: currentFormProduct.conversionFactor,
-          amount: currentFormProduct.amount,
-        );
+        final updatedProduct = currentFormProduct.copyWith(description: value);
 
         // Update the product with our updated version
         context //

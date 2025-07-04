@@ -9,7 +9,7 @@ extension UserExtension on BuildContext {
     return watch<AuthenticationBloc>().state.user?.accessLevel;
   }
 
-  AccessLevel? get readLevel {
+  AccessLevel? get readAccessLevel {
     return read<AuthenticationBloc>().state.user?.accessLevel;
   }
 }

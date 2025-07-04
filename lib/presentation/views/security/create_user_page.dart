@@ -18,10 +18,12 @@ import 'package:easthardware_pms/presentation/widgets/layout/spacing.dart';
 import 'package:easthardware_pms/presentation/widgets/layout_mode_provider.dart';
 import 'package:easthardware_pms/presentation/widgets/text.dart';
 import 'package:easthardware_pms/presentation/widgets/ui/text_button.dart';
+import 'package:easthardware_pms/utils/boxed.dart';
 import 'package:easthardware_pms/utils/notification.dart';
 import 'package:easthardware_pms/utils/typed_routes.dart';
+import 'package:easthardware_pms/domain/constants/debug_constants.dart';
 import 'package:fluent_ui/fluent_ui.dart';
-import 'package:flutter/foundation.dart';
+
 import 'package:flutter/material.dart' show Icons;
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -55,8 +57,8 @@ class _CreateUserPageState extends State<CreateUserPage> {
             case FormStatus.submitting:
               final id = state.userId;
               if (id == null) {
-                if (kDebugMode) {
-                  print('Tried to submit a user with no ID.');
+                if (isDebugMode) {
+                  printBoxed('Tried to submit a user with no ID.');
                 }
 
                 break;
@@ -64,8 +66,8 @@ class _CreateUserPageState extends State<CreateUserPage> {
 
               final creator = context.read<AuthenticationBloc>().state.user;
               if (creator == null) {
-                if (kDebugMode) {
-                  print('Tried to submit a user with no creator.');
+                if (isDebugMode) {
+                  printBoxed('Tried to submit a user with no creator.');
                 }
                 showNotification(
                   title: 'Error',
@@ -101,8 +103,8 @@ class _CreateUserPageState extends State<CreateUserPage> {
 
               break;
             case FormStatus.error:
-              if (kDebugMode) {
-                print('Error while submitting user form: ${state.accessLevelErrorMessage}');
+              if (isDebugMode) {
+                printBoxed('Error while submitting user form: ${state.accessLevelErrorMessage}');
               }
               // Show error message
               break;

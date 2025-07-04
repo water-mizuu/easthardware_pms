@@ -62,14 +62,13 @@ final class Levenshtein {
     return previousRow[bLen].toDouble();
   }
 
-  /// Ranks items based on their relevance to the query using substring matching and Levenshtein distance.
-  /// Priority: 1. Exact matches, 2. Substring matches, 3. Levenshtein distance
-  static Future<List<T>> rankItems<T>(
+  /// Ranks items based on their relevance to the query using Levenshtein distance and exact matches.
+  static List<T> rankItems<T>(
     List<T> itemsToSort,
     String query,
     Iterable<String> Function(T) mapper, [
     int Function(T, T)? comparator,
-  ]) async {
+  ]) {
     if (itemsToSort.isEmpty || query.isEmpty) {
       return [...itemsToSort]..sort((a, b) => comparator?.call(a, b) ?? 0);
     }
@@ -78,7 +77,7 @@ final class Levenshtein {
     final tokenizedQuery = normalizedQuery
         .split(RegExp(r'\s+'))
         .where((s) => s.isNotEmpty)
-        .toList();
+        .followedBy([normalizedQuery]).toList();
     final scoredItems = <({T item, double score})>[];
 
     for (final item in itemsToSort) {
@@ -86,9 +85,19 @@ final class Levenshtein {
       var bestScore = double.infinity;
 
       for (final factor in factors) {
-        final score = _calculateScore(factor, normalizedQuery, tokenizedQuery);
-        if (score < bestScore) {
-          bestScore = score;
+        // Check for exact match first (score = 0)
+        if (factor == normalizedQuery) {
+          bestScore = 0.0;
+          break;
+        }
+
+        // Calculate Levenshtein distance
+        final levenshteinScore = tokenizedQuery //
+            .map((f) => distance(factor, f))
+            .reduce((a, b) => min(a, b));
+
+        if (levenshteinScore < bestScore) {
+          bestScore = levenshteinScore;
         }
       }
 
@@ -109,56 +118,6 @@ final class Levenshtein {
     return scoredItems.map((e) => e.item).toList();
   }
 
-  /// Calculate score with priority: exact match -> substring match -> levenshtein distance
-  static double _calculateScore(String factor, String normalizedQuery, List<String> tokenizedQuery) {
-    // 1. Exact match (best score: 0.0)
-    if (factor == normalizedQuery) {
-      return 0.0;
-    }
-
-    // 2. Substring matching (scores 1.0 - 9.9 based on match quality)
-    double bestSubstringScore = double.infinity;
-    
-    // Check if full query is a substring
-    if (factor.contains(normalizedQuery)) {
-      // Score based on how much of the factor the query covers (more coverage = better score)
-      final coverage = normalizedQuery.length / factor.length;
-      bestSubstringScore = min(bestSubstringScore, 1.0 + (1.0 - coverage) * 8.0); // Range: 1.0-9.0
-    }
-
-    // Check individual tokens as substrings
-    for (final token in tokenizedQuery) {
-      if (token.length >= 2 && factor.contains(token)) { // Skip very short tokens
-        final coverage = token.length / factor.length;
-        // Slightly higher base score for partial token matches
-        bestSubstringScore = min(bestSubstringScore, 2.0 + (1.0 - coverage) * 7.0); // Range: 2.0-9.0
-      }
-    }
-
-    // If we found a substring match, return it
-    if (bestSubstringScore < double.infinity) {
-      return bestSubstringScore;
-    }
-
-    // 3. Levenshtein distance (scores 10.0+ based on edit distance)
-    double bestLevenshteinScore = double.infinity;
-    
-    // Check against full query
-    final queryDistance = distance(normalizedQuery, factor);
-    bestLevenshteinScore = min(bestLevenshteinScore, 10.0 + queryDistance);
-
-    // Check against individual tokens
-    for (final token in tokenizedQuery) {
-      if (token.length >= 2) { // Skip very short tokens
-        final tokenDistance = distance(token, factor);
-        // Slightly higher base score for token matches vs full query matches
-        bestLevenshteinScore = min(bestLevenshteinScore, 11.0 + tokenDistance);
-      }
-    }
-
-    return bestLevenshteinScore;
-  }
-
   /// High-performance ranking for large datasets using simplified Levenshtein distance
   static Future<List<T>> rankItemsFast<T>(
     List<T> items,
@@ -172,7 +131,7 @@ final class Levenshtein {
     }
 
     // Use the simplified ranking algorithm for all cases
-    final results = await rankItems(items, query, mapper, comparator);
+    final results = rankItems(items, query, mapper, comparator);
     return results.take(maxResults).toList();
   }
 

@@ -1,6 +1,6 @@
+import 'package:easthardware_pms/domain/constants/debug_constants.dart';
 import 'package:easthardware_pms/utils/boxed.dart';
 import 'package:easthardware_pms/utils/message_channel.dart';
-import 'package:flutter/foundation.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 class WebSocketCustomChannel {
@@ -39,13 +39,13 @@ mixin ServerRedirect {
 
 mixin ResettableDatabase on ServerRedirect {
   Future<void> reset() async {
-    if (kDebugMode) {
+    if (isDebugMode) {
       printBoxed("Restarting database connection...");
     }
 
     await server.invokeMethod("resetDb");
 
-    if (kDebugMode) {
+    if (isDebugMode) {
       printBoxed("Restarted database connection...");
     }
   }
@@ -188,8 +188,8 @@ class DatabaseServerProxy with ServerRedirect, ResettableDatabase implements Dat
 
   @override
   Future<void> close() async {
-    if (kDebugMode) {
-      print("Close called on proxy database.");
+    if (isDebugMode) {
+      printBoxed("Close called on proxy database.");
     }
   }
 

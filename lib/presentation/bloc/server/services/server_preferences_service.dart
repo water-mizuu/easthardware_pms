@@ -1,5 +1,7 @@
 import 'package:easthardware_pms/domain/backend/enum/database_mode.dart';
-import 'package:flutter/foundation.dart';
+import 'package:easthardware_pms/domain/constants/debug_constants.dart';
+import 'package:easthardware_pms/utils/boxed.dart';
+
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// Service class that handles shared preferences for server configuration
@@ -35,8 +37,8 @@ Future<int?> getSavedServerPort() async {
 
 /// Saves client information to shared preferences
 Future<void> saveClientInformation(String serverAddress) async {
-  if (kDebugMode) {
-    print("Saving client information: $serverAddress");
+  if (isDebugMode) {
+    printBoxed("Saving client information: $serverAddress");
   }
 
   final sharedPreferences = await resetSharedPreferences();
@@ -46,8 +48,8 @@ Future<void> saveClientInformation(String serverAddress) async {
 
 /// Saves server information to shared preferences
 Future<void> saveServerInformation(int port) async {
-  if (kDebugMode) {
-    print("Saving server information: $port");
+  if (isDebugMode) {
+    printBoxed("Saving server information: $port");
   }
 
   final sharedPreferences = await resetSharedPreferences();

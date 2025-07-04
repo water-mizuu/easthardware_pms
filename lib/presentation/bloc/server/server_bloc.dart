@@ -5,6 +5,7 @@ import 'package:easthardware_pms/data/database/database_helper.dart';
 import 'package:easthardware_pms/data/database/database_server_proxy.dart';
 import 'package:easthardware_pms/domain/backend/enum/database_mode.dart';
 import 'package:easthardware_pms/domain/backend/extension_types/shelf_server.dart';
+import 'package:easthardware_pms/domain/constants/debug_constants.dart';
 import 'package:easthardware_pms/domain/enums/enums.dart';
 import 'package:easthardware_pms/domain/models/security_question.dart';
 import 'package:easthardware_pms/mock_data_implementation_full.dart';
@@ -27,7 +28,6 @@ import 'package:easthardware_pms/utils/notification.dart';
 import 'package:easthardware_pms/utils/undefined.dart';
 import 'package:equatable/equatable.dart';
 import 'package:fluent_ui/fluent_ui.dart';
-import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 
@@ -74,7 +74,7 @@ class ServerBloc extends Bloc<ServerEvent, ServerState> {
 
     on<ServerNotificationsReceived>(_onServerNotificationsReceived);
 
-    if (kDebugMode) {
+    if (isDebugMode) {
       on<ServerDatabaseCleared>(_onServerDatabaseCleared);
       on<ServerMockDataAdded>(_onServerMockDataAdded);
     }
@@ -82,8 +82,8 @@ class ServerBloc extends Bloc<ServerEvent, ServerState> {
 
   @override
   void onEvent(ServerEvent event) {
-    if (kDebugMode) {
-      print("[SERVER_BLOC] ${event.runtimeType}");
+    if (isDebugMode) {
+      printBoxed("[SERVER_BLOC] ${event.runtimeType}");
     }
 
     super.onEvent(event);
@@ -101,7 +101,7 @@ class ServerBloc extends Bloc<ServerEvent, ServerState> {
       onConnectionClose: () {
         final innerContext = rootWidgetKey.currentContext;
         if (innerContext == null || !innerContext.mounted) return;
-        if (kDebugMode) {
+        if (isDebugMode) {
           printBoxed(
             "Connection to server at $serverIp:$port closed.",
             "ServerBloc",
@@ -264,8 +264,8 @@ class ServerBloc extends Bloc<ServerEvent, ServerState> {
       );
     } catch (e) {
       if (isClosed) return;
-      if (kDebugMode) {
-        print("Client connection failed: $e");
+      if (isDebugMode) {
+        printBoxed("Client connection failed: $e");
       }
 
       // Check if it's a network connectivity issue
@@ -321,8 +321,8 @@ class ServerBloc extends Bloc<ServerEvent, ServerState> {
         },
       );
     } catch (e) {
-      if (kDebugMode) {
-        print('Error getting local IP or showing dialog: $e');
+      if (isDebugMode) {
+        printBoxed('Error getting local IP or showing dialog: $e');
       }
       add(const _ServerPromptingUserFromNull());
     }
@@ -363,8 +363,8 @@ class ServerBloc extends Bloc<ServerEvent, ServerState> {
       if (e is SocketException && e.osError?.errorCode == 48) {
         /// If the port is already in use, we can either:
         ///   Connect to the existing server already running on that port.
-        if (kDebugMode) {
-          print("Port is already in use. Trying to connect to it.");
+        if (isDebugMode) {
+          printBoxed("Port is already in use. Trying to connect to it.");
         }
 
         try {
@@ -540,10 +540,10 @@ class ServerBloc extends Bloc<ServerEvent, ServerState> {
     ServerDatabaseCleared event,
     Emitter<ServerState> emit,
   ) async {
-    if (kDebugMode) {
+    if (isDebugMode) {
       final databaseHelper = state.databaseHelper;
       if (databaseHelper == null) {
-        print("Database helper is null, cannot clear database");
+        printBoxed("Database helper is null, cannot clear database");
         showNotification.error(
           title: "Error",
           message: "Database helper is null",
@@ -568,7 +568,7 @@ class ServerBloc extends Bloc<ServerEvent, ServerState> {
     ServerMockDataAdded event,
     Emitter<ServerState> emit,
   ) async {
-    if (kDebugMode) {
+    if (isDebugMode) {
       final databaseHelper = state.databaseHelper;
       await generateMockData(databaseHelper!);
 
@@ -691,8 +691,8 @@ class ServerBloc extends Bloc<ServerEvent, ServerState> {
 
       add(const _ServerReconnectionSucceeded());
     } catch (e) {
-      if (kDebugMode) {
-        print("Client reconnection attempt $currentAttempts failed: $e");
+      if (isDebugMode) {
+        printBoxed("Client reconnection attempt $currentAttempts failed: $e");
       }
 
       // Check if it's a network connectivity issue
@@ -758,8 +758,8 @@ class ServerBloc extends Bloc<ServerEvent, ServerState> {
 
       add(const _ServerReconnectionSucceeded());
     } catch (e) {
-      if (kDebugMode) {
-        print("Server reconnection attempt $currentAttempts failed: $e");
+      if (isDebugMode) {
+        printBoxed("Server reconnection attempt $currentAttempts failed: $e");
       }
 
       // Check if it's a network connectivity issue

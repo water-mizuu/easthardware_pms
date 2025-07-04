@@ -29,7 +29,7 @@ class ArchivedUserDisplayCubit extends Cubit<ArchivedUserDisplayState> {
 
   void sort(ArchivedUserSortBy sortBy) {
     final users = List<User>.from(state.filteredUsers);
-    bool sortAscending = true;
+    var sortAscending = true;
 
     switch (sortBy) {
       case ArchivedUserSortBy.idAscending:

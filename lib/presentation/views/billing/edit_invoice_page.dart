@@ -123,13 +123,13 @@ class EditInvoicePage extends StatelessWidget {
                         .add(AddUpdateEvent('Invoice #${latest.id}', authState.user!));
                     context.read<UserLogListBloc>().add(const LoadUserLogsEvent());
 
-                    context.read<NotificationCubit>().addNotification(
+                    unawaited(context.read<NotificationCubit>().addNotification(
                           type: NotificationType.warning,
                           title: 'Notice:',
                           message:
                               'Invoice No. ${invoice.id} was updated by ${authState.user!.username}.',
                           path: '${AppRoutes.admin.editInvoice.path},${latest.id}',
-                        );
+                        ));
                     final route = authState.user!.accessLevel == AccessLevel.administrator
                         ? AppRoutes.admin.billing
                         : AppRoutes.staff.billing;
@@ -148,13 +148,13 @@ class EditInvoicePage extends StatelessWidget {
                     .toList();
                 printBoxed(newlyLowStock);
                 for (final product in newlyLowStock) {
-                  context.read<NotificationCubit>().addNotification(
+                  unawaited(context.read<NotificationCubit>().addNotification(
                         type: NotificationType.error,
                         title: 'Warning:',
                         message: 'Product ${product.name} is low on stock.',
                         path:
                             '${AppRoutes.admin.createRestockOrder.withProduct.path},${product.id}',
-                      );
+                      ));
                 }
               },
             )

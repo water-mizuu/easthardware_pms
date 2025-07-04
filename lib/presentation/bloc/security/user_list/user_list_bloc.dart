@@ -10,8 +10,9 @@ import 'package:easthardware_pms/utils/boxed.dart';
 import 'package:easthardware_pms/utils/duration.dart';
 import 'package:easthardware_pms/utils/levenshtein.dart';
 import 'package:easthardware_pms/utils/undefined.dart';
+import 'package:easthardware_pms/domain/constants/debug_constants.dart';
 import 'package:equatable/equatable.dart';
-import 'package:flutter/foundation.dart';
+
 
 part 'user_list_event.dart';
 part 'user_list_state.dart';
@@ -38,8 +39,8 @@ class UserListBloc extends Bloc<UserListEvent, UserListState> {
   void onEvent(UserListEvent event) {
     super.onEvent(event);
 
-    if (kDebugMode) {
-      print('UserListBloc: Received event: $event');
+    if (isDebugMode) {
+      printBoxed('UserListBloc: Received event: $event');
     }
   }
 
@@ -54,8 +55,8 @@ class UserListBloc extends Bloc<UserListEvent, UserListState> {
         filteredUsers: users,
       ));
     } catch (e) {
-      if (kDebugMode) {
-        print('Error loading users $e');
+      if (isDebugMode) {
+        printBoxed('Error loading users $e');
       }
       emit(state.copyWith(status: DataStatus.error));
     }
@@ -75,8 +76,8 @@ class UserListBloc extends Bloc<UserListEvent, UserListState> {
       final users = List<User>.from(state.users)..add(insertedUser);
       emit(state.copyWith(users: users, filteredUsers: users, status: DataStatus.success));
     } catch (e) {
-      if (kDebugMode) {
-        print('Error adding user $e');
+      if (isDebugMode) {
+        printBoxed('Error adding user $e');
       }
       emit(state.copyWith(status: DataStatus.error));
     }
@@ -99,8 +100,8 @@ class UserListBloc extends Bloc<UserListEvent, UserListState> {
         status: DataStatus.success,
       ));
     } catch (e) {
-      if (kDebugMode) {
-        print('Error updating user $e');
+      if (isDebugMode) {
+        printBoxed('Error updating user $e');
       }
       emit(state.copyWith(status: DataStatus.error));
     }
@@ -125,7 +126,7 @@ class UserListBloc extends Bloc<UserListEvent, UserListState> {
         ),
       );
     } catch (e) {
-      if (kDebugMode) {
+      if (isDebugMode) {
         printBoxed('Error archiving user $e');
       }
     }
@@ -150,7 +151,7 @@ class UserListBloc extends Bloc<UserListEvent, UserListState> {
         ),
       );
     } catch (e) {
-      if (kDebugMode) {
+      if (isDebugMode) {
         printBoxed('Error archiving user $e');
       }
     }
@@ -170,8 +171,8 @@ class UserListBloc extends Bloc<UserListEvent, UserListState> {
         status: DataStatus.success,
       ));
     } catch (e) {
-      if (kDebugMode) {
-        print('Error deleting user $e');
+      if (isDebugMode) {
+        printBoxed('Error deleting user $e');
       }
       emit(state.copyWith(status: DataStatus.error));
     }
@@ -185,8 +186,8 @@ class UserListBloc extends Bloc<UserListEvent, UserListState> {
     final index = updatedUsers.indexWhere((u) => u.id == user.id);
     updatedUsers[index] = user.copyWith(loginStatus: 1);
 
-    if (kDebugMode) {
-      print('UserListBloc: User logged in: ${user.username} (ID: ${user.id})');
+    if (isDebugMode) {
+      printBoxed('UserListBloc: User logged in: ${user.username} (ID: ${user.id})');
     }
 
     emit(state.copyWith(
@@ -205,8 +206,8 @@ class UserListBloc extends Bloc<UserListEvent, UserListState> {
       final index = updatedUsers.indexWhere((u) => u.id == user.id);
       updatedUsers[index] = user.copyWith(loginStatus: 0);
 
-      if (kDebugMode) {
-        print('UserListBloc: User logged out: ${user.username} (ID: ${user.id})');
+      if (isDebugMode) {
+        printBoxed('UserListBloc: User logged out: ${user.username} (ID: ${user.id})');
       }
 
       emit(state.copyWith(
@@ -215,8 +216,8 @@ class UserListBloc extends Bloc<UserListEvent, UserListState> {
         status: DataStatus.success,
       ));
     } catch (e, st) {
-      if (kDebugMode) {
-        print('Error logging out user $e\n$st');
+      if (isDebugMode) {
+        printBoxed('Error logging out user $e\n$st');
       }
       emit(state.copyWith(status: DataStatus.error));
     }

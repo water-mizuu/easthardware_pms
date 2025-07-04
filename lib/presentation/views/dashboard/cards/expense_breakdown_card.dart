@@ -97,10 +97,7 @@ class ExpenseBreakdownCard extends StatelessWidget {
               },
             ),
             Spacing.v16,
-            const SizedBox(
-              height: 192,
-              child: _ExpensesBreakdownCardGraph(),
-            ),
+            const Expanded(child: _ExpensesBreakdownCardGraph()),
           ],
         ),
       ),

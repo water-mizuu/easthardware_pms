@@ -74,3 +74,23 @@ enum InventoryDisplaySortBy {
     }
   }
 }
+
+enum InventoryDisplayFilter {
+  inStock('In Stock'),
+  lowStock('Low Stock'),
+  outOfStock('Out of Stock');
+
+  const InventoryDisplayFilter(this.name);
+  final String name;
+
+  bool call(Product product) {
+    switch (this) {
+      case InventoryDisplayFilter.inStock:
+        return product.quantity > 0;
+      case InventoryDisplayFilter.lowStock:
+        return product.isBelowReorderPoint == true && product.quantity > 0;
+      case InventoryDisplayFilter.outOfStock:
+        return product.quantity <= 0;
+    }
+  }
+}

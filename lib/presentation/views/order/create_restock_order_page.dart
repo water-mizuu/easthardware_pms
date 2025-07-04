@@ -29,10 +29,12 @@ import 'package:easthardware_pms/presentation/widgets/text.dart';
 import 'package:easthardware_pms/presentation/widgets/ui/form_table_column.dart';
 import 'package:easthardware_pms/presentation/widgets/ui/styles.dart';
 import 'package:easthardware_pms/presentation/widgets/ui/text_button.dart';
+import 'package:easthardware_pms/utils/boxed.dart';
 import 'package:easthardware_pms/utils/notification.dart';
 import 'package:easthardware_pms/utils/typed_routes.dart';
+import 'package:easthardware_pms/domain/constants/debug_constants.dart';
 import 'package:fluent_ui/fluent_ui.dart';
-import 'package:flutter/foundation.dart';
+
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:provider/provider.dart';
@@ -86,8 +88,8 @@ class _CreateRestockOrderPageState extends State<CreateRestockOrderPage> {
                 ));
               } else if (state.status == FormStatus.submitting) {
                 final order = state.copyWith().toOrder();
-                if (kDebugMode) {
-                  print(
+                if (isDebugMode) {
+                  printBoxed(
                       'ID: ${order.id}, Payee: ${order.payeeName}, Expense Type: ${order.expenseType}, '
                       'Payment Method: ${order.paymentMethod}, '
                       'Reference Number: ${order.referenceNumber}, '

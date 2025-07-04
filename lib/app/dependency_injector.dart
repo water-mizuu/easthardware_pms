@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:easthardware_pms/data/database/dao/metadata_dao.dart';
 import 'package:easthardware_pms/data/database/database_helper.dart';
+import 'package:easthardware_pms/domain/constants/debug_constants.dart';
 import 'package:easthardware_pms/domain/repository/authentication_repository.dart';
 import 'package:easthardware_pms/domain/repository/category_repository.dart';
 import 'package:easthardware_pms/domain/repository/expense_type_repository.dart';
@@ -25,7 +26,8 @@ import 'package:easthardware_pms/presentation/bloc/authentication/new_password_f
     'new_password_form_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/authentication/reset_form/reset_form_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/billing/invoicelist/invoice_list_bloc.dart';
-import 'package:easthardware_pms/presentation/bloc/business_snapshot/business_snapshot_report_bloc.dart';
+import 'package:easthardware_pms/presentation/bloc/business_snapshot/'
+    'business_snapshot_report_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/inventory/category_list/'
     'category_list_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/inventory/inventory_display/'
@@ -43,8 +45,10 @@ import 'package:easthardware_pms/presentation/bloc/security/security_questions/'
 import 'package:easthardware_pms/presentation/bloc/security/user_list/user_list_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/security/user_log_list/user_log_list_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/server/server_bloc.dart';
-import 'package:easthardware_pms/presentation/cubit/billing/invoice_display/invoice_display_cubit.dart';
-import 'package:easthardware_pms/presentation/cubit/billing/payment_method_display/payment_method_display_cubit.dart';
+import 'package:easthardware_pms/presentation/cubit/billing/'
+    'invoice_display/invoice_display_cubit.dart';
+import 'package:easthardware_pms/presentation/cubit/billing/'
+    'payment_method_display/payment_method_display_cubit.dart';
 import 'package:easthardware_pms/presentation/cubit/database_information/'
     'database_information_cubit.dart';
 import 'package:easthardware_pms/presentation/cubit/inventory/'
@@ -52,10 +56,12 @@ import 'package:easthardware_pms/presentation/cubit/inventory/'
 import 'package:easthardware_pms/presentation/cubit/navigation/navigation_cubit.dart';
 import 'package:easthardware_pms/presentation/cubit/notifications/cubit/notification_cubit.dart';
 import 'package:easthardware_pms/presentation/cubit/order/cubit/order_display_cubit.dart';
-import 'package:easthardware_pms/presentation/cubit/order/expense_type_display/expense_type_display_cubit.dart';
+import 'package:easthardware_pms/presentation/cubit/order/'
+    'expense_type_display/expense_type_display_cubit.dart';
 import 'package:easthardware_pms/presentation/cubit/payment/'
     'payment_display/payment_display_cubit.dart';
 import 'package:easthardware_pms/presentation/widgets/bottom_text.dart';
+import 'package:easthardware_pms/utils/boxed.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:provider/provider.dart';
@@ -136,8 +142,8 @@ class DependencyInjector extends ChangeNotifier {
   }
 
   List<SingleChildWidget> inject() {
-    if (kDebugMode) {
-      print("Dependency Injector: Injecting dependencies");
+    if (isDebugMode) {
+      printBoxed("Dependency Injector: Injecting dependencies");
     }
 
     ValueKey key() => ValueKey((_databaseHelper, _lastUpdated));
@@ -383,8 +389,8 @@ class DependencyInjector extends ChangeNotifier {
 
   /// Tells the loaded blocs to refresh their data.
   void markNeedsRefresh() {
-    if (kDebugMode) {
-      print("Dependency Injector: Marking needs refresh");
+    if (isDebugMode) {
+      printBoxed("Dependency Injector: Marking needs refresh");
     }
 
     _lastUpdated = DateTime.now();

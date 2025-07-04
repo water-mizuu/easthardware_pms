@@ -1,11 +1,6 @@
 import 'package:fluent_ui/fluent_ui.dart';
 
 class CompoundButton extends StatelessWidget {
-  final Function(dynamic value) onTextChanged;
-  final Function(dynamic value) onComboBoxSelected;
-  final List<ComboBoxItem> items;
-  final String text;
-  final dynamic selected;
 
   const CompoundButton({
     super.key,
@@ -15,6 +10,11 @@ class CompoundButton extends StatelessWidget {
     this.selected,
     required this.text,
   });
+  final Function(dynamic value) onTextChanged;
+  final Function(dynamic value) onComboBoxSelected;
+  final List<ComboBoxItem> items;
+  final String text;
+  final dynamic selected;
 
   @override
   Widget build(BuildContext context) {

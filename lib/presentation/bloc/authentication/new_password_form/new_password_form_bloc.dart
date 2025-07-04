@@ -1,7 +1,8 @@
 import 'package:bloc/bloc.dart';
 import 'package:easthardware_pms/domain/repository/user_repository.dart';
+import 'package:easthardware_pms/domain/constants/debug_constants.dart';
+import 'package:easthardware_pms/utils/boxed.dart';
 import 'package:equatable/equatable.dart';
-import 'package:flutter/foundation.dart';
 
 part 'new_password_form_event.dart';
 part 'new_password_form_state.dart';
@@ -62,8 +63,8 @@ class NewPasswordFormBloc extends Bloc<NewPasswordFormEvent, NewPasswordFormStat
 
     emit(state.copyWith(status: FormStatus.loading));
 
-    if (kDebugMode) {
-      print('Submitting new password for ${state.username}: ${state.newPassword}');
+    if (isDebugMode) {
+      printBoxed('Submitting new password for ${state.username}: ${state.newPassword}');
     }
 
     try {
@@ -74,8 +75,8 @@ class NewPasswordFormBloc extends Bloc<NewPasswordFormEvent, NewPasswordFormStat
       await Future.delayed(Duration.zero);
       emit(const NewPasswordFormState());
     } catch (_) {
-      if (kDebugMode) {
-        print('Error updating password: rawr');
+      if (isDebugMode) {
+        printBoxed('Error updating password: rawr');
       }
       emit(state.copyWith(
         status: FormStatus.error,

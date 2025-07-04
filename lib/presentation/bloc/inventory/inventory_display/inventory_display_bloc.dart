@@ -144,7 +144,7 @@ class InventoryDisplayBloc extends Bloc<InventoryDisplayEvent, InventoryDisplayS
       result = result.where((product) => product.categoryId == state.category!.id).toList();
     }
 
-    result = await Levenshtein.rankItems<Product>(
+    result = Levenshtein.rankItems<Product>(
       result,
       state.searchQuery,
       (product) => {

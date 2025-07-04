@@ -19,8 +19,9 @@ import 'package:easthardware_pms/utils/duration.dart';
 import 'package:easthardware_pms/utils/message_channel.dart';
 import 'package:easthardware_pms/utils/parallelism.dart';
 import 'package:easthardware_pms/utils/try_future.dart';
+import 'package:easthardware_pms/domain/constants/debug_constants.dart';
 import 'package:fluent_ui/fluent_ui.dart';
-import 'package:flutter/foundation.dart';
+
 import 'package:flutter/services.dart';
 
 import 'extension_types/shelf_server.dart';
@@ -35,12 +36,12 @@ Future<(ShelfServer, ShelfServer, Stream<ServerEvent>)> hostShelfServer(int port
   assertMainIsolate();
 
   final landingServer = await hostLandingServer(port);
-  if (kDebugMode) {
+  if (isDebugMode) {
     printBoxed("Hosting HTTP server on port ${landingServer.port}", "hostShelfServer");
   }
 
   final webSocketServer = await hostWebSocketServer();
-  if (kDebugMode) {
+  if (isDebugMode) {
     printBoxed("Hosting WebSocket server on port ${webSocketServer.port}", "hostShelfServer");
   }
 
@@ -50,7 +51,7 @@ Future<(ShelfServer, ShelfServer, Stream<ServerEvent>)> hostShelfServer(int port
     from: "main",
     (message) async* {
       final channel = landingServer.channel;
-      if (kDebugMode) {
+      if (isDebugMode) {
         printBoxed(message, "LANDING2MAIN:main");
       }
 
@@ -65,7 +66,7 @@ Future<(ShelfServer, ShelfServer, Stream<ServerEvent>)> hostShelfServer(int port
             channel.send(to: returnName, requested);
             break;
           case _:
-            if (kDebugMode) {
+            if (isDebugMode) {
               printBoxed("Unknown request: $request", "LANDING2MAIN:main");
             }
             channel.send(to: returnName, -1); // Unknown request
@@ -81,22 +82,22 @@ Future<(ShelfServer, ShelfServer, Stream<ServerEvent>)> hostShelfServer(int port
     (message) async* {
       /// Handle calls from the webSocket isolate.
       final channel = webSocketServer.channel;
-      if (kDebugMode) {
+      if (isDebugMode) {
         printBoxed(message, "WS2MAIN:main");
       }
 
       switch (message) {
         case ['didUpdate', final int msSinceEpoch]:
           final dateTime = DateTime.fromMillisecondsSinceEpoch(msSinceEpoch);
-          if (kDebugMode) {
-            print("Server updated at: $dateTime");
+          if (isDebugMode) {
+            printBoxed("Server updated at: $dateTime");
           }
           yield ServerDatabaseUpdated(lastUpdated: dateTime);
           break;
         case ["notification", final Map<String, dynamic> notification]:
           // Notify the UI about a new notification.
-          if (kDebugMode) {
-            print("Received notification: $notification");
+          if (isDebugMode) {
+            printBoxed("Received notification: $notification");
           }
 
           yield ServerNotificationsReceived(
@@ -114,7 +115,7 @@ Future<(ShelfServer, ShelfServer, Stream<ServerEvent>)> hostShelfServer(int port
               break;
             case ['userLoggedIn', [final User user]]:
               channel.send(to: returnName, 0);
-              if (kDebugMode) {
+              if (isDebugMode) {
                 printBoxed("User logged in: ${user.toMap()}");
               }
               final innerContext = overlayWidgetKey.currentContext;
@@ -140,7 +141,7 @@ Future<(ShelfServer, ShelfServer, Stream<ServerEvent>)> hostShelfServer(int port
               break;
             case ['userLoggedOut', [final User user]]:
               channel.send(to: returnName, 0);
-              if (kDebugMode) {
+              if (isDebugMode) {
                 printBoxed("User logged out: ${user.toMap()}");
               }
               final innerContext = overlayWidgetKey.currentContext;
@@ -165,7 +166,7 @@ Future<(ShelfServer, ShelfServer, Stream<ServerEvent>)> hostShelfServer(int port
 
               break;
             case _:
-              if (kDebugMode) {
+              if (isDebugMode) {
                 printBoxed("Unknown request from $returnName: $request", "WS2MAIN:main");
               }
               channel.send(to: returnName, -1); // Unknown request

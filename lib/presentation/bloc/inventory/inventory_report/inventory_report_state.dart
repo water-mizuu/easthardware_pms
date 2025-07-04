@@ -7,6 +7,7 @@ class InventoryReportState extends Equatable {
     required this.allOrders,
     required this.allOrderProducts,
     required this.allProducts,
+    required this.filteredProducts,
     required this.queryData,
     this.isGenerating = false,
     this.overlayEntry,
@@ -14,11 +15,11 @@ class InventoryReportState extends Equatable {
 
   final List<Invoice> allInvoices;
   final List<InvoiceProduct> allInvoiceProducts;
-
   final List<Order> allOrders;
   final List<OrderProduct> allOrderProducts;
-
   final List<Product> allProducts;
+  final List<Product> filteredProducts;
+
   final InventoryQueryData queryData;
   final bool isGenerating;
   final OverlayEntry? overlayEntry;
@@ -29,6 +30,7 @@ class InventoryReportState extends Equatable {
     List<Order> allOrders,
     List<OrderProduct> allOrderProducts,
     List<Product> allProducts,
+    List<Product> filteredProducts,
     InventoryQueryData queryData,
     bool isGenerating,
     OverlayEntry? overlayEntry,
@@ -39,6 +41,7 @@ class InventoryReportState extends Equatable {
       Object? allOrderProducts = undefined,
       Object? allOrders = undefined,
       Object? allProducts = undefined,
+      Object? filteredProducts = undefined,
       Object? queryData = undefined,
       Object? isGenerating = undefined,
       Object? overlayEntry = undefined,
@@ -49,6 +52,7 @@ class InventoryReportState extends Equatable {
         allOrders: allOrders.or(this.allOrders),
         allOrderProducts: allOrderProducts.or(this.allOrderProducts),
         allProducts: allProducts.or(this.allProducts),
+        filteredProducts: filteredProducts.or(this.filteredProducts),
         queryData: queryData.or(this.queryData),
         isGenerating: isGenerating.or(this.isGenerating),
         overlayEntry: overlayEntry.or(this.overlayEntry),
@@ -58,7 +62,12 @@ class InventoryReportState extends Equatable {
 
   @override
   List<Object?> get props => [
+        allInvoices,
+        allInvoiceProducts,
+        allOrders,
+        allOrderProducts,
         allProducts,
+        filteredProducts,
         queryData,
         isGenerating,
         overlayEntry,

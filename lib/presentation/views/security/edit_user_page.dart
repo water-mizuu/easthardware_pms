@@ -25,8 +25,9 @@ import 'package:easthardware_pms/presentation/widgets/ui/text_button.dart';
 import 'package:easthardware_pms/utils/boxed.dart';
 import 'package:easthardware_pms/utils/notification.dart';
 import 'package:easthardware_pms/utils/typed_routes.dart';
+import 'package:easthardware_pms/domain/constants/debug_constants.dart';
 import 'package:fluent_ui/fluent_ui.dart';
-import 'package:flutter/foundation.dart';
+
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:provider/provider.dart';
@@ -63,17 +64,17 @@ class _EditUserPageState extends State<EditUserPage> {
         listener: (context, state) async {
           switch (state.status) {
             case FormStatus.initial:
-              if (kDebugMode) {
+              if (isDebugMode) {
                 printBoxed('User ID: ${state.userId}', 'EditUserPage - Initial');
               }
               break;
             case FormStatus.validating:
-              if (kDebugMode) {
+              if (isDebugMode) {
                 printBoxed('Validating user form...', 'EditUserPage - Validating');
               }
               break;
             case FormStatus.submitting:
-              if (kDebugMode) {
+              if (isDebugMode) {
                 final info = [
                   '- User ID: ${state.userId}',
                   'Name: ${state.firstName} ${state.lastName}',
@@ -117,7 +118,7 @@ class _EditUserPageState extends State<EditUserPage> {
               context.navigate(AppRoutes.admin.users);
               break;
             case FormStatus.error:
-              if (kDebugMode) {
+              if (isDebugMode) {
                 printBoxed(
                     'Error submitting form: ${state.accessLevelErrorMessage}', 'EditUserPage');
               }
@@ -801,8 +802,8 @@ class _SecurityQuestionFieldsState extends State<SecurityQuestionFields> with Us
 
     final userFormBloc = context.read<UserFormBloc>();
 
-    if (kDebugMode) {
-      print(userFormBloc.state.questions.map((q) => (q.question, q.answer)));
+    if (isDebugMode) {
+      printBoxed(userFormBloc.state.questions.map((q) => (q.question, q.answer)));
     }
 
     _questionControllers = List.generate(

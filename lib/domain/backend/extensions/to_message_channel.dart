@@ -8,7 +8,8 @@ import 'package:easthardware_pms/domain/services/cryptography_service.dart';
 import 'package:easthardware_pms/utils/boxed.dart';
 import 'package:easthardware_pms/utils/message_channel.dart';
 import 'package:easthardware_pms/utils/parallelism.dart';
-import 'package:flutter/foundation.dart';
+import 'package:easthardware_pms/domain/constants/debug_constants.dart';
+
 import 'package:web_socket_channel/web_socket_channel.dart';
 
 extension MessageChannelExtension on WebSocketChannel {
@@ -26,11 +27,11 @@ extension MessageChannelExtension on WebSocketChannel {
     ///   and sends them to the webSocket channel.
     final internalReceivePort = ReceivePort()
       ..map(jsonEncode).listen((message) {
-        if (kDebugMode) {
+        if (isDebugMode) {
           final messageString = message.toString();
           final shortcut = messageString.substring(0, min(30, messageString.length));
 
-          print("[WebSocketChannel] Sending message: $shortcut...");
+          printBoxed("[WebSocketChannel] Sending message: $shortcut...");
         }
         // We send the message as a string to the WebSocketChannel.
         sink.add(message);
@@ -40,8 +41,8 @@ extension MessageChannelExtension on WebSocketChannel {
     final messageChannel = MessageChannel(receivePort, internalSendPort);
 
     void close() {
-      if (kDebugMode) {
-        print("[WebSocketChannel] Closing channel.");
+      if (isDebugMode) {
+        printBoxed("[WebSocketChannel] Closing channel.");
       }
       internalReceivePort.close();
       receivePort.close();
@@ -51,10 +52,10 @@ extension MessageChannelExtension on WebSocketChannel {
 
     stream.where((v) => v is String).cast<String>().map(jsonDecode).listen(
       (message) {
-        if (kDebugMode) {
+        if (isDebugMode) {
           final messageString = message.toString();
           final shortcut = messageString.substring(0, min(30, messageString.length));
-          print("[WebSocketChannel] Received message: $shortcut...");
+          printBoxed("[WebSocketChannel] Received message: $shortcut...");
         }
 
         final [name as String, args] = message as List<Object?>;
@@ -71,7 +72,7 @@ extension MessageChannelExtension on WebSocketChannel {
     EncryptionKey encryptionKey, [
     void Function()? dispose,
   ]) {
-    if (kDebugMode) {
+    if (isDebugMode) {
       printBoxed(
         "Creating encrypted channel with encryption key: $encryptionKey",
         "WebSocketChannel",
@@ -88,7 +89,7 @@ extension MessageChannelExtension on WebSocketChannel {
     ///   and sends them to the webSocket channel.
     final internalReceivePort = ReceivePort()
       ..map((v) => jsonEncode(v)).listen((message) {
-        if (kDebugMode) {
+        if (isDebugMode) {
           const encoder = JsonEncoder.withIndent('  ');
           final messageString = encoder.convert(message);
 
@@ -107,8 +108,8 @@ extension MessageChannelExtension on WebSocketChannel {
     final messageChannel = MessageChannel(receivePort, internalSendPort);
 
     void close() {
-      if (kDebugMode) {
-        print("[WebSocketChannel] Closing channel.");
+      if (isDebugMode) {
+        printBoxed("[WebSocketChannel] Closing channel.");
       }
       internalReceivePort.close();
       receivePort.close();
@@ -122,7 +123,7 @@ extension MessageChannelExtension on WebSocketChannel {
         .map((v) => jsonDecode(v))
         .listen(
       (message) {
-        if (kDebugMode) {
+        if (isDebugMode) {
           const encoder = JsonEncoder.withIndent('  ');
           final messageString = encoder.convert(message);
 

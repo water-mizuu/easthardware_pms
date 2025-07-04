@@ -1,7 +1,8 @@
 import 'package:easthardware_pms/presentation/views/navigation/common_side_panel_mixin.dart';
+import 'package:easthardware_pms/utils/boxed.dart';
 import 'package:easthardware_pms/utils/typed_routes.dart';
+import 'package:easthardware_pms/domain/constants/debug_constants.dart';
 import 'package:fluent_ui/fluent_ui.dart';
-import 'package:flutter/foundation.dart';
 
 /// This class maps routes to their respective indices according to the navigation pane items.
 ///   It is used to determine the index of a route in the navigation pane and vice versa.
@@ -19,8 +20,9 @@ class NavRailRouteIndexMapper {
         /// If the route is not null, then the user tried to put
         ///   a route with a non-nullable type in the navigation pane.
 
-        if (kDebugMode) {
-          print('Warning: Route $data is not nullable, but it was used in the navigation pane.');
+        if (isDebugMode) {
+          printBoxed(
+              'Warning: Route $data is not nullable, but it was used in the navigation pane.');
         }
       }
     }

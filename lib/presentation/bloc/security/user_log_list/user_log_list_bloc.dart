@@ -8,15 +8,16 @@ import 'package:easthardware_pms/domain/models/user_log.dart';
 import 'package:easthardware_pms/domain/repository/user_log_repository.dart';
 import 'package:easthardware_pms/domain/repository/user_repository.dart';
 import 'package:easthardware_pms/presentation/views/dashboard/cards/sales_overview.dart';
+import 'package:easthardware_pms/utils/boxed.dart';
 import 'package:easthardware_pms/utils/date_filter.dart';
 import 'package:easthardware_pms/utils/duration.dart';
 import 'package:easthardware_pms/utils/levenshtein.dart';
 import 'package:easthardware_pms/utils/notification.dart';
 import 'package:easthardware_pms/utils/undefined.dart';
 import 'package:easthardware_pms/utils/zip.dart';
+import 'package:easthardware_pms/domain/constants/debug_constants.dart';
 import 'package:equatable/equatable.dart';
 import 'package:fluent_ui/fluent_ui.dart';
-import 'package:flutter/foundation.dart';
 
 part 'user_log_list_event.dart';
 part 'user_log_list_state.dart';
@@ -57,8 +58,8 @@ class UserLogListBloc extends Bloc<UserLogListEvent, UserLogListState> {
 
       add(const _FilterUserLogsEvent());
     } catch (e) {
-      if (kDebugMode) {
-        print("BLoC Error loading user logs: $e");
+      if (isDebugMode) {
+        printBoxed("BLoC Error loading user logs: $e");
       }
       emit(state.copyWith(status: DataStatus.error, errorMessage: e.toString()));
     }
@@ -72,8 +73,8 @@ class UserLogListBloc extends Bloc<UserLogListEvent, UserLogListState> {
 
       emit(state.copyWith(userLogs: userLogs, status: DataStatus.success));
     } catch (e) {
-      if (kDebugMode) {
-        print("BLoC Error inserting user log: $e");
+      if (isDebugMode) {
+        printBoxed("BLoC Error inserting user log: $e");
       }
       emit(state.copyWith(status: DataStatus.error, errorMessage: e.toString()));
     }
@@ -87,8 +88,8 @@ class UserLogListBloc extends Bloc<UserLogListEvent, UserLogListState> {
 
       emit(state.copyWith(userLogs: userLogs, status: DataStatus.success));
     } catch (e) {
-      if (kDebugMode) {
-        print("BLoC Error inserting user log: $e");
+      if (isDebugMode) {
+        printBoxed("BLoC Error inserting user log: $e");
       }
       emit(state.copyWith(status: DataStatus.error, errorMessage: e.toString()));
     }
@@ -102,8 +103,8 @@ class UserLogListBloc extends Bloc<UserLogListEvent, UserLogListState> {
 
       emit(state.copyWith(userLogs: userLogs, status: DataStatus.success));
     } catch (e) {
-      if (kDebugMode) {
-        print("BLoC Error inserting user log: $e");
+      if (isDebugMode) {
+        printBoxed("BLoC Error inserting user log: $e");
       }
       emit(state.copyWith(status: DataStatus.error, errorMessage: e.toString()));
     }
@@ -117,8 +118,8 @@ class UserLogListBloc extends Bloc<UserLogListEvent, UserLogListState> {
 
       emit(state.copyWith(userLogs: userLogs, status: DataStatus.success));
     } catch (e) {
-      if (kDebugMode) {
-        print("BLoC Error inserting user log: $e");
+      if (isDebugMode) {
+        printBoxed("BLoC Error inserting user log: $e");
       }
       emit(state.copyWith(status: DataStatus.error, errorMessage: e.toString()));
     }
@@ -137,8 +138,8 @@ class UserLogListBloc extends Bloc<UserLogListEvent, UserLogListState> {
 
       emit(state.copyWith(userLogs: updatedUserLogs, status: DataStatus.success));
     } catch (e) {
-      if (kDebugMode) {
-        print("BLoC Error updating user log: $e");
+      if (isDebugMode) {
+        printBoxed("BLoC Error updating user log: $e");
       }
       emit(state.copyWith(status: DataStatus.error, errorMessage: e.toString()));
     }
@@ -153,8 +154,8 @@ class UserLogListBloc extends Bloc<UserLogListEvent, UserLogListState> {
           .toList();
       emit(state.copyWith(userLogs: updatedUserLogs, status: DataStatus.success));
     } catch (e) {
-      if (kDebugMode) {
-        print("BLoC Error deleting user log: $e");
+      if (isDebugMode) {
+        printBoxed("BLoC Error deleting user log: $e");
       }
       emit(state.copyWith(status: DataStatus.error, errorMessage: e.toString()));
     }
@@ -168,8 +169,8 @@ class UserLogListBloc extends Bloc<UserLogListEvent, UserLogListState> {
 
       emit(state.copyWith(userLogs: userLogs, status: DataStatus.success));
     } catch (e) {
-      if (kDebugMode) {
-        print("BLoC Error inserting user log: $e");
+      if (isDebugMode) {
+        printBoxed("BLoC Error inserting user log: $e");
       }
       emit(state.copyWith(status: DataStatus.error, errorMessage: e.toString()));
     }
@@ -232,7 +233,7 @@ class UserLogListBloc extends Bloc<UserLogListEvent, UserLogListState> {
 
       /// We rank the logs based on the search query specified in the query data.
       ///  This uses the Levenshtein distance algorithm to find the most relevant logs.
-      final ranked = await Levenshtein.rankItems(
+      final ranked = Levenshtein.rankItems(
         selectedUserLogs,
         state.queryData.query ?? '',
         (log) => {
@@ -252,8 +253,8 @@ class UserLogListBloc extends Bloc<UserLogListEvent, UserLogListState> {
         status: DataStatus.success,
       ));
     } catch (e) {
-      if (kDebugMode) {
-        print("BLoC Error filtering user log: $e");
+      if (isDebugMode) {
+        printBoxed("BLoC Error filtering user log: $e");
       }
       showNotification(title: "Error", message: e.toString(), severity: InfoBarSeverity.error);
       emit(state.copyWith(status: DataStatus.error, errorMessage: e.toString()));
@@ -300,8 +301,8 @@ class UserLogListBloc extends Bloc<UserLogListEvent, UserLogListState> {
 
       emit(state.copyWith(userLogs: userLogs, status: DataStatus.success));
     } catch (e) {
-      if (kDebugMode) {
-        print("BLoC Error inserting user log: $e");
+      if (isDebugMode) {
+        printBoxed("BLoC Error inserting user log: $e");
       }
       emit(state.copyWith(status: DataStatus.error, errorMessage: e.toString()));
     }
@@ -318,8 +319,8 @@ class UserLogListBloc extends Bloc<UserLogListEvent, UserLogListState> {
 
       emit(state.copyWith(userLogs: userLogs, status: DataStatus.success));
     } catch (e) {
-      if (kDebugMode) {
-        print("BLoC Error inserting user log: $e");
+      if (isDebugMode) {
+        printBoxed("BLoC Error inserting user log: $e");
       }
       emit(state.copyWith(status: DataStatus.error, errorMessage: e.toString()));
     }

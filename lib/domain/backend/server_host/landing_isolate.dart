@@ -11,13 +11,12 @@ import 'package:easthardware_pms/domain/backend/extension_types/secure_keys.dart
 import 'package:easthardware_pms/domain/backend/microservices/key_microservice.dart' as keys_ms;
 import 'package:easthardware_pms/domain/backend/utils/isolate_indicator.dart';
 import 'package:easthardware_pms/domain/backend/utils/random_int_from_date.dart';
+import 'package:easthardware_pms/domain/constants/debug_constants.dart';
 import 'package:easthardware_pms/domain/services/cryptography_service.dart';
-import 'package:easthardware_pms/main.dart';
 import 'package:easthardware_pms/utils/boxed.dart';
 import 'package:easthardware_pms/utils/message_channel.dart';
 import 'package:easthardware_pms/utils/parallelism.dart';
 import 'package:easthardware_pms/utils/try_future.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:network_info_plus/network_info_plus.dart';
 import 'package:shelf/shelf.dart';
@@ -68,9 +67,9 @@ Future<void> spawnLandingIsolate((RootIsolateToken, NamedSendPort, int port) pay
     _ongoingHandshakeConnections.removeWhere((_, connection) => now.isAfter(connection.limit));
     final countAfterSweep = _ongoingHandshakeConnections.length;
 
-    if (kDebugMode) {
+    if (isDebugMode) {
       if (countBeforeSweep != countAfterSweep) {
-        print("Ongoing handshake connections: ${_ongoingHandshakeConnections.length}");
+        printBoxed("Ongoing handshake connections: ${_ongoingHandshakeConnections.length}");
       }
     }
   });
@@ -112,7 +111,7 @@ Future<void> spawnLandingIsolate((RootIsolateToken, NamedSendPort, int port) pay
   ///
   /// @MAIN2LANDING:invocation
   _mainChannel.listenFrom("invocation", (message) async {
-    if (kDebugMode) {
+    if (isDebugMode) {
       if (printInvocationMessages) {
         printBoxed(message, "MAIN2LANDING:invocation");
       }
@@ -128,7 +127,7 @@ Future<void> spawnLandingIsolate((RootIsolateToken, NamedSendPort, int port) pay
           break;
       }
     } else {
-      if (kDebugMode) {
+      if (isDebugMode) {
         printBoxed("Received unexpected message: $message");
       }
     }
@@ -167,7 +166,7 @@ Future<HttpServer> _initiateLandingServer(int port) async {
     }
 
     final pointedConnection = _secureConnections[persistentKey]!;
-    if (kDebugMode) {
+    if (isDebugMode) {
       printBoxed(
         "pointedConnection: ${(
           encryptionKey: pointedConnection.encryptionKey,
@@ -200,8 +199,8 @@ Future<HttpServer> _initiateLandingServer(int port) async {
   final server = await shelf_io.serve(handler, ip, port);
   final hostedPort = server.port;
 
-  if (kDebugMode) {
-    print("Serving at $ip:$hostedPort");
+  if (isDebugMode) {
+    printBoxed("Serving at $ip:$hostedPort");
   }
 
   return server;
@@ -414,8 +413,8 @@ void _registerHandshakeRoutes(Router router) {
   router.delete("/handshake-remove", (Request request) async {
     final (rawKey, error) = await request.readAsString().tryCatch();
     if (error != null) {
-      if (kDebugMode) {
-        print("Error reading request body: $error");
+      if (isDebugMode) {
+        printBoxed("Error reading request body: $error");
       }
       return Response.badRequest(body: "Failed to read request body: $error");
     }
@@ -430,8 +429,8 @@ void _registerHandshakeRoutes(Router router) {
 
     // Remove the specified secure connection.
     _secureConnections.remove(key);
-    if (kDebugMode) {
-      print("Secure connection removed: $key");
+    if (isDebugMode) {
+      printBoxed("Secure connection removed: $key");
     }
 
     return Response.ok("Connection removed.");
@@ -456,8 +455,8 @@ Function secureResponse(Future<SecureResponse> Function(Request, SecureConnectio
     final secureKey = int.tryParse(rawSecureKey);
     // Validate that the parsed key is not null and exists in our active secure connections.
     if (secureKey == null || !_secureConnections.containsKey(secureKey)) {
-      if (kDebugMode) {
-        print("Invalid secure key: $rawSecureKey");
+      if (isDebugMode) {
+        printBoxed("Invalid secure key: $rawSecureKey");
       }
       return Response.forbidden("Invalid secure key.");
     }
@@ -470,7 +469,7 @@ Function secureResponse(Future<SecureResponse> Function(Request, SecureConnectio
     final (response, error) = await handler(request, secureConnection).tryCatch();
     if (error != null) {
       // Log the error if in debug mode.
-      if (kDebugMode) {
+      if (isDebugMode) {
         printBoxed(
           "Error in secure response handler: $error",
           "Secure Response Handler",
@@ -505,8 +504,8 @@ Future<T> _request<T>(String method, [List<Object>? args]) {
     final result = await _mainChannel.invokeNamed<Object>("main", method, args);
     // Check if the result is an error or not of the expected type.
     if (result is Exception || result is! T) throw result; // Propagate errors or type mismatches.
-    if (kDebugMode) {
-      print("Received result from main isolate for '$method': $result");
+    if (isDebugMode) {
+      printBoxed("Received result from main isolate for '$method': $result");
     }
 
     // Complete the future with the successful result.

@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:collection';
 import 'dart:convert';
 import 'dart:io';
 
@@ -21,12 +22,11 @@ import 'package:easthardware_pms/data/database/tables/user_logs_table.dart';
 import 'package:easthardware_pms/data/database/tables/users_table.dart';
 import 'package:easthardware_pms/data/database/views/product_flags_view.dart';
 import 'package:easthardware_pms/domain/backend/utils/isolate_indicator.dart';
+import 'package:easthardware_pms/domain/constants/debug_constants.dart';
 import 'package:easthardware_pms/domain/models/user.dart';
 import 'package:easthardware_pms/domain/models/user_log.dart';
 import 'package:easthardware_pms/domain/services/cryptography_service.dart';
-import 'package:easthardware_pms/main.dart';
 import 'package:easthardware_pms/utils/boxed.dart';
-import 'package:flutter/foundation.dart';
 import 'package:path/path.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
@@ -41,7 +41,7 @@ Future<DatabaseHelper> getWebSocketDatabaseHelper(int? savedHeartbeat) async {
 
 Future<void> resetDatabase() async {
   assertChildIsolate();
-  if (kDebugMode) {
+  if (isDebugMode) {
     if (_databaseInstance case final db?) {
       await db.transaction((txn) async {
         // Drop all tables
@@ -121,7 +121,7 @@ Future<String> createBackup(String key) async {
       ..createSync(recursive: true)
       ..writeAsBytesSync(encryptedData, flush: true);
 
-    if (kDebugMode) {
+    if (isDebugMode) {
       printBoxed(
         "Database backup created at: $backupPath",
         "Database Backup",
@@ -193,7 +193,7 @@ Future<void> restoreBackup(String backupPath, String key) async {
       final dbFile = File(database.path);
       dbFile.writeAsBytesSync(decryptedData, flush: true);
 
-      if (kDebugMode) {
+      if (isDebugMode) {
         printBoxed(
           "Database restored from backup: $backupPath",
           "Database Restore",
@@ -237,7 +237,7 @@ Future<void> deleteBackup(String backupPath) async {
       completer.completeError(e, st);
       return;
     }
-    if (kDebugMode) {
+    if (isDebugMode) {
       printBoxed(
         "Backup deleted: $backupPath",
         "Database Backup Deletion",
@@ -266,7 +266,7 @@ Future<int> getDatabaseSize() async {
     }
 
     final size = await dbFile.length();
-    if (kDebugMode) {
+    if (isDebugMode) {
       printBoxed(
         "Database size: $size bytes",
         "Database Size",
@@ -302,6 +302,8 @@ Future<List<String>> readBackups() async {
   return completer.future;
 }
 
+final Map<String, DatabaseMethodResult> _resultCache = HashMap();
+
 /// Handles JSON encoded database method calls.
 /// Each job is executed sequentially in calling order, backed by an [AsyncQueue].
 Future<DatabaseMethodResult> serverHandleDatabaseMethod(
@@ -316,6 +318,24 @@ Future<DatabaseMethodResult> serverHandleDatabaseMethod(
   _dbMethodQueue.addJob((_) async {
     try {
       final isolateDatabase = await _getDatabase(savedHeartbeat);
+      final cacheKey = jsonEncode([method, arguments]);
+
+      if (_resultCache[cacheKey] case final cachedResult?) {
+        // If the result is cached, return it immediately
+        //  This is important especially as client requests can be repeated
+        //  due to database changes.
+        if (printDatabaseMessages) {
+          printBoxed(
+            "Cached Result for Method: '$method'\n"
+                "Turnaround Time: ${DateTime.now().difference(start).inMicroseconds}μs\n"
+                "Arguments:\n${jsonEncode(arguments).wrap.indent}",
+            "Database Method Call",
+          );
+        }
+
+        completer.complete(cachedResult);
+        return;
+      }
 
       DatabaseMethodResult? jobResult;
       switch ((method, arguments)) {
@@ -547,6 +567,18 @@ Future<DatabaseMethodResult> serverHandleDatabaseMethod(
 
       if (jobResult != null) {
         completer.complete(jobResult);
+
+        final (result, didUpdateDatabase) = jobResult.record;
+
+        /// If the database updated, we just assume naively that EVERY
+        ///   entry in the cache is invalid, and therefore should be recomputed
+        ///   from the IO. If we allow granular cache invalidation, we could
+        ///   potentially only invalidate specific entries.
+        if (didUpdateDatabase) {
+          _resultCache.clear();
+        }
+
+        _resultCache[cacheKey] = jobResult;
       } else {
         completer.completeError(
           UnsupportedError(
@@ -870,15 +902,15 @@ Future<DatabaseMethodResult> _executeBatch(
             break;
 
           default:
-            if (kDebugMode) {
-              print('Unknown batch operation method: $method with params: $params');
+            if (isDebugMode) {
+              printBoxed('Unknown batch operation method: $method with params: $params');
             }
         }
         break;
 
       default:
-        if (kDebugMode) {
-          print('Unknown batch operation format: $op');
+        if (isDebugMode) {
+          printBoxed('Unknown batch operation format: $op');
         }
     }
   }

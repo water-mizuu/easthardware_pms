@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:easthardware_pms/app/dependency_injector.dart';
+import 'package:easthardware_pms/domain/constants/debug_constants.dart';
 import 'package:easthardware_pms/domain/enums/enums.dart';
 import 'package:easthardware_pms/presentation/bloc/authentication/'
     'authentication/authentication_bloc.dart';
@@ -14,7 +15,6 @@ import 'package:easthardware_pms/presentation/widgets/is_full_screen_provider.da
 import 'package:easthardware_pms/presentation/widgets/title_bar.dart';
 import 'package:easthardware_pms/utils/typed_routes.dart';
 import 'package:fluent_ui/fluent_ui.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:provider/provider.dart';
 import 'package:provider/single_child_widget.dart';
@@ -84,20 +84,20 @@ class _AppState extends State<App> {
             case null: // User is not authenticated.
               context.navigate(AppRoutes.login);
             case AccessLevel.staff:
-              context.read<NotificationCubit>().addNotification(
+              unawaited(context.read<NotificationCubit>().addNotification(
                     type: NotificationType.info,
                     title: '${user!.username} logged in',
                     message: '',
                     path: 'user',
-                  );
+                  ));
               context.navigate(AppRoutes.staff.dashboard);
             case AccessLevel.administrator:
-              context.read<NotificationCubit>().addNotification(
+              unawaited(context.read<NotificationCubit>().addNotification(
                     type: NotificationType.info,
                     title: '${user!.username} logged in',
                     message: '',
                     path: 'user',
-                  );
+                  ));
               context.navigate(AppRoutes.admin.dashboard);
           }
         },
@@ -124,7 +124,7 @@ class _AppState extends State<App> {
         },
       ),
 
-      if (kDebugMode)
+      if (isDebugMode)
         BlocListener<AuthenticationBloc, AuthenticationState>(
           listenWhen: (p, c) => p.user != null && c.user == null,
           listener: (context, state) async {

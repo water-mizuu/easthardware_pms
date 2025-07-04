@@ -69,7 +69,7 @@ class PaymentMethodDisplayCubit extends Cubit<PaymentMethodDisplayState> {
       return;
     }
 
-    result = await Levenshtein.rankItems<PaymentMethod>(
+    result = Levenshtein.rankItems<PaymentMethod>(
       result,
       state.searchQuery,
       (paymentMethod) => {

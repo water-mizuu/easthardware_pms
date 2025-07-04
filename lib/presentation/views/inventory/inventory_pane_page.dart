@@ -106,7 +106,7 @@ class PageHeader extends StatelessWidget {
           context.navigate(AppRoutes.admin.categories);
         }),
         TextButtonFilled('New Product', onPressed: () {
-          context.navigate(AppRoutes.admin.createProduct);
+          context.navigate(AppRoutes.admin.registerProduct);
         }),
       ].withSpacing(() => Spacing.h16),
     );

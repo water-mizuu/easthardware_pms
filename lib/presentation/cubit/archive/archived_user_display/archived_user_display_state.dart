@@ -1,10 +1,6 @@
 part of 'archived_user_display_cubit.dart';
 
 class ArchivedUserDisplayState extends Equatable {
-  final List<User> allUsers;
-  final List<User> filteredUsers;
-  final ArchivedUserSortBy sortBy;
-  final bool sortAscending;
 
   const ArchivedUserDisplayState({
     this.allUsers = const [],
@@ -12,6 +8,10 @@ class ArchivedUserDisplayState extends Equatable {
     this.sortBy = ArchivedUserSortBy.idAscending,
     this.sortAscending = true,
   });
+  final List<User> allUsers;
+  final List<User> filteredUsers;
+  final ArchivedUserSortBy sortBy;
+  final bool sortAscending;
 
   ArchivedUserDisplayState copyWith({
     List<User>? allUsers,

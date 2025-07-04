@@ -1,8 +1,10 @@
 import 'dart:async';
 
 import 'package:easthardware_pms/domain/enums/enums.dart';
+import 'package:easthardware_pms/domain/models/category.dart';
 import 'package:easthardware_pms/domain/models/product.dart';
 import 'package:easthardware_pms/presentation/bloc/billing/invoicelist/invoice_list_bloc.dart';
+import 'package:easthardware_pms/presentation/bloc/inventory/category_list/category_list_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/inventory/inventory_display/'
     'inventory_display_enum.dart';
 import 'package:easthardware_pms/presentation/bloc/inventory/inventory_report/'
@@ -15,6 +17,7 @@ import 'package:easthardware_pms/presentation/views/reports/common/reports_globa
 import 'package:easthardware_pms/presentation/views/reports/pdf_helpers/pdf_commons.dart';
 import 'package:easthardware_pms/presentation/views/reports/pdf_helpers/pdf_generation.dart';
 import 'package:easthardware_pms/presentation/widgets/animated_single_child_scroll_view.dart';
+import 'package:easthardware_pms/presentation/widgets/auto_auto_suggest_box.dart';
 import 'package:easthardware_pms/presentation/widgets/bordered_date_picker.dart';
 import 'package:easthardware_pms/presentation/widgets/helper/currency_formatter.dart';
 import 'package:easthardware_pms/presentation/widgets/layout/spacing.dart';
@@ -33,6 +36,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:provider/provider.dart';
+
+const _optionsLabelWidth = 80.0;
 
 typedef _ProductColumnRecord = (
   String name,
@@ -212,11 +217,11 @@ class InventoryReportOptions extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Column(
+    return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        SubheadingText('Report Options'),
+        const SubheadingText('Report Options'),
         Spacing.v12,
         Row(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -225,16 +230,16 @@ class InventoryReportOptions extends StatelessWidget {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
+                children: const [
                   _DateSelection(),
-                  Spacing.v8,
                   _SortBy(),
-                  Spacing.v8,
+                  _BasicFilters(),
+                  _CategoryFilter(),
                   _RowLimitSelection(),
-                ],
+                ].withSpacing(() => Spacing.v8),
               ),
             ),
-            _GenerateButtons(),
+            const _GenerateButtons(),
           ],
         ),
       ],
@@ -249,7 +254,7 @@ class _SortBy extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        const SizedBox(width: 90, child: Text('Sort By: ')),
+        const SizedBox(width: _optionsLabelWidth, child: Text('Sort By: ')),
         Spacing.h8,
         ComboBox<InventoryDisplaySortBy>(
           value: context.select((InventoryReportBloc b) => b.state.queryData.sortBy),
@@ -273,6 +278,78 @@ class _SortBy extends StatelessWidget {
   }
 }
 
+class _BasicFilters extends StatelessWidget {
+  const _BasicFilters();
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        const SizedBox(width: _optionsLabelWidth, child: Text('Filter: ')),
+        Spacing.h8,
+        ComboBox<InventoryDisplayFilter>(
+          value: context.select((InventoryReportBloc b) => b.state.queryData.filter),
+          items: [
+            const ComboBoxItem(
+              value: null,
+              child: Text('All Products'),
+            ),
+            for (final value in InventoryDisplayFilter.values)
+              ComboBoxItem(
+                value: value,
+                child: Text(value.name),
+              ),
+          ],
+          onChanged: (value) {
+            context //
+                .read<InventoryReportBloc>()
+                .add(InventoryReportSetFilterEvent(value));
+          },
+        ),
+      ],
+    );
+  }
+}
+
+class _CategoryFilter extends StatelessWidget {
+  const _CategoryFilter();
+
+  @override
+  Widget build(BuildContext context) {
+    final allCategories = context.select((CategoryListBloc b) => b.state.categories)
+      ..sort((a, b) => a.name.compareTo(b.name));
+
+    return Row(
+      children: [
+        const SizedBox(width: _optionsLabelWidth, child: Text('Category: ')),
+        Spacing.h8,
+        ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 180),
+          child: AutoAutoSuggestBox<Category?>(
+            items: [
+              for (final value in allCategories)
+                AutoSuggestBoxItem(
+                  value: value,
+                  label: value.name,
+                  child: Text(value.name),
+                ),
+            ],
+            onChanged: (value, reason) {
+              final found = allCategories.where((c) => c.name == value).firstOrNull;
+
+              if (found != null) {
+                context //
+                    .read<InventoryReportBloc>()
+                    .add(InventoryReportSetCategoryEvent(found));
+              }
+            },
+          ),
+        ),
+      ],
+    );
+  }
+}
+
 class _RowLimitSelection extends StatelessWidget {
   const _RowLimitSelection();
 
@@ -280,7 +357,7 @@ class _RowLimitSelection extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        const SizedBox(width: 90, child: Text('Row Limit: ')),
+        const SizedBox(width: _optionsLabelWidth, child: Text('Row Limit: ')),
         Spacing.h8,
         ConstrainedBox(
           constraints: const BoxConstraints(
@@ -313,7 +390,7 @@ class _DateSelection extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        const SizedBox(width: 90, child: Text('Report Date: ')),
+        const SizedBox(width: _optionsLabelWidth, child: Text('Report Date: ')),
         Spacing.h8,
         BorderedDatePicker(
           selected: context.select((InventoryReportBloc b) => b.state.queryData.date),
@@ -331,22 +408,21 @@ class _GenerateButtons extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<InventoryReportBloc, InventoryReportState>(
-      builder: (context, reportState) {
-        final filteredProducts = reportState.queryData.filteredProductsWithRowLimit ??
-            context.read<ProductListBloc>().state.allProducts;
+    return Row(
+      children: [
+        TextButtonFilled(
+          'Print or Save Report',
+          onPressed: () {
+            if (context.select((InventoryReportBloc b) => b.state.isGenerating)) return null;
 
-        return Row(
-          children: [
-            TextButtonFilled(
-              'Print or Save Report',
-              onPressed: reportState.isGenerating
-                  ? null
-                  : () => unawaited(_previewReport(context, reportState, filteredProducts)),
-            ),
-          ],
-        );
-      },
+            return () {
+              final reportState = context.read<InventoryReportBloc>().state;
+
+              unawaited(_previewReport(context, reportState, reportState.filteredProducts));
+            };
+          }(),
+        ),
+      ],
     );
   }
 }
@@ -434,84 +510,79 @@ class _ProductTablePreview extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocSelector<InventoryReportBloc, InventoryReportState, List<Product>?>(
-      selector: (state) => state.queryData.filteredProductsWithRowLimit,
-      builder: (context, filteredProducts) {
-        final products = filteredProducts ?? context.read<ProductListBloc>().state.allProducts;
+    final products = context.select((InventoryReportBloc b) => b.state.filteredProducts);
 
-        return Container(
-          padding: AppPadding.cardPadding,
-          color: FluentTheme.of(context).cardColor,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                padding: const EdgeInsets.all(6.0),
-                child: Row(
-                  children: [
-                    for (final _ProductColumn(:name, :flex) in productColumns)
-                      Expanded(flex: flex, child: BodyText(name, fontWeight: FontWeight.w600)),
-                  ].withSpacing(() => Spacing.h4),
-                ),
-              ),
-              ListView.builder(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                itemCount: products.length,
-                itemBuilder: (context, index) {
-                  final product = products[index];
-                  return Container(
-                    padding: const EdgeInsets.all(6.0),
-                    child: Row(
-                      children: [
-                        for (final _ProductColumn(:flex, :value, :color) in productColumns)
-                          Expanded(
-                            flex: flex,
-                            child: Text(
-                              value(product),
-                              style: TextStyles.body.copyWith(color: color?.call(product)),
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                      ].withSpacing(() => Spacing.h4),
-                    ),
-                  );
-                },
-              ),
-              Container(
-                padding: const EdgeInsets.all(6.0),
-                child: Row(
-                  children: [
-                    Expanded(
-                      flex: productColumns.first.flex,
-                      child: Text(
-                        'Total',
-                        style: TextStyles.body.copyWith(fontWeight: FontWeight.bold),
-                      ),
-                    ),
-                    for (final (index, _ProductColumn(:flex)) in productColumns.indexed)
-                      if (index != 0 && index != productColumns.length - 1)
-                        Expanded(
-                          flex: flex,
-                          child: const Text(
-                            '',
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                    Expanded(
-                      flex: productColumns.last.flex,
-                      child: Text(
-                        '${products.fold(0.0, (sum, p) => sum + p.quantity).toNumberString()} items',
-                        style: TextStyles.body,
-                      ),
-                    ),
-                  ].withSpacing(() => Spacing.h4),
-                ),
-              ),
-            ],
+    return Container(
+      padding: AppPadding.cardPadding,
+      color: FluentTheme.of(context).cardColor,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(6.0),
+            child: Row(
+              children: [
+                for (final _ProductColumn(:name, :flex) in productColumns)
+                  Expanded(flex: flex, child: BodyText(name, fontWeight: FontWeight.w600)),
+              ].withSpacing(() => Spacing.h4),
+            ),
           ),
-        );
-      },
+          ListView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: products.length,
+            itemBuilder: (context, index) {
+              final product = products[index];
+              return Container(
+                padding: const EdgeInsets.all(6.0),
+                child: Row(
+                  children: [
+                    for (final _ProductColumn(:flex, :value, :color) in productColumns)
+                      Expanded(
+                        flex: flex,
+                        child: Text(
+                          value(product),
+                          style: TextStyles.body.copyWith(color: color?.call(product)),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                  ].withSpacing(() => Spacing.h4),
+                ),
+              );
+            },
+          ),
+          Container(
+            padding: const EdgeInsets.all(6.0),
+            child: Row(
+              children: [
+                Expanded(
+                  flex: productColumns.first.flex,
+                  child: Text(
+                    'Total',
+                    style: TextStyles.body.copyWith(fontWeight: FontWeight.bold),
+                  ),
+                ),
+                for (final (index, _ProductColumn(:flex)) in productColumns.indexed)
+                  if (index != 0 && index != productColumns.length - 1)
+                    Expanded(
+                      flex: flex,
+                      child: const Text(
+                        '',
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                Expanded(
+                  flex: productColumns.last.flex,
+                  child: Text(
+                    '${products.fold(0.0, (sum, p) => sum + p.quantity).toNumberString()} items',
+                    style: TextStyles.body,
+                  ),
+                ),
+              ].withSpacing(() => Spacing.h4),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

@@ -1,5 +1,7 @@
+import 'package:easthardware_pms/utils/boxed.dart';
 import 'package:easthardware_pms/utils/message_channel.dart';
-import 'package:flutter/foundation.dart';
+import 'package:easthardware_pms/domain/constants/debug_constants.dart';
+
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 /// Represents a database server connection.
@@ -162,8 +164,8 @@ class DatabaseServerProxy implements Database {
 
   @override
   Future<void> close() async {
-    if (kDebugMode) {
-      print("Close called on proxy database.");
+    if (isDebugMode) {
+      printBoxed("Close called on proxy database.");
     }
   }
 
@@ -271,8 +273,8 @@ class ServerBatch implements Batch {
   ///
   /// During [OpenDatabaseOptions.onCreate], [OpenDatabaseOptions.onUpgrade],
   /// [OpenDatabaseOptions.onDowngrade] (we are already in a transaction) or if
-  /// the batch was created in a transaction it will only be commited when
-  /// the transaction is commited ([exclusive] is not used then).
+  /// the batch was created in a transaction it will only be committed when
+  /// the transaction is committed ([exclusive] is not used then).
   ///
   /// Otherwise, sqflite will start a transaction to commit this batch. In rare
   /// cases where you don't need an atomic operation, or where you are manually

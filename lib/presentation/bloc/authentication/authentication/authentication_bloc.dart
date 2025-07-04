@@ -5,8 +5,9 @@ import 'package:easthardware_pms/domain/models/user.dart';
 import 'package:easthardware_pms/domain/repository/authentication_repository.dart';
 import 'package:easthardware_pms/utils/boxed.dart';
 import 'package:easthardware_pms/utils/undefined.dart';
+import 'package:easthardware_pms/domain/constants/debug_constants.dart';
 import 'package:equatable/equatable.dart';
-import 'package:flutter/foundation.dart';
+
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 part 'authentication_event.dart';
@@ -24,7 +25,7 @@ class AuthenticationBloc extends Bloc<AuthenticationEvent, AuthenticationState> 
 
   @override
   Future<void> close() async {
-    if (kDebugMode) {
+    if (isDebugMode) {
       printBoxed("Closed the authentication bloc.", "AuthenticationBloc");
     }
 
@@ -33,8 +34,8 @@ class AuthenticationBloc extends Bloc<AuthenticationEvent, AuthenticationState> 
 
   @override
   void onEvent(AuthenticationEvent event) {
-    if (kDebugMode) {
-      print("[$AuthenticationBloc] $event");
+    if (isDebugMode) {
+      printBoxed("[$AuthenticationBloc] $event");
     }
 
     switch (event) {
@@ -65,8 +66,8 @@ class AuthenticationBloc extends Bloc<AuthenticationEvent, AuthenticationState> 
         lastUsername: null,
       ));
     } on LoginFormException catch (e) {
-      if (kDebugMode) {
-        print("LoginFormException: $e");
+      if (isDebugMode) {
+        printBoxed("LoginFormException: $e");
       }
 
       final newLoginAttempts = switch (e.code) {
@@ -95,8 +96,8 @@ class AuthenticationBloc extends Bloc<AuthenticationEvent, AuthenticationState> 
         ),
       );
     } catch (e) {
-      if (kDebugMode) {
-        print("Unexpected error during login: $e");
+      if (isDebugMode) {
+        printBoxed("Unexpected error during login: $e");
       }
 
       emit(state.copyWith(status: AuthenticationStatus.failure, errorMessage: e.toString()));

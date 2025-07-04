@@ -30,7 +30,7 @@ class AppRoutes {
 
     // Inventory Sub Pages
     categories: AppRoute<Null>('/admin/categories'),
-    createProduct: AppRoute<Null>('/admin/create/product'),
+    registerProduct: AppRoute<Null>('/admin/create/product'),
     editProduct: AppRoute<Product>('/admin/edit/product'),
 
     // Search Pages

@@ -10,8 +10,9 @@ import 'package:easthardware_pms/presentation/bloc/authentication/'
 import 'package:easthardware_pms/presentation/widgets/layout/spacing.dart';
 import 'package:easthardware_pms/presentation/widgets/text.dart';
 import 'package:easthardware_pms/presentation/widgets/ui/styles.dart';
+import 'package:easthardware_pms/domain/constants/debug_constants.dart';
 import 'package:fluent_ui/fluent_ui.dart';
-import 'package:flutter/foundation.dart';
+
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -48,9 +49,9 @@ class LoginForm extends StatelessWidget {
                 const _FormHeader(),
                 const _FormUsernameField(),
                 const _FormPasswordField(),
-                if (kDebugMode) const _PreserveDebugLogin(),
+                if (isDebugMode) const _PreserveDebugLogin(),
                 const _FormButton(),
-                // if (kDebugMode)
+                // if (isDebugMode)
                 //   BlocBuilder<AuthenticationBloc, AuthenticationState>(
                 //     builder: (context, state) {
                 //       return Text(state.loginAttempts.toString());

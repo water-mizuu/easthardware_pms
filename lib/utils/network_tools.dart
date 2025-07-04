@@ -1,9 +1,10 @@
 import "dart:async";
 import "dart:isolate";
 
+import 'package:easthardware_pms/domain/constants/debug_constants.dart';
+import "package:easthardware_pms/utils/boxed.dart";
 import "package:easthardware_pms/utils/message_channel.dart";
 import "package:easthardware_pms/utils/parallelism.dart";
-import "package:flutter/foundation.dart";
 import "package:flutter/services.dart";
 import "package:network_info_plus/network_info_plus.dart";
 import "package:network_tools/network_tools.dart";
@@ -19,14 +20,14 @@ Future<void> initializeNetworkTools() async {
   assert(RootIsolateToken.instance != null, "This function must be called from the root isolate.");
 
   final deviceIp = await NetworkInfo().getWifiIP().then((p) => p!);
-  if (kDebugMode) {
-    print("Device IP: $deviceIp");
+  if (isDebugMode) {
+    printBoxed("Device IP: $deviceIp");
   }
 
   /// Initialize the network tools in the root isolate too.
   final appDocDirectory = await getApplicationDocumentsDirectory();
-  if (kDebugMode) {
-    print("Application Document Directory: ${appDocDirectory.path}");
+  if (isDebugMode) {
+    printBoxed("Application Document Directory: ${appDocDirectory.path}");
   }
 
   final networkToolsReceivePort = ReceivePort().hostListener();
@@ -45,8 +46,8 @@ Future<void> initializeNetworkTools() async {
     networkToolsSendPort,
   );
 
-  if (kDebugMode) {
-    print("Successfully initialized network tools.");
+  if (isDebugMode) {
+    printBoxed("Successfully initialized network tools.");
   }
 }
 

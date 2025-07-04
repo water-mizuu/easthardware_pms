@@ -158,14 +158,11 @@ final router = GoRouter(
               routes: [
                 TypedGoRoute(
                   route: AppRoutes.admin.inventory,
-                  builder: (context, state) => (const InventoryPanePage()),
+                  builder: (context, state) => const InventoryPanePage(),
                 ),
                 TypedGoRoute(
-                  route: AppRoutes.admin.createProduct,
-
-                  /// The [MaterialPage] is used for the transition animation.
-                  /// Should be removed if decided not to use the transition.
-                  builder: (context, state) => (const CreateProductPage()),
+                  route: AppRoutes.admin.registerProduct,
+                  builder: (context, state) => const CreateProductPage(),
                 ),
                 TypedGoRoute(
                   route: AppRoutes.admin.editProduct,
@@ -173,7 +170,7 @@ final router = GoRouter(
                 ),
                 TypedGoRoute(
                   route: AppRoutes.admin.categories,
-                  builder: (context, state) => (const ManageCategoriesPage()),
+                  builder: (context, state) => const ManageCategoriesPage(),
                 ),
               ],
             ),

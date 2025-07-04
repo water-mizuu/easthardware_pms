@@ -1,12 +1,17 @@
 import 'dart:math';
 
+import 'package:easthardware_pms/domain/enums/enums.dart';
 import 'package:easthardware_pms/domain/models/invoice.dart';
 import 'package:easthardware_pms/presentation/bloc/billing/invoicelist/invoice_list_bloc.dart';
 import 'package:easthardware_pms/presentation/bloc/payment/'
     'payment_method_list/payment_method_list_bloc.dart';
+import 'package:easthardware_pms/presentation/router/app_routes.dart';
 import 'package:easthardware_pms/presentation/widgets/helper/currency_formatter.dart';
 import 'package:easthardware_pms/presentation/widgets/layout/spacing.dart';
 import 'package:easthardware_pms/presentation/widgets/text.dart';
+import 'package:easthardware_pms/presentation/widgets/ui/text_button.dart';
+import 'package:easthardware_pms/utils/typed_routes.dart';
+import 'package:easthardware_pms/utils/user.dart';
 import 'package:fluent_ui/fluent_ui.dart';
 import 'package:provider/provider.dart';
 import 'package:scroll_animator/scroll_animator.dart';
@@ -27,7 +32,7 @@ class LatestSales extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            const DisplayText('Latest Sales'),
+            const _Header(),
             Spacing.v16,
             if (invoices.isNotEmpty)
               const RecentSalesTable() //
@@ -36,6 +41,36 @@ class LatestSales extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+class _Header extends StatelessWidget {
+  const _Header();
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        const DisplayText('Latest Sales'),
+        TextButton(
+          'View All',
+          onPressed: () {
+            switch (context.readAccessLevel) {
+              case AccessLevel.staff:
+                context.navigate(AppRoutes.staff.billing);
+                break;
+              case AccessLevel.administrator:
+                context.navigate(AppRoutes.admin.billing);
+                break;
+              default:
+                // No action for other read levels.
+                break;
+            }
+          },
+        ),
+      ],
     );
   }
 }
@@ -130,7 +165,7 @@ class _RecentSalesTableState extends State<RecentSalesTable> {
 
   @override
   Widget build(BuildContext context) {
-    final invoices = context.select((InvoiceListBloc b) => b.state.invoices);
+    final invoices = context.select((InvoiceListBloc b) => b.state.invoices).take(8);
     final matrix = [
       [
         for (final columnName in _rowExtents.keys)
