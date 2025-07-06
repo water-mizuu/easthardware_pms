@@ -64,7 +64,7 @@ CREATE TABLE products (
   sale_price REAL NOT NULL,
   order_cost REAL NOT NULL,
   quantity REAL NOT NULL,
-  main_unit STRING NOT NULL,
+  main_unit TEXT NOT NULL,
   min_reorder_delay INTEGER NOT NULL,
   max_reorder_delay INTEGER NOT NULL,
   dead_stock_threshold REAL NOT NULL,

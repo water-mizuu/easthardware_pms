@@ -40,6 +40,12 @@ class NotificationCubit extends Cubit<NotificationState> {
         );
         break;
       case NotificationType.success:
+        showNotification(
+          title: notification.title,
+          message: notification.message,
+          severity: InfoBarSeverity.success,
+        );
+        break;
     }
     final notifications = [...state.notifications, notification];
     emit(state.copyWith(notifications: notifications));

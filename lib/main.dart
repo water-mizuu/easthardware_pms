@@ -24,7 +24,7 @@ void main(List<String> args) async {
       skipTaskbar: false,
     );
     final id = args.isEmpty ? 0 : int.tryParse(args[0]) ?? 0;
-    final (_) = await WindowManagerPlus.ensureInitialized(id).tryCatch();
+    await WindowManagerPlus.ensureInitialized(id).tryCatch();
     unawaited(WindowManagerPlus.current.waitUntilReadyToShow(options, () async {
       if (Platform.isWindows) {
         await WindowManagerPlus.current.setAlwaysOnBottom(false);

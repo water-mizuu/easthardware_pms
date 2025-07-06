@@ -77,27 +77,33 @@ class _AppState extends State<App> {
       ///   However, order is not guaranteed.
       BlocListener<AuthenticationBloc, AuthenticationState>(
         listenWhen: (p, c) => p.user != c.user,
-        listener: (context, state) {
+        listener: (context, state) async {
           final user = state.user;
+
+          late final notificationCubit = context.read<NotificationCubit>();
 
           switch (user?.accessLevel) {
             case null: // User is not authenticated.
               context.navigate(AppRoutes.login);
             case AccessLevel.staff:
-              unawaited(context.read<NotificationCubit>().addNotification(
-                    type: NotificationType.info,
-                    title: '${user!.username} logged in',
-                    message: '',
-                    path: 'user',
-                  ));
+              await notificationCubit.addNotification(
+                type: NotificationType.info,
+                title: '${user!.username} logged in',
+                message: '',
+                path: 'user',
+              );
+
+              if (!context.mounted) return;
               context.navigate(AppRoutes.staff.dashboard);
             case AccessLevel.administrator:
-              unawaited(context.read<NotificationCubit>().addNotification(
-                    type: NotificationType.info,
-                    title: '${user!.username} logged in',
-                    message: '',
-                    path: 'user',
-                  ));
+              await notificationCubit.addNotification(
+                type: NotificationType.info,
+                title: '${user!.username} logged in',
+                message: '',
+                path: 'user',
+              );
+
+              if (!context.mounted) return;
               context.navigate(AppRoutes.admin.dashboard);
           }
         },
@@ -107,12 +113,16 @@ class _AppState extends State<App> {
         listenWhen: (p, c) =>
             p.user == null && c.user != null || // User logged in
             p.user != null && c.user == null, // User logged out
-        listener: (context, state) {
+        listener: (context, state) async {
+          late final customChannel = context.read<ServerBloc>().state.customChannel;
+
           final didUserLogIn = state.user != null;
           if (didUserLogIn) {
             // If the user logged in, we need to update the user log list.
             final user = state.user!;
             context.read<UserLogListBloc>().add(AddLoginEvent(user));
+
+            await customChannel?.invoke("sign_in", [user.id]);
           } else {
             // If the user logged out, we need to update the user log list.
             final user = context.read<AuthenticationBloc>().state.previousUser;
@@ -120,6 +130,8 @@ class _AppState extends State<App> {
 
             context.read<UserLogListBloc>().add(AddLogoutEvent(user!));
             context.read<AuthenticationBloc>().add(const AuthenticationPostLogoutEvent());
+
+            await customChannel?.invoke("sign_out", [user.id]);
           }
         },
       ),

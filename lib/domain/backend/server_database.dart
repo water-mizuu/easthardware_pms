@@ -32,6 +32,8 @@ import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 final AsyncQueue _dbMethodQueue = AsyncQueue.autoStart();
 
+/// Spawns a [DatabaseHelper] instance for the WebSocket isolate.
+///   If this is called from the main isolate, it will fail an assertion.
 Future<DatabaseHelper> getWebSocketDatabaseHelper(int? savedHeartbeat) async {
   assertChildIsolate();
   final database = await _getDatabase(savedHeartbeat);

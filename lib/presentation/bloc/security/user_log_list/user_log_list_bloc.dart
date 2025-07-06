@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:bloc/bloc.dart';
 import 'package:dart_bloc_concurrency/dart_bloc_concurrency.dart';
+import 'package:easthardware_pms/domain/constants/debug_constants.dart';
 import 'package:easthardware_pms/domain/enums/enums.dart';
 import 'package:easthardware_pms/domain/models/user.dart';
 import 'package:easthardware_pms/domain/models/user_log.dart';
@@ -15,7 +16,6 @@ import 'package:easthardware_pms/utils/levenshtein.dart';
 import 'package:easthardware_pms/utils/notification.dart';
 import 'package:easthardware_pms/utils/undefined.dart';
 import 'package:easthardware_pms/utils/zip.dart';
-import 'package:easthardware_pms/domain/constants/debug_constants.dart';
 import 'package:equatable/equatable.dart';
 import 'package:fluent_ui/fluent_ui.dart';
 
@@ -168,9 +168,9 @@ class UserLogListBloc extends Bloc<UserLogListEvent, UserLogListState> {
       final userLogs = List<UserLog>.from(state.userLogs)..add(insertedUserLog);
 
       emit(state.copyWith(userLogs: userLogs, status: DataStatus.success));
-    } catch (e) {
+    } catch (e, st) {
       if (isDebugMode) {
-        printBoxed("BLoC Error inserting user log: $e");
+        printBoxed("BLoC Error inserting user log: $e\n$st");
       }
       emit(state.copyWith(status: DataStatus.error, errorMessage: e.toString()));
     }
