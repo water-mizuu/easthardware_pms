@@ -568,6 +568,12 @@ class CryptographyService {
     return combinedOutput;
   }
 
+  /// Decrypts a Uint8List that was encrypted using ChaCha20-Poly1305 authenticated encryption.
+  /// Returns the original plaintext bytes if authentication passes.
+  ///
+  /// If the key is empty, it returns the original data without decryption.
+  ///
+  /// Throws an [ArgumentError] if authentication fails or the data format is invalid.
   static Uint8List decryptSymmetricUint8List(Uint8List encrypt, String key) {
     if (key.isEmpty) {
       return encrypt;

@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:collection';
 import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:async_queue/async_queue.dart';
 import 'package:easthardware_pms/data/database/dao/user_logs_dao.dart';
@@ -21,6 +22,7 @@ import 'package:easthardware_pms/data/database/tables/units_table.dart';
 import 'package:easthardware_pms/data/database/tables/user_logs_table.dart';
 import 'package:easthardware_pms/data/database/tables/users_table.dart';
 import 'package:easthardware_pms/data/database/views/product_flags_view.dart';
+import 'package:easthardware_pms/domain/backend/database_method_constants.dart';
 import 'package:easthardware_pms/domain/backend/utils/isolate_indicator.dart';
 import 'package:easthardware_pms/domain/constants/debug_constants.dart';
 import 'package:easthardware_pms/domain/models/user.dart';
@@ -31,6 +33,10 @@ import 'package:path/path.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 final AsyncQueue _dbMethodQueue = AsyncQueue.autoStart();
+
+// Global maps to track active transactions and cursors
+final Map<String, (Database, bool)> _transactions = {}; // (database, isReadOnly)
+final Map<String, QueryCursor> _cursors = {};
 
 /// Spawns a [DatabaseHelper] instance for the WebSocket isolate.
 ///   If this is called from the main isolate, it will fail an assertion.
@@ -139,29 +145,49 @@ Future<String> createBackup(String key) async {
   return completer.future;
 }
 
+/// Enqueues a database job that restores a backup from the given path,
+///   alongside an encryption key.
+///
+/// This blocks operations on the database, so it should be used with caution,
+///   especially as the database size grows.
 Future<void> restoreBackup(String backupPath, String key) async {
   assertChildIsolate();
 
   final completer = Completer<void>.sync();
   _dbMethodQueue.addJob((_) async {
     try {
+      /// Get the current database instance.
       final database = await _getDatabase(null);
 
+      /// We keep track of the users that are currently logged in
+      ///   or logged out.
+      ///
+      /// FIXME: This should probably be replaced with a solution that pings each client regarding the account that is logged in to them.
       final activeUsers = await database.query(
         UsersTable.USERS_TABLE_NAME,
         columns: [UsersTable.USERS_ID],
         where: '${UsersTable.USERS_LOGIN_STATUS} = 1',
       );
 
+      /// We track the file that we are restoring from.
       final backupFile = File(backupPath);
-
       if (!backupFile.existsSync()) {
         completer.completeError(FileSystemException("Backup file does not exist at $backupPath"));
         return;
       }
 
       final encryptedData = backupFile.readAsBytesSync();
-      final decryptedData = CryptographyService.decryptSymmetricUint8List(encryptedData, key);
+
+      late final Uint8List decryptedData;
+      try {
+        decryptedData = CryptographyService.decryptSymmetricUint8List(encryptedData, key);
+      } on ArgumentError catch (e) {
+        printBoxed(e);
+        completer.completeError(
+          FileSystemException("Failed to decrypt database stored at $backupPath"),
+        );
+        return;
+      }
 
       final tempFile = File(join(await getDatabasesPath(), 'temp_restore.db'));
       try {
@@ -170,9 +196,9 @@ Future<void> restoreBackup(String backupPath, String key) async {
           ..createSync(recursive: true)
           ..writeAsBytesSync(decryptedData, flush: true);
 
-        // Open and close the database real quick to see if it is valid
+        // Open and close the database real quick to see if it is valid,
+        //  and do a query to ensure an operation can be performed.
         final recoveredDb = await openDatabase(tempFile.path, onOpen: (db) async {
-          // This is just to ensure the database is valid
           await db.rawQuery('SELECT * FROM sqlite_master');
         });
 
@@ -342,7 +368,7 @@ Future<DatabaseMethodResult> serverHandleDatabaseMethod(
       DatabaseMethodResult? jobResult;
       switch ((method, arguments)) {
         case (
-            'delete',
+            DatabaseMethods.delete,
             [
               final String table,
               {
@@ -356,14 +382,14 @@ Future<DatabaseMethodResult> serverHandleDatabaseMethod(
           jobResult = DatabaseMethodResult(result: result, hasChanged: hasChanged);
           break;
 
-        case ('execute', [final String sql, final List? sqlArgs]):
+        case (DatabaseMethods.execute, [final String sql, final List? sqlArgs]):
           await isolateDatabase.execute(sql, sqlArgs);
           // Execute doesn't return a count, but we assume it modified the database
           jobResult = const DatabaseMethodResult(result: null, hasChanged: true);
           break;
 
         case (
-            'insert',
+            DatabaseMethods.insert,
             [
               final String table,
               final Map values,
@@ -386,7 +412,7 @@ Future<DatabaseMethodResult> serverHandleDatabaseMethod(
           break;
 
         case (
-            'query',
+            DatabaseMethods.query,
             [
               final String table,
               {
@@ -419,7 +445,7 @@ Future<DatabaseMethodResult> serverHandleDatabaseMethod(
           break;
 
         case (
-            'queryCursor',
+            DatabaseMethods.queryCursor,
             [
               final String table,
               {
@@ -433,6 +459,7 @@ Future<DatabaseMethodResult> serverHandleDatabaseMethod(
                 'limit': final int? limit,
                 'offset': final int? offset,
                 'bufferSize': final int? bufferSize,
+                'cursorId': final String? cursorId,
               }
             ]
           ):
@@ -450,51 +477,66 @@ Future<DatabaseMethodResult> serverHandleDatabaseMethod(
             bufferSize: bufferSize,
           );
 
+          // Store the cursor if cursorId is provided
+          if (cursorId != null) {
+            _cursors[cursorId] = result;
+          }
+
           // Query operations don't modify the database
           jobResult = DatabaseMethodResult(result: result, hasChanged: false);
           break;
 
-        case ('rawDelete', [final String sql, final List? args]):
+        case (DatabaseMethods.rawDelete, [final String sql, final List? args]):
           final result = await isolateDatabase.rawDelete(sql, args);
           final hasChanged = result > 0;
           jobResult = DatabaseMethodResult(result: result, hasChanged: hasChanged);
           break;
 
-        case ('rawInsert', [final String sql, final List? args]):
+        case (DatabaseMethods.rawInsert, [final String sql, final List? args]):
           final result = await isolateDatabase.rawInsert(sql, args);
           final hasChanged = result > 0;
           jobResult = DatabaseMethodResult(result: result, hasChanged: hasChanged);
           break;
 
-        case ('rawQuery', [final String sql, final List? args]):
+        case (DatabaseMethods.rawQuery, [final String sql, final List? args]):
           final result = await isolateDatabase.rawQuery(sql, args);
           // Query operations don't modify the database
           jobResult = DatabaseMethodResult(result: result, hasChanged: false);
           break;
 
         case (
-            'rawQueryCursor',
-            [final String sql, final List? args, {'bufferSize': final int? bufferSize}]
+            DatabaseMethods.rawQueryCursor,
+            [
+              final String sql,
+              final List? args,
+              {'bufferSize': final int? bufferSize, 'cursorId': final String? cursorId}
+            ]
           ):
           final result = await isolateDatabase.rawQueryCursor(sql, args, bufferSize: bufferSize);
+
+          // Store the cursor if cursorId is provided
+          if (cursorId != null) {
+            _cursors[cursorId] = result;
+          }
+
           // Query operations don't modify the database
           jobResult = DatabaseMethodResult(result: result, hasChanged: false);
           break;
 
-        case ('rawUpdate', [final String sql, final List? args]):
+        case (DatabaseMethods.rawUpdate, [final String sql, final List? args]):
           final result = await isolateDatabase.rawUpdate(sql, args);
           final hasChanged = result > 0;
           jobResult = DatabaseMethodResult(result: result, hasChanged: hasChanged);
           break;
 
-        case ('rawUpdate', [final String sql]):
+        case (DatabaseMethods.rawUpdate, [final String sql]):
           final result = await isolateDatabase.rawUpdate(sql);
           final hasChanged = result > 0;
           jobResult = DatabaseMethodResult(result: result, hasChanged: hasChanged);
           break;
 
         case (
-            'update',
+            DatabaseMethods.update,
             [
               final String table,
               final Map values,
@@ -519,7 +561,7 @@ Future<DatabaseMethodResult> serverHandleDatabaseMethod(
           break;
 
         case (
-            'batch.commit',
+            DatabaseMethods.batchCommit,
             [
               final List operations,
               {
@@ -540,7 +582,7 @@ Future<DatabaseMethodResult> serverHandleDatabaseMethod(
           break;
 
         case (
-            'batch.apply',
+            DatabaseMethods.batchApply,
             [
               final List operations,
               {'noResult': final bool? noResult, 'continueOnError': final bool? continueOnError}
@@ -554,6 +596,282 @@ Future<DatabaseMethodResult> serverHandleDatabaseMethod(
             continueOnError,
             isCommit: false,
           );
+          break;
+
+        // Transaction handling
+        case (TransactionMethods.readTransactionBegin, [final String transactionId]):
+          _transactions[transactionId] = (isolateDatabase, true); // true for read-only
+          jobResult = const DatabaseMethodResult(result: null, hasChanged: false);
+          break;
+
+        case (
+            TransactionMethods.transactionBegin,
+            [final String transactionId, {'exclusive': final bool? exclusive}]
+          ):
+          // Note: exclusive parameter could be used for future transaction isolation implementation
+          final (_) = exclusive;
+          _transactions[transactionId] = (isolateDatabase, false); // false for read-write
+          jobResult = const DatabaseMethodResult(result: null, hasChanged: false);
+          break;
+
+        case (TransactionMethods.readTransactionEnd, [final String transactionId]):
+          _transactions.remove(transactionId);
+          jobResult = const DatabaseMethodResult(result: null, hasChanged: false);
+          break;
+
+        case (TransactionMethods.transactionCommit, [final String transactionId]):
+          _transactions.remove(transactionId);
+          jobResult = const DatabaseMethodResult(result: null, hasChanged: true);
+          break;
+
+        case (TransactionMethods.readTransactionRollback, [final String transactionId]):
+        case (TransactionMethods.transactionRollback, [final String transactionId]):
+          _transactions.remove(transactionId);
+          jobResult = const DatabaseMethodResult(result: null, hasChanged: false);
+          break;
+
+        // Transaction operations
+        case (
+            TransactionMethods.transactionDelete,
+            [
+              final String transactionId,
+              final String table,
+              {'where': final String? where, 'whereArgs': final List? whereArgs}
+            ]
+          ):
+          final (db, _) = _transactions[transactionId]!;
+          final result = await db.delete(table, where: where, whereArgs: whereArgs);
+          final hasChanged = result > 0;
+          jobResult = DatabaseMethodResult(result: result, hasChanged: hasChanged);
+          break;
+
+        case (
+            TransactionMethods.transactionExecute,
+            [final String transactionId, final String sql, final List? args]
+          ):
+          final (db, _) = _transactions[transactionId]!;
+          await db.execute(sql, args);
+          jobResult = const DatabaseMethodResult(result: null, hasChanged: true);
+          break;
+
+        case (
+            TransactionMethods.transactionInsert,
+            [
+              final String transactionId,
+              final String table,
+              final Map values,
+              {
+                'nullColumnHack': final String? nullColumnHack,
+                'conflictAlgorithm': final int? conflictAlgorithm
+              }
+            ]
+          ):
+          final (db, _) = _transactions[transactionId]!;
+          final result = await db.insert(
+            table,
+            values.cast(),
+            nullColumnHack: nullColumnHack,
+            conflictAlgorithm:
+                conflictAlgorithm != null ? ConflictAlgorithm.values[conflictAlgorithm] : null,
+          );
+          final hasChanged = result > 0;
+          jobResult = DatabaseMethodResult(result: result, hasChanged: hasChanged);
+          break;
+
+        case (
+            TransactionMethods.transactionQuery,
+            [final String transactionId, final String table, final Map options]
+          ):
+          final (db, _) = _transactions[transactionId]!;
+          final result = await db.query(
+            table,
+            distinct: options['distinct'] as bool?,
+            columns: (options['columns'] as List?)?.cast<String>(),
+            where: options['where'] as String?,
+            whereArgs: options['whereArgs'] as List?,
+            groupBy: options['groupBy'] as String?,
+            having: options['having'] as String?,
+            orderBy: options['orderBy'] as String?,
+            limit: options['limit'] as int?,
+            offset: options['offset'] as int?,
+          );
+          jobResult = DatabaseMethodResult(result: result, hasChanged: false);
+          break;
+
+        case (
+            TransactionMethods.transactionRawDelete,
+            [final String transactionId, final String sql, final List? args]
+          ):
+          final (db, _) = _transactions[transactionId]!;
+          final result = await db.rawDelete(sql, args);
+          final hasChanged = result > 0;
+          jobResult = DatabaseMethodResult(result: result, hasChanged: hasChanged);
+          break;
+
+        case (
+            TransactionMethods.transactionRawInsert,
+            [final String transactionId, final String sql, final List? args]
+          ):
+          final (db, _) = _transactions[transactionId]!;
+          final result = await db.rawInsert(sql, args);
+          final hasChanged = result > 0;
+          jobResult = DatabaseMethodResult(result: result, hasChanged: hasChanged);
+          break;
+
+        case (
+            TransactionMethods.transactionRawQuery,
+            [final String transactionId, final String sql, final List? args]
+          ):
+          final (db, _) = _transactions[transactionId]!;
+          final result = await db.rawQuery(sql, args);
+          jobResult = DatabaseMethodResult(result: result, hasChanged: false);
+          break;
+
+        case (
+            TransactionMethods.transactionRawUpdate,
+            [final String transactionId, final String sql, final List? args]
+          ):
+          final (db, _) = _transactions[transactionId]!;
+          final result = await db.rawUpdate(sql, args);
+          final hasChanged = result > 0;
+          jobResult = DatabaseMethodResult(result: result, hasChanged: hasChanged);
+          break;
+
+        case (
+            TransactionMethods.transactionUpdate,
+            [
+              final String transactionId,
+              final String table,
+              final Map values,
+              {
+                'where': final String? where,
+                'whereArgs': final List? whereArgs,
+                'conflictAlgorithm': final int? conflictAlgorithm
+              }
+            ]
+          ):
+          final (db, _) = _transactions[transactionId]!;
+          final result = await db.update(
+            table,
+            values.cast(),
+            where: where,
+            whereArgs: whereArgs,
+            conflictAlgorithm:
+                conflictAlgorithm != null ? ConflictAlgorithm.values[conflictAlgorithm] : null,
+          );
+          final hasChanged = result > 0;
+          jobResult = DatabaseMethodResult(result: result, hasChanged: hasChanged);
+          break;
+
+        case (
+            TransactionMethods.transactionQueryCursor,
+            [final String transactionId, final String table, final Map options]
+          ):
+          final (db, _) = _transactions[transactionId]!;
+          final cursorId = options['cursorId'] as String?;
+          final result = await db.queryCursor(
+            table,
+            distinct: options['distinct'] as bool?,
+            columns: (options['columns'] as List?)?.cast<String>(),
+            where: options['where'] as String?,
+            whereArgs: options['whereArgs'] as List?,
+            groupBy: options['groupBy'] as String?,
+            having: options['having'] as String?,
+            orderBy: options['orderBy'] as String?,
+            limit: options['limit'] as int?,
+            offset: options['offset'] as int?,
+            bufferSize: options['bufferSize'] as int?,
+          );
+
+          // Store the cursor if cursorId is provided
+          if (cursorId != null) {
+            _cursors[cursorId] = result;
+          }
+
+          jobResult = DatabaseMethodResult(result: result, hasChanged: false);
+          break;
+
+        case (
+            TransactionMethods.transactionRawQueryCursor,
+            [
+              final String transactionId,
+              final String sql,
+              final List? args,
+              {'bufferSize': final int? bufferSize, 'cursorId': final String? cursorId}
+            ]
+          ):
+          final (db, _) = _transactions[transactionId]!;
+          final result = await db.rawQueryCursor(sql, args, bufferSize: bufferSize);
+
+          // Store the cursor if cursorId is provided
+          if (cursorId != null) {
+            _cursors[cursorId] = result;
+          }
+
+          jobResult = DatabaseMethodResult(result: result, hasChanged: false);
+          break;
+
+        // Transaction batch operations
+        case (
+            TransactionMethods.transactionBatchCommit,
+            [
+              final String transactionId,
+              final List operations,
+              {
+                'exclusive': final bool? exclusive,
+                'noResult': final bool? noResult,
+                'continueOnError': final bool? continueOnError,
+              }
+            ]
+          ):
+          final (db, _) = _transactions[transactionId]!;
+          jobResult = await _executeBatch(
+            db,
+            operations.cast(),
+            exclusive,
+            noResult,
+            continueOnError,
+            isCommit: true,
+          );
+          break;
+
+        case (
+            TransactionMethods.transactionBatchApply,
+            [
+              final String transactionId,
+              final List operations,
+              {'noResult': final bool? noResult, 'continueOnError': final bool? continueOnError}
+            ]
+          ):
+          final (db, _) = _transactions[transactionId]!;
+          jobResult = await _executeBatch(
+            db,
+            operations.cast(),
+            null, // exclusive not used for apply
+            noResult,
+            continueOnError,
+            isCommit: false,
+          );
+          break;
+
+        // Cursor handling
+        case (CursorMethods.moveNext, [final String cursorId]):
+          final cursor = _cursors[cursorId];
+          if (cursor != null) {
+            final hasNext = await cursor.moveNext();
+            final result = hasNext ? cursor.current : false;
+            jobResult = DatabaseMethodResult(result: result, hasChanged: false);
+          } else {
+            jobResult = const DatabaseMethodResult(result: false, hasChanged: false);
+          }
+          break;
+
+        case (CursorMethods.close, [final String cursorId]):
+          final cursor = _cursors.remove(cursorId);
+          if (cursor != null) {
+            // QueryCursor doesn't have a close method in sqflite, so we just remove it
+          }
+          jobResult = const DatabaseMethodResult(result: null, hasChanged: false);
           break;
       }
 
@@ -781,14 +1099,14 @@ Future<DatabaseMethodResult> _executeBatch(
     switch (op) {
       case [final String method, final Object? params]:
         switch (method) {
-          case 'rawInsert':
+          case DatabaseMethods.rawInsert:
             if (params case [final String sql, final List<Object?>? arguments]) {
               batch.rawInsert(sql, arguments);
               hasModifyingOperations = true;
             }
             break;
 
-          case 'insert':
+          case DatabaseMethods.insert:
             if (params
                 case [
                   final String table,
@@ -810,14 +1128,14 @@ Future<DatabaseMethodResult> _executeBatch(
             }
             break;
 
-          case 'rawUpdate':
+          case DatabaseMethods.rawUpdate:
             if (params case [final String sql, final List<Object?>? arguments]) {
               batch.rawUpdate(sql, arguments);
               hasModifyingOperations = true;
             }
             break;
 
-          case 'update':
+          case DatabaseMethods.update:
             if (params
                 case [
                   final String table,
@@ -841,14 +1159,14 @@ Future<DatabaseMethodResult> _executeBatch(
             }
             break;
 
-          case 'rawDelete':
+          case DatabaseMethods.rawDelete:
             if (params case [final String sql, final List<Object?>? arguments]) {
               batch.rawDelete(sql, arguments);
               hasModifyingOperations = true;
             }
             break;
 
-          case 'delete':
+          case DatabaseMethods.delete:
             if (params
                 case [
                   final String table,
@@ -859,14 +1177,14 @@ Future<DatabaseMethodResult> _executeBatch(
             }
             break;
 
-          case 'execute':
+          case DatabaseMethods.execute:
             if (params case [final String sql, final List<Object?>? arguments]) {
               batch.execute(sql, arguments);
               hasModifyingOperations = true;
             }
             break;
 
-          case 'query':
+          case DatabaseMethods.query:
             if (params
                 case [
                   final String table,
@@ -896,7 +1214,7 @@ Future<DatabaseMethodResult> _executeBatch(
             }
             break;
 
-          case 'rawQuery':
+          case DatabaseMethods.rawQuery:
             if (params case [final String sql, final List<Object?>? arguments]) {
               batch.rawQuery(sql, arguments);
               // Query operations don't modify the database

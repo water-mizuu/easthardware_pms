@@ -9,6 +9,8 @@ import 'package:easthardware_pms/data/database/local/NotificationLocalStorage.da
 import 'package:easthardware_pms/domain/backend/classes/secure_connection.dart';
 import 'package:easthardware_pms/domain/backend/extensions/to_message_channel.dart';
 import 'package:easthardware_pms/domain/backend/server_database.dart';
+import 'package:easthardware_pms/domain/backend/server_host/'
+    'web_socket_isolate/invocation_context.dart';
 import 'package:easthardware_pms/domain/backend/utils/isolate_indicator.dart';
 import 'package:easthardware_pms/domain/constants/debug_constants.dart';
 import 'package:easthardware_pms/domain/models/user_log.dart';
@@ -94,7 +96,7 @@ Future<void> spawnWebSocketIsolate((RootIsolateToken, NamedSendPort) payload) as
 
     // Close the heartbeat timer, invalidate the heartbeat.
     _heartbeatTimer.cancel();
-    await SharedPreferencesAsync().remove("heartbeat");
+    await _sharedPreferencesAsync.remove("heartbeat");
 
     // Close all WebSocket connections
     for (final (webSocket, messageChannel) in _clientChannels.toList()) {
@@ -357,10 +359,6 @@ Future<bool?> _handleDbMessage(
   String name,
 ) async {
   assertChildIsolate();
-  // printBoxed(
-  //   "Handling database method: $method with arguments: $arguments",
-  //   "WebSocket Isolate",
-  // );
 
   final (output, error) = await serverHandleDatabaseMethod(method, arguments, _savedHeartbeat) //
       .tryCatch();
@@ -550,71 +548,6 @@ Future<void> _handleSignOut(InvocationContext context, UserId userId) async {
   _notifyEveryoneAboutNotification(notification: notification);
 }
 
-/// This method hooks onto the database update that signifies that the user has logged in.
-/// We need to ensure that this matches the signature of the update method in the database helper.
-// Future<void> _hookOntoUpdate(
-//   List<Object?> arguments,
-//   (WebSocketChannel, MessageChannel)? clientChannel,
-// ) async {
-//   late final index = _clientChannels.indexWhere((c) => (c.$1, c.$2) == clientChannel);
-
-//   /// MANUAL LOGIN.
-//   if (arguments
-//       case ["users", {"login_status": 1}, {"where": "id = ?", "whereArgs": [final int userId]}]) {
-//     if (clientChannel case (final webSocketChannel, final messageChannel) when index >= 0) {
-//       _clientChannels[index] = (webSocketChannel, messageChannel, userId);
-
-//       if (isDebugMode) {
-//         printBoxed("User with ID $userId logged in from an existing client.");
-//       }
-
-//       final db = await getWebSocketDatabaseHelper(_savedHeartbeat);
-//       final usersDao = UsersDao(db);
-//       final user = await usersDao.getUserById(userId);
-//       if (user == null) {
-//         if (isDebugMode) {
-//           printBoxed("User with ID $userId not found in the database.");
-//         }
-//         return;
-//       }
-
-//       await _logToMain(LogCommand.userLoggedIn, user);
-//     } else {
-//       /// We assume that the user logged in from the server.
-//       printBoxed("USER ID IS SET TO BE $userId");
-//       _userId = userId;
-//     }
-//     return;
-//   }
-
-//   /// MANUAL LOGOUT.
-//   ///   If we detect a manual logout (either the client or the server pressed the logout button),
-//   ///   we want to let everyone know about it.
-//   if (arguments
-//       case ["users", {"login_status": 0}, {"where": "id = ?", "whereArgs": [final int userId]}]) {
-//     if (clientChannel case (final webSocketChannel, final messageChannel) when index >= 0) {
-//       _clientChannels[index] = (webSocketChannel, messageChannel, null);
-
-//       final db = await getWebSocketDatabaseHelper(_savedHeartbeat);
-//       final usersDao = UsersDao(db);
-//       final user = await usersDao.getUserById(userId);
-//       if (user == null) {
-//         if (isDebugMode) {
-//           printBoxed("User with ID $userId not found in the database.");
-//         }
-//         return;
-//       }
-
-//       await _logToMain(LogCommand.userLoggedOut, user);
-//     } else if (_userId == userId) {
-//       printBoxed("USER ID IS SET TO BE $userId");
-//       _userId = null;
-//     }
-
-//     return;
-//   }
-// }
-
 Future<SecureConnection> _requestConnection(int sessionKey) async {
   assertChildIsolate();
 
@@ -655,37 +588,6 @@ Future<void> _logoutClientForcefully(UserId userId) async {
   }
 
   _notifyEveryoneAboutDatabaseChange(from: null, isServerUpdated: true);
-}
-
-sealed class InvocationContext {
-  const InvocationContext({required this.sendPort});
-
-  final NamedSendPort sendPort;
-
-  (WebSocketChannel, MessageChannel)? get clientChannel;
-}
-
-final class MainInvocationContext implements InvocationContext {
-  const MainInvocationContext({required this.sendPort});
-
-  @override
-  final NamedSendPort sendPort;
-
-  @override
-  Null get clientChannel => null;
-}
-
-final class ClientInvocationContext implements InvocationContext {
-  const ClientInvocationContext({
-    required this.sendPort,
-    required this.clientChannel,
-  });
-
-  @override
-  final NamedSendPort sendPort;
-
-  @override
-  final (WebSocketChannel, MessageChannel) clientChannel;
 }
 
 extension type const UserId(int value) {}

@@ -10,18 +10,14 @@ import 'package:easthardware_pms/domain/backend/microservices/key_microservice.d
 import 'package:easthardware_pms/domain/backend/server_host/landing_isolate.dart';
 import 'package:easthardware_pms/domain/backend/server_host/web_socket_isolate.dart';
 import 'package:easthardware_pms/domain/backend/utils/isolate_indicator.dart';
-import 'package:easthardware_pms/domain/models/user.dart';
+import 'package:easthardware_pms/domain/constants/debug_constants.dart';
 import 'package:easthardware_pms/presentation/bloc/server/server_bloc.dart';
 import 'package:easthardware_pms/presentation/cubit/notifications/cubit/notification_cubit.dart';
-import 'package:easthardware_pms/presentation/router/app_router.dart';
 import 'package:easthardware_pms/utils/boxed.dart';
 import 'package:easthardware_pms/utils/duration.dart';
 import 'package:easthardware_pms/utils/message_channel.dart';
 import 'package:easthardware_pms/utils/parallelism.dart';
 import 'package:easthardware_pms/utils/try_future.dart';
-import 'package:easthardware_pms/domain/constants/debug_constants.dart';
-import 'package:fluent_ui/fluent_ui.dart';
-
 import 'package:flutter/services.dart';
 
 import 'extension_types/shelf_server.dart';
@@ -87,7 +83,7 @@ Future<(ShelfServer, ShelfServer, Stream<ServerEvent>)> hostShelfServer(int port
       }
 
       switch (message) {
-        case ['didUpdate', final int msSinceEpoch]:
+        case ["didUpdate", final int msSinceEpoch]:
           final dateTime = DateTime.fromMillisecondsSinceEpoch(msSinceEpoch);
           if (isDebugMode) {
             printBoxed("Server updated at: $dateTime");
@@ -105,65 +101,13 @@ Future<(ShelfServer, ShelfServer, Stream<ServerEvent>)> hostShelfServer(int port
           );
         case [final String returnName, final Object request]:
           switch (request) {
-            case ['requestConnection', [final int sessionKey]]:
+            case ["requestConnection", [final int sessionKey]]:
               final secureConnection = await landingServer.channel.invoke(
                 "requestConnection",
                 [sessionKey],
               );
 
               channel.send(to: returnName, secureConnection);
-              break;
-            case ['userLoggedIn', [final User user]]:
-              channel.send(to: returnName, 0);
-              if (isDebugMode) {
-                printBoxed("User logged in: ${user.toMap()}");
-              }
-              final innerContext = overlayWidgetKey.currentContext;
-
-              // Notify the app that a user has logged in.
-              if (innerContext != null) {
-                await displayInfoBar(
-                  innerContext,
-                  builder: (context, close) {
-                    return InfoBar(
-                      title: const Text("User Logged In"),
-                      content: Text("User ${user.username} has logged in."),
-                      action: IconButton(
-                        icon: const Icon(FluentIcons.clear),
-                        onPressed: close,
-                      ),
-                      severity: InfoBarSeverity.success,
-                    );
-                  },
-                );
-              }
-
-              break;
-            case ['userLoggedOut', [final User user]]:
-              channel.send(to: returnName, 0);
-              if (isDebugMode) {
-                printBoxed("User logged out: ${user.toMap()}");
-              }
-              final innerContext = overlayWidgetKey.currentContext;
-
-              // Notify the app that a user has logged out.
-              if (innerContext != null) {
-                await displayInfoBar(
-                  innerContext,
-                  builder: (context, close) {
-                    return InfoBar(
-                      title: const Text("User Logged Out"),
-                      content: Text("User ${user.username} has logged out."),
-                      action: IconButton(
-                        icon: const Icon(FluentIcons.clear),
-                        onPressed: close,
-                      ),
-                      severity: InfoBarSeverity.success,
-                    );
-                  },
-                );
-              }
-
               break;
             case _:
               if (isDebugMode) {
