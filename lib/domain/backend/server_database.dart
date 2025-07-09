@@ -647,7 +647,11 @@ Future<DatabaseMethodResult> serverHandleDatabaseMethod(
 
         case (
             TransactionMethods.transactionExecute,
-            [final String transactionId, final String sql, final List? args]
+            [
+              final String transactionId,
+              final String sql,
+              final List? args,
+            ],
           ):
           final (db, _) = _transactions[transactionId]!;
           await db.execute(sql, args);
@@ -860,9 +864,9 @@ Future<DatabaseMethodResult> serverHandleDatabaseMethod(
           if (cursor != null) {
             final hasNext = await cursor.moveNext();
             final result = hasNext ? cursor.current : false;
-            jobResult = DatabaseMethodResult(result: result, hasChanged: false);
+            jobResult = DatabaseMethodResult(result: result, hasChanged: true);
           } else {
-            jobResult = const DatabaseMethodResult(result: false, hasChanged: false);
+            jobResult = const DatabaseMethodResult(result: false, hasChanged: true);
           }
           break;
 

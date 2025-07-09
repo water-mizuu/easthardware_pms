@@ -303,6 +303,90 @@ class InvoiceSalesReportOptions extends StatelessWidget {
             ),
             Row(
               children: [
+                const SizedBox(width: 80, child: BodyText('Status: ')),
+                Spacing.v8,
+                BlocBuilder<InvoiceSalesReportBloc, InvoiceSalesReportState>(
+                  buildWhen: (previous, current) =>
+                      previous.queryData.statusFilter != current.queryData.statusFilter,
+                  builder: (context, state) {
+                    return ComboBox<InvoiceStatusFilter>(
+                      value: state.queryData.statusFilter,
+                      items: InvoiceStatusFilter.values
+                          .map((e) => ComboBoxItem(value: e, child: Text(e.name)))
+                          .toList(),
+                      onChanged: (value) => context
+                          .read<InvoiceSalesReportBloc>()
+                          .add(InvoiceSalesReportSetStatusFilterEvent(value!)),
+                    );
+                  },
+                ),
+              ],
+            ),
+            Row(
+              children: [
+                const SizedBox(width: 80, child: BodyText('Customer: ')),
+                Spacing.v8,
+                BlocBuilder<InvoiceSalesReportBloc, InvoiceSalesReportState>(
+                  buildWhen: (previous, current) =>
+                      previous.queryData.selectedCustomer != current.queryData.selectedCustomer,
+                  builder: (context, state) {
+                    // Create a unique list of customer names from the invoices
+                    final customers = state.allInvoices
+                        .map((e) => e.customerName)
+                        .where((name) => name.isNotEmpty)
+                        .toSet()
+                        .toList()
+                      ..sort();
+
+                    return ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 180),
+                      child: ComboBox<String?>(
+                        placeholder: const Text('All Customers'),
+                        value: state.queryData.selectedCustomer,
+                        items: [
+                          const ComboBoxItem<String?>(
+                            value: null,
+                            child: Text('All Customers'),
+                          ),
+                          for (final customer in customers)
+                            ComboBoxItem<String?>(
+                              value: customer,
+                              child: Text(customer),
+                            ),
+                        ],
+                        onChanged: (value) => context
+                            .read<InvoiceSalesReportBloc>()
+                            .add(InvoiceSalesReportSetCustomerEvent(value)),
+                      ),
+                    );
+                  },
+                ),
+              ],
+            ),
+            Row(
+              children: [
+                const SizedBox(width: 80, child: BodyText('Search: ')),
+                Spacing.v8,
+                BlocBuilder<InvoiceSalesReportBloc, InvoiceSalesReportState>(
+                  buildWhen: (previous, current) =>
+                      previous.queryData.searchQuery != current.queryData.searchQuery,
+                  builder: (context, state) {
+                    return ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 250),
+                      child: TextBox(
+                        placeholder: 'Search invoices...',
+                        controller: TextEditingController(text: state.queryData.searchQuery),
+                        onChanged: (value) => context
+                            .read<InvoiceSalesReportBloc>()
+                            .add(InvoiceSalesReportSetSearchQueryEvent(value)),
+                      ),
+                    );
+                  },
+                ),
+              ],
+            ),
+            Row(
+              children: [
                 const SizedBox(width: 80, child: BodyText('Sort By: ')),
                 Spacing.v8,
                 BlocBuilder<InvoiceSalesReportBloc, InvoiceSalesReportState>(

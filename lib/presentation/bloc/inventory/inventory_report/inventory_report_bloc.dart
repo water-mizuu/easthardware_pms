@@ -160,7 +160,7 @@ class InventoryReportBloc extends Bloc<InventoryReportEvent, InventoryReportStat
       allOrderProducts: state.allOrderProducts,
     );
 
-    return emit(state.copyWith(filteredProducts: filtered));
+    emit(state.copyWith(filteredProducts: filtered));
   }
 
   @override

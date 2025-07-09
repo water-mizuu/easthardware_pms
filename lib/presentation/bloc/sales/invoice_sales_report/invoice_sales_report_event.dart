@@ -86,3 +86,30 @@ class InvoiceSalesReportUpdatePaymentsEvent extends InvoiceSalesReportEvent {
   @override
   List<Object?> get props => [payments];
 }
+
+class InvoiceSalesReportSetSearchQueryEvent extends InvoiceSalesReportEvent {
+  const InvoiceSalesReportSetSearchQueryEvent(this.searchQuery);
+
+  final String searchQuery;
+
+  @override
+  List<Object?> get props => [searchQuery];
+}
+
+class InvoiceSalesReportSetStatusFilterEvent extends InvoiceSalesReportEvent {
+  const InvoiceSalesReportSetStatusFilterEvent(this.statusFilter);
+
+  final InvoiceStatusFilter statusFilter;
+
+  @override
+  List<Object?> get props => [statusFilter];
+}
+
+class InvoiceSalesReportSetCustomerEvent extends InvoiceSalesReportEvent {
+  const InvoiceSalesReportSetCustomerEvent(this.customer);
+
+  final String? customer;
+
+  @override
+  List<Object?> get props => [customer];
+}

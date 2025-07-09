@@ -30,6 +30,9 @@ class InvoiceSalesReportBloc extends Bloc<InvoiceSalesReportEvent, InvoiceSalesR
     on<InvoiceSalesReportRemoveOverlayEvent>(_onRemoveOverlay);
     on<InvoiceSalesReportUpdateInvoicesEvent>(_onUpdateInvoices);
     on<InvoiceSalesReportUpdatePaymentsEvent>(_onUpdatePayments);
+    on<InvoiceSalesReportSetSearchQueryEvent>(_onSetSearchQuery);
+    on<InvoiceSalesReportSetStatusFilterEvent>(_onSetStatusFilter);
+    on<InvoiceSalesReportSetCustomerEvent>(_onSetCustomer);
 
     // Initialize the query data
     add(const InvoiceSalesReportInitializeEvent());
@@ -76,6 +79,30 @@ class InvoiceSalesReportBloc extends Bloc<InvoiceSalesReportEvent, InvoiceSalesR
     _recalculateInvoiceSalesData(emit);
   }
 
+  void _onSetSearchQuery(
+      InvoiceSalesReportSetSearchQueryEvent event, Emitter<InvoiceSalesReportState> emit) {
+    emit(state.copyWith(
+      queryData: state.queryData.copyWith(searchQuery: event.searchQuery),
+    ));
+    _recalculateInvoiceSalesData(emit);
+  }
+
+  void _onSetStatusFilter(
+      InvoiceSalesReportSetStatusFilterEvent event, Emitter<InvoiceSalesReportState> emit) {
+    emit(state.copyWith(
+      queryData: state.queryData.copyWith(statusFilter: event.statusFilter),
+    ));
+    _recalculateInvoiceSalesData(emit);
+  }
+
+  void _onSetCustomer(
+      InvoiceSalesReportSetCustomerEvent event, Emitter<InvoiceSalesReportState> emit) {
+    emit(state.copyWith(
+      queryData: state.queryData.copyWith(selectedCustomer: event.customer),
+    ));
+    _recalculateInvoiceSalesData(emit);
+  }
+
   void _onSetOverlay(
       InvoiceSalesReportSetOverlayEvent event, Emitter<InvoiceSalesReportState> emit) {
     emit(state.copyWith(overlayEntry: event.overlayEntry));
@@ -103,25 +130,9 @@ class InvoiceSalesReportBloc extends Bloc<InvoiceSalesReportEvent, InvoiceSalesR
   void _recalculateInvoiceSalesData(Emitter<InvoiceSalesReportState> emit) {
     final invoices = state.allInvoices;
     final payments = state.allPayments;
-    final startDate = state.queryData.startDate;
-    final endDate = state.queryData.endDate;
-    final sortBy = state.queryData.sortBy;
 
-    // Filter invoices by date range (using invoice date)
-    final filteredInvoices = invoices.where((invoice) {
-      return invoice.invoiceDate.isAfter(startDate.subtract(const Duration(days: 1))) &&
-          invoice.invoiceDate.isBefore(endDate.add(const Duration(days: 1)));
-    }).toList();
-
-    // Map invoices to their payments
-    final invoiceSalesData = <(Invoice, List<Payment>)>[];
-    for (final invoice in filteredInvoices) {
-      final invoicePayments = payments.where((payment) => payment.invoiceId == invoice.id).toList();
-      invoiceSalesData.add((invoice, invoicePayments));
-    }
-
-    // Apply sorting
-    invoiceSalesData.sort(sortBy.compare);
+    // Use the call method of queryData to filter and sort the data
+    final invoiceSalesData = state.queryData.call(invoices, payments);
 
     // Calculate invoice sales summary
     var totalAmountDue = 0.0;
@@ -132,12 +143,10 @@ class InvoiceSalesReportBloc extends Bloc<InvoiceSalesReportEvent, InvoiceSalesR
     var unpaidCount = 0;
     var overpaidCount = 0;
 
-    for (final (invoice, invoicePayments) in invoiceSalesData) {
-      final amountDue = invoice.amountDue;
-      // Use invoice's amountPaid field if available, otherwise calculate from payments
-      final amountPaid = invoice.amountPaid ??
-          invoicePayments.fold<double>(0.0, (sum, payment) => sum + payment.amount);
-      final overpayment = amountPaid > amountDue ? amountPaid - amountDue : 0.0;
+    for (final data in invoiceSalesData) {
+      final amountDue = data.amountDue;
+      final amountPaid = data.totalPaid;
+      final overpayment = data.overpayment;
 
       totalAmountDue += amountDue;
       totalAmountPaid += amountPaid;
@@ -155,10 +164,10 @@ class InvoiceSalesReportBloc extends Bloc<InvoiceSalesReportEvent, InvoiceSalesR
     }
 
     final invoiceSalesSummary = InvoiceSalesExtras(
-      totalInvoices: filteredInvoices.length,
+      totalInvoices: invoiceSalesData.length,
       totalAmountDue: totalAmountDue,
       totalAmountPaid: totalAmountPaid,
-      totalBalanceDue: totalAmountDue - totalAmountPaid,
+      totalBalanceDue: totalAmountDue - totalAmountPaid + totalOverpayment,
       totalOverpayment: totalOverpayment,
       paidCount: paidCount,
       partialCount: partialCount,

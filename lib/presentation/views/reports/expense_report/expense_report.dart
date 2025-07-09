@@ -183,6 +183,10 @@ class ExpenseReportOptions extends StatelessWidget {
                   _EndDateSelection(),
                   _SortBySelection(),
                   _RowLimitSelection(),
+                  _ExpenseTypeSelection(),
+                  _PayeeSelection(),
+                  _PaymentStatusSelection(),
+                  _SearchQueryInput(),
                 ].withSpacing(() => Spacing.v8),
               ),
             ),
@@ -291,6 +295,132 @@ class _RowLimitSelection extends StatelessWidget {
                     .add(ExpenseReportSetRowLimitEvent(value));
               }
             },
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _ExpenseTypeSelection extends StatelessWidget {
+  const _ExpenseTypeSelection();
+
+  @override
+  Widget build(BuildContext context) {
+    final allExpenseTypes = context.select((ExpenseTypeListBloc b) => b.state.expenseTypes)
+      ..sort((a, b) => a.name.compareTo(b.name));
+
+    return Row(
+      children: [
+        const SizedBox(width: 80, child: Text('Type: ')),
+        Spacing.h8,
+        ComboBox<ExpenseType?>(
+          placeholder: const Text('All Types'),
+          value: context.select((ExpenseReportBloc b) => b.state.queryData.selectedExpenseType),
+          items: [
+            const ComboBoxItem<ExpenseType?>(
+              value: null,
+              child: Text('All Types'),
+            ),
+            for (final type in allExpenseTypes)
+              ComboBoxItem<ExpenseType?>(
+                value: type,
+                child: Text(type.name),
+              ),
+          ],
+          onChanged: (value) =>
+              context.read<ExpenseReportBloc>().add(ExpenseReportSetExpenseTypeEvent(value)),
+        ),
+      ],
+    );
+  }
+}
+
+class _PayeeSelection extends StatelessWidget {
+  const _PayeeSelection();
+
+  @override
+  Widget build(BuildContext context) {
+    // Create a unique list of payee names from the orders
+    final payees = context.select((ExpenseReportBloc b) =>
+        b.state.allOrders.map((e) => e.payeeName).where((name) => name.isNotEmpty).toSet().toList()
+          ..sort());
+
+    return Row(
+      children: [
+        const SizedBox(width: 80, child: Text('Payee: ')),
+        Spacing.h8,
+        ComboBox<String?>(
+          placeholder: const Text('All Payees'),
+          value: context.select((ExpenseReportBloc b) => b.state.queryData.selectedPayee),
+          items: [
+            const ComboBoxItem<String?>(
+              value: null,
+              child: Text('All Payees'),
+            ),
+            for (final payee in payees)
+              ComboBoxItem<String?>(
+                value: payee,
+                child: Text(payee),
+              ),
+          ],
+          onChanged: (value) =>
+              context.read<ExpenseReportBloc>().add(ExpenseReportSetPayeeEvent(value)),
+        ),
+      ],
+    );
+  }
+}
+
+class _PaymentStatusSelection extends StatelessWidget {
+  const _PaymentStatusSelection();
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        const SizedBox(width: 80, child: Text('Status: ')),
+        Spacing.h8,
+        ComboBox<ExpensePaymentStatusFilter>(
+          value: context.select((ExpenseReportBloc b) => b.state.queryData.paymentStatusFilter),
+          items: [
+            for (final status in ExpensePaymentStatusFilter.values)
+              ComboBoxItem(
+                value: status,
+                child: Text(status.name),
+              ),
+          ],
+          onChanged: (value) {
+            if (value != null) {
+              context
+                  .read<ExpenseReportBloc>()
+                  .add(ExpenseReportSetPaymentStatusFilterEvent(value));
+            }
+          },
+        ),
+      ],
+    );
+  }
+}
+
+class _SearchQueryInput extends StatelessWidget {
+  const _SearchQueryInput();
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        const SizedBox(width: 80, child: Text('Search: ')),
+        Spacing.h8,
+        SizedBox(
+          width: 200,
+          child: TextBox(
+            placeholder: 'Search expenses...',
+            controller: TextEditingController(
+              text: context.select((ExpenseReportBloc b) => b.state.queryData.searchQuery),
+            ),
+            onChanged: (value) =>
+                context.read<ExpenseReportBloc>().add(ExpenseReportSetSearchQueryEvent(value)),
           ),
         ),
       ],

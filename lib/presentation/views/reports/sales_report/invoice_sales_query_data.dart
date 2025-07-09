@@ -95,6 +95,36 @@ class InvoiceSalesExtras extends Equatable {
       ];
 }
 
+/// Status filter for invoice sales report
+enum InvoiceStatusFilter {
+  all('All'),
+  paid('Paid'),
+  partial('Partial'),
+  unpaid('Unpaid'),
+  overpaid('Overpaid'),
+  overdue('Overdue');
+
+  const InvoiceStatusFilter(this.name);
+  final String name;
+
+  bool filterInvoice((Invoice, List<Payment>) invoiceData) {
+    switch (this) {
+      case InvoiceStatusFilter.all:
+        return true;
+      case InvoiceStatusFilter.paid:
+        return invoiceData.isPaid && !invoiceData.overpayment.isNaN && invoiceData.overpayment <= 0;
+      case InvoiceStatusFilter.partial:
+        return invoiceData.isPartial;
+      case InvoiceStatusFilter.unpaid:
+        return invoiceData.isUnpaid;
+      case InvoiceStatusFilter.overpaid:
+        return invoiceData.overpayment > 0;
+      case InvoiceStatusFilter.overdue:
+        return !invoiceData.isPaid && invoiceData.dueDate.isBefore(DateTime.now());
+    }
+  }
+}
+
 /// Sorting options for the invoice sales report
 enum InvoiceSalesReportSortBy {
   invoiceNumberAscending("Invoice # (Low to High)"),
@@ -172,6 +202,9 @@ class InvoiceSalesQueryData extends Equatable {
     this.invoiceSalesSummary,
     this.sortBy = InvoiceSalesReportSortBy.invoiceDateDescending,
     this.rowLimit,
+    this.searchQuery = '',
+    this.statusFilter = InvoiceStatusFilter.all,
+    this.selectedCustomer,
   });
 
   final DateTime startDate;
@@ -180,6 +213,9 @@ class InvoiceSalesQueryData extends Equatable {
   final InvoiceSalesExtras? invoiceSalesSummary;
   final InvoiceSalesReportSortBy sortBy;
   final int? rowLimit;
+  final String searchQuery;
+  final InvoiceStatusFilter statusFilter;
+  final String? selectedCustomer;
 
   InvoiceSalesQueryData Function({
     DateTime startDate,
@@ -188,6 +224,9 @@ class InvoiceSalesQueryData extends Equatable {
     InvoiceSalesExtras? invoiceSalesSummary,
     InvoiceSalesReportSortBy sortBy,
     int? rowLimit,
+    String searchQuery,
+    InvoiceStatusFilter statusFilter,
+    String? selectedCustomer,
   }) get copyWith {
     return ({
       Object? startDate = undefined,
@@ -196,6 +235,9 @@ class InvoiceSalesQueryData extends Equatable {
       Object? invoiceSalesSummary = undefined,
       Object? sortBy = undefined,
       Object? rowLimit = undefined,
+      Object? searchQuery = undefined,
+      Object? statusFilter = undefined,
+      Object? selectedCustomer = undefined,
     }) {
       return InvoiceSalesQueryData(
         startDate: startDate.or(this.startDate),
@@ -204,18 +246,74 @@ class InvoiceSalesQueryData extends Equatable {
         invoiceSalesSummary: invoiceSalesSummary.or(this.invoiceSalesSummary),
         sortBy: sortBy.or(this.sortBy),
         rowLimit: rowLimit.or(this.rowLimit),
+        searchQuery: searchQuery.or(this.searchQuery),
+        statusFilter: statusFilter.or(this.statusFilter),
+        selectedCustomer: selectedCustomer.or(this.selectedCustomer),
       );
     };
   }
 
   @override
-  List<Object?> get props =>
-      [startDate, endDate, invoiceSalesData, invoiceSalesSummary, sortBy, rowLimit];
+  List<Object?> get props => [
+        startDate,
+        endDate,
+        invoiceSalesData,
+        invoiceSalesSummary,
+        sortBy,
+        rowLimit,
+        searchQuery,
+        statusFilter,
+        selectedCustomer,
+      ];
 
   List<(Invoice, List<Payment>)>? get invoiceSalesDataWithRowLimit {
     if (rowLimit != null && invoiceSalesData != null) {
       return invoiceSalesData?.take(rowLimit!).toList();
     }
     return invoiceSalesData;
+  }
+
+  /// Filter and sort a list of invoice data pairs based on the current query parameters
+  List<(Invoice, List<Payment>)> call(
+    List<Invoice> invoices,
+    List<Payment> payments,
+  ) {
+    // Filter invoices by date range
+    final filteredInvoices = invoices.where((invoice) {
+      return invoice.invoiceDate.isAfter(startDate.subtract(const Duration(days: 1))) &&
+          invoice.invoiceDate.isBefore(endDate.add(const Duration(days: 1)));
+    }).toList();
+
+    // Map invoices to their payments
+    final invoiceSalesData = <(Invoice, List<Payment>)>[];
+    for (final invoice in filteredInvoices) {
+      final invoicePayments = payments.where((payment) => payment.invoiceId == invoice.id).toList();
+      invoiceSalesData.add((invoice, invoicePayments));
+    }
+
+    // Apply status filter
+    var result = invoiceSalesData.where((data) => statusFilter.filterInvoice(data)).toList();
+
+    // Apply customer filter if selected
+    if (selectedCustomer != null && selectedCustomer!.isNotEmpty) {
+      result = result
+          .where((data) =>
+              data.invoice.customerName.toLowerCase().contains(selectedCustomer!.toLowerCase()))
+          .toList();
+    }
+
+    // Apply search query filter
+    if (searchQuery.isNotEmpty) {
+      result = result
+          .where((data) =>
+              data.invoice.customerName.toLowerCase().contains(searchQuery.toLowerCase()) ||
+              (data.invoice.id?.toString() ?? '').contains(searchQuery))
+          .toList();
+    }
+
+    // Apply sorting
+    result.sort(sortBy.compare);
+
+    return result;
   }
 }

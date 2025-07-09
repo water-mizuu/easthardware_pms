@@ -47,6 +47,27 @@ class ExpenseExtras extends Equatable {
   List<Object?> get props => [expenseType, totalAmount, orderCount];
 }
 
+/// Payment status filter for expense report
+enum ExpensePaymentStatusFilter {
+  all('All'),
+  paid('Paid'),
+  unpaid('Unpaid');
+
+  const ExpensePaymentStatusFilter(this.name);
+  final String name;
+
+  bool filterExpense((Order, ExpenseType) expenseData) {
+    switch (this) {
+      case ExpensePaymentStatusFilter.all:
+        return true;
+      case ExpensePaymentStatusFilter.paid:
+        return expenseData.isPaid;
+      case ExpensePaymentStatusFilter.unpaid:
+        return !expenseData.isPaid;
+    }
+  }
+}
+
 /// Sorting options for the expense report
 enum ExpenseReportSortBy {
   expenseTypeAscending("Expense Type (A-Z)"),
@@ -113,6 +134,10 @@ class ExpenseQueryData extends Equatable {
     this.expenseSummary,
     this.sortBy = ExpenseReportSortBy.dateDescending,
     this.rowLimit,
+    this.searchQuery = '',
+    this.paymentStatusFilter = ExpensePaymentStatusFilter.all,
+    this.selectedExpenseType,
+    this.selectedPayee,
   });
 
   final DateTime startDate;
@@ -121,6 +146,10 @@ class ExpenseQueryData extends Equatable {
   final List<ExpenseExtras>? expenseSummary;
   final ExpenseReportSortBy sortBy;
   final int? rowLimit;
+  final String searchQuery;
+  final ExpensePaymentStatusFilter paymentStatusFilter;
+  final ExpenseType? selectedExpenseType;
+  final String? selectedPayee;
 
   ExpenseQueryData Function({
     DateTime startDate,
@@ -129,6 +158,10 @@ class ExpenseQueryData extends Equatable {
     List<ExpenseExtras>? expenseSummary,
     ExpenseReportSortBy sortBy,
     int? rowLimit,
+    String searchQuery,
+    ExpensePaymentStatusFilter paymentStatusFilter,
+    ExpenseType? selectedExpenseType,
+    String? selectedPayee,
   }) get copyWith {
     return ({
       Object? startDate = undefined,
@@ -137,6 +170,10 @@ class ExpenseQueryData extends Equatable {
       Object? expenseSummary = undefined,
       Object? sortBy = undefined,
       Object? rowLimit = undefined,
+      Object? searchQuery = undefined,
+      Object? paymentStatusFilter = undefined,
+      Object? selectedExpenseType = undefined,
+      Object? selectedPayee = undefined,
     }) {
       return ExpenseQueryData(
         startDate: startDate.or(this.startDate),
@@ -145,17 +182,85 @@ class ExpenseQueryData extends Equatable {
         expenseSummary: expenseSummary.or(this.expenseSummary),
         sortBy: sortBy.or(this.sortBy),
         rowLimit: rowLimit.or(this.rowLimit),
+        searchQuery: searchQuery.or(this.searchQuery),
+        paymentStatusFilter: paymentStatusFilter.or(this.paymentStatusFilter),
+        selectedExpenseType: selectedExpenseType.or(this.selectedExpenseType),
+        selectedPayee: selectedPayee.or(this.selectedPayee),
       );
     };
   }
 
   @override
-  List<Object?> get props => [startDate, endDate, expenseData, expenseSummary, sortBy, rowLimit];
+  List<Object?> get props => [
+        startDate,
+        endDate,
+        expenseData,
+        expenseSummary,
+        sortBy,
+        rowLimit,
+        searchQuery,
+        paymentStatusFilter,
+        selectedExpenseType,
+        selectedPayee,
+      ];
 
   List<(Order, ExpenseType)>? get expenseDataWithRowLimit {
     if (rowLimit != null && expenseData != null) {
       return expenseData?.take(rowLimit!).toList();
     }
     return expenseData;
+  }
+
+  /// Filter and sort a list of expense data pairs based on the current query parameters
+  List<(Order, ExpenseType)> call(
+    List<Order> orders,
+    List<ExpenseType> expenseTypes,
+  ) {
+    // Filter orders by date range
+    final filteredOrders = orders.where((order) {
+      return order.orderDate.isAfter(startDate) &&
+          order.orderDate.isBefore(endDate.add(const Duration(days: 1)));
+    }).toList();
+
+    // Map orders to their expense types
+    final expenseData = <(Order, ExpenseType)>[];
+    for (final order in filteredOrders) {
+      final expenseType = expenseTypes.firstWhere(
+        (type) => type.id == order.expenseType,
+        orElse: () => const ExpenseType(name: 'Unknown'),
+      );
+      expenseData.add((order, expenseType));
+    }
+
+    // Apply payment status filter
+    var result = expenseData.where((data) => paymentStatusFilter.filterExpense(data)).toList();
+
+    // Apply expense type filter if selected
+    if (selectedExpenseType != null) {
+      result = result.where((data) => data.expenseType.id == selectedExpenseType!.id).toList();
+    }
+
+    // Apply payee filter if selected
+    if (selectedPayee != null && selectedPayee!.isNotEmpty) {
+      result = result
+          .where(
+              (data) => data.order.payeeName.toLowerCase().contains(selectedPayee!.toLowerCase()))
+          .toList();
+    }
+
+    // Apply search query filter
+    if (searchQuery.isNotEmpty) {
+      result = result
+          .where((data) =>
+              data.order.payeeName.toLowerCase().contains(searchQuery.toLowerCase()) ||
+              data.expenseType.name.toLowerCase().contains(searchQuery.toLowerCase()) ||
+              (data.order.id?.toString() ?? '').contains(searchQuery))
+          .toList();
+    }
+
+    // Apply sorting
+    result.sort(sortBy.compare);
+
+    return result;
   }
 }

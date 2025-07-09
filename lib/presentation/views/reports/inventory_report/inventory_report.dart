@@ -337,11 +337,9 @@ class _CategoryFilter extends StatelessWidget {
             onChanged: (value, reason) {
               final found = allCategories.where((c) => c.name == value).firstOrNull;
 
-              if (found != null) {
-                context //
-                    .read<InventoryReportBloc>()
-                    .add(InventoryReportSetCategoryEvent(found));
-              }
+              context //
+                  .read<InventoryReportBloc>()
+                  .add(InventoryReportSetCategoryEvent(found));
             },
           ),
         ),

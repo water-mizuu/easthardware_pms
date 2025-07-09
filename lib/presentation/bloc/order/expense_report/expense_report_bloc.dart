@@ -31,6 +31,10 @@ class ExpenseReportBloc extends Bloc<ExpenseReportEvent, ExpenseReportState> {
     on<ExpenseReportRemoveOverlayEvent>(_onRemoveOverlay);
     on<ExpenseReportUpdateOrdersEvent>(_onUpdateOrders);
     on<ExpenseReportUpdateExpenseTypesEvent>(_onUpdateExpenseTypes);
+    on<ExpenseReportSetSearchQueryEvent>(_onSetSearchQuery);
+    on<ExpenseReportSetPaymentStatusFilterEvent>(_onSetPaymentStatusFilter);
+    on<ExpenseReportSetExpenseTypeEvent>(_onSetExpenseType);
+    on<ExpenseReportSetPayeeEvent>(_onSetPayee);
 
     // Initialize the query data
     add(const ExpenseReportInitializeEvent());
@@ -76,6 +80,46 @@ class ExpenseReportBloc extends Bloc<ExpenseReportEvent, ExpenseReportState> {
     _recalculateExpenseData(emit);
   }
 
+  void _onSetSearchQuery(
+    ExpenseReportSetSearchQueryEvent event,
+    Emitter<ExpenseReportState> emit,
+  ) {
+    emit(state.copyWith(
+      queryData: state.queryData.copyWith(searchQuery: event.searchQuery),
+    ));
+    _recalculateExpenseData(emit);
+  }
+
+  void _onSetPaymentStatusFilter(
+    ExpenseReportSetPaymentStatusFilterEvent event,
+    Emitter<ExpenseReportState> emit,
+  ) {
+    emit(state.copyWith(
+      queryData: state.queryData.copyWith(paymentStatusFilter: event.paymentStatusFilter),
+    ));
+    _recalculateExpenseData(emit);
+  }
+
+  void _onSetExpenseType(
+    ExpenseReportSetExpenseTypeEvent event,
+    Emitter<ExpenseReportState> emit,
+  ) {
+    emit(state.copyWith(
+      queryData: state.queryData.copyWith(selectedExpenseType: event.expenseType),
+    ));
+    _recalculateExpenseData(emit);
+  }
+
+  void _onSetPayee(
+    ExpenseReportSetPayeeEvent event,
+    Emitter<ExpenseReportState> emit,
+  ) {
+    emit(state.copyWith(
+      queryData: state.queryData.copyWith(selectedPayee: event.payee),
+    ));
+    _recalculateExpenseData(emit);
+  }
+
   void _onSetOverlay(ExpenseReportSetOverlayEvent event, Emitter<ExpenseReportState> emit) {
     emit(state.copyWith(overlayEntry: event.overlayEntry));
   }
@@ -100,44 +144,24 @@ class ExpenseReportBloc extends Bloc<ExpenseReportEvent, ExpenseReportState> {
   void _recalculateExpenseData(Emitter<ExpenseReportState> emit) {
     final orders = state.allOrders;
     final expenseTypes = state.allExpenseTypes;
-    final startDate = state.queryData.startDate;
-    final endDate = state.queryData.endDate;
-    final sortBy = state.queryData.sortBy;
 
-    // Filter orders by date range
-    final filteredOrders = orders.where((order) {
-      return order.orderDate.isAfter(startDate) &&
-          order.orderDate.isBefore(endDate.add(const Duration(days: 1)));
-    }).toList();
-
-    // Map orders to their expense types
-    final expenseData = <(Order, ExpenseType)>[];
-    for (final order in filteredOrders) {
-      final expenseType = expenseTypes.firstWhere(
-        (type) => type.id == order.expenseType,
-        orElse: () => const ExpenseType(name: 'Unknown'),
-      );
-      expenseData.add((order, expenseType));
-    }
-
-    // Apply sorting
-    expenseData.sort(sortBy.compare);
+    // Use the call method of queryData to filter and sort the data
+    final expenseData = state.queryData.call(orders, expenseTypes);
 
     // Calculate expense summary by type
     final expenseSummaryMap = <int, ExpenseExtras>{};
-    for (final (order, expenseType)
-        in expenseData.take(state.queryData.rowLimit ?? expenseData.length)) {
-      final id = expenseType.id ?? -1;
+    for (final data in expenseData) {
+      final id = data.expenseType.id ?? -1;
       final current = expenseSummaryMap[id];
       if (current == null) {
         expenseSummaryMap[id] = ExpenseExtras(
-          expenseType: expenseType,
-          totalAmount: order.amountDue,
+          expenseType: data.expenseType,
+          totalAmount: data.amountDue,
           orderCount: 1,
         );
       } else {
         expenseSummaryMap[id] = current.copyWith(
-          totalAmount: current.totalAmount + order.amountDue,
+          totalAmount: current.totalAmount + data.amountDue,
           orderCount: current.orderCount + 1,
         );
       }

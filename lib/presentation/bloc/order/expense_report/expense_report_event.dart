@@ -86,3 +86,39 @@ class ExpenseReportUpdateExpenseTypesEvent extends ExpenseReportEvent {
   @override
   List<Object?> get props => [expenseTypes];
 }
+
+class ExpenseReportSetSearchQueryEvent extends ExpenseReportEvent {
+  const ExpenseReportSetSearchQueryEvent(this.searchQuery);
+
+  final String searchQuery;
+
+  @override
+  List<Object?> get props => [searchQuery];
+}
+
+class ExpenseReportSetPaymentStatusFilterEvent extends ExpenseReportEvent {
+  const ExpenseReportSetPaymentStatusFilterEvent(this.paymentStatusFilter);
+
+  final ExpensePaymentStatusFilter paymentStatusFilter;
+
+  @override
+  List<Object?> get props => [paymentStatusFilter];
+}
+
+class ExpenseReportSetExpenseTypeEvent extends ExpenseReportEvent {
+  const ExpenseReportSetExpenseTypeEvent(this.expenseType);
+
+  final ExpenseType? expenseType;
+
+  @override
+  List<Object?> get props => [expenseType];
+}
+
+class ExpenseReportSetPayeeEvent extends ExpenseReportEvent {
+  const ExpenseReportSetPayeeEvent(this.payee);
+
+  final String? payee;
+
+  @override
+  List<Object?> get props => [payee];
+}
