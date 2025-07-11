@@ -504,7 +504,7 @@ class _OrderTableActions extends StatelessWidget {
           ),
           Spacing.h12,
           TextButtonFilled(
-            'Add Product',
+            'Add Item',
             onPressed: () {
               context.read<OrderFormBloc>().add(const OrderItemAddedEvent());
             },

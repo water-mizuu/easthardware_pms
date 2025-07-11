@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:easthardware_pms/domain/constants/debug_constants.dart';
 import 'package:easthardware_pms/domain/enums/enums.dart';
 import 'package:easthardware_pms/domain/models/payment_method.dart';
 import 'package:easthardware_pms/domain/repository/order_repository.dart';
@@ -32,9 +33,7 @@ import 'package:easthardware_pms/presentation/widgets/ui/text_button.dart';
 import 'package:easthardware_pms/utils/boxed.dart';
 import 'package:easthardware_pms/utils/notification.dart';
 import 'package:easthardware_pms/utils/typed_routes.dart';
-import 'package:easthardware_pms/domain/constants/debug_constants.dart';
 import 'package:fluent_ui/fluent_ui.dart';
-
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:provider/provider.dart';
@@ -407,7 +406,7 @@ class _OrderTableActions extends StatelessWidget {
           ),
           Spacing.h12,
           TextButtonFilled(
-            'Add Product',
+            'Add Item',
             onPressed: () {
               context.read<OrderFormBloc>().add(const OrderItemAddedEvent());
             },

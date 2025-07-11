@@ -752,7 +752,7 @@ class _BusinessSnapshotReportState extends State<BusinessSnapshotReport> {
                 ),
               ),
             TextButton(
-              'Add Product',
+              'Add Category',
               icon: FluentIcons.add,
               onPressed: () => unawaited(_showCategorySelectionDialog(context, state)),
             ),
