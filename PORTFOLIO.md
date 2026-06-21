@@ -1,4 +1,5 @@
 <!-- rank: 1 -->
+<!-- name: East Hardware PMS -->
 
 ![Dashboard View#](./public/portfolio/dashboard.png)
 
