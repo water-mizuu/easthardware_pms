@@ -1,5 +1,5 @@
 import 'package:fluent_ui/fluent_ui.dart';
-import 'package:flutter/material.dart' show Theme, ThemeData, DataTableThemeData, CardTheme;
+import 'package:flutter/material.dart' show CardThemeData, DataTableThemeData, Theme, ThemeData;
 
 class TableThemeData extends StatelessWidget {
   const TableThemeData({
@@ -19,7 +19,7 @@ class TableThemeData extends StatelessWidget {
           dataRowMinHeight: 42.0,
           dataRowMaxHeight: 48.0,
         ),
-        cardTheme: CardTheme(
+        cardTheme: CardThemeData(
           margin: EdgeInsets.zero,
           elevation: 0,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4.0)),
